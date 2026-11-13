@@ -24,6 +24,7 @@ public partial class MainUI : Control
     private Label _locationTitle;
     private Label _clockLabel;
     private Label _feedbackLabel;
+    private string _lastFeedback = "Select something in the scene to inspect it.";
     private PanelContainer _contextPanel;
 
     private readonly Color _background = new("#171a20");
@@ -276,6 +277,10 @@ public partial class MainUI : Control
             button.Pressed += () => ExecuteAction(id, action);
             _contextContent.AddChild(button);
         }
+        _contextContent.AddChild(new HSeparator());
+        _feedbackLabel = MakeLabel(_lastFeedback, 12, _muted);
+        _feedbackLabel.AutowrapMode = TextServer.AutowrapMode.Word;
+        _contextContent.AddChild(_feedbackLabel);
     }
 
     private void ExecuteAction(string entity, string action)
@@ -331,7 +336,8 @@ public partial class MainUI : Control
         if (id == "Bed") return new[] { "Sleep", "Rest", "Inspect" };
         if (id == "Washbasin") return new[] { "Brush Teeth", "Wash Face", "Inspect" };
         if (id == "Instructor") return new[] { "Talk", "Inspect" };
-        if (id == "Mira" || id == "Guild Clerk") return new[] { "Talk", "Gift", "Inspect", "Invite" };
+        if (id == "Guild Clerk") return new[] { "Talk", "Report", "Inspect" };
+        if (id == "Mira") return new[] { "Talk", "Gift", "Inspect", "Invite" };
         if (id == "Training Slime") return new[] { "Inspect", "Attack", "Defend" };
         if (id == "Survey Relic") return new[] { "Collect", "Inspect" };
         if (id == "Quest Board") return new[] { "Accept Quest", "Inspect" };
@@ -397,7 +403,8 @@ public partial class MainUI : Control
 
     private void SetFeedback(string message)
     {
-        _feedbackLabel.Text = message;
+        _lastFeedback = message;
+        if (GodotObject.IsInstanceValid(_feedbackLabel)) _feedbackLabel.Text = message;
     }
 
     private PanelContainer MakePanel(Color color, int padding)
