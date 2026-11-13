@@ -54,19 +54,19 @@ public partial class MainUI : Control
 
     private void BuildInterface()
     {
-        var root = new HBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill, SizeFlagsVertical = SizeFlags.ExpandFill };
+        var root = new HBoxContainer { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill, SizeFlagsVertical = Control.SizeFlags.ExpandFill };
         root.AddThemeConstantOverride("separation", 0);
         AddChild(root);
 
         var sidebarPanel = MakePanel(_surface, 0);
         sidebarPanel.CustomMinimumSize = new Vector2(210, 0);
         root.AddChild(sidebarPanel);
-        _sidebar = new VBoxContainer { SizeFlagsVertical = SizeFlags.ExpandFill };
+        _sidebar = new VBoxContainer { SizeFlagsVertical = Control.SizeFlags.ExpandFill };
         _sidebar.AddThemeConstantOverride("separation", 8);
         sidebarPanel.AddChild(_sidebar);
         BuildSidebar();
 
-        var center = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill, SizeFlagsVertical = SizeFlags.ExpandFill };
+        var center = new VBoxContainer { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill, SizeFlagsVertical = Control.SizeFlags.ExpandFill };
         center.AddThemeConstantOverride("separation", 12);
         center.AddThemeConstantOverride("margin_left", 22);
         center.AddThemeConstantOverride("margin_right", 22);
@@ -76,7 +76,7 @@ public partial class MainUI : Control
 
         var header = new HBoxContainer();
         center.AddChild(header);
-        var heading = new VBoxContainer { SizeFlagsHorizontal = SizeFlags.ExpandFill };
+        var heading = new VBoxContainer { SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
         header.AddChild(heading);
         _locationTitle = MakeLabel("Adventurer Academy", 25, _text, true);
         heading.AddChild(_locationTitle);
@@ -87,7 +87,7 @@ public partial class MainUI : Control
 
         var rule = new HSeparator();
         center.AddChild(rule);
-        _mainContent = new VBoxContainer { SizeFlagsVertical = SizeFlags.ExpandFill };
+        _mainContent = new VBoxContainer { SizeFlagsVertical = Control.SizeFlags.ExpandFill };
         _mainContent.AddThemeConstantOverride("separation", 12);
         center.AddChild(_mainContent);
 
@@ -112,7 +112,7 @@ public partial class MainUI : Control
         AddSidebarGroup("CHARACTER", new[] { "Profile", "Relationships", "Inventory" });
         AddSidebarGroup("ADVENTURE", new[] { "Quests", "Skills" });
         AddSidebarGroup("SYSTEM", new[] { "Settings" });
-        _sidebar.AddChild(new Control { SizeFlagsVertical = SizeFlags.ExpandFill });
+        _sidebar.AddChild(new Control { SizeFlagsVertical = Control.SizeFlags.ExpandFill });
         _sidebar.AddChild(MakeLabel("FIRST ADVENTURE  ·  PROTOTYPE", 9, _muted));
     }
 
@@ -214,8 +214,8 @@ public partial class MainUI : Control
 
     private void AddEntityButton(string name, string type, string state)
     {
-        var button = new EntityButton { Text = name + "   ·   " + state, EntityId = name, CustomMinimumSize = new Vector2(0, 40), Alignment = HorizontalAlignment.Left, FocusMode = FocusModeEnum.None };
-        button.EntityPressed += OnEntitySelected;
+        var button = new Button { Text = name + "   ·   " + state, CustomMinimumSize = new Vector2(0, 40), Alignment = HorizontalAlignment.Left, FocusMode = FocusModeEnum.None };
+        button.Pressed += () => OnEntitySelected(name);
         StyleButton(button);
         _mainContent.AddChild(button);
     }
@@ -228,8 +228,8 @@ public partial class MainUI : Control
 
     private void AddLocationButton(string name, string id, string state)
     {
-        var button = new EntityButton { Text = name + "   ·   " + state, EntityId = id, CustomMinimumSize = new Vector2(0, 38), Alignment = HorizontalAlignment.Left, FocusMode = FocusModeEnum.None };
-        button.EntityPressed += OnLocationSelected;
+        var button = new Button { Text = name + "   ·   " + state, CustomMinimumSize = new Vector2(0, 38), Alignment = HorizontalAlignment.Left, FocusMode = FocusModeEnum.None };
+        button.Pressed += () => OnLocationSelected(id);
         StyleButton(button);
         _mainContent.AddChild(button);
     }
@@ -383,7 +383,7 @@ public partial class MainUI : Control
         row.AddChild(MakeLabel(title, 13, _muted));
         var valueLabel = MakeLabel(value, 13, _text, true);
         valueLabel.HorizontalAlignment = HorizontalAlignment.Right;
-        valueLabel.SizeFlagsHorizontal = SizeFlags.ExpandFill;
+        valueLabel.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
         row.AddChild(valueLabel);
         _mainContent.AddChild(row);
     }
@@ -465,19 +465,4 @@ public partial class MainUI : Control
         }
     }
 
-    private sealed class EntityButton : Button
-    {
-        public string EntityId { get; set; }
-        public event Action<string> EntityPressed;
-
-        public EntityButton()
-        {
-            Pressed += HandlePressed;
-        }
-
-        private void HandlePressed()
-        {
-            EntityPressed?.Invoke(EntityId);
-        }
-    }
 }
