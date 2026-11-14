@@ -1,18 +1,23 @@
-# Adventurer Academy — UI Prototype
+# RPG — Adventurer Academy Prototype
 
-Godot 4.7.2 .NET prototype for the fantasy academy life-simulation UI.
+Godot 4.7.2 .NET / C# project.
 
-## Run
-1. Open `project.godot` with Godot 4.7.2 .NET.
-2. Let Godot import the SVG assets.
-3. Build the C# project, then run the main scene.
+## UI previews
 
-## UI responsibilities
-- `MainController.cs`: coordinates the panels and handles navigation choices.
-- `Sidebar.cs`: emits selected tab names.
-- `StoryPanel.cs`: displays location text and available choices.
-- `CharacterPanel.cs`: displays the character portrait and status.
-- `AcademyContent.cs`: stores sample location content and choices.
-- `UiTheme.cs`: shared panel and button styling.
+- Main prototype: Scenes/Main.tscn
+- Combat UI preview: Scenes/Previews/CombatPreview.tscn
 
-Each major UI area has its own scene under `Scenes/UI`.
+To inspect the Combat UI, open Scenes/Previews/CombatPreview.tscn in Godot and run the current scene (F6).
+
+## Combat UI responsibilities
+
+- CombatPanel.cs: coordinates the combat UI components.
+- CombatStatusPanel.cs: shows round, turn, enemy status and detected intent.
+- CombatMessageLog.cs: owns the scrollable, bounded message history.
+- CombatMessageEntry.cs: presents one Player, Enemy or System message.
+- CombatActionPanel.cs: shows available actions and emits the chosen action ID.
+- CombatPresentation.cs: data passed into the presentation layer.
+
+The UI preview is not a combat simulation. It does not resolve attacks, calculate damage, spend resources or advance turns.
+
+Design decisions and review questions: Docs/Design/COMBAT_PANEL_REVIEW.md.
