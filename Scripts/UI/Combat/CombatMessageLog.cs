@@ -36,7 +36,7 @@ public partial class CombatMessageLog : PanelContainer
             oldestEntry.QueueFree();
         }
 
-        _scroll.ScrollVertical = 100000;
+        _scroll.SetDeferred("scroll_vertical", 100000);
     }
 
     public void Clear()
