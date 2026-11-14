@@ -1,6 +1,6 @@
 # UI Architecture — Main Game Interface
 
-**Status:** Design direction / partial UI prototype  
+**Status:** Design direction with an integrated playable encounter slice  
 **Related documents:** [Game Overview](GAME_OVERVIEW.md), [Combat Panel Contract](COMBAT_PANEL_REVIEW.md)
 
 ## 1. Main Screen Composition
@@ -21,11 +21,7 @@ The Main Panel is the primary content area. It is not merely a text log.
 | DIARY | Current Goals, Journal Entries | Track current objectives and recorded experiences. |
 | SYSTEM | Settings | Configure the game. |
 
-This taxonomy is a working proposal, not a locked implementation.
-
-A separate World or Explore sidebar group is not currently planned. The Main Panel owns the current location and exploration experience. A dedicated Map page remains undecided.
-
-The repository sidebar may still contain older World / Adventure entries. Those are prototype leftovers.
+The current Sidebar implements this taxonomy. A separate World or Explore sidebar group is not planned. The Main Panel owns the current location and exploration experience. A dedicated Map page remains undecided.
 
 ## 3. Main Panel Modes
 
@@ -68,7 +64,7 @@ Its initial always-visible indicators are:
 
 Detailed information belongs in relevant character pages. The persistent panel should remain minimal.
 
-The existing prototype may still display old sample fields such as HP, Stamina or Gold. Those are not the agreed target specification.
+The current Character Panel displays Health, Energy and Mood persistently, with Gold shown as the reward currency.
 
 ## 5. Information Ownership
 
@@ -91,17 +87,17 @@ The Main Controller owns which Main Panel mode is active.
 - Ending combat returns to the current location's Exploration presentation.
 - Character Panel remains persistent.
 
-The complete transition flow is not implemented.
+The Main Controller implements the Exploration → Combat → same-location Exploration loop for the Goblin encounter. Other activity transitions remain unimplemented.
 
 ## 7. Prototype Reality Check
 
-The repository contains separate UI scenes and previews, but the full architecture is incomplete.
+The repository contains the integrated main-screen Goblin encounter and a separate Combat UI preview, but the broader game architecture remains incomplete.
 
-- Sidebar taxonomy may not match the proposal.
-- Character Panel may still use old sample indicators.
-- Combat preview is standalone and is not integrated into the main screen.
-- Other activity modes are not specified or implemented.
-- ICombatService is an interface / contract only; no combat simulation is connected.
+- Sidebar and Character Panel now follow the agreed taxonomy and persistent indicators.
+- The main scene switches between Exploration and Combat without replacing the Sidebar or Character Panel.
+- CombatService currently implements only a deterministic Goblin encounter.
+- Other activity modes, save/load and the wider life simulation are not implemented.
+- Runtime build and end-to-end verification in Godot 4.7.2 .NET remain pending.
 
 ## 8. UI Review Criteria
 

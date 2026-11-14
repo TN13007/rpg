@@ -1,6 +1,6 @@
 # Combat Panel — Design & Implementation Contract
 
-**Status:** UI prototype with a defined gameplay boundary  
+**Status:** Integrated playable Goblin encounter slice; broader combat system remains prototype-level  
 **Engine:** Godot 4.7.2 .NET / C#  
 **Scope:** Combat presentation and its integration contract. The current preview does not implement combat rules.
 
@@ -19,7 +19,7 @@ Exploration communicates a place and its available interactions. Combat communic
 | Message Log | Ordered history of actions, reactions, results and observations | Append new messages |
 | Action Selection | Current actions, target, cost, description and availability | Replace the full action list |
 
-The Character Panel remains outside Combat Panel and persistently displays Health, Energy and Mood. The current preview does not instantiate it.
+The Character Panel remains outside Combat Panel and persistently displays Health, Energy, Mood and Gold. It remains visible during Combat.
 
 ## 3. Architecture and Data Flow
 
@@ -70,7 +70,7 @@ The UI's enabled / disabled action state is advisory. CombatService.ExecuteActio
 | IntentObservation | Information the character has actually observed or inferred |
 | CombatActionOption | Player-facing action and its current availability |
 
-ICombatService defines the future application boundary. The current preview does not provide a concrete combat service or simulate gameplay.
+ICombatService defines the application boundary. CombatService is the current concrete implementation for one deterministic Goblin encounter; it is intentionally not a generalized combat framework.
 
 ## 4. Message Contract
 
@@ -164,27 +164,31 @@ The Main Controller owns the transition between Exploration and Combat.
 - Combat → Exploration: return to the current location's Exploration presentation.
 - Character Panel remains persistent.
 
-This transition is not implemented by the standalone preview.
+The Main Controller currently implements this transition for the Goblin encounter. The standalone Combat Preview remains separate.
 
 ## 10. Prototype Reality Check
 
-Implemented in the current UI preview:
+Implemented in the main playable slice:
 - Dedicated Combat Panel and separate Status, Message Log and Action components.
 - Typed messages with visible speaker and category labels.
 - Presentation-safe CombatSnapshot, CombatResult, CombatViewData and mapper contracts.
 - Intent observation model without a hidden AI action field.
 - Bounded log and conditional auto-scroll.
 - Keyboard focus enabled for action buttons.
+- Main Screen integration with mutually exclusive Exploration and Combat modes.
+- Deterministic CombatService for Attack, Defend and Dodge, including validation, enemy response, HP / Energy mutation and victory / defeat.
+- Victory reward of 25 G applied to the shared PlayerState.
+- Persistent Character Panel showing Health, Energy, Mood and Gold.
+- Return from Combat to the same Exploration location.
 
 Not implemented:
-- Concrete CombatService or combat rules.
-- Action validation, damage formulas, AI, Perception checks or turn progression.
-- Real Health / Energy mutation.
-- Targeting, item use, skills, VFX, audio or save/load.
-- Main Screen integration and mode transitions.
+- Multiple enemies, advanced enemy AI, perception checks or randomized combat.
+- Skills, items, status effects, VFX, audio or save/load.
+- Full activity simulation, relationship, diary or quest behavior.
 - Responsive narrow-screen layout verification or full assistive-technology testing.
+- Runtime build and end-to-end verification in Godot 4.7.2 .NET.
 
-Preview values and events are illustrative only.
+Combat rules are deliberately small and deterministic for this sprint. The standalone Combat Preview still uses illustrative values and is not the main gameplay entry point.
 
 ## 11. Acceptance Criteria
 
@@ -199,8 +203,8 @@ Preview values and events are illustrative only.
 - [x] Log is bounded to 60 messages.
 - [x] Auto-scroll follows new messages only when the reader was already at the bottom.
 - [x] Action buttons support keyboard focus.
-- [ ] Concrete CombatService validates, resolves and applies actions.
-- [ ] Main Controller integrates Combat and Exploration modes.
+- [x] Concrete CombatService validates, resolves and applies the current sprint actions.
+- [x] Main Controller integrates Combat and Exploration modes for the Goblin encounter.
 - [ ] Narrow-screen layout and assistive-technology behavior are tested.
 
 ## 12. External Review Questions

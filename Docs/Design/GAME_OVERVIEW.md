@@ -44,7 +44,7 @@ Combat is planned as **turn-based**.
 
 Combat has a dedicated presentation mode rather than reusing the normal Exploration presentation. The player should be able to understand the current encounter, distinguish actions from outcomes, read enemy reactions and make an informed next decision.
 
-The current Combat Panel is a presentation prototype only. It does not implement combat rules, enemy AI, damage resolution, resource spending or turn progression. See [Combat Panel Review](COMBAT_PANEL_REVIEW.md).
+The current main scene contains one playable, deterministic Goblin encounter: the player enters Combat from the Academy Courtyard, chooses Attack / Defend / Dodge, resolves the Goblin's response, receives 25 G on victory and returns to the same location. This is a narrow vertical slice, not the final combat system. See [Combat Panel Review](COMBAT_PANEL_REVIEW.md) and [Playable Journey Sprint](SPRINT_PLAYABLE_JOURNEY.md).
 
 ## 5. Player State
 
@@ -74,15 +74,15 @@ The interface should make choices and consequences readable without overwhelming
 
 ## 7. Current Prototype Boundaries
 
-The repository currently contains UI scenes and previews. They should not be mistaken for a complete game implementation.
+The repository currently contains an integrated Goblin encounter vertical slice, UI scenes and previews. They should not be mistaken for a complete game implementation.
 
 In particular, do not assume that the project already has:
 - A functioning day or schedule simulation.
 - Complete location navigation or interaction systems.
 - A working relationship or diary system.
-- A combat resolver or enemy AI.
-- Persistent Health, Energy and Mood simulation.
-- A finished integrated main screen.
+- A generalized combat system or advanced enemy AI.
+- A complete Health, Energy and Mood simulation.
+- A finished life-simulation game or complete activity navigation.
 
 ## 8. Review Guidance
 
