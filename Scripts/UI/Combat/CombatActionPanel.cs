@@ -50,8 +50,13 @@ public partial class CombatActionPanel : PanelContainer
         };
 
         UiTheme.StyleButton(button);
-        button.Pressed += () => ActionSelected?.Invoke(action.Id);
+        button.Connect(BaseButton.SignalName.Pressed, Callable.From<string>(HandleActionSelected).Bind(action.Id));
         return button;
+    }
+
+    private void HandleActionSelected(string actionId)
+    {
+        ActionSelected?.Invoke(actionId);
     }
 
     private void ClearChildren()
