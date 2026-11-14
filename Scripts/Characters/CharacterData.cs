@@ -1,4 +1,6 @@
 using System;
+using System.Text.Json;
+using Godot;
 
 public sealed class CharacterData
 {
@@ -73,6 +75,47 @@ public sealed class CharacterData
         StartingEnergy = startingEnergy;
         StartingMood = startingMood;
         StartingGold = startingGold;
+    }
+}
+
+public static class CharacterDataLoader
+{
+    public static CharacterData Load(string path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            throw new ArgumentException("Character data path is required.", nameof(path));
+        }
+
+        if (!FileAccess.FileExists(path))
+        {
+            throw new InvalidOperationException("Character data file was not found: " + path);
+        }
+
+        string json = FileAccess.GetFileAsString(path);
+
+        try
+        {
+            using JsonDocument document = JsonDocument.Parse(json);
+            JsonElement data = document.RootElement;
+
+            return new CharacterData(
+                data.GetProperty("id").GetString(),
+                data.GetProperty("name").GetString(),
+                data.GetProperty("role").GetString(),
+                data.GetProperty("level").GetInt32(),
+                data.GetProperty("maxHealth").GetInt32(),
+                data.GetProperty("maxEnergy").GetInt32(),
+                data.GetProperty("maxMood").GetInt32(),
+                data.GetProperty("startingHealth").GetInt32(),
+                data.GetProperty("startingEnergy").GetInt32(),
+                data.GetProperty("startingMood").GetInt32(),
+                data.GetProperty("startingGold").GetInt32());
+        }
+        catch (JsonException exception)
+        {
+            throw new InvalidOperationException("Invalid character data JSON: " + path, exception);
+        }
     }
 }
 
