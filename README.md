@@ -25,21 +25,23 @@ Open the project in Godot 4.7.2 .NET and run the main scene (Scenes/Main.tscn).
 
 The right Character Panel remains visible and shows Health, Energy, Mood and Gold. The left Sidebar contains Character, Diary and System navigation; location exploration remains in the Main Panel rather than becoming a separate sidebar tab.
 
-## Combat implementation
+## Character and combat implementation
 
-- Scripts/Services/CombatService.cs: validates actions, resolves player and Goblin turns, applies damage, detects victory / defeat and grants the reward.
-- Scripts/Data/PlayerState.cs: shared prototype player state for Health, Energy, Mood and Gold.
-- Scripts/Data/CombatPresentation.cs: action request, result, safe snapshot, event and view-data contracts.
+- Scripts/Characters/CharacterData.cs: immutable starting data for a character and the CharacterViewModel consumed by the Character Panel.
+- Scripts/Characters/Character.cs: runtime character object. It owns Health, Energy, Mood and Gold, and controls damage, resource spending, recovery and reward changes.
+- Scripts/Services/CombatService.cs: coordinates the player and enemy Character objects, validates actions, resolves turns and grants the victory reward.
+- Scripts/Data/CombatPresentation.cs: action request, result, safe snapshot, event and combat view-data contracts.
 - Scripts/Data/CombatPresentationMapper.cs: maps service results into presentation messages and CombatViewData.
+- Scripts/UI/CharacterPanel.cs: renders CharacterViewModel and does not access the domain Character directly.
 - Scripts/UI/Combat/CombatPanel.cs: coordinates combat status, message log, action selection and the return-to-exploration action.
 - Scripts/UI/Combat/CombatStatusPanel.cs: current round, enemy HP / condition and observed intent.
 - Scripts/UI/Combat/CombatMessageLog.cs: bounded history and conditional auto-scroll.
 - Scripts/UI/Combat/CombatMessageEntry.cs: Player-right, Enemy-left and System-center message presentation.
 - Scripts/UI/Combat/CombatActionPanel.cs: current action options and request emission.
-- Scripts/MainController.cs: owns the Exploration / Combat mode transition and returns to the encounter's original location.
+- Scripts/MainController.cs: creates the Player and Goblin from CharacterData, owns the Exploration / Combat mode transition and refreshes the Character Panel from a new CharacterViewModel.
 
 ## Prototype limitations
 
 Combat rules are intentionally small and deterministic for this sprint: basic attack deals 20 damage, Goblin has 40 HP and deals 4 damage, Defend costs 1 Energy and reduces the next hit to 1, Dodge costs 2 Energy and avoids the next hit. Victory grants 25 G.
 
-This is the implemented vertical-slice path, not the final combat balance or complete life-simulation system. Runtime build and end-to-end verification in Godot 4.7.2 .NET are still pending; do not treat the journey as tested yet. The standalone Combat Preview remains illustrative and is not the main gameplay entry point.
+The Character OOP integration has been committed to the feature branch, but this new integration still needs a Godot 4.7.2 .NET build and end-to-end runtime check. The standalone Combat Preview remains illustrative and is not the main gameplay entry point.
