@@ -52,9 +52,14 @@ public sealed class CharacterData
             throw new ArgumentOutOfRangeException(nameof(startingEnergy));
         }
 
-        if (startingMood < 0 || startingMood > maxMood || startingGold < 0)
+        if (startingMood < 0 || startingMood > maxMood)
         {
             throw new ArgumentOutOfRangeException(nameof(startingMood));
+        }
+
+        if (startingGold < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(startingGold));
         }
 
         Id = id;
