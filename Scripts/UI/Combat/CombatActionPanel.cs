@@ -31,7 +31,7 @@ public partial class CombatActionPanel : PanelContainer
         }
     }
 
-    private Button CreateActionButton(CombatActionOption action)
+    private CombatActionButton CreateActionButton(CombatActionOption action)
     {
         string cost = string.IsNullOrWhiteSpace(action.CostLabel) ? string.Empty : "  ·  " + action.CostLabel;
         string detail = string.IsNullOrWhiteSpace(action.Description) ? string.Empty : "\n" + action.Description;
@@ -39,8 +39,9 @@ public partial class CombatActionPanel : PanelContainer
             ? string.Empty
             : "\n" + action.UnavailableReason;
 
-        Button button = new Button
+        CombatActionButton button = new CombatActionButton
         {
+            ActionId = action.Id,
             Text = action.Label + cost + detail + unavailableReason,
             TooltipText = action.UnavailableReason,
             CustomMinimumSize = new Vector2(0, 62),
@@ -50,7 +51,7 @@ public partial class CombatActionPanel : PanelContainer
         };
 
         UiTheme.StyleButton(button);
-        button.Connect(BaseButton.SignalName.Pressed, Callable.From<string>(HandleActionSelected).Bind(action.Id));
+        button.ActionSelected += HandleActionSelected;
         return button;
     }
 
