@@ -1,190 +1,214 @@
-# Combat Panel — Design & AI Review Brief
+# Combat Panel — Design & Implementation Contract
 
-**Status:** Proposal / UI prototype  
-**Engine:** Godot 4.7.2 .NET, C#  
-**Scope:** Combat presentation only. This document does not define or implement combat rules.
+**Status:** UI prototype with a defined gameplay boundary  
+**Engine:** Godot 4.7.2 .NET / C#  
+**Scope:** Combat presentation and its integration contract. The current preview does not implement combat rules.
 
 ## 1. Purpose
 
-Combat must use a dedicated presentation mode. It should not reuse the Exploration panel with different text.
+Combat uses a dedicated presentation mode. It must not reuse the Exploration panel with different text.
 
-Exploration helps the player understand a place and discover possible interactions. Combat helps the player understand:
-
-1. What just happened.
-2. What the enemy did in response.
-3. What changed as a result.
-4. What threat the character has noticed.
-5. Which actions are available now.
-
-The Combat Panel is an event-oriented interface, not a scene-description page.
+Exploration communicates a place and its available interactions. Combat communicates the current encounter, completed actions, outcomes, observed threats and currently available choices.
 
 ## 2. Screen Structure
 
-The Combat Panel has four areas.
-
 | Area | Responsibility | Update behavior |
 |---|---|---|
-| Encounter Header | Encounter name / combat context | At encounter start or context change |
-| Combat Status | Round, active turn, enemy HP and conditions, detected intent | When combat state or observations change |
-| Message Log | Ordered record of actions, reactions, results and observations | Append messages as events occur |
-| Action Selection | Actions currently available to the player, including target and cost | Whenever available actions change |
+| Encounter Header | Encounter name and context | Encounter start or context change |
+| Combat Status | Round, active turn, enemy HP / condition and current observed intent | Replace from latest view data |
+| Message Log | Ordered history of actions, reactions, results and observations | Append new messages |
+| Action Selection | Current actions, target, cost, description and availability | Replace the full action list |
 
-Design contract: the Character Panel stays outside the Combat Panel and should continue showing the player's persistent Health, Energy and Mood. This preview scene does not instantiate the Character Panel, and the existing CharacterPanel prototype has not yet been updated to the Health / Energy / Mood requirement. Do not treat that integration as implemented. Do not duplicate persistent player stats inside the message log.
+The Character Panel remains outside Combat Panel and persistently displays Health, Energy and Mood. The current preview does not instantiate it.
 
-## 3. Message Alignment Contract
+## 3. Architecture and Data Flow
 
-Every message has one of three presentation types.
+The intended gameplay boundary is:
 
-| Type | Alignment | Used for |
+    Actor / UI
+        |
+        | CombatActionRequest
+        v
+    CombatService
+        |-- Validate action and current turn
+        |-- Resolve action using combat rules
+        |-- Apply valid result to combat state
+        |-- Return CombatResult with safe CombatSnapshot
+        v
+    CombatPresentationMapper
+        |-- Convert public combat events into messages
+        |-- Pass through presentation-safe status only
+        |-- Build CombatViewData
+        v
+    CombatPanel
+        |-- Replace current Status
+        |-- Replace available Actions
+        |-- Append new Messages
+        v
+    Status / Log / Action components
+
+### Ownership rules
+
+- CombatService owns action validation, resolution and mutation of combat state. It does not reference Godot UI nodes.
+- CombatResult reports success or failure, a failure reason when applicable, the resulting presentation-safe snapshot and events produced by the request.
+- CombatSnapshot is a safe read model. It may contain current enemy HP, conditions, active turn, available actions and observed intent. It must not contain raw enemy AI state, planned action IDs, hidden targets or internal decision data.
+- CombatPresentationMapper converts the result into CombatViewData and maps event types to message type, category, speaker and text.
+- CombatPanel consumes CombatViewData. It does not calculate damage, spend resources, validate game rules or inspect enemy AI state.
+
+The UI's enabled / disabled action state is advisory. CombatService.ExecuteAction must validate again because the state may have changed since the view was produced.
+
+### Data contracts
+
+| Type | Responsibility |
+|---|---|
+| CombatActionRequest | Action ID and optional target ID requested by the actor |
+| CombatResult | Success / failure, failure reason, safe snapshot and produced events |
+| CombatEvent | Completed gameplay event with type, round and relevant values |
+| CombatSnapshot | Current presentation-safe encounter state |
+| CombatViewData | Data the Combat Panel can render |
+| CombatMessage | One historical, semantically typed message |
+| IntentObservation | Information the character has actually observed or inferred |
+| CombatActionOption | Player-facing action and its current availability |
+
+ICombatService defines the future application boundary. The current preview does not provide a concrete combat service or simulate gameplay.
+
+## 4. Message Contract
+
+Every message has one of three semantic types. Alignment is a visual aid, not the only identity cue.
+
+| Type | Alignment | Required visible identity |
 |---|---|---|
-| Player | Right | Player action / declared intent |
-| Enemy | Left | Enemy action, speech and visible reaction |
-| System | Center | Damage results, skill checks, status changes, turn changes and tactical environment events |
+| Player | Right | Speaker label such as YOU |
+| Enemy | Left | Stable enemy label such as GOBLIN A |
+| System | Center | SYSTEM label and category when applicable |
 
-A message should separate the action from its result.
+Each message contains a stable ID, Round, Type, Category, Speaker and Text.
 
-Example sequence:
+Categories are None, Damage, Check, Turn, Environment, Inference, Emotion, StatusChange and Round.
 
-1. **Player / right:** "You attack Goblin A with a basic strike."
-2. **System / center:** "20 physical damage. Goblin A: HP 60 → 40."
-3. **Enemy / left:** "Goblin A snarls and lowers its stance."
-4. **System / center:** "PERCEPTION CHECK · SUCCESS — You notice it shifting its weight forward. It appears to be preparing a dangerous lunge."
+Do not add a fourth message type for thoughts. Use a categorized System message. A Round separator is also a System message with the Round category.
 
-The message log is not the source of truth for current HP. The status area shows current HP; the log records how it changed.
+Completed events use past tense. Intent and available-action descriptions may use present or future wording. Use stable target names consistently.
 
-## 4. Enemy Intent and Information Fairness
-
-Enemy intent is not the same as the enemy AI's internal next action.
-
-- The combat resolver may know the enemy's planned action.
-- The character may not know that action.
-- The UI may display only information the character has actually observed or inferred.
-
-The caller should pass an **observed intent** to the UI, not the enemy AI's hidden action.
-
-Suggested presentation states:
-
-- **Not detected:** show no intent card.
-- **Suspected:** show a cautious, uncertain description.
-- **Recognized:** show a more specific description, but do not imply certainty unless the game rules justify it.
+The current status is the source of truth for HP. The log records damage delta only; it must not repeat resulting current HP.
 
 Example:
-- Low Perception: "The goblin's movements seem unusual."
-- Better Perception: "You suspect it is preparing to charge."
-- Strong Perception: "You recognize its stance as the beginning of a forward lunge."
+- Status: Goblin A — 40 / 60 HP.
+- Log: SYSTEM · DAMAGE — Goblin A loses 20 HP.
 
-Perception should change the information quality, not secretly alter the enemy's action.
+## 5. Enemy Intent and Information Fairness
 
-## 5. Character Thoughts and Neutral Messages
+Enemy intent is an observation, not the enemy AI's internal next action.
 
-Internal narration is optional, not mandatory after every action.
+- CombatService may know the planned action internally.
+- The character may not know it.
+- CombatSnapshot may expose only an IntentObservation produced by a valid observation / inference rule.
+- IntentObservation contains enemy identity, player-facing description and confidence (Suspected or Recognized). It must not expose a hidden action ID or raw AI decision.
 
-Use a centered System message with a clear category label when the game reports:
-- Perception or skill check results.
-- The character's tactical inference.
-- A meaningful emotional reaction.
-- An environment event that changes combat conditions.
+No observation means no intent card. Sending a snapshot with Intent = null clears the card.
 
-Do not turn every ordinary action into an internal monologue. Do not present an inference as objective fact.
+### Lifecycle
 
-Example labels:
-- PERCEPTION CHECK · SUCCESS
-- INSTINCT
-- ENVIRONMENT
-- STATUS CHANGE
-- ROUND 03 · ENEMY TURN
+1. A valid observation creates or updates the intent.
+2. A new observation replaces the previous observation for that enemy.
+3. When the observed threat starts executing, is interrupted or otherwise becomes invalid, the next snapshot clears or replaces it.
+4. A new encounter starts with no intent unless an observation has already occurred in that encounter.
 
-The text should make it clear whether a statement is an observation, an inference, or an objective system result.
+Gameplay rules decide when an observation becomes invalid. The UI must not infer expiry from elapsed time or guess enemy behavior.
 
-## 6. Environment During Combat
+### Information precedence
 
-Do not keep repeating the normal Exploration description during combat.
+- Intent card: temporary, current actionable expectation.
+- Message Log: historical record of what the character observed or what actually happened.
+- Enemy action message: describes the visible action after it occurs.
+- Inference message: explicitly describes the character's interpretation, not objective fact.
 
-Show environment information only when it matters to the encounter:
-- A hazard activates.
-- Terrain changes movement or attack options.
-- Visibility changes.
-- An object becomes usable or dangerous.
-- A relevant environmental effect begins or ends.
+Do not repeat the same claim in all four places.
 
-A combat background illustration may remain visible as visual context, but it must not compete with the message log or action choices. The current prototype does not implement a battlefield illustration.
+## 6. Action Availability
 
-## 7. Action Selection
+The latest snapshot replaces the entire available-action list; it is not appended to the previous list.
 
-Each action option should provide enough information to make a decision without opening another screen unnecessarily.
+The service refreshes that list whenever the player turn begins or a relevant condition changes, including resources, target availability, status effects or encounter phase.
 
-At minimum:
-- Action name.
-- Target, when relevant.
-- Resource cost, when relevant.
-- Short effect or purpose.
-- Availability state.
+Each option contains an ID, label, optional target context, cost, description, availability and optional unavailable reason.
 
-Unavailable actions may be disabled, with a reason provided where useful.
+The UI disables unavailable actions and may display the reason. The service still validates every submitted request before applying it.
 
-Selecting a button emits an action ID. This UI prototype does not resolve the action, calculate damage, spend Energy, or advance the turn.
+## 7. Status, Log and Encounter Lifecycle
 
-## 8. Mode Transition
+- Status is current state; Log is historical sequence.
+- Enemy HP is exact in this prototype.
+- Log records damage deltas, not duplicate current HP.
+- A new encounter clears the previous encounter log and intent.
+- The log is bounded to 60 messages.
+- Auto-scroll only when the reader was already at the bottom before a new message arrived.
+- If the reader is inspecting older messages, preserve their scroll position.
+- A round separator is a styled System message with category Round. Timestamps are not required for the prototype.
 
-- Exploration → Combat: enter a dedicated Combat Panel when an encounter starts.
-- During Combat: update status, append messages and refresh available actions.
-- Combat → Exploration: leave the Combat Panel and return to the current location's Exploration presentation.
-- A concise encounter result may be transferred to the Diary later. The full combat log does not need to remain in the normal Exploration view.
+## 8. Accessibility and Layout
 
-The Character Panel is persistent across both modes. The Main Controller (not this component) owns the mode switch.
+- Message identity remains visible in text labels, not only alignment or color.
+- Action buttons are keyboard-focusable and operable.
+- Unavailable actions expose a readable reason.
+- Message bodies wrap when the window is resized.
+- Maintain sufficient contrast between text, labels and message backgrounds.
+- The preview is desktop-first. Exact narrow-screen stacking rules remain open and must be tested before mobile-sized layouts are claimed as supported.
 
-## 9. Prototype Scope
+## 9. Mode Transition
 
-Included:
-- Dedicated Combat Panel scene.
-- Separate status, message-log and action-selection components.
-- Player-right, Enemy-left and System-center message alignment.
-- Enemy HP / condition display.
-- Optional detected-intent display.
-- Action options with cost and description.
-- A preview scene with sample Goblin encounter messages.
+The Main Controller owns the transition between Exploration and Combat.
 
-Not included:
-- Turn resolution, enemy AI or damage formulas.
-- Real Perception checks or stat calculations.
-- Health / Energy mutation.
-- Targeting logic, item use or skills.
-- Combat animations, VFX or sound.
-- Integration into the Exploration flow.
-- Save/load or persistent combat history.
+- Exploration → Combat: show the dedicated Combat Panel.
+- During Combat: apply the latest view data.
+- Combat → Exploration: return to the current location's Exploration presentation.
+- Character Panel remains persistent.
 
-## 10. Acceptance Criteria
+This transition is not implemented by the standalone preview.
 
-- [ ] The Combat Panel is a separate scene from the Exploration panel.
-- [ ] Player messages are right-aligned.
-- [ ] Enemy messages are left-aligned.
-- [ ] System messages are center-aligned.
-- [ ] The UI distinguishes an action from its result.
-- [ ] Current enemy HP is visible without reading the message history.
-- [ ] Hidden enemy AI actions are not passed to the UI as known information.
-- [ ] Detected intent is visually distinct from confirmed combat state.
-- [ ] Action options show relevant costs and descriptions.
-- [ ] The log is scrollable and does not grow without a bound.
-- [ ] The Character Panel remains a separate, persistent component.
-- [ ] Combat ends by returning control to Exploration (integration is future work).
+## 10. Prototype Reality Check
 
-## 11. Questions for External Review
+Implemented in the current UI preview:
+- Dedicated Combat Panel and separate Status, Message Log and Action components.
+- Typed messages with visible speaker and category labels.
+- Presentation-safe CombatSnapshot, CombatResult, CombatViewData and mapper contracts.
+- Intent observation model without a hidden AI action field.
+- Bounded log and conditional auto-scroll.
+- Keyboard focus enabled for action buttons.
 
-Please critique the design and the prototype code. Do not assume missing combat mechanics are implemented.
+Not implemented:
+- Concrete CombatService or combat rules.
+- Action validation, damage formulas, AI, Perception checks or turn progression.
+- Real Health / Energy mutation.
+- Targeting, item use, skills, VFX, audio or save/load.
+- Main Screen integration and mode transitions.
+- Responsive narrow-screen layout verification or full assistive-technology testing.
 
-1. Is the separation between Combat Status, Message Log and Action Selection clear?
-2. Is right / left / center alignment sufficient to distinguish Player, Enemy and System messages, including for color-blind players?
-3. Is showing enemy HP in the status area while repeating damage deltas in the log redundant, or is this useful separation of current state and history?
-4. Does the Enemy Intent card reveal too much, too little, or the right amount of information?
-5. Should internal thoughts use a fourth visual message type, or remain a categorized System message?
-6. Does the message log need grouping, timestamps, round separators or a compact mode?
-7. Are there accessibility or readability problems with the current layout?
-8. Is the component / scene / script split appropriately scoped, or is it over-engineered?
-9. What should be changed before integrating the Combat Panel with Exploration?
+Preview values and events are illustrative only.
 
-Please separate:
-- Critical defects.
-- UX improvements.
-- Optional future features.
+## 11. Acceptance Criteria
 
-Avoid adding new gameplay systems unless they are necessary to resolve a demonstrated problem in this UI.
+- [ ] Combat is a dedicated scene, separate from Exploration.
+- [ ] CombatService is the only owner of action validation, resolution and combat-state mutation when gameplay integration is implemented.
+- [x] UI presentation contracts do not expose raw enemy AI state.
+- [x] Message data includes stable ID, round, semantic type, category, speaker and text.
+- [x] Player, Enemy and System messages have visible text identities in addition to alignment.
+- [x] Status shows current enemy HP; log records damage deltas.
+- [x] Intent is represented as an observation and can be cleared by sending null.
+- [x] Action availability is replaced from latest view data; service-side revalidation is specified.
+- [x] Log is bounded to 60 messages.
+- [x] Auto-scroll follows new messages only when the reader was already at the bottom.
+- [x] Action buttons support keyboard focus.
+- [ ] Concrete CombatService validates, resolves and applies actions.
+- [ ] Main Controller integrates Combat and Exploration modes.
+- [ ] Narrow-screen layout and assistive-technology behavior are tested.
+
+## 12. External Review Questions
+
+1. Is the Service → Result / Snapshot → Mapper → ViewData → UI boundary clear?
+2. Does the safe snapshot contain exactly the information presentation needs?
+3. Are message categories sufficient without a fourth message type?
+4. Is the intent lifecycle consistent with the game's observation rules?
+5. Are action availability refresh conditions complete?
+6. Does the log preserve reading position correctly?
+7. What responsive layout should be used below desktop width?
