@@ -3,7 +3,7 @@ using Godot;
 
 public partial class CombatPanel : PanelContainer
 {
-    public event Action<string> ActionSelected;
+    public event Action<CombatActionRequest> ActionSelected;
 
     private Label _encounterTitle;
     private CombatStatusPanel _statusPanel;
@@ -49,8 +49,8 @@ public partial class CombatPanel : PanelContainer
         }
     }
 
-    private void HandleActionSelected(string actionId)
+    private void HandleActionSelected(CombatActionRequest request)
     {
-        ActionSelected?.Invoke(actionId);
+        ActionSelected?.Invoke(request);
     }
 }

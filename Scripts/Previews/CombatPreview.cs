@@ -26,7 +26,7 @@ public partial class CombatPreview : Control
                 IntentConfidence.Suspected),
             new[]
             {
-                new CombatActionOption("attack", "Attack Goblin A", "No cost", "Deal damage with a basic attack."),
+                new CombatActionOption("attack", "Attack Goblin A", "No cost", "Deal damage with a basic attack.", targetId: "goblin-a"),
                 new CombatActionOption("defend", "Defend", "1 Energy", "Reduce the impact of the next incoming attack."),
                 new CombatActionOption("dodge", "Dodge", "2 Energy", "Attempt to evade the incoming attack."),
                 new CombatActionOption("items", "Use Item", "Varies", "Choose an item from your inventory.")
@@ -47,8 +47,8 @@ public partial class CombatPreview : Control
         _combatPanel.ApplyViewData(viewData);
     }
 
-    private void OnActionSelected(string actionId)
+    private void OnActionSelected(CombatActionRequest request)
     {
-        GD.Print("Combat preview selected action: " + actionId + ". No combat service is connected.");
+        GD.Print("Combat preview selected action: " + request.ActionId + ", target: " + request.TargetId + ". No combat service is connected.");
     }
 }

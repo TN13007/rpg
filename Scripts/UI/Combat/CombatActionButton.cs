@@ -3,9 +3,9 @@ using Godot;
 
 public partial class CombatActionButton : Button
 {
-    public event Action<string> ActionSelected;
+    public event Action<CombatActionRequest> ActionSelected;
 
-    public string ActionId { get; set; } = string.Empty;
+    public CombatActionRequest Request { get; set; }
 
     public override void _Ready()
     {
@@ -14,6 +14,9 @@ public partial class CombatActionButton : Button
 
     private void EmitActionSelected()
     {
-        ActionSelected?.Invoke(ActionId);
+        if (Request != null)
+        {
+            ActionSelected?.Invoke(Request);
+        }
     }
 }

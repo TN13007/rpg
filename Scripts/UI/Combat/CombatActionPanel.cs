@@ -3,7 +3,7 @@ using Godot;
 
 public partial class CombatActionPanel : PanelContainer
 {
-    public event Action<string> ActionSelected;
+    public event Action<CombatActionRequest> ActionSelected;
 
     private GridContainer _actionGrid;
 
@@ -41,7 +41,7 @@ public partial class CombatActionPanel : PanelContainer
 
         CombatActionButton button = new CombatActionButton
         {
-            ActionId = action.Id,
+            Request = new CombatActionRequest(action.Id, action.TargetId),
             Text = action.Label + cost + detail + unavailableReason,
             TooltipText = action.UnavailableReason,
             CustomMinimumSize = new Vector2(0, 62),
@@ -55,9 +55,9 @@ public partial class CombatActionPanel : PanelContainer
         return button;
     }
 
-    private void HandleActionSelected(string actionId)
+    private void HandleActionSelected(CombatActionRequest request)
     {
-        ActionSelected?.Invoke(actionId);
+        ActionSelected?.Invoke(request);
     }
 
     private void ClearChildren()

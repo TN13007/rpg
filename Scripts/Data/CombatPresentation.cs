@@ -111,15 +111,17 @@ public sealed class IntentObservation
 public sealed class CombatActionOption
 {
     public string Id { get; }
+    public string TargetId { get; }
     public string Label { get; }
     public string CostLabel { get; }
     public string Description { get; }
     public bool IsAvailable { get; }
     public string UnavailableReason { get; }
 
-    public CombatActionOption(string id, string label, string costLabel, string description, bool isAvailable = true, string unavailableReason = "")
+    public CombatActionOption(string id, string label, string costLabel, string description, bool isAvailable = true, string unavailableReason = "", string targetId = "")
     {
         Id = id ?? string.Empty;
+        TargetId = targetId ?? string.Empty;
         Label = label ?? string.Empty;
         CostLabel = costLabel ?? string.Empty;
         Description = description ?? string.Empty;
