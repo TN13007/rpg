@@ -9,5 +9,12 @@
   "startingHealth": 20,
   "startingEnergy": 8,
   "startingMood": 70,
-  "startingGold": 20
+  "startingGold": 20,
+  "stats": {
+    "strength": 20,
+    "agility": 30,
+    "intelligence": 25,
+    "endurance": 20,
+    "wisdom": 20
+  }
 }

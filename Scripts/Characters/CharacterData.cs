@@ -2,6 +2,60 @@ using System;
 using System.Text.Json;
 using Godot;
 
+public enum CharacterStat
+{
+    Strength,
+    Agility,
+    Intelligence,
+    Endurance,
+    Wisdom
+}
+
+public sealed class CharacterStats
+{
+    public int Strength { get; }
+    public int Agility { get; }
+    public int Intelligence { get; }
+    public int Endurance { get; }
+    public int Wisdom { get; }
+
+    public CharacterStats(int strength, int agility, int intelligence, int endurance, int wisdom)
+    {
+        ValidateValue(strength, nameof(strength));
+        ValidateValue(agility, nameof(agility));
+        ValidateValue(intelligence, nameof(intelligence));
+        ValidateValue(endurance, nameof(endurance));
+        ValidateValue(wisdom, nameof(wisdom));
+
+        Strength = strength;
+        Agility = agility;
+        Intelligence = intelligence;
+        Endurance = endurance;
+        Wisdom = wisdom;
+    }
+
+    public int GetValue(CharacterStat stat)
+    {
+        return stat switch
+        {
+            CharacterStat.Strength => Strength,
+            CharacterStat.Agility => Agility,
+            CharacterStat.Intelligence => Intelligence,
+            CharacterStat.Endurance => Endurance,
+            CharacterStat.Wisdom => Wisdom,
+            _ => throw new ArgumentOutOfRangeException(nameof(stat))
+        };
+    }
+
+    private static void ValidateValue(int value, string name)
+    {
+        if (value < 0 || value > 100)
+        {
+            throw new ArgumentOutOfRangeException(name, "Character stats must be between 0 and 100.");
+        }
+    }
+}
+
 public sealed class CharacterData
 {
     public string Id { get; }
@@ -15,6 +69,7 @@ public sealed class CharacterData
     public int StartingEnergy { get; }
     public int StartingMood { get; }
     public int StartingGold { get; }
+    public CharacterStats Stats { get; }
 
     public CharacterData(
         string id,
@@ -27,7 +82,8 @@ public sealed class CharacterData
         int startingHealth,
         int startingEnergy,
         int startingMood,
-        int startingGold)
+        int startingGold,
+        CharacterStats stats = null)
     {
         if (string.IsNullOrWhiteSpace(id))
         {
@@ -75,6 +131,7 @@ public sealed class CharacterData
         StartingEnergy = startingEnergy;
         StartingMood = startingMood;
         StartingGold = startingGold;
+        Stats = stats ?? new CharacterStats(0, 0, 0, 0, 0);
     }
 }
 
@@ -110,12 +167,28 @@ public static class CharacterDataLoader
                 data.GetProperty("startingHealth").GetInt32(),
                 data.GetProperty("startingEnergy").GetInt32(),
                 data.GetProperty("startingMood").GetInt32(),
-                data.GetProperty("startingGold").GetInt32());
+                data.GetProperty("startingGold").GetInt32(),
+                ReadStats(data));
         }
         catch (JsonException exception)
         {
             throw new InvalidOperationException("Invalid character data JSON: " + path, exception);
         }
+    }
+
+    private static CharacterStats ReadStats(JsonElement data)
+    {
+        if (!data.TryGetProperty("stats", out JsonElement stats))
+        {
+            return new CharacterStats(0, 0, 0, 0, 0);
+        }
+
+        return new CharacterStats(
+            stats.GetProperty("strength").GetInt32(),
+            stats.GetProperty("agility").GetInt32(),
+            stats.GetProperty("intelligence").GetInt32(),
+            stats.GetProperty("endurance").GetInt32(),
+            stats.GetProperty("wisdom").GetInt32());
     }
 }
 
@@ -131,6 +204,7 @@ public sealed class CharacterViewModel
     public int Mood { get; }
     public int MaxMood { get; }
     public int Gold { get; }
+    public CharacterStats Stats { get; }
 
     public CharacterViewModel(Character character)
     {
@@ -149,5 +223,6 @@ public sealed class CharacterViewModel
         Mood = character.Mood;
         MaxMood = character.MaxMood;
         Gold = character.Gold;
+        Stats = character.Stats;
     }
 }

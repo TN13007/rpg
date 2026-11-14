@@ -3,12 +3,57 @@ using System.Collections.Generic;
 using System.Text.Json;
 using Godot;
 
+public sealed class ActivityTimeModifier
+{
+    public CharacterStat Stat { get; }
+    public double MaxReduction { get; }
+
+    public ActivityTimeModifier(CharacterStat stat, double maxReduction)
+    {
+        if (!Enum.IsDefined(typeof(CharacterStat), stat))
+        {
+            throw new ArgumentOutOfRangeException(nameof(stat));
+        }
+
+        if (maxReduction < 0 || maxReduction > 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(maxReduction), "Maximum time reduction must be between 0 and 1.");
+        }
+
+        Stat = stat;
+        MaxReduction = maxReduction;
+    }
+}
+
+public sealed class ActivityDefinition
+{
+    public int DurationMinutes { get; }
+    public ActivityTimeModifier TimeModifier { get; }
+
+    public ActivityDefinition(int durationMinutes, ActivityTimeModifier timeModifier = null)
+    {
+        if (durationMinutes < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(durationMinutes));
+        }
+
+        DurationMinutes = durationMinutes;
+        TimeModifier = timeModifier;
+    }
+}
+
 public sealed class StoryChoice
 {
     public string Id { get; }
     public string Label { get; }
+    public int DurationMinutes { get; }
+    public ActivityTimeModifier TimeModifier { get; }
 
-    public StoryChoice(string id, string label)
+    public StoryChoice(
+        string id,
+        string label,
+        int durationMinutes = 0,
+        ActivityTimeModifier timeModifier = null)
     {
         if (string.IsNullOrWhiteSpace(id))
         {
@@ -20,8 +65,15 @@ public sealed class StoryChoice
             throw new ArgumentException("Choice label is required.", nameof(label));
         }
 
+        if (durationMinutes < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(durationMinutes));
+        }
+
         Id = id;
         Label = label;
+        DurationMinutes = durationMinutes;
+        TimeModifier = timeModifier;
     }
 }
 
@@ -50,6 +102,7 @@ public static class AcademyContent
     private static Dictionary<string, LocationContent> _locations = new Dictionary<string, LocationContent>();
 
     public static IEnumerable<LocationContent> All => _locations.Values;
+    public static ActivityDefinition Travel { get; private set; } = new ActivityDefinition(10);
 
     public static void Load(string path)
     {
@@ -69,7 +122,11 @@ public static class AcademyContent
         try
         {
             using JsonDocument document = JsonDocument.Parse(json);
-            JsonElement locations = document.RootElement.GetProperty("locations");
+            JsonElement root = document.RootElement;
+            ActivityDefinition loadedTravel = root.TryGetProperty("travel", out JsonElement travelData)
+                ? ReadActivityDefinition(travelData)
+                : new ActivityDefinition(10);
+            JsonElement locations = root.GetProperty("locations");
 
             foreach (JsonElement locationData in locations.EnumerateArray())
             {
@@ -87,18 +144,19 @@ public static class AcademyContent
 
                 loadedLocations.Add(id, new LocationContent(id, name, region, description, exits, actions));
             }
+
+            if (loadedLocations.Count == 0)
+            {
+                throw new InvalidOperationException("Academy content must contain at least one location.");
+            }
+
+            _locations = loadedLocations;
+            Travel = loadedTravel;
         }
         catch (JsonException exception)
         {
             throw new InvalidOperationException("Invalid academy content JSON: " + path, exception);
         }
-
-        if (loadedLocations.Count == 0)
-        {
-            throw new InvalidOperationException("Academy content must contain at least one location.");
-        }
-
-        _locations = loadedLocations;
     }
 
     public static LocationContent Get(string id)
@@ -151,11 +209,45 @@ public static class AcademyContent
 
         foreach (JsonElement item in data.EnumerateArray())
         {
+            int durationMinutes = item.TryGetProperty("durationMinutes", out JsonElement duration)
+                ? duration.GetInt32()
+                : 0;
+
+            ActivityTimeModifier modifier = item.TryGetProperty("timeModifier", out JsonElement modifierData)
+                ? ReadTimeModifier(modifierData)
+                : null;
+
             actions.Add(new StoryChoice(
                 ReadString(item, "id"),
-                ReadString(item, "label")));
+                ReadString(item, "label"),
+                durationMinutes,
+                modifier));
         }
 
         return actions.ToArray();
+    }
+
+    private static ActivityDefinition ReadActivityDefinition(JsonElement data)
+    {
+        int durationMinutes = data.GetProperty("durationMinutes").GetInt32();
+        ActivityTimeModifier modifier = data.TryGetProperty("timeModifier", out JsonElement modifierData)
+            ? ReadTimeModifier(modifierData)
+            : null;
+
+        return new ActivityDefinition(durationMinutes, modifier);
+    }
+
+    private static ActivityTimeModifier ReadTimeModifier(JsonElement data)
+    {
+        string statName = ReadString(data, "stat");
+
+        if (!Enum.TryParse(statName, true, out CharacterStat stat) ||
+            !Enum.IsDefined(typeof(CharacterStat), stat))
+        {
+            throw new InvalidOperationException("Unknown character stat in time modifier: " + statName);
+        }
+
+        double maxReduction = data.GetProperty("maxReduction").GetDouble();
+        return new ActivityTimeModifier(stat, maxReduction);
     }
 }

@@ -1,4 +1,11 @@
 {
+  "travel": {
+    "durationMinutes": 10,
+    "timeModifier": {
+      "stat": "Agility",
+      "maxReduction": 0.5
+    }
+  },
   "locations": [
     {
       "id": "dormitory",
@@ -7,8 +14,9 @@
       "description": "Morning light slips through the curtains. Your room is quiet, and the academy day is about to begin.",
       "exits": ["courtyard"],
       "actions": [
-        { "id": "rest", "label": "Take a short rest" },
-        { "id": "inspect_letter", "label": "Read the letter on your desk" }
+        { "id": "rest", "label": "Take a short rest", "durationMinutes": 30 },
+        { "id": "inspect_letter", "label": "Read the letter on your desk", "durationMinutes": 10 },
+        { "id": "sleep", "label": "Sleep until tomorrow", "durationMinutes": 0 }
       ]
     },
     {
@@ -18,9 +26,9 @@
       "description": "Students cross the courtyard beneath old trees. A rustling comes from the gate. Something small is moving in the bushes.",
       "exits": ["dormitory", "classroom", "guild_hall"],
       "actions": [
-        { "id": "talk_mira", "label": "Talk to Mira" },
-        { "id": "inspect_board", "label": "Read the notice board" },
-        { "id": "encounter_goblin", "label": "Investigate the rustling near the gate" }
+        { "id": "talk_mira", "label": "Talk to Mira", "durationMinutes": 15 },
+        { "id": "inspect_board", "label": "Read the notice board", "durationMinutes": 10 },
+        { "id": "encounter_goblin", "label": "Investigate the rustling near the gate", "durationMinutes": 0 }
       ]
     },
     {
@@ -30,8 +38,16 @@
       "description": "Field maps cover the walls. Training equipment is arranged neatly beside the instructor's desk.",
       "exits": ["courtyard"],
       "actions": [
-        { "id": "talk_instructor", "label": "Talk to the instructor" },
-        { "id": "inspect_maps", "label": "Study the field maps" }
+        { "id": "talk_instructor", "label": "Talk to the instructor", "durationMinutes": 20 },
+        {
+          "id": "inspect_maps",
+          "label": "Study the field maps",
+          "durationMinutes": 20,
+          "timeModifier": {
+            "stat": "Intelligence",
+            "maxReduction": 0.5
+          }
+        }
       ]
     },
     {
@@ -41,8 +57,8 @@
       "description": "A broad counter separates the students from the expedition clerks. Reports and requests are pinned behind them.",
       "exits": ["courtyard"],
       "actions": [
-        { "id": "talk_clerk", "label": "Talk to the guild clerk" },
-        { "id": "inspect_requests", "label": "Browse expedition requests" }
+        { "id": "talk_clerk", "label": "Talk to the guild clerk", "durationMinutes": 15 },
+        { "id": "inspect_requests", "label": "Browse expedition requests", "durationMinutes": 10 }
       ]
     }
   ]

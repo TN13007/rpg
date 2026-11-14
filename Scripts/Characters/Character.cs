@@ -13,6 +13,7 @@ public sealed class Character
     public int Mood { get; private set; }
     public int MaxMood => _data.MaxMood;
     public int Gold { get; private set; }
+    public CharacterStats Stats => _data.Stats;
     public bool IsAlive => Health > 0;
 
     public Character(CharacterData data)

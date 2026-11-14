@@ -12,9 +12,10 @@ public partial class MainController : Control
     private Character _goblin;
     private CombatService _combatService;
     private CombatPresentationMapper _combatMapper;
+    private DayClock _dayClock;
+    private ActivityTimeCalculator _activityTimeCalculator;
 
-    private string _currentLocationId = "courtyard";
-    private int _day = 1;
+    private string _currentLocationId = "dormitory";
 
     public override void _Ready()
     {
@@ -32,6 +33,8 @@ public partial class MainController : Control
         _goblin = new Character(goblinData);
         _combatService = new CombatService(_player, _goblin);
         _combatMapper = new CombatPresentationMapper();
+        _dayClock = new DayClock();
+        _activityTimeCalculator = new ActivityTimeCalculator();
 
         _sidebar.TabSelected += OpenTab;
         _storyPanel.ChoiceSelected += HandleChoice;
@@ -69,7 +72,7 @@ public partial class MainController : Control
             location.Region,
             location.Description,
             choices,
-            "DAY " + _day.ToString("00") + "  ·  07:30");
+            _dayClock.GetDisplayText());
         _storyPanel.ShowLocationButton(false);
     }
 
@@ -77,7 +80,7 @@ public partial class MainController : Control
     {
         string description = tab switch
         {
-            "Profile" => "A summary of your adventurer and current condition.",
+            "Profile" => GetProfileDescription(),
             "Skills" => "Techniques available to a novice adventurer.",
             "Inventory" => "Items and equipment carried by your character.",
             "Relationships" => "People you have met during your time at the academy.",
@@ -88,8 +91,21 @@ public partial class MainController : Control
 
         _storyPanel.Visible = true;
         _combatPanel.Visible = false;
-        _storyPanel.ShowContent(tab, "ADVENTURER RECORD", description, Array.Empty<StoryChoice>(), "DAY " + _day.ToString("00"));
+        _storyPanel.ShowContent(tab, "ADVENTURER RECORD", description, Array.Empty<StoryChoice>(), _dayClock.GetDisplayText());
         _storyPanel.ShowLocationButton(true);
+    }
+
+    private string GetProfileDescription()
+    {
+        CharacterStats stats = _player.Stats;
+
+        return "A summary of your adventurer and current condition."
+            + "\n\nATTRIBUTES"
+            + "\nStrength: " + stats.Strength
+            + "\nAgility: " + stats.Agility
+            + "\nIntelligence: " + stats.Intelligence
+            + "\nEndurance: " + stats.Endurance
+            + "\nWisdom: " + stats.Wisdom;
     }
 
     private void HandleChoice(string choiceId)
@@ -97,6 +113,12 @@ public partial class MainController : Control
         if (choiceId.StartsWith("travel:", StringComparison.Ordinal))
         {
             TravelTo(choiceId.Substring("travel:".Length));
+            return;
+        }
+
+        if (choiceId == "sleep")
+        {
+            Sleep();
             return;
         }
 
@@ -119,7 +141,39 @@ public partial class MainController : Control
             _ => "There is nothing more to do here right now."
         };
 
-        _storyPanel.ShowFeedback(message);
+        AdvanceForAction(choiceId, message);
+    }
+
+    private void AdvanceForAction(string choiceId, string feedback)
+    {
+        LocationContent location = AcademyContent.Get(_currentLocationId);
+
+        foreach (StoryChoice action in location.Actions)
+        {
+            if (action.Id != choiceId)
+            {
+                continue;
+            }
+
+            int actualDuration = _activityTimeCalculator.Calculate(action, _player);
+            _dayClock.AdvanceMinutes(actualDuration);
+            ShowLocation();
+            _storyPanel.ShowFeedback(feedback + " (" + actualDuration + " minutes)");
+            return;
+        }
+    }
+
+    private void Sleep()
+    {
+        if (_currentLocationId != "dormitory")
+        {
+            _storyPanel.ShowFeedback("You need to return to your dormitory before sleeping.");
+            return;
+        }
+
+        _dayClock.SleepUntilNextDay();
+        ShowLocation();
+        _storyPanel.ShowFeedback("You wake up after a night's rest. Another day at the academy begins.");
     }
 
     private void StartGoblinEncounter()
@@ -140,6 +194,11 @@ public partial class MainController : Control
 
     private void HandleCombatAction(CombatActionRequest request)
     {
+        if (_combatService.IsEncounterOver)
+        {
+            return;
+        }
+
         CombatResult result = _combatService.ExecuteAction(request);
         _combatPanel.ApplyViewData(_combatMapper.Map(result));
         _characterPanel.SetCharacter(new CharacterViewModel(_player));
@@ -149,6 +208,7 @@ public partial class MainController : Control
             return;
         }
 
+        _dayClock.AdvanceMinutes(30);
         _combatPanel.ShowEncounterComplete(_combatService.IsVictory ? "VICTORY" : "DEFEAT");
     }
 
@@ -169,7 +229,10 @@ public partial class MainController : Control
             return;
         }
 
+        int actualDuration = _activityTimeCalculator.Calculate(AcademyContent.Travel, _player);
+        _dayClock.AdvanceMinutes(actualDuration);
         _currentLocationId = destinationId;
         ShowLocation();
+        _storyPanel.ShowFeedback("You arrive at " + AcademyContent.Get(destinationId).Name + ". Travel took " + actualDuration + " minutes.");
     }
 }
