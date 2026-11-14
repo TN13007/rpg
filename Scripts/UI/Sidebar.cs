@@ -19,20 +19,14 @@ public partial class Sidebar : PanelContainer
 
     private void Bind(string path, string tab)
     {
-        Button button = GetNode<Button>(path);
+        SidebarButton button = GetNode<SidebarButton>(path);
+        button.TabId = tab;
         UiTheme.StyleButton(button);
-        button.Pressed += HandleButtonPressed;
-        button.SetMeta("tab_id", tab);
+        button.Selected += HandleTabSelected;
     }
 
-    private void HandleButtonPressed()
+    private void HandleTabSelected(string tab)
     {
-        Button button = GetViewport().GuiGetFocusOwner() as Button;
-        if (button == null)
-        {
-            return;
-        }
-
-        TabSelected?.Invoke(button.GetMeta("tab_id").AsString());
+        TabSelected?.Invoke(tab);
     }
 }

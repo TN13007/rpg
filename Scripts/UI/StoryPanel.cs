@@ -16,7 +16,6 @@ public partial class StoryPanel : PanelContainer
     public override void _Ready()
     {
         UiTheme.StylePanel(this);
-
         _title = GetNode<Label>("Margin/Content/Header/Heading/Title");
         _subtitle = GetNode<Label>("Margin/Content/Header/Heading/Subtitle");
         _day = GetNode<Label>("Margin/Content/Header/Day");
@@ -32,14 +31,19 @@ public partial class StoryPanel : PanelContainer
         _day.Text = dayLabel;
         _story.Text = text;
         _feedback.Text = "Choose an option to continue.";
-
         ClearChoices();
 
         foreach (StoryChoice choice in choices)
         {
-            var button = new Button { Text = choice.Label, CustomMinimumSize = new Vector2(0, 40) };
+            StoryChoiceButton button = new StoryChoiceButton
+            {
+                Text = choice.Label,
+                ChoiceId = choice.Id,
+                CustomMinimumSize = new Vector2(0, 40),
+                FocusMode = FocusModeEnum.All
+            };
             UiTheme.StyleButton(button);
-            button.Pressed += () => ChoiceSelected?.Invoke(choice.Id);
+            button.ChoiceSelected += HandleChoiceSelected;
             _choices.AddChild(button);
         }
     }
@@ -47,6 +51,11 @@ public partial class StoryPanel : PanelContainer
     public void ShowFeedback(string message)
     {
         _feedback.Text = message;
+    }
+
+    private void HandleChoiceSelected(string choiceId)
+    {
+        ChoiceSelected?.Invoke(choiceId);
     }
 
     private void ClearChoices()
