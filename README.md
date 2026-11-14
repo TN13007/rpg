@@ -25,23 +25,37 @@ Open the project in Godot 4.7.2 .NET and run the main scene (Scenes/Main.tscn).
 
 The right Character Panel remains visible and shows Health, Energy, Mood and Gold. The left Sidebar contains Character, Diary and System navigation; location exploration remains in the Main Panel rather than becoming a separate sidebar tab.
 
-## Character and combat implementation
+## Data and presentation flow
 
-- Scripts/Characters/CharacterData.cs: immutable starting data for a character and the CharacterViewModel consumed by the Character Panel.
-- Scripts/Characters/Character.cs: runtime character object. It owns Health, Energy, Mood and Gold, and controls damage, resource spending, recovery and reward changes.
-- Scripts/Services/CombatService.cs: coordinates the player and enemy Character objects, validates actions, resolves turns and grants the victory reward.
-- Scripts/Data/CombatPresentation.cs: action request, result, safe snapshot, event and combat view-data contracts.
-- Scripts/Data/CombatPresentationMapper.cs: maps service results into presentation messages and CombatViewData.
-- Scripts/UI/CharacterPanel.cs: renders CharacterViewModel and does not access the domain Character directly.
-- Scripts/UI/Combat/CombatPanel.cs: coordinates combat status, message log, action selection and the return-to-exploration action.
-- Scripts/UI/Combat/CombatStatusPanel.cs: current round, enemy HP / condition and observed intent.
-- Scripts/UI/Combat/CombatMessageLog.cs: bounded history and conditional auto-scroll.
-- Scripts/UI/Combat/CombatMessageEntry.cs: Player-right, Enemy-left and System-center message presentation.
-- Scripts/UI/Combat/CombatActionPanel.cs: current action options and request emission.
-- Scripts/MainController.cs: creates the Player and Goblin from CharacterData, owns the Exploration / Combat mode transition and refreshes the Character Panel from a new CharacterViewModel.
+- `Data/Characters/player.json` and `Data/Characters/goblin.json` define character identity, role, level, maximum values and starting values.
+- `CharacterDataLoader` reads a JSON definition and creates immutable `CharacterData`.
+- `Character` owns runtime state. It controls damage, resource spending, recovery and reward changes.
+- `Data/academy_locations.json` defines location descriptions, exits and available exploration choices.
+- `AcademyContent` loads location definitions into `LocationContent` and `StoryChoice` models.
+- `StoryPanel` renders the supplied `StoryChoice` collection. It does not define location choices itself.
+- `CombatService` creates state-dependent `CombatActionOption` models; `CombatActionPanel` renders those models. Combat rules and action resolution remain in the service.
+- `CharacterViewModel` is a read-only presentation model created from `Character`; `CharacterPanel` does not access the domain object directly.
+- `CombatPresentationMapper` maps service results into `CombatViewData` for `CombatPanel`.
+
+## Main responsibilities
+
+- `Scripts/Characters/CharacterData.cs`: immutable character configuration, JSON loader and CharacterViewModel.
+- `Scripts/Characters/Character.cs`: runtime character state and state-changing operations.
+- `Scripts/Data/AcademyContent.cs`: location and exploration-choice models, plus JSON content loading.
+- `Scripts/Services/CombatService.cs`: validates actions, resolves turns and grants the victory reward.
+- `Scripts/Data/CombatPresentation.cs`: action request, result, safe snapshot, event and combat view-data contracts.
+- `Scripts/Data/CombatPresentationMapper.cs`: maps service results into presentation messages and CombatViewData.
+- `Scripts/UI/CharacterPanel.cs`: renders CharacterViewModel.
+- `Scripts/UI/StoryPanel.cs`: renders StoryChoice models as exploration buttons.
+- `Scripts/UI/Combat/CombatPanel.cs`: coordinates combat status, message log, action selection and the return-to-exploration action.
+- `Scripts/UI/Combat/CombatStatusPanel.cs`: current round, enemy HP / condition and observed intent.
+- `Scripts/UI/Combat/CombatMessageLog.cs`: bounded history and conditional auto-scroll.
+- `Scripts/UI/Combat/CombatMessageEntry.cs`: Player-right, Enemy-left and System-center message presentation.
+- `Scripts/UI/Combat/CombatActionPanel.cs`: renders CombatActionOption models and emits action requests.
+- `Scripts/MainController.cs`: loads content, creates runtime characters, owns Exploration / Combat mode transitions and refreshes the Character Panel.
 
 ## Prototype limitations
 
-Combat rules are intentionally small and deterministic for this sprint: basic attack deals 20 damage, Goblin has 40 HP and deals 4 damage, Defend costs 1 Energy and reduces the next hit to 1, Dodge costs 2 Energy and avoids the next hit. Victory grants 25 G.
+Combat rules are intentionally small and deterministic: basic attack deals 20 damage, Goblin has 40 HP and deals 4 damage, Defend costs 1 Energy and reduces the next hit to 1, Dodge costs 2 Energy and avoids the next hit. Victory grants 25 G.
 
-The Character OOP integration has been committed to the feature branch, but this new integration still needs a Godot 4.7.2 .NET build and end-to-end runtime check. The standalone Combat Preview remains illustrative and is not the main gameplay entry point.
+Character OOP integration and the original Goblin encounter journey were tested by the project owner in Godot 4.7.2 .NET. The new JSON loading changes have been committed but still need a fresh build and runtime check. The standalone Combat Preview remains illustrative and is not the main gameplay entry point.
