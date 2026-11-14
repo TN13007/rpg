@@ -8,7 +8,8 @@ public partial class MainController : Control
     private StoryPanel _storyPanel;
     private CombatPanel _combatPanel;
     private CharacterPanel _characterPanel;
-    private PlayerState _player;
+    private Character _player;
+    private Character _goblin;
     private CombatService _combatService;
     private CombatPresentationMapper _combatMapper;
 
@@ -22,8 +23,35 @@ public partial class MainController : Control
         _combatPanel = GetNode<CombatPanel>("SafeArea/Layout/CombatPanel");
         _characterPanel = GetNode<CharacterPanel>("SafeArea/Layout/CharacterPanel");
 
-        _player = new PlayerState("Ari", "First-year adventurer", 1, 20, 20, 8, 10, 70, 20);
-        _combatService = new CombatService(_player);
+        CharacterData playerData = new CharacterData(
+            "player-ari",
+            "Ari",
+            "First-year adventurer",
+            1,
+            20,
+            10,
+            100,
+            20,
+            8,
+            70,
+            20);
+
+        CharacterData goblinData = new CharacterData(
+            "goblin-a",
+            "Goblin",
+            "Training enemy",
+            1,
+            40,
+            0,
+            0,
+            40,
+            0,
+            0,
+            0);
+
+        _player = new Character(playerData);
+        _goblin = new Character(goblinData);
+        _combatService = new CombatService(_player, _goblin);
         _combatMapper = new CombatPresentationMapper();
 
         _sidebar.TabSelected += OpenTab;
@@ -32,7 +60,7 @@ public partial class MainController : Control
         _combatPanel.ActionSelected += HandleCombatAction;
         _combatPanel.ContinueRequested += ReturnToExploration;
 
-        _characterPanel.SetCharacter(_player);
+        _characterPanel.SetCharacter(new CharacterViewModel(_player));
         ShowLocation();
     }
 
@@ -135,7 +163,7 @@ public partial class MainController : Control
     {
         CombatResult result = _combatService.ExecuteAction(request);
         _combatPanel.ApplyViewData(_combatMapper.Map(result));
-        _characterPanel.SetCharacter(_player);
+        _characterPanel.SetCharacter(new CharacterViewModel(_player));
 
         if (!_combatService.IsEncounterOver)
         {
@@ -149,7 +177,7 @@ public partial class MainController : Control
     {
         _combatPanel.Visible = false;
         _storyPanel.Visible = true;
-        _characterPanel.SetCharacter(_player);
+        _characterPanel.SetCharacter(new CharacterViewModel(_player));
         ShowLocation();
     }
 
