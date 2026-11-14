@@ -25,6 +25,13 @@ Open the project in Godot 4.7.2 .NET and run the main scene (Scenes/Main.tscn).
 
 The right Character Panel remains visible and shows Health, Energy, Mood and Gold. The left Sidebar contains Character, Diary and System navigation; location exploration remains in the Main Panel rather than becoming a separate sidebar tab.
 
+## Day and time prototype
+
+- `DayClock` owns the current day and time of day. The prototype starts at Day 1, 07:30.
+- Each exploration action declares `durationMinutes` in `Data/academy_locations.json`; travel currently costs 10 minutes and completed Goblin encounters cost 30 minutes.
+- The Dormitory provides **Sleep until tomorrow**, which advances the day and resets the clock to 07:30. Sleep currently changes time only; character recovery and daily schedules are not implemented yet.
+- The clock stops at 23:59 until the player sleeps. This avoids silently rolling into a new day without the explicit sleep action.
+
 ## Data and presentation flow
 
 - `Data/Characters/player.json` and `Data/Characters/goblin.json` define character identity, role, level, maximum values and starting values.
