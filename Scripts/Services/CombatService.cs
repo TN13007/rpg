@@ -4,7 +4,7 @@ using System.Collections.Generic;
 public sealed class CombatService : ICombatService
 {
     private const int PlayerAttackDamage = 20;
-    private const int GoblinAttackDamage = 4;
+    private const int EnemyAttackDamage = 4;
     private const int VictoryReward = 25;
 
     private readonly Character _player;
@@ -24,30 +24,42 @@ public sealed class CombatService : ICombatService
         _enemy = enemy ?? throw new ArgumentNullException(nameof(enemy));
     }
 
-    public void StartEncounter()
+    public bool TryStartEncounter(out string failureReason)
     {
+        if (!_player.IsAlive)
+        {
+            _encounterOver = true;
+            IsVictory = false;
+            failureReason = "You cannot enter combat while your character is dead.";
+            return false;
+        }
+
         _enemy.Reset();
         _round = 1;
         _encounterOver = false;
         IsVictory = false;
         _defending = false;
         _dodging = false;
+        failureReason = string.Empty;
+        return true;
     }
 
     public CombatSnapshot GetSnapshot()
     {
-        IntentObservation intent = _encounterOver
-            ? null
-            : new IntentObservation(_enemy.Id, _enemy.Name, "The goblin is watching you and preparing to strike.", IntentConfidence.Suspected);
+        bool canAct = !_encounterOver && _player.IsAlive && _enemy.IsAlive;
 
-        CombatActionOption[] actions = _encounterOver
-            ? Array.Empty<CombatActionOption>()
-            : new[]
+        IntentObservation intent = canAct
+            ? new IntentObservation(_enemy.Id, _enemy.Name, "The enemy is watching you and preparing to strike.", IntentConfidence.Suspected)
+            : null;
+
+        CombatActionOption[] actions = canAct
+            ? new[]
             {
-                new CombatActionOption("attack", "Attack", "No cost", "Deal 20 damage to the goblin.", targetId: _enemy.Id),
-                new CombatActionOption("defend", "Defend", "1 Energy", "Reduce the next goblin hit to 1 damage.", _player.Energy >= 1, "Not enough Energy."),
-                new CombatActionOption("dodge", "Dodge", "2 Energy", "Avoid the goblin's next attack.", _player.Energy >= 2, "Not enough Energy.")
-            };
+                new CombatActionOption("attack", "Attack", "No cost", "Deal 20 damage to the enemy.", targetId: _enemy.Id),
+                new CombatActionOption("defend", "Defend", "1 Energy", "Reduce the next enemy hit to 1 damage.", _player.Energy >= 1, "Not enough Energy."),
+                new CombatActionOption("dodge", "Dodge", "2 Energy", "Avoid the next enemy attack.", _player.Energy >= 2, "Not enough Energy.")
+            }
+            : Array.Empty<CombatActionOption>();
 
         EnemyCombatStatus[] enemies =
         {
@@ -69,16 +81,30 @@ public sealed class CombatService : ICombatService
             return Failure("The encounter has already ended.");
         }
 
+        if (!_player.IsAlive)
+        {
+            _encounterOver = true;
+            IsVictory = false;
+            return Failure("Your character is dead and cannot act.");
+        }
+
+        if (!_enemy.IsAlive)
+        {
+            _encounterOver = true;
+            IsVictory = false;
+            return Failure("There is no living enemy to fight.");
+        }
+
         List<CombatEvent> events = new List<CombatEvent>();
 
         if (request.ActionId == "attack")
         {
             if (request.TargetId != _enemy.Id)
             {
-                return Failure("Choose the goblin as your target.");
+                return Failure("Choose the enemy as your target.");
             }
 
-            events.Add(new CombatEvent(CombatEventType.PlayerAction, _round, detail: "You attack the goblin with a basic strike."));
+            events.Add(new CombatEvent(CombatEventType.PlayerAction, _round, detail: "You attack the enemy with a basic strike."));
             int damage = _enemy.TakeDamage(PlayerAttackDamage);
             events.Add(new CombatEvent(CombatEventType.Damage, _round, targetName: _enemy.Name, amount: damage));
         }
@@ -114,10 +140,11 @@ public sealed class CombatService : ICombatService
         }
 
         ResolveEnemyTurn(events);
+
         if (!_player.IsAlive)
         {
             _encounterOver = true;
-            events.Add(new CombatEvent(CombatEventType.StatusChanged, _round, detail: "You collapse. The encounter is over."));
+            events.Add(new CombatEvent(CombatEventType.StatusChanged, _round, detail: "You have died. The encounter is over."));
         }
 
         _round++;
@@ -126,15 +153,15 @@ public sealed class CombatService : ICombatService
 
     private void ResolveEnemyTurn(List<CombatEvent> events)
     {
-        events.Add(new CombatEvent(CombatEventType.EnemyAction, _round, actorName: _enemy.Name.ToUpperInvariant(), detail: "The goblin lunges at you."));
+        events.Add(new CombatEvent(CombatEventType.EnemyAction, _round, actorName: _enemy.Name.ToUpperInvariant(), detail: "The enemy lunges at you."));
 
         if (_dodging)
         {
-            events.Add(new CombatEvent(CombatEventType.Check, _round, detail: "You evade the goblin's attack."));
+            events.Add(new CombatEvent(CombatEventType.Check, _round, detail: "You evade the enemy's attack."));
         }
         else
         {
-            int damage = _defending ? 1 : GoblinAttackDamage;
+            int damage = _defending ? 1 : EnemyAttackDamage;
             int appliedDamage = _player.TakeDamage(damage);
             events.Add(new CombatEvent(CombatEventType.Damage, _round, targetName: _player.Name, amount: appliedDamage));
         }
@@ -148,7 +175,7 @@ public sealed class CombatService : ICombatService
         _encounterOver = true;
         IsVictory = true;
         _player.AddGold(VictoryReward);
-        events.Add(new CombatEvent(CombatEventType.StatusChanged, _round, detail: "The goblin falls. You win the encounter."));
+        events.Add(new CombatEvent(CombatEventType.StatusChanged, _round, detail: "The enemy falls. You win the encounter."));
         events.Add(new CombatEvent(CombatEventType.StatusChanged, _round, detail: "REWARD · You receive 25 G."));
     }
 
