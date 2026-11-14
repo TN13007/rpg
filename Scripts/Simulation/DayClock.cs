@@ -36,12 +36,20 @@ public sealed class DayClock
             throw new ArgumentOutOfRangeException(nameof(amount));
         }
 
-        MinutesOfDay = Math.Min(MinutesPerDay - 1, MinutesOfDay + amount);
+        long totalMinutes = (long)MinutesOfDay + amount;
+        int elapsedDays = (int)(totalMinutes / MinutesPerDay);
+
+        Day = checked(Day + elapsedDays);
+        MinutesOfDay = (int)(totalMinutes % MinutesPerDay);
     }
 
     public void SleepUntilNextDay()
     {
-        Day++;
+        if (MinutesOfDay >= WakeUpMinutes)
+        {
+            Day = checked(Day + 1);
+        }
+
         MinutesOfDay = WakeUpMinutes;
     }
 
