@@ -3,14 +3,12 @@ using System.Collections.Generic;
 
 public sealed class CombatService : ICombatService
 {
-    private const string GoblinId = "goblin-a";
-    private const int GoblinMaxHealth = 40;
     private const int PlayerAttackDamage = 20;
     private const int GoblinAttackDamage = 4;
     private const int VictoryReward = 25;
 
-    private readonly PlayerState _player;
-    private int _goblinHealth;
+    private readonly Character _player;
+    private readonly Character _enemy;
     private int _round;
     private bool _encounterOver;
     private bool _defending;
@@ -20,14 +18,15 @@ public sealed class CombatService : ICombatService
     public bool IsEncounterOver => _encounterOver;
     public int RewardGold => IsVictory ? VictoryReward : 0;
 
-    public CombatService(PlayerState player)
+    public CombatService(Character player, Character enemy)
     {
         _player = player ?? throw new ArgumentNullException(nameof(player));
+        _enemy = enemy ?? throw new ArgumentNullException(nameof(enemy));
     }
 
     public void StartEncounter()
     {
-        _goblinHealth = GoblinMaxHealth;
+        _enemy.Reset();
         _round = 1;
         _encounterOver = false;
         IsVictory = false;
@@ -39,20 +38,21 @@ public sealed class CombatService : ICombatService
     {
         IntentObservation intent = _encounterOver
             ? null
-            : new IntentObservation(GoblinId, "Goblin", "The goblin is watching you and preparing to strike.", IntentConfidence.Suspected);
+            : new IntentObservation(_enemy.Id, _enemy.Name, "The goblin is watching you and preparing to strike.", IntentConfidence.Suspected);
 
         CombatActionOption[] actions = _encounterOver
             ? Array.Empty<CombatActionOption>()
             : new[]
             {
-                new CombatActionOption("attack", "Attack", "No cost", "Deal 20 damage to the goblin.", targetId: GoblinId),
+                new CombatActionOption("attack", "Attack", "No cost", "Deal 20 damage to the goblin.", targetId: _enemy.Id),
                 new CombatActionOption("defend", "Defend", "1 Energy", "Reduce the next goblin hit to 1 damage.", _player.Energy >= 1, "Not enough Energy."),
                 new CombatActionOption("dodge", "Dodge", "2 Energy", "Avoid the goblin's next attack.", _player.Energy >= 2, "Not enough Energy.")
             };
 
-        EnemyCombatStatus[] enemies = _goblinHealth > 0
-            ? new[] { new EnemyCombatStatus(GoblinId, "Goblin", _goblinHealth, GoblinMaxHealth, GetGoblinCondition()) }
-            : new[] { new EnemyCombatStatus(GoblinId, "Goblin", 0, GoblinMaxHealth, "Defeated") };
+        EnemyCombatStatus[] enemies =
+        {
+            new EnemyCombatStatus(_enemy.Id, _enemy.Name, _enemy.Health, _enemy.MaxHealth, GetEnemyCondition())
+        };
 
         return new CombatSnapshot(_round, "PLAYER TURN", enemies, intent, actions);
     }
@@ -73,14 +73,14 @@ public sealed class CombatService : ICombatService
 
         if (request.ActionId == "attack")
         {
-            if (request.TargetId != GoblinId)
+            if (request.TargetId != _enemy.Id)
             {
                 return Failure("Choose the goblin as your target.");
             }
 
             events.Add(new CombatEvent(CombatEventType.PlayerAction, _round, detail: "You attack the goblin with a basic strike."));
-            _goblinHealth = Math.Max(0, _goblinHealth - PlayerAttackDamage);
-            events.Add(new CombatEvent(CombatEventType.Damage, _round, targetName: "Goblin", amount: PlayerAttackDamage));
+            int damage = _enemy.TakeDamage(PlayerAttackDamage);
+            events.Add(new CombatEvent(CombatEventType.Damage, _round, targetName: _enemy.Name, amount: damage));
         }
         else if (request.ActionId == "defend")
         {
@@ -107,14 +107,14 @@ public sealed class CombatService : ICombatService
             return Failure("That action is not available.");
         }
 
-        if (_goblinHealth <= 0)
+        if (!_enemy.IsAlive)
         {
             CompleteVictory(events);
             return Success(events);
         }
 
-        ResolveGoblinTurn(events);
-        if (_player.Health <= 0)
+        ResolveEnemyTurn(events);
+        if (!_player.IsAlive)
         {
             _encounterOver = true;
             events.Add(new CombatEvent(CombatEventType.StatusChanged, _round, detail: "You collapse. The encounter is over."));
@@ -124,9 +124,9 @@ public sealed class CombatService : ICombatService
         return Success(events);
     }
 
-    private void ResolveGoblinTurn(List<CombatEvent> events)
+    private void ResolveEnemyTurn(List<CombatEvent> events)
     {
-        events.Add(new CombatEvent(CombatEventType.EnemyAction, _round, actorName: "GOBLIN", detail: "The goblin lunges at you."));
+        events.Add(new CombatEvent(CombatEventType.EnemyAction, _round, actorName: _enemy.Name.ToUpperInvariant(), detail: "The goblin lunges at you."));
 
         if (_dodging)
         {
@@ -135,8 +135,8 @@ public sealed class CombatService : ICombatService
         else
         {
             int damage = _defending ? 1 : GoblinAttackDamage;
-            _player.TakeDamage(damage);
-            events.Add(new CombatEvent(CombatEventType.Damage, _round, targetName: _player.Name, amount: damage));
+            int appliedDamage = _player.TakeDamage(damage);
+            events.Add(new CombatEvent(CombatEventType.Damage, _round, targetName: _player.Name, amount: appliedDamage));
         }
 
         _defending = false;
@@ -162,10 +162,10 @@ public sealed class CombatService : ICombatService
         return new CombatResult(false, GetSnapshot(), Array.Empty<CombatEvent>(), reason);
     }
 
-    private string GetGoblinCondition()
+    private string GetEnemyCondition()
     {
-        if (_goblinHealth <= 0) return "Defeated";
-        if (_goblinHealth <= 20) return "Wounded";
+        if (!_enemy.IsAlive) return "Defeated";
+        if (_enemy.Health <= _enemy.MaxHealth / 2) return "Wounded";
         return "Healthy";
     }
 }

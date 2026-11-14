@@ -1,0 +1,20 @@
+{
+  "id": "player-ari",
+  "name": "Ari",
+  "role": "First-year adventurer",
+  "level": 1,
+  "maxHealth": 20,
+  "maxEnergy": 10,
+  "maxMood": 100,
+  "startingHealth": 20,
+  "startingEnergy": 8,
+  "startingMood": 70,
+  "startingGold": 20,
+  "stats": {
+    "strength": 20,
+    "agility": 30,
+    "intelligence": 25,
+    "endurance": 20,
+    "wisdom": 20
+  }
+}

@@ -28,20 +28,26 @@ public partial class CharacterPanel : PanelContainer
         _moodBar = GetNode<ProgressBar>("Margin/Content/MoodBar");
     }
 
-    public void SetCharacter(PlayerState state)
+    public void SetCharacter(CharacterViewModel character)
     {
-        _name.Text = state.Name;
-        _role.Text = state.Role;
-        _level.Text = "LEVEL " + state.Level;
-        _healthValue.Text = state.Health + " / " + state.MaxHealth;
-        _energyValue.Text = state.Energy + " / " + state.MaxEnergy;
-        _moodValue.Text = state.Mood + " / 100";
-        _gold.Text = state.Gold + " G";
-        _healthBar.MaxValue = state.MaxHealth;
-        _healthBar.Value = state.Health;
-        _energyBar.MaxValue = state.MaxEnergy;
-        _energyBar.Value = state.Energy;
-        _moodBar.MaxValue = 100;
-        _moodBar.Value = state.Mood;
+        if (character == null)
+        {
+            GD.PushError("CharacterPanel received null view model.");
+            return;
+        }
+
+        _name.Text = character.Name;
+        _role.Text = character.Role;
+        _level.Text = "LEVEL " + character.Level;
+        _healthValue.Text = character.Health + " / " + character.MaxHealth;
+        _energyValue.Text = character.Energy + " / " + character.MaxEnergy;
+        _moodValue.Text = character.Mood + " / " + character.MaxMood;
+        _gold.Text = character.Gold + " G";
+        _healthBar.MaxValue = character.MaxHealth;
+        _healthBar.Value = character.Health;
+        _energyBar.MaxValue = character.MaxEnergy;
+        _energyBar.Value = character.Energy;
+        _moodBar.MaxValue = character.MaxMood;
+        _moodBar.Value = character.Mood;
     }
 }

@@ -177,7 +177,7 @@ Implemented in the main playable slice:
 - Keyboard focus enabled for action buttons.
 - Main Screen integration with mutually exclusive Exploration and Combat modes.
 - Deterministic CombatService for Attack, Defend and Dodge, including validation, enemy response, HP / Energy mutation and victory / defeat.
-- Victory reward of 25 G applied to the shared PlayerState.
+- Victory reward of 25 G is applied to the Player Character through CombatService. Player and Goblin are Character domain objects created from CharacterData.
 - Persistent Character Panel showing Health, Energy, Mood and Gold.
 - Return from Combat to the same Exploration location.
 

@@ -1,14 +1,79 @@
+using System;
 using System.Collections.Generic;
+using System.Text.Json;
+using Godot;
+
+public sealed class ActivityTimeModifier
+{
+    public CharacterStat Stat { get; }
+    public double MaxReduction { get; }
+
+    public ActivityTimeModifier(CharacterStat stat, double maxReduction)
+    {
+        if (!Enum.IsDefined(typeof(CharacterStat), stat))
+        {
+            throw new ArgumentOutOfRangeException(nameof(stat));
+        }
+
+        if (maxReduction < 0 || maxReduction > 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(maxReduction), "Maximum time reduction must be between 0 and 1.");
+        }
+
+        Stat = stat;
+        MaxReduction = maxReduction;
+    }
+}
+
+public sealed class ActivityDefinition
+{
+    public int DurationMinutes { get; }
+    public ActivityTimeModifier TimeModifier { get; }
+
+    public ActivityDefinition(int durationMinutes, ActivityTimeModifier timeModifier = null)
+    {
+        if (durationMinutes < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(durationMinutes));
+        }
+
+        DurationMinutes = durationMinutes;
+        TimeModifier = timeModifier;
+    }
+}
 
 public sealed class StoryChoice
 {
     public string Id { get; }
     public string Label { get; }
+    public int DurationMinutes { get; }
+    public ActivityTimeModifier TimeModifier { get; }
 
-    public StoryChoice(string id, string label)
+    public StoryChoice(
+        string id,
+        string label,
+        int durationMinutes = 0,
+        ActivityTimeModifier timeModifier = null)
     {
+        if (string.IsNullOrWhiteSpace(id))
+        {
+            throw new ArgumentException("Choice ID is required.", nameof(id));
+        }
+
+        if (string.IsNullOrWhiteSpace(label))
+        {
+            throw new ArgumentException("Choice label is required.", nameof(label));
+        }
+
+        if (durationMinutes < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(durationMinutes));
+        }
+
         Id = id;
         Label = label;
+        DurationMinutes = durationMinutes;
+        TimeModifier = timeModifier;
     }
 }
 
@@ -27,57 +92,162 @@ public sealed class LocationContent
         Name = name;
         Region = region;
         Description = description;
-        Exits = exits;
-        Actions = actions;
+        Exits = exits ?? Array.Empty<string>();
+        Actions = actions ?? Array.Empty<StoryChoice>();
     }
 }
 
 public static class AcademyContent
 {
-    private static readonly LocationContent[] Locations =
+    private static Dictionary<string, LocationContent> _locations = new Dictionary<string, LocationContent>();
+
+    public static IEnumerable<LocationContent> All => _locations.Values;
+    public static ActivityDefinition Travel { get; private set; } = new ActivityDefinition(10);
+
+    public static void Load(string path)
     {
-        new LocationContent(
-            "dormitory", "Dormitory", "STUDENT QUARTERS",
-            "Morning light slips through the curtains. Your room is quiet, and the academy day is about to begin.",
-            new[] { "courtyard" },
-            new[] { new StoryChoice("rest", "Take a short rest"), new StoryChoice("inspect_letter", "Read the letter on your desk") }),
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            throw new ArgumentException("Academy content path is required.", nameof(path));
+        }
 
-        new LocationContent(
-            "courtyard", "Academy Courtyard", "ASTERIA ACADEMY",
-            "Students cross the courtyard beneath old trees. A rustling comes from the gate. Something small is moving in the bushes.",
-            new[] { "dormitory", "classroom", "guild_hall" },
-            new[]
+        if (!FileAccess.FileExists(path))
+        {
+            throw new InvalidOperationException("Academy content file was not found: " + path);
+        }
+
+        string json = FileAccess.GetFileAsString(path);
+        Dictionary<string, LocationContent> loadedLocations = new Dictionary<string, LocationContent>();
+
+        try
+        {
+            using JsonDocument document = JsonDocument.Parse(json);
+            JsonElement root = document.RootElement;
+            ActivityDefinition loadedTravel = root.TryGetProperty("travel", out JsonElement travelData)
+                ? ReadActivityDefinition(travelData)
+                : new ActivityDefinition(10);
+            JsonElement locations = root.GetProperty("locations");
+
+            foreach (JsonElement locationData in locations.EnumerateArray())
             {
-                new StoryChoice("talk_mira", "Talk to Mira"),
-                new StoryChoice("inspect_board", "Read the notice board"),
-                new StoryChoice("encounter_goblin", "Investigate the rustling near the gate")
-            }),
+                string id = ReadString(locationData, "id");
+                string name = ReadString(locationData, "name");
+                string region = ReadString(locationData, "region");
+                string description = ReadString(locationData, "description");
+                string[] exits = ReadStringArray(locationData.GetProperty("exits"));
+                StoryChoice[] actions = ReadActions(locationData.GetProperty("actions"));
 
-        new LocationContent(
-            "classroom", "Practical Classroom", "EAST WING",
-            "Field maps cover the walls. Training equipment is arranged neatly beside the instructor's desk.",
-            new[] { "courtyard" },
-            new[] { new StoryChoice("talk_instructor", "Talk to the instructor"), new StoryChoice("inspect_maps", "Study the field maps") }),
+                if (loadedLocations.ContainsKey(id))
+                {
+                    throw new InvalidOperationException("Duplicate location ID: " + id);
+                }
 
-        new LocationContent(
-            "guild_hall", "Guild Hall", "EXPEDITION QUARTER",
-            "A broad counter separates the students from the expedition clerks. Reports and requests are pinned behind them.",
-            new[] { "courtyard" },
-            new[] { new StoryChoice("talk_clerk", "Talk to the guild clerk"), new StoryChoice("inspect_requests", "Browse expedition requests") })
-    };
+                loadedLocations.Add(id, new LocationContent(id, name, region, description, exits, actions));
+            }
 
-    public static IEnumerable<LocationContent> All => Locations;
+            if (loadedLocations.Count == 0)
+            {
+                throw new InvalidOperationException("Academy content must contain at least one location.");
+            }
+
+            _locations = loadedLocations;
+            Travel = loadedTravel;
+        }
+        catch (JsonException exception)
+        {
+            throw new InvalidOperationException("Invalid academy content JSON: " + path, exception);
+        }
+    }
 
     public static LocationContent Get(string id)
     {
-        foreach (LocationContent location in Locations)
+        if (string.IsNullOrWhiteSpace(id))
         {
-            if (location.Id == id)
+            throw new ArgumentException("Location ID is required.", nameof(id));
+        }
+
+        if (!_locations.TryGetValue(id, out LocationContent location))
+        {
+            throw new KeyNotFoundException("Location was not found: " + id);
+        }
+
+        return location;
+    }
+
+    private static string ReadString(JsonElement data, string propertyName)
+    {
+        string value = data.GetProperty(propertyName).GetString();
+
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            throw new InvalidOperationException("Academy content field is required: " + propertyName);
+        }
+
+        return value;
+    }
+
+    private static string[] ReadStringArray(JsonElement data)
+    {
+        List<string> values = new List<string>();
+
+        foreach (JsonElement item in data.EnumerateArray())
+        {
+            string value = item.GetString();
+
+            if (!string.IsNullOrWhiteSpace(value))
             {
-                return location;
+                values.Add(value);
             }
         }
 
-        return Locations[0];
+        return values.ToArray();
+    }
+
+    private static StoryChoice[] ReadActions(JsonElement data)
+    {
+        List<StoryChoice> actions = new List<StoryChoice>();
+
+        foreach (JsonElement item in data.EnumerateArray())
+        {
+            int durationMinutes = item.TryGetProperty("durationMinutes", out JsonElement duration)
+                ? duration.GetInt32()
+                : 0;
+
+            ActivityTimeModifier modifier = item.TryGetProperty("timeModifier", out JsonElement modifierData)
+                ? ReadTimeModifier(modifierData)
+                : null;
+
+            actions.Add(new StoryChoice(
+                ReadString(item, "id"),
+                ReadString(item, "label"),
+                durationMinutes,
+                modifier));
+        }
+
+        return actions.ToArray();
+    }
+
+    private static ActivityDefinition ReadActivityDefinition(JsonElement data)
+    {
+        int durationMinutes = data.GetProperty("durationMinutes").GetInt32();
+        ActivityTimeModifier modifier = data.TryGetProperty("timeModifier", out JsonElement modifierData)
+            ? ReadTimeModifier(modifierData)
+            : null;
+
+        return new ActivityDefinition(durationMinutes, modifier);
+    }
+
+    private static ActivityTimeModifier ReadTimeModifier(JsonElement data)
+    {
+        string statName = ReadString(data, "stat");
+
+        if (!Enum.TryParse(statName, true, out CharacterStat stat) ||
+            !Enum.IsDefined(typeof(CharacterStat), stat))
+        {
+            throw new InvalidOperationException("Unknown character stat in time modifier: " + statName);
+        }
+
+        double maxReduction = data.GetProperty("maxReduction").GetDouble();
+        return new ActivityTimeModifier(stat, maxReduction);
     }
 }
