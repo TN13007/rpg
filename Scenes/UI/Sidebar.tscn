@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://Scripts/UI/Sidebar.cs" id="1"]
+[ext_resource type="Script" path="res://Scripts/UI/SidebarButton.cs" id="2"]
 
 [node name="Sidebar" type="PanelContainer"]
 custom_minimum_size = Vector2(215, 0)
@@ -37,24 +38,6 @@ text = "ADVENTURER ACADEMY"
 [node name="Separator" type="HSeparator" parent="Margin/Content"]
 layout_mode = 2
 
-[node name="World" type="VBoxContainer" parent="Margin/Content"]
-layout_mode = 2
-theme_override_constants/separation = 5
-
-[node name="WorldTitle" type="Label" parent="Margin/Content/World"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 10
-theme_override_colors/font_color = Color(0.776, 0.647, 0.416, 1)
-text = "WORLD"
-
-[node name="Explore" type="Button" parent="Margin/Content/World"]
-layout_mode = 2
-text = "Explore"
-
-[node name="Map" type="Button" parent="Margin/Content/World"]
-layout_mode = 2
-text = "Map"
-
 [node name="Character" type="VBoxContainer" parent="Margin/Content"]
 layout_mode = 2
 theme_override_constants/separation = 5
@@ -68,32 +51,42 @@ text = "CHARACTER"
 [node name="Profile" type="Button" parent="Margin/Content/Character"]
 layout_mode = 2
 text = "Profile"
+script = ExtResource("2")
 
-[node name="Relationships" type="Button" parent="Margin/Content/Character"]
+[node name="Skills" type="Button" parent="Margin/Content/Character"]
 layout_mode = 2
-text = "Relationships"
+text = "Skills"
+script = ExtResource("2")
 
 [node name="Inventory" type="Button" parent="Margin/Content/Character"]
 layout_mode = 2
 text = "Inventory"
+script = ExtResource("2")
 
-[node name="Adventure" type="VBoxContainer" parent="Margin/Content"]
+[node name="Relationships" type="Button" parent="Margin/Content/Character"]
+layout_mode = 2
+text = "Relationships"
+script = ExtResource("2")
+
+[node name="Diary" type="VBoxContainer" parent="Margin/Content"]
 layout_mode = 2
 theme_override_constants/separation = 5
 
-[node name="AdventureTitle" type="Label" parent="Margin/Content/Adventure"]
+[node name="DiaryTitle" type="Label" parent="Margin/Content/Diary"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 10
 theme_override_colors/font_color = Color(0.776, 0.647, 0.416, 1)
-text = "ADVENTURE"
+text = "DIARY"
 
-[node name="Quests" type="Button" parent="Margin/Content/Adventure"]
+[node name="Goals" type="Button" parent="Margin/Content/Diary"]
 layout_mode = 2
-text = "Quests"
+text = "Current Goals"
+script = ExtResource("2")
 
-[node name="Skills" type="Button" parent="Margin/Content/Adventure"]
+[node name="Journal" type="Button" parent="Margin/Content/Diary"]
 layout_mode = 2
-text = "Skills"
+text = "Journal Entries"
+script = ExtResource("2")
 
 [node name="System" type="VBoxContainer" parent="Margin/Content"]
 layout_mode = 2
@@ -108,6 +101,7 @@ text = "SYSTEM"
 [node name="Settings" type="Button" parent="Margin/Content/System"]
 layout_mode = 2
 text = "Settings"
+script = ExtResource("2")
 
 [node name="Spacer" type="Control" parent="Margin/Content"]
 layout_mode = 2

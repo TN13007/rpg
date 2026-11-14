@@ -46,3 +46,9 @@ size_flags_vertical = 3
 
 [node name="CombatActionPanel" parent="Margin/Content" instance=ExtResource("4")]
 layout_mode = 2
+
+[node name="ContinueButton" type="Button" parent="Margin/Content"]
+visible = false
+layout_mode = 2
+custom_minimum_size = Vector2(0, 42)
+text = "Return to Exploration"

@@ -4,7 +4,7 @@
 [ext_resource type="Texture2D" path="res://Assets/character_portrait.svg" id="2"]
 
 [node name="CharacterPanel" type="PanelContainer"]
-custom_minimum_size = Vector2(270, 0)
+custom_minimum_size = Vector2(245, 0)
 layout_mode = 2
 script = ExtResource("1")
 
@@ -26,7 +26,7 @@ theme_override_colors/font_color = Color(0.776, 0.647, 0.416, 1)
 text = "YOUR CHARACTER"
 
 [node name="Portrait" type="TextureRect" parent="Margin/Content"]
-custom_minimum_size = Vector2(0, 285)
+custom_minimum_size = Vector2(0, 250)
 layout_mode = 2
 size_flags_horizontal = 3
 texture = ExtResource("2")
@@ -71,25 +71,45 @@ layout_mode = 2
 show_percentage = false
 value = 100.0
 
-[node name="StaminaHeader" type="HBoxContainer" parent="Margin/Content"]
+[node name="EnergyHeader" type="HBoxContainer" parent="Margin/Content"]
 layout_mode = 2
 
-[node name="StaminaTitle" type="Label" parent="Margin/Content/StaminaHeader"]
+[node name="EnergyTitle" type="Label" parent="Margin/Content/EnergyHeader"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 11
-text = "STAMINA"
+text = "ENERGY"
 
-[node name="StaminaValue" type="Label" parent="Margin/Content/StaminaHeader"]
+[node name="EnergyValue" type="Label" parent="Margin/Content/EnergyHeader"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 11
 text = "8 / 10"
 
-[node name="StaminaBar" type="ProgressBar" parent="Margin/Content"]
+[node name="EnergyBar" type="ProgressBar" parent="Margin/Content"]
 custom_minimum_size = Vector2(0, 8)
 layout_mode = 2
 show_percentage = false
 value = 80.0
+
+[node name="MoodHeader" type="HBoxContainer" parent="Margin/Content"]
+layout_mode = 2
+
+[node name="MoodTitle" type="Label" parent="Margin/Content/MoodHeader"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
+text = "MOOD"
+
+[node name="MoodValue" type="Label" parent="Margin/Content/MoodHeader"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "70 / 100"
+
+[node name="MoodBar" type="ProgressBar" parent="Margin/Content"]
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+show_percentage = false
+value = 70.0
 
 [node name="Separator" type="HSeparator" parent="Margin/Content"]
 layout_mode = 2
