@@ -126,11 +126,10 @@ public partial class MainController : Control
             _ => "There is nothing more to do here right now."
         };
 
-        _storyPanel.ShowFeedback(message);
-        AdvanceForAction(choiceId);
+        AdvanceForAction(choiceId, message);
     }
 
-    private void AdvanceForAction(string choiceId)
+    private void AdvanceForAction(string choiceId, string feedback)
     {
         LocationContent location = AcademyContent.Get(_currentLocationId);
 
@@ -143,6 +142,7 @@ public partial class MainController : Control
 
             _dayClock.AdvanceMinutes(action.DurationMinutes);
             ShowLocation();
+            _storyPanel.ShowFeedback(feedback);
             return;
         }
     }
@@ -156,13 +156,8 @@ public partial class MainController : Control
         }
 
         _dayClock.SleepUntilNextDay();
-        _storyPanel.ShowContent(
-            "A New Day",
-            "STUDENT QUARTERS",
-            "You wake up after a night's rest. Another day at the academy begins.",
-            AcademyContent.Get(_currentLocationId).Actions,
-            _dayClock.GetDisplayText());
-        _storyPanel.ShowLocationButton(false);
+        ShowLocation();
+        _storyPanel.ShowFeedback("You wake up after a night's rest. Another day at the academy begins.");
     }
 
     private void StartGoblinEncounter()
@@ -183,6 +178,11 @@ public partial class MainController : Control
 
     private void HandleCombatAction(CombatActionRequest request)
     {
+        if (_combatService.IsEncounterOver)
+        {
+            return;
+        }
+
         CombatResult result = _combatService.ExecuteAction(request);
         _combatPanel.ApplyViewData(_combatMapper.Map(result));
         _characterPanel.SetCharacter(new CharacterViewModel(_player));
