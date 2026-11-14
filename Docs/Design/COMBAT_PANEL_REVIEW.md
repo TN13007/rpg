@@ -29,7 +29,7 @@ The Combat Panel has four areas.
 | Message Log | Ordered record of actions, reactions, results and observations | Append messages as events occur |
 | Action Selection | Actions currently available to the player, including target and cost | Whenever available actions change |
 
-The Character Panel remains outside the Combat Panel and continues to show the player's persistent Health, Energy and Mood. Do not duplicate those permanent player stats inside the message log.
+Design contract: the Character Panel stays outside the Combat Panel and should continue showing the player's persistent Health, Energy and Mood. This preview scene does not instantiate the Character Panel, and the existing CharacterPanel prototype has not yet been updated to the Health / Energy / Mood requirement. Do not treat that integration as implemented. Do not duplicate persistent player stats inside the message log.
 
 ## 3. Message Alignment Contract
 
