@@ -8,17 +8,12 @@ public partial class Sidebar : PanelContainer
     public override void _Ready()
     {
         UiTheme.StylePanel(this);
-
-        Bind("Margin/Content/World/Explore", "Explore");
-        Bind("Margin/Content/World/Map", "Map");
-
         Bind("Margin/Content/Character/Profile", "Profile");
-        Bind("Margin/Content/Character/Relationships", "Relationships");
+        Bind("Margin/Content/Character/Skills", "Skills");
         Bind("Margin/Content/Character/Inventory", "Inventory");
-
-        Bind("Margin/Content/Adventure/Quests", "Quests");
-        Bind("Margin/Content/Adventure/Skills", "Skills");
-
+        Bind("Margin/Content/Character/Relationships", "Relationships");
+        Bind("Margin/Content/Diary/Goals", "Goals");
+        Bind("Margin/Content/Diary/Journal", "Journal");
         Bind("Margin/Content/System/Settings", "Settings");
     }
 
@@ -26,6 +21,18 @@ public partial class Sidebar : PanelContainer
     {
         Button button = GetNode<Button>(path);
         UiTheme.StyleButton(button);
-        button.Pressed += () => TabSelected?.Invoke(tab);
+        button.Pressed += HandleButtonPressed;
+        button.SetMeta("tab_id", tab);
+    }
+
+    private void HandleButtonPressed()
+    {
+        Button button = GetViewport().GuiGetFocusOwner() as Button;
+        if (button == null)
+        {
+            return;
+        }
+
+        TabSelected?.Invoke(button.GetMeta("tab_id").AsString());
     }
 }
