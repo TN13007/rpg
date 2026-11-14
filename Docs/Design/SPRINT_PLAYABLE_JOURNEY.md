@@ -1,74 +1,78 @@
-# Sprint — Playable Goblin Encounter
+# Sprint — Playable Academy Day and Goblin Encounter
 
-**Goal:** Deliver one complete player journey in the main game scene, with Player and Goblin represented by domain Character objects. The new Character integration is committed; Godot runtime verification remains pending.
+**Goal:** Deliver a text-first academy day with location travel, timed activities, sleep and one deterministic Goblin encounter. Player and enemy are represented by domain Character objects. A fresh Godot build and runtime verification are still required for this revision.
 
 ## Player journey
 
 ```text
-Academy Courtyard (Exploration)
+Dormitory — Day 1, 07:30
         |
-        | Investigate the rustling near the gate
-        v
-Goblin appears
+        +--> Read, rest or sleep
         |
         v
-Main Panel switches to Combat
+Travel to Academy Courtyard
         |
-        | Player selects an action
-        v
-CombatService validates the request
+        +--> Social and exploration activities
         |
-        +--> Invalid: return failure reason; do not mutate character state
-        |
-        v
-CombatService resolves action and applies changes to Character objects
-        |
-        v
-Goblin turn (if still alive)
-        |
-        v
-CombatResult -> CombatPresentationMapper -> CombatViewData -> CombatPanel
-        |
-        +--> Goblin HP > 0: next player turn
-        |
-        +--> Goblin HP = 0: victory + 25 G
-                              |
-                              v
-                    Return to Exploration
-                              |
-                              v
-                 Same Academy Courtyard
+        +--> Investigate the rustling
+                    |
+                    v
+              Goblin encounter
+                    |
+          CombatService validates
+          and resolves each action
+                    |
+          +---------+---------+
+          |                   |
+       Victory              Defeat
+          |                   |
+       +25 G              Player HP = 0
+          |                   |
+          +---------+---------+
+                    |
+             Return to location
+                    |
+          Continue the day or sleep
+                    |
+             Next morning, 07:30
 ```
 
 ## Scope and rules
 
-| Item | Sprint behavior |
+| Item | Prototype behavior |
 |---|---|
-| Starting location | Academy Courtyard |
-| Encounter trigger | Investigate the rustling near the gate |
+| Starting location | Dormitory |
+| Starting time | Day 1, 07:30 |
+| Locations | Dormitory, Courtyard, Classroom and Guild Hall |
+| Travel | 10 base minutes; Agility can reduce the duration |
+| Activities | Each location action declares its duration in academy content JSON |
+| Study modifier | Intelligence can reduce the field-map study duration |
+| Sleep | Available in the Dormitory; moves the clock to 07:30 on the next morning |
+| Midnight | The clock rolls over automatically and carries remaining minutes into the next day |
 | Enemy | One Goblin, 40 HP |
 | Player | 20 Health, 8 / 10 Energy, 70 / 100 Mood, 20 G |
-| Attack | 0 Energy; deals 20 damage to Goblin |
-| Defend | Costs 1 Energy; reduces the next Goblin hit to 1 damage |
-| Dodge | Costs 2 Energy; avoids the next Goblin hit |
-| Goblin turn | If alive after the player's action, it attacks for 4 damage |
-| Victory | Goblin HP reaches 0 |
-| Reward | 25 G, added to the Player Character |
+| Attack | 0 Energy; deals 20 damage to the enemy |
+| Defend | Costs 1 Energy; reduces the next enemy hit to 1 damage |
+| Dodge | Costs 2 Energy; avoids the next enemy hit |
+| Enemy turn | If alive after the player's action, it attacks for 4 damage |
+| Encounter duration | 30 minutes, configured in academy content |
+| Victory | Enemy HP reaches 0; grants 25 G |
+| Death | Player HP reaches 0; the encounter ends and the character cannot perform further actions |
 | Return | Explicit Return to Exploration action; restore the same location view |
 
-These values are prototype rules, not final balance.
+These values are prototype rules, not final balance. Sleep currently changes time only; character recovery and daily schedules are not implemented.
 
-## Character OOP boundary
+## Responsibility boundaries
 
-- CharacterData stores immutable character configuration and starting values.
-- Character owns runtime state: Health, Energy, Mood and Gold. It exposes methods to apply damage, spend or restore resources, change Mood and add Gold.
-- MainController creates Player and Goblin Character objects from CharacterData and keeps them for the current game session.
-- CombatService receives the two Character objects. It coordinates combat and calls Character methods instead of maintaining a separate Goblin HP field or mutating PlayerState.
-- CharacterViewModel is a read-only presentation model created from Character.
-- CharacterPanel receives CharacterViewModel only. It does not access or mutate the domain Character.
-- CombatPresentationMapper continues to map combat events and safe combat snapshots into CombatViewData for CombatPanel.
-
-No separate CharacterFactory, CharacterService or CharacterViewModelMapper is introduced in this sprint.
+- `CharacterData` stores immutable character configuration; `Character` owns runtime state and state-changing operations.
+- `CombatService` validates combat requests, prevents dead characters from acting, resolves turns and grants the victory reward.
+- `ActivityDefinition` owns the duration and optional stat modifier of an activity. `StoryChoice` owns the choice identity, label, feedback and activity definition.
+- `ActivityTimeCalculator` calculates the final duration from one ActivityDefinition and the acting character.
+- `DayClock` only advances calendar time and handles midnight rollover. It does not decide which gameplay action should consume time.
+- `AcademyContent` loads location and activity definitions, then validates duplicate IDs and location exit references before publishing the loaded content.
+- `MainController` coordinates UI modes and gameplay flow. It reads activity definitions and delegates duration calculation rather than owning each activity's feedback text or time formula.
+- `CharacterViewModel` is a read-only presentation model; `CharacterPanel` does not access the domain Character.
+- `CombatPresentationMapper` maps combat results into presentation messages and safe CombatViewData.
 
 ## UI requirements
 
@@ -77,21 +81,23 @@ No separate CharacterFactory, CharacterService or CharacterViewModelMapper is in
 - Right Character Panel: persistent Health, Energy, Mood and Gold.
 - Combat messages: Player aligned right, Enemy aligned left, System centered; all have visible speaker labels.
 - Combat Status shows current enemy HP. Message Log records damage changes.
-- Victory is shown before the player returns to the original Exploration location.
+- Combat ends immediately when the enemy dies or the player's HP reaches zero.
 
 ## Acceptance checklist
 
-- [ ] Main scene opens in Academy Courtyard.
-- [ ] The encounter choice switches the Main Panel to Combat without replacing Sidebar or Character Panel.
-- [ ] Player and Goblin are created from CharacterData.
-- [ ] Character owns and validates its runtime state changes.
-- [ ] Attack, Defend and Dodge are selectable.
-- [ ] Invalid requests do not mutate character state.
-- [ ] Player and Goblin HP update correctly through Character methods.
-- [ ] Goblin acts after a player action if it survives.
-- [ ] Defeating the Goblin ends combat and grants exactly 25 G once.
+- [ ] Main scene opens in the Dormitory at Day 1, 07:30.
+- [ ] Travel only succeeds when the destination is listed in the current location's exits.
+- [ ] Exploration activities and travel advance time using configured durations.
+- [ ] Time modifiers use the configured character attribute.
+- [ ] Advancing past midnight increments the day and preserves remaining minutes.
+- [ ] Sleeping before midnight advances to the next day at 07:30.
+- [ ] Sleeping after midnight but before 07:30 does not increment the day twice.
+- [ ] Academy content rejects duplicate location IDs, duplicate action IDs and unknown exit references.
+- [ ] A character with 0 HP cannot start an encounter or perform an action.
+- [ ] Attack, Defend and Dodge resolve through CombatService.
+- [ ] Invalid combat requests do not mutate character resources.
+- [ ] Defeating the enemy grants exactly 25 G once.
 - [ ] CharacterPanel receives CharacterViewModel, not Character.
-- [ ] Character Panel reflects Health, Energy and Gold changes.
 - [ ] Return to Exploration restores the same location and its choices.
 - [ ] Project builds and the full journey is verified in Godot 4.7.2 .NET.
 
@@ -100,4 +106,5 @@ No separate CharacterFactory, CharacterService or CharacterViewModelMapper is in
 - Multiple enemies, random encounters, loot tables or inventory drops.
 - Advanced status effects, skill trees, critical hits or final balance.
 - Persistent save / load.
+- Character recovery, daily schedules and a complete death/rebirth or ghost-play flow.
 - Full responsive layout and screen-reader certification.
