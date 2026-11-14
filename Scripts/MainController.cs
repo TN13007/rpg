@@ -1,0 +1,168 @@
+using System;
+using System.Collections.Generic;
+using Godot;
+
+public partial class MainController : Control
+{
+    private Sidebar _sidebar;
+    private StoryPanel _storyPanel;
+    private CombatPanel _combatPanel;
+    private CharacterPanel _characterPanel;
+    private PlayerState _player;
+    private CombatService _combatService;
+    private CombatPresentationMapper _combatMapper;
+
+    private string _currentLocationId = "courtyard";
+    private int _day = 1;
+
+    public override void _Ready()
+    {
+        _sidebar = GetNode<Sidebar>("SafeArea/Layout/Sidebar");
+        _storyPanel = GetNode<StoryPanel>("SafeArea/Layout/StoryPanel");
+        _combatPanel = GetNode<CombatPanel>("SafeArea/Layout/CombatPanel");
+        _characterPanel = GetNode<CharacterPanel>("SafeArea/Layout/CharacterPanel");
+
+        _player = new PlayerState("Ari", "First-year adventurer", 1, 20, 20, 8, 10, 70, 20);
+        _combatService = new CombatService(_player);
+        _combatMapper = new CombatPresentationMapper();
+
+        _sidebar.TabSelected += OpenTab;
+        _storyPanel.ChoiceSelected += HandleChoice;
+        _storyPanel.ReturnToLocationRequested += ShowLocation;
+        _combatPanel.ActionSelected += HandleCombatAction;
+        _combatPanel.ContinueRequested += ReturnToExploration;
+
+        _characterPanel.SetCharacter(_player);
+        ShowLocation();
+    }
+
+    private void OpenTab(string tab)
+    {
+        if (_combatPanel.Visible)
+        {
+            return;
+        }
+
+        ShowPage(tab);
+    }
+
+    private void ShowLocation()
+    {
+        LocationContent location = AcademyContent.Get(_currentLocationId);
+        List<StoryChoice> choices = new List<StoryChoice>(location.Actions);
+
+        foreach (string exitId in location.Exits)
+        {
+            LocationContent exit = AcademyContent.Get(exitId);
+            choices.Add(new StoryChoice("travel:" + exitId, "Travel to " + exit.Name));
+        }
+
+        _storyPanel.ShowContent(
+            location.Name,
+            location.Region,
+            location.Description,
+            choices,
+            "DAY " + _day.ToString("00") + "  ·  07:30");
+        _storyPanel.ShowLocationButton(false);
+    }
+
+    private void ShowPage(string tab)
+    {
+        string description = tab switch
+        {
+            "Profile" => "A summary of your adventurer and current condition.",
+            "Skills" => "Techniques available to a novice adventurer.",
+            "Inventory" => "Items and equipment carried by your character.",
+            "Relationships" => "People you have met during your time at the academy.",
+            "Goals" => "Your current assignments and short-term objectives.",
+            "Journal" => "A record of meaningful events from your academy life.",
+            _ => "Prototype preferences and game settings."
+        };
+
+        _storyPanel.Visible = true;
+        _combatPanel.Visible = false;
+        _storyPanel.ShowContent(tab, "ADVENTURER RECORD", description, Array.Empty<StoryChoice>(), "DAY " + _day.ToString("00"));
+        _storyPanel.ShowLocationButton(true);
+    }
+
+    private void HandleChoice(string choiceId)
+    {
+        if (choiceId.StartsWith("travel:", StringComparison.Ordinal))
+        {
+            TravelTo(choiceId.Substring("travel:".Length));
+            return;
+        }
+
+        if (choiceId == "encounter_goblin")
+        {
+            StartGoblinEncounter();
+            return;
+        }
+
+        string message = choiceId switch
+        {
+            "talk_mira" => "Mira smiles. “Morning! Are you heading to practical training too?”",
+            "inspect_board" => "The notice board lists today's classes and the training-dungeon briefing.",
+            "talk_instructor" => "The instructor asks you to report to the Guild Hall for your first assignment.",
+            "inspect_maps" => "The field maps show the academy grounds and a small supervised dungeon.",
+            "talk_clerk" => "The clerk explains how expedition reports are submitted.",
+            "inspect_requests" => "Most requests are reserved for senior students. One training survey is available.",
+            "inspect_letter" => "A short note from the academy reminds you to attend the morning briefing.",
+            "rest" => "You sit by the window for a moment. The day can wait another minute.",
+            _ => "There is nothing more to do here right now."
+        };
+
+        _storyPanel.ShowFeedback(message);
+    }
+
+    private void StartGoblinEncounter()
+    {
+        _combatService.StartEncounter();
+        _storyPanel.Visible = false;
+        _combatPanel.Visible = true;
+        _combatPanel.BeginEncounter("Goblin Ambush");
+        _combatPanel.AppendMessage(new CombatMessage(
+            "goblin-encounter-start",
+            1,
+            CombatMessageType.System,
+            CombatMessageCategory.Environment,
+            "SYSTEM",
+            "A goblin jumps out from the bushes and blocks your way."));
+        _combatPanel.ApplyViewData(_combatMapper.Map(_combatService.GetSnapshot()));
+    }
+
+    private void HandleCombatAction(CombatActionRequest request)
+    {
+        CombatResult result = _combatService.ExecuteAction(request);
+        _combatPanel.ApplyViewData(_combatMapper.Map(result));
+        _characterPanel.SetCharacter(_player);
+
+        if (!_combatService.IsEncounterOver)
+        {
+            return;
+        }
+
+        _combatPanel.ShowEncounterComplete(_combatService.IsVictory ? "VICTORY" : "DEFEAT");
+    }
+
+    private void ReturnToExploration()
+    {
+        _combatPanel.Visible = false;
+        _storyPanel.Visible = true;
+        _characterPanel.SetCharacter(_player);
+        ShowLocation();
+    }
+
+    private void TravelTo(string destinationId)
+    {
+        LocationContent current = AcademyContent.Get(_currentLocationId);
+        if (Array.IndexOf(current.Exits, destinationId) < 0)
+        {
+            _storyPanel.ShowFeedback("That location is not connected to your current position.");
+            return;
+        }
+
+        _currentLocationId = destinationId;
+        ShowLocation();
+    }
+}

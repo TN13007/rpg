@@ -1,0 +1,82 @@
+using System;
+using Godot;
+
+public partial class CombatPanel : PanelContainer
+{
+    public event Action<CombatActionRequest> ActionSelected;
+    public event Action ContinueRequested;
+
+    private Label _encounterTitle;
+    private Button _continueButton;
+    private CombatStatusPanel _statusPanel;
+    private CombatMessageLog _messageLog;
+    private CombatActionPanel _actionPanel;
+
+    public override void _Ready()
+    {
+        UiTheme.StylePanel(this);
+        _encounterTitle = GetNode<Label>("Margin/Content/Header/EncounterTitle");
+        _continueButton = GetNode<Button>("Margin/Content/ContinueButton");
+        _statusPanel = GetNode<CombatStatusPanel>("Margin/Content/CombatStatusPanel");
+        _messageLog = GetNode<CombatMessageLog>("Margin/Content/CombatMessageLog");
+        _actionPanel = GetNode<CombatActionPanel>("Margin/Content/CombatActionPanel");
+        _actionPanel.ActionSelected += HandleActionSelected;
+        _continueButton.Pressed += HandleContinuePressed;
+        _continueButton.Visible = false;
+        UiTheme.StyleButton(_continueButton, true);
+    }
+
+    public void BeginEncounter(string title)
+    {
+        _encounterTitle.Text = title;
+        _statusPanel.SetTurn(1, "PLAYER TURN");
+        _statusPanel.SetEnemies(Array.Empty<EnemyCombatStatus>());
+        _statusPanel.SetIntent(null);
+        _messageLog.Clear();
+        _actionPanel.SetActions(Array.Empty<CombatActionOption>());
+        _continueButton.Visible = false;
+    }
+
+    public void ApplyViewData(CombatViewData viewData)
+    {
+        if (viewData == null)
+        {
+            GD.PushError("CombatPanel received null view data.");
+            return;
+        }
+
+        _statusPanel.SetTurn(viewData.Round, viewData.ActiveTurnLabel);
+        _statusPanel.SetEnemies(viewData.Enemies);
+        _statusPanel.SetIntent(viewData.Intent);
+        _actionPanel.SetActions(viewData.AvailableActions);
+
+        foreach (CombatMessage message in viewData.NewMessages)
+        {
+            _messageLog.Append(message);
+        }
+    }
+
+    public void AppendMessage(CombatMessage message)
+    {
+        _messageLog.Append(message);
+    }
+
+    public void ShowEncounterComplete(string resultText)
+    {
+        _actionPanel.SetActions(Array.Empty<CombatActionOption>());
+        _statusPanel.SetIntent(null);
+        _continueButton.Text = "Return to Exploration";
+        _continueButton.Visible = true;
+        _encounterTitle.Text = resultText;
+    }
+
+    private void HandleActionSelected(CombatActionRequest request)
+    {
+        ActionSelected?.Invoke(request);
+    }
+
+    private void HandleContinuePressed()
+    {
+        ContinueRequested?.Invoke();
+    }
+}
