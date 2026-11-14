@@ -1,0 +1,13 @@
+{
+  "id": "goblin-a",
+  "name": "Goblin",
+  "role": "Training enemy",
+  "level": 1,
+  "maxHealth": 40,
+  "maxEnergy": 0,
+  "maxMood": 0,
+  "startingHealth": 40,
+  "startingEnergy": 0,
+  "startingMood": 0,
+  "startingGold": 0
+}
