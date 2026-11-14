@@ -1,4 +1,11 @@
 {
+  "travel": {
+    "durationMinutes": 10,
+    "timeModifier": {
+      "stat": "Agility",
+      "maxReduction": 0.5
+    }
+  },
   "locations": [
     {
       "id": "dormitory",
@@ -32,7 +39,15 @@
       "exits": ["courtyard"],
       "actions": [
         { "id": "talk_instructor", "label": "Talk to the instructor", "durationMinutes": 20 },
-        { "id": "inspect_maps", "label": "Study the field maps", "durationMinutes": 20 }
+        {
+          "id": "inspect_maps",
+          "label": "Study the field maps",
+          "durationMinutes": 20,
+          "timeModifier": {
+            "stat": "Intelligence",
+            "maxReduction": 0.5
+          }
+        }
       ]
     },
     {
