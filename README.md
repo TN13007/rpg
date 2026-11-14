@@ -31,7 +31,7 @@ The right Character Panel remains visible and shows Health, Energy, Mood and Gol
 - `DayClock` owns the current day and time of day. The prototype starts at Day 1, 07:30. `ActivityTimeCalculator` calculates modified durations; `DayClock` receives only the final number of minutes.
 - Each exploration action declares `durationMinutes` in `Data/academy_locations.json`. A `timeModifier` can reduce that duration using a character stat. Travel is configured in the root `travel` section; its base duration is 10 minutes and Agility can reduce it. Studying field maps takes 20 base minutes and Intelligence can reduce it. Completed Goblin encounters still cost 30 minutes.
 - The Dormitory provides **Sleep until tomorrow**, which advances the day and resets the clock to 07:30. Sleep currently changes time only; character recovery and daily schedules are not implemented yet.
-- The clock stops at 23:59 until the player sleeps. This avoids silently rolling into a new day without the explicit sleep action.
+- The clock rolls over automatically at midnight and increments the day while preserving any remaining minutes. Sleeping moves the player to 07:30 on the next morning; if midnight has already passed, it does not increment the day a second time.
 
 ## Data and presentation flow
 
