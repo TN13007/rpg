@@ -1,4 +1,7 @@
+using System;
 using System.Collections.Generic;
+using System.Text.Json;
+using Godot;
 
 public sealed class StoryChoice
 {
@@ -7,6 +10,16 @@ public sealed class StoryChoice
 
     public StoryChoice(string id, string label)
     {
+        if (string.IsNullOrWhiteSpace(id))
+        {
+            throw new ArgumentException("Choice ID is required.", nameof(id));
+        }
+
+        if (string.IsNullOrWhiteSpace(label))
+        {
+            throw new ArgumentException("Choice label is required.", nameof(label));
+        }
+
         Id = id;
         Label = label;
     }
@@ -27,57 +40,122 @@ public sealed class LocationContent
         Name = name;
         Region = region;
         Description = description;
-        Exits = exits;
-        Actions = actions;
+        Exits = exits ?? Array.Empty<string>();
+        Actions = actions ?? Array.Empty<StoryChoice>();
     }
 }
 
 public static class AcademyContent
 {
-    private static readonly LocationContent[] Locations =
+    private static Dictionary<string, LocationContent> _locations = new Dictionary<string, LocationContent>();
+
+    public static IEnumerable<LocationContent> All => _locations.Values;
+
+    public static void Load(string path)
     {
-        new LocationContent(
-            "dormitory", "Dormitory", "STUDENT QUARTERS",
-            "Morning light slips through the curtains. Your room is quiet, and the academy day is about to begin.",
-            new[] { "courtyard" },
-            new[] { new StoryChoice("rest", "Take a short rest"), new StoryChoice("inspect_letter", "Read the letter on your desk") }),
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            throw new ArgumentException("Academy content path is required.", nameof(path));
+        }
 
-        new LocationContent(
-            "courtyard", "Academy Courtyard", "ASTERIA ACADEMY",
-            "Students cross the courtyard beneath old trees. A rustling comes from the gate. Something small is moving in the bushes.",
-            new[] { "dormitory", "classroom", "guild_hall" },
-            new[]
+        if (!FileAccess.FileExists(path))
+        {
+            throw new InvalidOperationException("Academy content file was not found: " + path);
+        }
+
+        string json = FileAccess.GetFileAsString(path);
+        Dictionary<string, LocationContent> loadedLocations = new Dictionary<string, LocationContent>();
+
+        try
+        {
+            using JsonDocument document = JsonDocument.Parse(json);
+            JsonElement locations = document.RootElement.GetProperty("locations");
+
+            foreach (JsonElement locationData in locations.EnumerateArray())
             {
-                new StoryChoice("talk_mira", "Talk to Mira"),
-                new StoryChoice("inspect_board", "Read the notice board"),
-                new StoryChoice("encounter_goblin", "Investigate the rustling near the gate")
-            }),
+                string id = ReadString(locationData, "id");
+                string name = ReadString(locationData, "name");
+                string region = ReadString(locationData, "region");
+                string description = ReadString(locationData, "description");
+                string[] exits = ReadStringArray(locationData.GetProperty("exits"));
+                StoryChoice[] actions = ReadActions(locationData.GetProperty("actions"));
 
-        new LocationContent(
-            "classroom", "Practical Classroom", "EAST WING",
-            "Field maps cover the walls. Training equipment is arranged neatly beside the instructor's desk.",
-            new[] { "courtyard" },
-            new[] { new StoryChoice("talk_instructor", "Talk to the instructor"), new StoryChoice("inspect_maps", "Study the field maps") }),
+                if (loadedLocations.ContainsKey(id))
+                {
+                    throw new InvalidOperationException("Duplicate location ID: " + id);
+                }
 
-        new LocationContent(
-            "guild_hall", "Guild Hall", "EXPEDITION QUARTER",
-            "A broad counter separates the students from the expedition clerks. Reports and requests are pinned behind them.",
-            new[] { "courtyard" },
-            new[] { new StoryChoice("talk_clerk", "Talk to the guild clerk"), new StoryChoice("inspect_requests", "Browse expedition requests") })
-    };
+                loadedLocations.Add(id, new LocationContent(id, name, region, description, exits, actions));
+            }
+        }
+        catch (JsonException exception)
+        {
+            throw new InvalidOperationException("Invalid academy content JSON: " + path, exception);
+        }
 
-    public static IEnumerable<LocationContent> All => Locations;
+        if (loadedLocations.Count == 0)
+        {
+            throw new InvalidOperationException("Academy content must contain at least one location.");
+        }
+
+        _locations = loadedLocations;
+    }
 
     public static LocationContent Get(string id)
     {
-        foreach (LocationContent location in Locations)
+        if (string.IsNullOrWhiteSpace(id))
         {
-            if (location.Id == id)
+            throw new ArgumentException("Location ID is required.", nameof(id));
+        }
+
+        if (!_locations.TryGetValue(id, out LocationContent location))
+        {
+            throw new KeyNotFoundException("Location was not found: " + id);
+        }
+
+        return location;
+    }
+
+    private static string ReadString(JsonElement data, string propertyName)
+    {
+        string value = data.GetProperty(propertyName).GetString();
+
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            throw new InvalidOperationException("Academy content field is required: " + propertyName);
+        }
+
+        return value;
+    }
+
+    private static string[] ReadStringArray(JsonElement data)
+    {
+        List<string> values = new List<string>();
+
+        foreach (JsonElement item in data.EnumerateArray())
+        {
+            string value = item.GetString();
+
+            if (!string.IsNullOrWhiteSpace(value))
             {
-                return location;
+                values.Add(value);
             }
         }
 
-        return Locations[0];
+        return values.ToArray();
+    }
+
+    private static StoryChoice[] ReadActions(JsonElement data)
+    {
+        List<StoryChoice> actions = new List<StoryChoice>();
+
+        foreach (JsonElement item in data.EnumerateArray())
+        {
+            actions.Add(new StoryChoice(
+                ReadString(item, "id"),
+                ReadString(item, "label")));
+        }
+
+        return actions.ToArray();
     }
 }
