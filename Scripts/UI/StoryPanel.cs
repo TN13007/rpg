@@ -37,10 +37,7 @@ public partial class StoryPanel : PanelContainer
         _day.Text = dayLabel;
         _story.Text = text;
         _feedback.Text = "Choose an option to continue.";
-        _returnButton.Visible = title != AcademyContent.Get("courtyard").Name
-            && title != AcademyContent.Get("dormitory").Name
-            && title != AcademyContent.Get("classroom").Name
-            && title != AcademyContent.Get("guild_hall").Name;
+        _returnButton.Visible = false;
         ClearChoices();
 
         foreach (StoryChoice choice in choices)

@@ -1,6 +1,6 @@
 # Sprint — Playable Goblin Encounter
 
-**Goal:** Deliver one complete player journey in the main game scene, not another isolated UI preview.
+**Goal:** Deliver one complete player journey in the main game scene, not another isolated UI preview. The gameplay path and UI wiring have been implemented; Godot runtime verification remains pending.
 
 ## Player journey
 

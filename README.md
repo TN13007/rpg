@@ -42,4 +42,4 @@ The right Character Panel remains visible and shows Health, Energy, Mood and Gol
 
 Combat rules are intentionally small and deterministic for this sprint: basic attack deals 20 damage, Goblin has 40 HP and deals 4 damage, Defend costs 1 Energy and reduces the next hit to 1, Dodge costs 2 Energy and avoids the next hit. Victory grants 25 G.
 
-This is a playable vertical slice, not the final combat balance or complete life-simulation system. The standalone Combat Preview remains illustrative and is not the main gameplay entry point.
+This is the implemented vertical-slice path, not the final combat balance or complete life-simulation system. Runtime build and end-to-end verification in Godot 4.7.2 .NET are still pending; do not treat the journey as tested yet. The standalone Combat Preview remains illustrative and is not the main gameplay entry point.
