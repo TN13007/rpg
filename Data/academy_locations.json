@@ -1,0 +1,49 @@
+{
+  "locations": [
+    {
+      "id": "dormitory",
+      "name": "Dormitory",
+      "region": "STUDENT QUARTERS",
+      "description": "Morning light slips through the curtains. Your room is quiet, and the academy day is about to begin.",
+      "exits": ["courtyard"],
+      "actions": [
+        { "id": "rest", "label": "Take a short rest" },
+        { "id": "inspect_letter", "label": "Read the letter on your desk" }
+      ]
+    },
+    {
+      "id": "courtyard",
+      "name": "Academy Courtyard",
+      "region": "ASTERIA ACADEMY",
+      "description": "Students cross the courtyard beneath old trees. A rustling comes from the gate. Something small is moving in the bushes.",
+      "exits": ["dormitory", "classroom", "guild_hall"],
+      "actions": [
+        { "id": "talk_mira", "label": "Talk to Mira" },
+        { "id": "inspect_board", "label": "Read the notice board" },
+        { "id": "encounter_goblin", "label": "Investigate the rustling near the gate" }
+      ]
+    },
+    {
+      "id": "classroom",
+      "name": "Practical Classroom",
+      "region": "EAST WING",
+      "description": "Field maps cover the walls. Training equipment is arranged neatly beside the instructor's desk.",
+      "exits": ["courtyard"],
+      "actions": [
+        { "id": "talk_instructor", "label": "Talk to the instructor" },
+        { "id": "inspect_maps", "label": "Study the field maps" }
+      ]
+    },
+    {
+      "id": "guild_hall",
+      "name": "Guild Hall",
+      "region": "EXPEDITION QUARTER",
+      "description": "A broad counter separates the students from the expedition clerks. Reports and requests are pinned behind them.",
+      "exits": ["courtyard"],
+      "actions": [
+        { "id": "talk_clerk", "label": "Talk to the guild clerk" },
+        { "id": "inspect_requests", "label": "Browse expedition requests" }
+      ]
+    }
+  ]
+}
