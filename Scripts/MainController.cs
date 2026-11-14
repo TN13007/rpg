@@ -28,6 +28,7 @@ public partial class MainController : Control
 
         _sidebar.TabSelected += OpenTab;
         _storyPanel.ChoiceSelected += HandleChoice;
+        _storyPanel.ReturnToLocationRequested += ShowLocation;
         _combatPanel.ActionSelected += HandleCombatAction;
         _combatPanel.ContinueRequested += ReturnToExploration;
 
@@ -37,7 +38,7 @@ public partial class MainController : Control
 
     private void OpenTab(string tab)
     {
-        if (_combatService.IsEncounterOver == false && _combatPanel.Visible)
+        if (_combatPanel.Visible)
         {
             return;
         }
@@ -62,6 +63,7 @@ public partial class MainController : Control
             location.Description,
             choices,
             "DAY " + _day.ToString("00") + "  ·  07:30");
+        _storyPanel.ShowLocationButton(false);
     }
 
     private void ShowPage(string tab)
@@ -80,6 +82,7 @@ public partial class MainController : Control
         _storyPanel.Visible = true;
         _combatPanel.Visible = false;
         _storyPanel.ShowContent(tab, "ADVENTURER RECORD", description, Array.Empty<StoryChoice>(), "DAY " + _day.ToString("00"));
+        _storyPanel.ShowLocationButton(true);
     }
 
     private void HandleChoice(string choiceId)
@@ -139,14 +142,7 @@ public partial class MainController : Control
             return;
         }
 
-        if (_combatService.IsVictory)
-        {
-            _combatPanel.ShowEncounterComplete("VICTORY");
-        }
-        else
-        {
-            _combatPanel.ShowEncounterComplete("DEFEAT");
-        }
+        _combatPanel.ShowEncounterComplete(_combatService.IsVictory ? "VICTORY" : "DEFEAT");
     }
 
     private void ReturnToExploration()

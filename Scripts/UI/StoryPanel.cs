@@ -5,6 +5,7 @@ using Godot;
 public partial class StoryPanel : PanelContainer
 {
     public event Action<string> ChoiceSelected;
+    public event Action ReturnToLocationRequested;
 
     private Label _title;
     private Label _subtitle;
@@ -12,6 +13,7 @@ public partial class StoryPanel : PanelContainer
     private RichTextLabel _story;
     private VBoxContainer _choices;
     private Label _feedback;
+    private Button _returnButton;
 
     public override void _Ready()
     {
@@ -22,6 +24,10 @@ public partial class StoryPanel : PanelContainer
         _story = GetNode<RichTextLabel>("Margin/Content/Story");
         _choices = GetNode<VBoxContainer>("Margin/Content/Choices");
         _feedback = GetNode<Label>("Margin/Content/Feedback");
+        _returnButton = GetNode<Button>("Margin/Content/Header/ReturnButton");
+        _returnButton.Pressed += HandleReturnPressed;
+        _returnButton.Visible = false;
+        UiTheme.StyleButton(_returnButton);
     }
 
     public void ShowContent(string title, string subtitle, string text, IReadOnlyList<StoryChoice> choices, string dayLabel)
@@ -31,6 +37,10 @@ public partial class StoryPanel : PanelContainer
         _day.Text = dayLabel;
         _story.Text = text;
         _feedback.Text = "Choose an option to continue.";
+        _returnButton.Visible = title != AcademyContent.Get("courtyard").Name
+            && title != AcademyContent.Get("dormitory").Name
+            && title != AcademyContent.Get("classroom").Name
+            && title != AcademyContent.Get("guild_hall").Name;
         ClearChoices();
 
         foreach (StoryChoice choice in choices)
@@ -53,9 +63,19 @@ public partial class StoryPanel : PanelContainer
         _feedback.Text = message;
     }
 
+    public void ShowLocationButton(bool visible)
+    {
+        _returnButton.Visible = visible;
+    }
+
     private void HandleChoiceSelected(string choiceId)
     {
         ChoiceSelected?.Invoke(choiceId);
+    }
+
+    private void HandleReturnPressed()
+    {
+        ReturnToLocationRequested?.Invoke();
     }
 
     private void ClearChoices()
