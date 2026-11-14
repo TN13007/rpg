@@ -16,12 +16,13 @@ Open the project in Godot 4.7.2 .NET and run the main scene (Scenes/Main.tscn).
 
 ## Current player journey
 
-1. Start in the Academy Courtyard.
-2. Choose **Investigate the rustling near the gate**.
-3. The Main Panel switches from Exploration to the dedicated Combat mode.
-4. Choose Attack, Defend or Dodge. The combat service validates and resolves the action, updates HP / Energy and lets the Goblin respond.
-5. Defeat the Goblin to receive 25 G.
-6. Choose **Return to Exploration**. The Main Panel returns to the same location.
+1. Start in the Dormitory at Day 1, 07:30.
+2. Travel between the Dormitory, Courtyard, Classroom and Guild Hall; travel costs 10 minutes.
+3. Exploration activities advance time by the duration configured in `academy_locations.json`.
+4. Investigate the rustling in the Courtyard to start the Goblin encounter.
+5. Choose Attack, Defend or Dodge. The combat service validates and resolves the action, updates HP / Energy and lets the Goblin respond.
+6. The completed encounter advances time by 30 minutes. Victory grants 25 G.
+7. Return to the Dormitory and choose **Sleep until tomorrow** to advance to the next day at 07:30.
 
 The right Character Panel remains visible and shows Health, Energy, Mood and Gold. The left Sidebar contains Character, Diary and System navigation; location exploration remains in the Main Panel rather than becoming a separate sidebar tab.
 
