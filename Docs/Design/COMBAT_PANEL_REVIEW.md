@@ -55,7 +55,7 @@ The intended gameplay boundary is:
 - CombatPresentationMapper converts the result into CombatViewData and maps event types to message type, category, speaker and text.
 - CombatPanel consumes CombatViewData. It does not calculate damage, spend resources, validate game rules or inspect enemy AI state.
 
-The UI's enabled / disabled action state is advisory. CombatService.ExecuteAction must validate again because the state may have changed since the view was produced.
+The UI's enabled / disabled action state is advisory. CombatService.ExecuteAction must validate again because the state may have changed since the view was produced. If validation fails, the service returns a failure result and leaves combat state unchanged. If validation succeeds, it resolves the action, applies the result, then returns the updated safe snapshot and produced events.
 
 ### Data contracts
 
