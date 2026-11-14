@@ -18,13 +18,13 @@
 |---|---|---|---|
 | EXP-01 | How much of the location should be represented by illustration versus text? | Text-first with illustrative visuals. Exact balance is undecided. | Open |
 | EXP-02 | Should NPCs and objects appear as inline choices, cards, lists or another interaction pattern? | They must be visible and discoverable; exact control style is undecided. | Open |
-| EXP-03 | How should time be displayed and how clearly should actions communicate time cost? | Time is relevant context, but schedule and time-cost rules are not finalized. | Open |
+| EXP-03 | How should time be displayed and how clearly should actions communicate time cost? | The clock, activity durations and stat modifiers are implemented in the prototype; schedules and time-based world events remain undecided. | Open |
 
 ## 3. Character State and Diary
 
 | ID | Question | Current position | Status |
 |---|---|---|---|
-| CHAR-01 | What numerical ranges, recovery rules and thresholds should Health, Energy and Mood use? | The three indicators remain visible; detailed rules are undecided. | Open |
+| CHAR-01 | What numerical ranges, recovery rules and thresholds should Health, Energy and Mood use? | The three indicators remain visible; detailed recovery rules are undecided. | Open |
 | CHAR-02 | Which additional character values belong on Profile or Skills pages rather than the persistent panel? | Persistent panel should stay minimal. | Open |
 | DIARY-01 | Which events should become journal entries, and which should remain transient UI history? | Diary includes Current Goals and Journal Entries; recording rules are undecided. | Open |
 
@@ -35,7 +35,7 @@
 | COM-01 | How should intent confidence be communicated visually? | Use Suspected / Recognized labels; exact visual treatment can be playtested. | Open |
 | COM-02 | What narrow-screen layout should Combat use? | Current preview is desktop-first; stacking and minimum widths are not finalized. | Open |
 | COM-03 | What exact action-target selection flow is required for multi-target actions? | Not implemented or specified. | Open |
-| COM-04 | What are the actual combat rules, action costs, damage formulas and turn progression? | No combat simulation is implemented. | Open |
+| COM-04 | How should combat rules, action costs, damage formulas and turn progression be balanced and expanded? | A deterministic single-enemy prototype is implemented; final balance and expanded mechanics remain undecided. | Open |
 | COM-05 | Which accessibility checks and assistive-technology targets must be supported? | Keyboard focus is enabled; full screen-reader and text-scaling behavior needs testing. | Open |
 
 ## 5. Resolved Decisions
@@ -49,6 +49,7 @@
 | COM-R05 | Bound the message log to 60 messages and auto-scroll only when already at the bottom. | [Combat Panel Contract](COMBAT_PANEL_REVIEW.md) |
 | COM-R06 | UI receives only a presentation-safe snapshot; hidden AI decisions are never passed to UI. | [Combat Panel Contract](COMBAT_PANEL_REVIEW.md) |
 | COM-R07 | Action availability is replaced from the latest snapshot; gameplay service revalidates every request. | [Combat Panel Contract](COMBAT_PANEL_REVIEW.md) |
+| COM-R08 | A character with 0 HP is dead and cannot start an encounter or perform gameplay actions. CombatService and MainController enforce this rule. | [Playable Journey Sprint](SPRINT_PLAYABLE_JOURNEY.md) |
 
 ## 6. Review Priorities
 
