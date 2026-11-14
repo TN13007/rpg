@@ -7,8 +7,9 @@ public sealed class StoryChoice
 {
     public string Id { get; }
     public string Label { get; }
+    public int DurationMinutes { get; }
 
-    public StoryChoice(string id, string label)
+    public StoryChoice(string id, string label, int durationMinutes = 0)
     {
         if (string.IsNullOrWhiteSpace(id))
         {
@@ -20,8 +21,14 @@ public sealed class StoryChoice
             throw new ArgumentException("Choice label is required.", nameof(label));
         }
 
+        if (durationMinutes < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(durationMinutes));
+        }
+
         Id = id;
         Label = label;
+        DurationMinutes = durationMinutes;
     }
 }
 
@@ -151,9 +158,14 @@ public static class AcademyContent
 
         foreach (JsonElement item in data.EnumerateArray())
         {
+            int durationMinutes = item.TryGetProperty("durationMinutes", out JsonElement duration)
+                ? duration.GetInt32()
+                : 0;
+
             actions.Add(new StoryChoice(
                 ReadString(item, "id"),
-                ReadString(item, "label")));
+                ReadString(item, "label"),
+                durationMinutes));
         }
 
         return actions.ToArray();
