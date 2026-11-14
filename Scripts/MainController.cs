@@ -14,7 +14,7 @@ public partial class MainController : Control
     private CombatPresentationMapper _combatMapper;
     private DayClock _dayClock;
 
-    private string _currentLocationId = "courtyard";
+    private string _currentLocationId = "dormitory";
 
     public override void _Ready()
     {
