@@ -12,9 +12,9 @@ public partial class MainController : Control
     private Character _goblin;
     private CombatService _combatService;
     private CombatPresentationMapper _combatMapper;
+    private DayClock _dayClock;
 
     private string _currentLocationId = "courtyard";
-    private int _day = 1;
 
     public override void _Ready()
     {
@@ -32,6 +32,7 @@ public partial class MainController : Control
         _goblin = new Character(goblinData);
         _combatService = new CombatService(_player, _goblin);
         _combatMapper = new CombatPresentationMapper();
+        _dayClock = new DayClock();
 
         _sidebar.TabSelected += OpenTab;
         _storyPanel.ChoiceSelected += HandleChoice;
@@ -69,7 +70,7 @@ public partial class MainController : Control
             location.Region,
             location.Description,
             choices,
-            "DAY " + _day.ToString("00") + "  ·  07:30");
+            _dayClock.GetDisplayText());
         _storyPanel.ShowLocationButton(false);
     }
 
@@ -88,7 +89,7 @@ public partial class MainController : Control
 
         _storyPanel.Visible = true;
         _combatPanel.Visible = false;
-        _storyPanel.ShowContent(tab, "ADVENTURER RECORD", description, Array.Empty<StoryChoice>(), "DAY " + _day.ToString("00"));
+        _storyPanel.ShowContent(tab, "ADVENTURER RECORD", description, Array.Empty<StoryChoice>(), _dayClock.GetDisplayText());
         _storyPanel.ShowLocationButton(true);
     }
 
@@ -97,6 +98,12 @@ public partial class MainController : Control
         if (choiceId.StartsWith("travel:", StringComparison.Ordinal))
         {
             TravelTo(choiceId.Substring("travel:".Length));
+            return;
+        }
+
+        if (choiceId == "sleep")
+        {
+            Sleep();
             return;
         }
 
@@ -120,6 +127,42 @@ public partial class MainController : Control
         };
 
         _storyPanel.ShowFeedback(message);
+        AdvanceForAction(choiceId);
+    }
+
+    private void AdvanceForAction(string choiceId)
+    {
+        LocationContent location = AcademyContent.Get(_currentLocationId);
+
+        foreach (StoryChoice action in location.Actions)
+        {
+            if (action.Id != choiceId)
+            {
+                continue;
+            }
+
+            _dayClock.AdvanceMinutes(action.DurationMinutes);
+            ShowLocation();
+            return;
+        }
+    }
+
+    private void Sleep()
+    {
+        if (_currentLocationId != "dormitory")
+        {
+            _storyPanel.ShowFeedback("You need to return to your dormitory before sleeping.");
+            return;
+        }
+
+        _dayClock.SleepUntilNextDay();
+        _storyPanel.ShowContent(
+            "A New Day",
+            "STUDENT QUARTERS",
+            "You wake up after a night's rest. Another day at the academy begins.",
+            AcademyContent.Get(_currentLocationId).Actions,
+            _dayClock.GetDisplayText());
+        _storyPanel.ShowLocationButton(false);
     }
 
     private void StartGoblinEncounter()
@@ -149,6 +192,7 @@ public partial class MainController : Control
             return;
         }
 
+        _dayClock.AdvanceMinutes(30);
         _combatPanel.ShowEncounterComplete(_combatService.IsVictory ? "VICTORY" : "DEFEAT");
     }
 
@@ -169,6 +213,7 @@ public partial class MainController : Control
             return;
         }
 
+        _dayClock.AdvanceMinutes(10);
         _currentLocationId = destinationId;
         ShowLocation();
     }
