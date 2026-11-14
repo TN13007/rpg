@@ -22,7 +22,8 @@ To inspect the Combat UI, open Scenes/Previews/CombatPreview.tscn in Godot and r
 - CombatStatusPanel.cs: shows round, turn, enemy status and observed intent.
 - CombatMessageLog.cs: owns bounded history and preserves the reader's scroll position.
 - CombatMessageEntry.cs: presents one semantically typed Player, Enemy or System message.
-- CombatActionPanel.cs: shows available actions and emits the chosen action ID.
+- CombatActionPanel.cs: shows available actions and emits a CombatActionRequest.
+- CombatActionButton.cs: carries the selected action and optional target into that request.
 - CombatPresentation.cs: defines action requests, service result contracts and presentation-safe data.
 - CombatPresentationMapper.cs: maps service results into CombatViewData.
 
