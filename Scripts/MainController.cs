@@ -23,31 +23,10 @@ public partial class MainController : Control
         _combatPanel = GetNode<CombatPanel>("SafeArea/Layout/CombatPanel");
         _characterPanel = GetNode<CharacterPanel>("SafeArea/Layout/CharacterPanel");
 
-        CharacterData playerData = new CharacterData(
-            "player-ari",
-            "Ari",
-            "First-year adventurer",
-            1,
-            20,
-            10,
-            100,
-            20,
-            8,
-            70,
-            20);
+        AcademyContent.Load("res://Data/academy_locations.json");
 
-        CharacterData goblinData = new CharacterData(
-            "goblin-a",
-            "Goblin",
-            "Training enemy",
-            1,
-            40,
-            0,
-            0,
-            40,
-            0,
-            0,
-            0);
+        CharacterData playerData = CharacterDataLoader.Load("res://Data/Characters/player.json");
+        CharacterData goblinData = CharacterDataLoader.Load("res://Data/Characters/goblin.json");
 
         _player = new Character(playerData);
         _goblin = new Character(goblinData);
