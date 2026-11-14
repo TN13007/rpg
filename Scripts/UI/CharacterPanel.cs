@@ -19,8 +19,8 @@ public partial class CharacterPanel : PanelContainer
         _name = GetNode<Label>("Margin/Content/Name");
         _role = GetNode<Label>("Margin/Content/Role");
         _level = GetNode<Label>("Margin/Content/Level");
-        _healthValue = GetNode<Label>("Margin/Content/HealthValue");
-        _staminaValue = GetNode<Label>("Margin/Content/StaminaValue");
+        _healthValue = GetNode<Label>("Margin/Content/HealthHeader/HealthValue");
+        _staminaValue = GetNode<Label>("Margin/Content/StaminaHeader/StaminaValue");
         _gold = GetNode<Label>("Margin/Content/Gold");
 
         _healthBar = GetNode<ProgressBar>("Margin/Content/HealthBar");
