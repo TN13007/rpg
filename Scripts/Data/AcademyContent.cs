@@ -44,9 +44,14 @@ public static class AcademyContent
 
         new LocationContent(
             "courtyard", "Academy Courtyard", "ASTERIA ACADEMY",
-            "Students cross the courtyard beneath old trees. Somewhere nearby, a bell marks the beginning of another day.",
+            "Students cross the courtyard beneath old trees. A rustling comes from the gate. Something small is moving in the bushes.",
             new[] { "dormitory", "classroom", "guild_hall" },
-            new[] { new StoryChoice("talk_mira", "Talk to Mira"), new StoryChoice("inspect_board", "Read the notice board") }),
+            new[]
+            {
+                new StoryChoice("talk_mira", "Talk to Mira"),
+                new StoryChoice("inspect_board", "Read the notice board"),
+                new StoryChoice("encounter_goblin", "Investigate the rustling near the gate")
+            }),
 
         new LocationContent(
             "classroom", "Practical Classroom", "EAST WING",

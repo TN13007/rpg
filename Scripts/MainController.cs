@@ -6,7 +6,11 @@ public partial class MainController : Control
 {
     private Sidebar _sidebar;
     private StoryPanel _storyPanel;
+    private CombatPanel _combatPanel;
     private CharacterPanel _characterPanel;
+    private PlayerState _player;
+    private CombatService _combatService;
+    private CombatPresentationMapper _combatMapper;
 
     private string _currentLocationId = "courtyard";
     private int _day = 1;
@@ -15,37 +19,36 @@ public partial class MainController : Control
     {
         _sidebar = GetNode<Sidebar>("SafeArea/Layout/Sidebar");
         _storyPanel = GetNode<StoryPanel>("SafeArea/Layout/StoryPanel");
+        _combatPanel = GetNode<CombatPanel>("SafeArea/Layout/CombatPanel");
         _characterPanel = GetNode<CharacterPanel>("SafeArea/Layout/CharacterPanel");
+
+        _player = new PlayerState("Ari", "First-year adventurer", 1, 20, 20, 8, 10, 70, 20);
+        _combatService = new CombatService(_player);
+        _combatMapper = new CombatPresentationMapper();
 
         _sidebar.TabSelected += OpenTab;
         _storyPanel.ChoiceSelected += HandleChoice;
+        _combatPanel.ActionSelected += HandleCombatAction;
+        _combatPanel.ContinueRequested += ReturnToExploration;
 
-        _characterPanel.SetCharacter("Ari", "First-year adventurer", 1, 20, 20, 8, 10, 20);
+        _characterPanel.SetCharacter(_player);
         ShowLocation();
     }
 
     private void OpenTab(string tab)
     {
-        switch (tab)
+        if (_combatService.IsEncounterOver == false && _combatPanel.Visible)
         {
-            case "Explore":
-                ShowLocation();
-                return;
-
-            case "Map":
-                ShowMap();
-                return;
-
-            default:
-                ShowPage(tab);
-                return;
+            return;
         }
+
+        ShowPage(tab);
     }
 
     private void ShowLocation()
     {
         LocationContent location = AcademyContent.Get(_currentLocationId);
-        var choices = new List<StoryChoice>(location.Actions);
+        List<StoryChoice> choices = new List<StoryChoice>(location.Actions);
 
         foreach (string exitId in location.Exits)
         {
@@ -61,60 +64,35 @@ public partial class MainController : Control
             "DAY " + _day.ToString("00") + "  ·  07:30");
     }
 
-    private void ShowMap()
-    {
-        var choices = new List<StoryChoice>();
-
-        foreach (LocationContent location in AcademyContent.All)
-        {
-            string label = location.Name;
-            if (location.Id == _currentLocationId)
-            {
-                label += "  ·  CURRENT";
-            }
-
-            choices.Add(new StoryChoice("map:" + location.Id, label));
-        }
-
-        _storyPanel.ShowContent(
-            "Academy Map",
-            "ASTERIA ACADEMY",
-            "Select a location to view its scene. The map is a simple location overview for this prototype.",
-            choices,
-            "DAY " + _day.ToString("00") + "  ·  07:30");
-    }
-
     private void ShowPage(string tab)
     {
         string description = tab switch
         {
             "Profile" => "A summary of your adventurer and current condition.",
-            "Relationships" => "People you have met during your time at the academy.",
-            "Inventory" => "Items and equipment carried by your character.",
-            "Quests" => "Your current assignments and completed objectives.",
             "Skills" => "Techniques available to a novice adventurer.",
+            "Inventory" => "Items and equipment carried by your character.",
+            "Relationships" => "People you have met during your time at the academy.",
+            "Goals" => "Your current assignments and short-term objectives.",
+            "Journal" => "A record of meaningful events from your academy life.",
             _ => "Prototype preferences and game settings."
         };
 
-        _storyPanel.ShowContent(
-            tab,
-            "ADVENTURER RECORD",
-            description,
-            Array.Empty<StoryChoice>(),
-            "DAY " + _day.ToString("00"));
+        _storyPanel.Visible = true;
+        _combatPanel.Visible = false;
+        _storyPanel.ShowContent(tab, "ADVENTURER RECORD", description, Array.Empty<StoryChoice>(), "DAY " + _day.ToString("00"));
     }
 
     private void HandleChoice(string choiceId)
     {
         if (choiceId.StartsWith("travel:", StringComparison.Ordinal))
         {
-            TravelTo(choiceId.Substring("travel:".Length), false);
+            TravelTo(choiceId.Substring("travel:".Length));
             return;
         }
 
-        if (choiceId.StartsWith("map:", StringComparison.Ordinal))
+        if (choiceId == "encounter_goblin")
         {
-            TravelTo(choiceId.Substring("map:".Length), true);
+            StartGoblinEncounter();
             return;
         }
 
@@ -134,11 +112,55 @@ public partial class MainController : Control
         _storyPanel.ShowFeedback(message);
     }
 
-    private void TravelTo(string destinationId, bool fromMap)
+    private void StartGoblinEncounter()
+    {
+        _combatService.StartEncounter();
+        _storyPanel.Visible = false;
+        _combatPanel.Visible = true;
+        _combatPanel.BeginEncounter("Goblin Ambush");
+        _combatPanel.AppendMessage(new CombatMessage(
+            "goblin-encounter-start",
+            1,
+            CombatMessageType.System,
+            CombatMessageCategory.Environment,
+            "SYSTEM",
+            "A goblin jumps out from the bushes and blocks your way."));
+        _combatPanel.ApplyViewData(_combatMapper.Map(_combatService.GetSnapshot()));
+    }
+
+    private void HandleCombatAction(CombatActionRequest request)
+    {
+        CombatResult result = _combatService.ExecuteAction(request);
+        _combatPanel.ApplyViewData(_combatMapper.Map(result));
+        _characterPanel.SetCharacter(_player);
+
+        if (!_combatService.IsEncounterOver)
+        {
+            return;
+        }
+
+        if (_combatService.IsVictory)
+        {
+            _combatPanel.ShowEncounterComplete("VICTORY");
+        }
+        else
+        {
+            _combatPanel.ShowEncounterComplete("DEFEAT");
+        }
+    }
+
+    private void ReturnToExploration()
+    {
+        _combatPanel.Visible = false;
+        _storyPanel.Visible = true;
+        _characterPanel.SetCharacter(_player);
+        ShowLocation();
+    }
+
+    private void TravelTo(string destinationId)
     {
         LocationContent current = AcademyContent.Get(_currentLocationId);
-
-        if (!fromMap && Array.IndexOf(current.Exits, destinationId) < 0)
+        if (Array.IndexOf(current.Exits, destinationId) < 0)
         {
             _storyPanel.ShowFeedback("That location is not connected to your current position.");
             return;
