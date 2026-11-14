@@ -110,6 +110,12 @@ public partial class MainController : Control
 
     private void HandleChoice(string choiceId)
     {
+        if (!_player.IsAlive)
+        {
+            _storyPanel.ShowFeedback("You are dead and cannot perform actions.");
+            return;
+        }
+
         if (choiceId.StartsWith("travel:", StringComparison.Ordinal))
         {
             TravelTo(choiceId.Substring("travel:".Length));
@@ -128,39 +134,44 @@ public partial class MainController : Control
             return;
         }
 
-        string message = choiceId switch
-        {
-            "talk_mira" => "Mira smiles. “Morning! Are you heading to practical training too?”",
-            "inspect_board" => "The notice board lists today's classes and the training-dungeon briefing.",
-            "talk_instructor" => "The instructor asks you to report to the Guild Hall for your first assignment.",
-            "inspect_maps" => "The field maps show the academy grounds and a small supervised dungeon.",
-            "talk_clerk" => "The clerk explains how expedition reports are submitted.",
-            "inspect_requests" => "Most requests are reserved for senior students. One training survey is available.",
-            "inspect_letter" => "A short note from the academy reminds you to attend the morning briefing.",
-            "rest" => "You sit by the window for a moment. The day can wait another minute.",
-            _ => "There is nothing more to do here right now."
-        };
-
-        AdvanceForAction(choiceId, message);
-    }
-
-    private void AdvanceForAction(string choiceId, string feedback)
-    {
         LocationContent location = AcademyContent.Get(_currentLocationId);
+        StoryChoice selectedChoice = FindChoice(location.Actions, choiceId);
 
-        foreach (StoryChoice action in location.Actions)
+        if (selectedChoice == null)
         {
-            if (action.Id != choiceId)
-            {
-                continue;
-            }
-
-            int actualDuration = _activityTimeCalculator.Calculate(action, _player);
-            _dayClock.AdvanceMinutes(actualDuration);
-            ShowLocation();
-            _storyPanel.ShowFeedback(feedback + " (" + actualDuration + " minutes)");
+            _storyPanel.ShowFeedback("That action is not available here.");
             return;
         }
+
+        ExecuteActivity(selectedChoice);
+    }
+
+    private StoryChoice FindChoice(StoryChoice[] choices, string choiceId)
+    {
+        foreach (StoryChoice choice in choices)
+        {
+            if (choice.Id == choiceId)
+            {
+                return choice;
+            }
+        }
+
+        return null;
+    }
+
+    private void ExecuteActivity(StoryChoice choice)
+    {
+        int actualDuration = _activityTimeCalculator.Calculate(choice.Activity, _player);
+        _dayClock.AdvanceMinutes(actualDuration);
+        ShowLocation();
+
+        string feedback = choice.Feedback;
+        if (actualDuration > 0)
+        {
+            feedback += " (" + actualDuration + " minutes)";
+        }
+
+        _storyPanel.ShowFeedback(feedback);
     }
 
     private void Sleep()
@@ -178,7 +189,12 @@ public partial class MainController : Control
 
     private void StartGoblinEncounter()
     {
-        _combatService.StartEncounter();
+        if (!_combatService.TryStartEncounter(out string failureReason))
+        {
+            _storyPanel.ShowFeedback(failureReason);
+            return;
+        }
+
         _storyPanel.Visible = false;
         _combatPanel.Visible = true;
         _combatPanel.BeginEncounter("Goblin Ambush");
@@ -208,7 +224,8 @@ public partial class MainController : Control
             return;
         }
 
-        _dayClock.AdvanceMinutes(30);
+        int encounterDuration = _activityTimeCalculator.Calculate(AcademyContent.CombatEncounter, _player);
+        _dayClock.AdvanceMinutes(encounterDuration);
         _combatPanel.ShowEncounterComplete(_combatService.IsVictory ? "VICTORY" : "DEFEAT");
     }
 

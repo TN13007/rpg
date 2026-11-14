@@ -2,16 +2,6 @@ using System;
 
 public sealed class ActivityTimeCalculator
 {
-    public int Calculate(StoryChoice activity, Character character)
-    {
-        if (activity == null)
-        {
-            throw new ArgumentNullException(nameof(activity));
-        }
-
-        return Calculate(activity.DurationMinutes, character, activity.TimeModifier);
-    }
-
     public int Calculate(ActivityDefinition activity, Character character)
     {
         if (activity == null)
@@ -19,15 +9,13 @@ public sealed class ActivityTimeCalculator
             throw new ArgumentNullException(nameof(activity));
         }
 
-        return Calculate(activity.DurationMinutes, character, activity.TimeModifier);
-    }
-
-    private int Calculate(int baseDuration, Character character, ActivityTimeModifier modifier)
-    {
         if (character == null)
         {
             throw new ArgumentNullException(nameof(character));
         }
+
+        int baseDuration = activity.DurationMinutes;
+        ActivityTimeModifier modifier = activity.TimeModifier;
 
         if (baseDuration == 0 || modifier == null)
         {

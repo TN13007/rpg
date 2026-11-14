@@ -46,14 +46,10 @@ public sealed class StoryChoice
 {
     public string Id { get; }
     public string Label { get; }
-    public int DurationMinutes { get; }
-    public ActivityTimeModifier TimeModifier { get; }
+    public string Feedback { get; }
+    public ActivityDefinition Activity { get; }
 
-    public StoryChoice(
-        string id,
-        string label,
-        int durationMinutes = 0,
-        ActivityTimeModifier timeModifier = null)
+    public StoryChoice(string id, string label, ActivityDefinition activity = null, string feedback = "")
     {
         if (string.IsNullOrWhiteSpace(id))
         {
@@ -65,15 +61,10 @@ public sealed class StoryChoice
             throw new ArgumentException("Choice label is required.", nameof(label));
         }
 
-        if (durationMinutes < 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(durationMinutes));
-        }
-
         Id = id;
         Label = label;
-        DurationMinutes = durationMinutes;
-        TimeModifier = timeModifier;
+        Activity = activity ?? new ActivityDefinition(0);
+        Feedback = feedback ?? string.Empty;
     }
 }
 
@@ -99,10 +90,12 @@ public sealed class LocationContent
 
 public static class AcademyContent
 {
-    private static Dictionary<string, LocationContent> _locations = new Dictionary<string, LocationContent>();
+    private static Dictionary<string, LocationContent> _locations =
+        new Dictionary<string, LocationContent>(StringComparer.Ordinal);
 
     public static IEnumerable<LocationContent> All => _locations.Values;
     public static ActivityDefinition Travel { get; private set; } = new ActivityDefinition(10);
+    public static ActivityDefinition CombatEncounter { get; private set; } = new ActivityDefinition(30);
 
     public static void Load(string path)
     {
@@ -117,15 +110,22 @@ public static class AcademyContent
         }
 
         string json = FileAccess.GetFileAsString(path);
-        Dictionary<string, LocationContent> loadedLocations = new Dictionary<string, LocationContent>();
+        Dictionary<string, LocationContent> loadedLocations =
+            new Dictionary<string, LocationContent>(StringComparer.Ordinal);
 
         try
         {
             using JsonDocument document = JsonDocument.Parse(json);
             JsonElement root = document.RootElement;
+
             ActivityDefinition loadedTravel = root.TryGetProperty("travel", out JsonElement travelData)
                 ? ReadActivityDefinition(travelData)
                 : new ActivityDefinition(10);
+
+            ActivityDefinition loadedCombatEncounter = root.TryGetProperty("combatEncounter", out JsonElement combatData)
+                ? ReadActivityDefinition(combatData)
+                : new ActivityDefinition(30);
+
             JsonElement locations = root.GetProperty("locations");
 
             foreach (JsonElement locationData in locations.EnumerateArray())
@@ -142,6 +142,7 @@ public static class AcademyContent
                     throw new InvalidOperationException("Duplicate location ID: " + id);
                 }
 
+                ValidateActionIds(id, actions);
                 loadedLocations.Add(id, new LocationContent(id, name, region, description, exits, actions));
             }
 
@@ -150,8 +151,11 @@ public static class AcademyContent
                 throw new InvalidOperationException("Academy content must contain at least one location.");
             }
 
+            ValidateLocationExits(loadedLocations);
+
             _locations = loadedLocations;
             Travel = loadedTravel;
+            CombatEncounter = loadedCombatEncounter;
         }
         catch (JsonException exception)
         {
@@ -174,6 +178,43 @@ public static class AcademyContent
         return location;
     }
 
+    private static void ValidateActionIds(string locationId, StoryChoice[] actions)
+    {
+        HashSet<string> actionIds = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (StoryChoice action in actions)
+        {
+            if (!actionIds.Add(action.Id))
+            {
+                throw new InvalidOperationException(
+                    "Duplicate action ID '" + action.Id + "' in location '" + locationId + "'.");
+            }
+        }
+    }
+
+    private static void ValidateLocationExits(Dictionary<string, LocationContent> locations)
+    {
+        foreach (LocationContent location in locations.Values)
+        {
+            HashSet<string> exitIds = new HashSet<string>(StringComparer.Ordinal);
+
+            foreach (string exitId in location.Exits)
+            {
+                if (!exitIds.Add(exitId))
+                {
+                    throw new InvalidOperationException(
+                        "Duplicate exit '" + exitId + "' in location '" + location.Id + "'.");
+                }
+
+                if (!locations.ContainsKey(exitId))
+                {
+                    throw new InvalidOperationException(
+                        "Location '" + location.Id + "' references unknown exit '" + exitId + "'.");
+                }
+            }
+        }
+    }
+
     private static string ReadString(JsonElement data, string propertyName)
     {
         string value = data.GetProperty(propertyName).GetString();
@@ -194,10 +235,12 @@ public static class AcademyContent
         {
             string value = item.GetString();
 
-            if (!string.IsNullOrWhiteSpace(value))
+            if (string.IsNullOrWhiteSpace(value))
             {
-                values.Add(value);
+                throw new InvalidOperationException("Location exit IDs cannot be empty.");
             }
+
+            values.Add(value);
         }
 
         return values.ToArray();
@@ -209,19 +252,16 @@ public static class AcademyContent
 
         foreach (JsonElement item in data.EnumerateArray())
         {
-            int durationMinutes = item.TryGetProperty("durationMinutes", out JsonElement duration)
-                ? duration.GetInt32()
-                : 0;
-
-            ActivityTimeModifier modifier = item.TryGetProperty("timeModifier", out JsonElement modifierData)
-                ? ReadTimeModifier(modifierData)
-                : null;
+            ActivityDefinition activity = ReadActivityDefinition(item);
+            string feedback = item.TryGetProperty("feedback", out JsonElement feedbackData)
+                ? feedbackData.GetString()
+                : string.Empty;
 
             actions.Add(new StoryChoice(
                 ReadString(item, "id"),
                 ReadString(item, "label"),
-                durationMinutes,
-                modifier));
+                activity,
+                feedback));
         }
 
         return actions.ToArray();

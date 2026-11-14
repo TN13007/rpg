@@ -6,6 +6,9 @@
       "maxReduction": 0.5
     }
   },
+  "combatEncounter": {
+    "durationMinutes": 30
+  },
   "locations": [
     {
       "id": "dormitory",
@@ -14,9 +17,23 @@
       "description": "Morning light slips through the curtains. Your room is quiet, and the academy day is about to begin.",
       "exits": ["courtyard"],
       "actions": [
-        { "id": "rest", "label": "Take a short rest", "durationMinutes": 30 },
-        { "id": "inspect_letter", "label": "Read the letter on your desk", "durationMinutes": 10 },
-        { "id": "sleep", "label": "Sleep until tomorrow", "durationMinutes": 0 }
+        {
+          "id": "rest",
+          "label": "Take a short rest",
+          "durationMinutes": 30,
+          "feedback": "You sit by the window for a moment. The day can wait another minute."
+        },
+        {
+          "id": "inspect_letter",
+          "label": "Read the letter on your desk",
+          "durationMinutes": 10,
+          "feedback": "A short note from the academy reminds you to attend the morning briefing."
+        },
+        {
+          "id": "sleep",
+          "label": "Sleep until tomorrow",
+          "durationMinutes": 0
+        }
       ]
     },
     {
@@ -26,9 +43,23 @@
       "description": "Students cross the courtyard beneath old trees. A rustling comes from the gate. Something small is moving in the bushes.",
       "exits": ["dormitory", "classroom", "guild_hall"],
       "actions": [
-        { "id": "talk_mira", "label": "Talk to Mira", "durationMinutes": 15 },
-        { "id": "inspect_board", "label": "Read the notice board", "durationMinutes": 10 },
-        { "id": "encounter_goblin", "label": "Investigate the rustling near the gate", "durationMinutes": 0 }
+        {
+          "id": "talk_mira",
+          "label": "Talk to Mira",
+          "durationMinutes": 15,
+          "feedback": "Mira smiles. “Morning! Are you heading to practical training too?”"
+        },
+        {
+          "id": "inspect_board",
+          "label": "Read the notice board",
+          "durationMinutes": 10,
+          "feedback": "The notice board lists today's classes and the training-dungeon briefing."
+        },
+        {
+          "id": "encounter_goblin",
+          "label": "Investigate the rustling near the gate",
+          "durationMinutes": 0
+        }
       ]
     },
     {
@@ -38,7 +69,12 @@
       "description": "Field maps cover the walls. Training equipment is arranged neatly beside the instructor's desk.",
       "exits": ["courtyard"],
       "actions": [
-        { "id": "talk_instructor", "label": "Talk to the instructor", "durationMinutes": 20 },
+        {
+          "id": "talk_instructor",
+          "label": "Talk to the instructor",
+          "durationMinutes": 20,
+          "feedback": "The instructor asks you to report to the Guild Hall for your first assignment."
+        },
         {
           "id": "inspect_maps",
           "label": "Study the field maps",
@@ -46,7 +82,8 @@
           "timeModifier": {
             "stat": "Intelligence",
             "maxReduction": 0.5
-          }
+          },
+          "feedback": "The field maps show the academy grounds and a small supervised dungeon."
         }
       ]
     },
@@ -57,8 +94,18 @@
       "description": "A broad counter separates the students from the expedition clerks. Reports and requests are pinned behind them.",
       "exits": ["courtyard"],
       "actions": [
-        { "id": "talk_clerk", "label": "Talk to the guild clerk", "durationMinutes": 15 },
-        { "id": "inspect_requests", "label": "Browse expedition requests", "durationMinutes": 10 }
+        {
+          "id": "talk_clerk",
+          "label": "Talk to the guild clerk",
+          "durationMinutes": 15,
+          "feedback": "The clerk explains how expedition reports are submitted."
+        },
+        {
+          "id": "inspect_requests",
+          "label": "Browse expedition requests",
+          "durationMinutes": 10,
+          "feedback": "Most requests are reserved for senior students. One training survey is available."
+        }
       ]
     }
   ]
