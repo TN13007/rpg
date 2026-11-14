@@ -162,6 +162,11 @@ public sealed class CombatResult
         Snapshot = snapshot ?? throw new ArgumentNullException(nameof(snapshot));
         Events = events ?? Array.Empty<CombatEvent>();
         FailureReason = failureReason ?? string.Empty;
+
+        if (!success && string.IsNullOrWhiteSpace(FailureReason))
+        {
+            throw new ArgumentException("A failed combat result must include a failure reason.", nameof(failureReason));
+        }
     }
 }
 

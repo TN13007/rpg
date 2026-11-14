@@ -2,6 +2,22 @@ using System;
 
 public sealed class CombatPresentationMapper
 {
+    public CombatViewData Map(CombatSnapshot snapshot)
+    {
+        if (snapshot == null)
+        {
+            throw new ArgumentNullException(nameof(snapshot));
+        }
+
+        return new CombatViewData(
+            snapshot.Round,
+            snapshot.ActiveTurnLabel,
+            snapshot.Enemies,
+            snapshot.Intent,
+            snapshot.AvailableActions,
+            Array.Empty<CombatMessage>());
+    }
+
     public CombatViewData Map(CombatResult result)
     {
         if (result == null)
