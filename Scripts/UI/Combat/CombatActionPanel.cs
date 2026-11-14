@@ -17,9 +17,9 @@ public partial class CombatActionPanel : PanelContainer
     {
         ClearChildren();
 
-        if (actions.Length == 0)
+        if (actions == null || actions.Length == 0)
         {
-            var emptyLabel = new Label { Text = "No actions available." };
+            Label emptyLabel = new Label { Text = "No actions available." };
             emptyLabel.AddThemeColorOverride("font_color", UiTheme.Muted);
             _actionGrid.AddChild(emptyLabel);
             return;
@@ -35,14 +35,18 @@ public partial class CombatActionPanel : PanelContainer
     {
         string cost = string.IsNullOrWhiteSpace(action.CostLabel) ? string.Empty : "  ·  " + action.CostLabel;
         string detail = string.IsNullOrWhiteSpace(action.Description) ? string.Empty : "\n" + action.Description;
+        string unavailableReason = action.IsAvailable || string.IsNullOrWhiteSpace(action.UnavailableReason)
+            ? string.Empty
+            : "\n" + action.UnavailableReason;
 
-        var button = new Button
+        Button button = new Button
         {
-            Text = action.Label + cost + detail,
+            Text = action.Label + cost + detail + unavailableReason,
+            TooltipText = action.UnavailableReason,
             CustomMinimumSize = new Vector2(0, 62),
             Disabled = !action.IsAvailable,
             Alignment = HorizontalAlignment.Left,
-            FocusMode = FocusModeEnum.None
+            FocusMode = FocusModeEnum.All
         };
 
         UiTheme.StyleButton(button);

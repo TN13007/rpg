@@ -15,10 +15,11 @@ public partial class CombatMessageEntry : HBoxContainer
 
     public void SetMessage(CombatMessage message)
     {
-        _heading.Text = string.IsNullOrWhiteSpace(message.Category)
-            ? message.Speaker
-            : message.Category;
+        string category = message.Category == CombatMessageCategory.None
+            ? string.Empty
+            : " · " + message.Category.ToString().ToUpperInvariant();
 
+        _heading.Text = message.Speaker.ToUpperInvariant() + category;
         _body.Text = message.Text;
         _body.AutowrapMode = TextServer.AutowrapMode.WordSmart;
 
@@ -32,13 +33,11 @@ public partial class CombatMessageEntry : HBoxContainer
                 background = new Color("#34495e");
                 headingColor = new Color("#c5d9eb");
                 break;
-
             case CombatMessageType.Enemy:
                 Alignment = BoxContainer.AlignmentMode.Begin;
                 background = new Color("#34383d");
                 headingColor = new Color("#d7b08b");
                 break;
-
             case CombatMessageType.System:
                 Alignment = BoxContainer.AlignmentMode.Center;
                 background = new Color("#2c343d");
@@ -47,7 +46,7 @@ public partial class CombatMessageEntry : HBoxContainer
                 break;
         }
 
-        var style = new StyleBoxFlat
+        StyleBoxFlat style = new StyleBoxFlat
         {
             BgColor = background,
             CornerRadiusTopLeft = 9,

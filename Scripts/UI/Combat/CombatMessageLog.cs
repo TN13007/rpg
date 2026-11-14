@@ -3,6 +3,7 @@ using Godot;
 public partial class CombatMessageLog : PanelContainer
 {
     private const int MaximumMessages = 60;
+    private const int BottomThreshold = 4;
 
     private ScrollContainer _scroll;
     private VBoxContainer _entries;
@@ -11,7 +12,6 @@ public partial class CombatMessageLog : PanelContainer
     public override void _Ready()
     {
         UiTheme.StylePanel(this);
-
         _scroll = GetNode<ScrollContainer>("Margin/Scroll");
         _entries = GetNode<VBoxContainer>("Margin/Scroll/Entries");
         _entryScene = GD.Load<PackedScene>("res://Scenes/UI/Combat/CombatMessageEntry.tscn");
@@ -25,6 +25,7 @@ public partial class CombatMessageLog : PanelContainer
             return;
         }
 
+        bool shouldFollowLatest = IsAtBottom();
         CombatMessageEntry entry = _entryScene.Instantiate<CombatMessageEntry>();
         _entries.AddChild(entry);
         entry.SetMessage(message);
@@ -36,7 +37,10 @@ public partial class CombatMessageLog : PanelContainer
             oldestEntry.QueueFree();
         }
 
-        _scroll.SetDeferred("scroll_vertical", 100000);
+        if (shouldFollowLatest)
+        {
+            _scroll.SetDeferred("scroll_vertical", 100000);
+        }
     }
 
     public void Clear()
@@ -48,5 +52,12 @@ public partial class CombatMessageLog : PanelContainer
         }
 
         _scroll.ScrollVertical = 0;
+    }
+
+    private bool IsAtBottom()
+    {
+        VScrollBar scrollBar = _scroll.GetVScrollBar();
+        int maximumScroll = Mathf.Max(0, (int)(scrollBar.MaxValue - scrollBar.Page));
+        return _scroll.ScrollVertical >= maximumScroll - BottomThreshold;
     }
 }
