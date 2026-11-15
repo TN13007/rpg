@@ -216,9 +216,29 @@ public sealed class ActionExecutionTests
                             continue;
                         }
 
-                        Assert.InRange(actor.Health, 0, actor.MaxHealth);
-                        Assert.InRange(actor.Energy, 0, actor.MaxEnergy);
-                        Assert.InRange(actor.Mood, 0, actor.MaxMood);
+                        int expectedHealth = health;
+                        int expectedEnergy = energy - action.EnergyCost;
+                        int expectedMood = 50;
+
+                        foreach (ActionEffectDefinition effect in action.Effects)
+                        {
+                            if (effect.Type == ActionEffectType.RestoreHealth)
+                            {
+                                expectedHealth = System.Math.Min(20, expectedHealth + effect.Amount);
+                            }
+                            else if (effect.Type == ActionEffectType.RestoreEnergy)
+                            {
+                                expectedEnergy = System.Math.Min(10, expectedEnergy + effect.Amount);
+                            }
+                            else if (effect.Type == ActionEffectType.ChangeMood)
+                            {
+                                expectedMood = (int)System.Math.Clamp((long)expectedMood + effect.Amount, 0L, 100L);
+                            }
+                        }
+
+                        Assert.Equal(expectedHealth, actor.Health);
+                        Assert.Equal(expectedEnergy, actor.Energy);
+                        Assert.Equal(expectedMood, actor.Mood);
                     }
                 }
             }
@@ -250,7 +270,17 @@ public sealed class ActionExecutionTests
                         out int duration);
 
                     Assert.True(success, location.Id + "/" + action.Id + ": " + reason);
-                    Assert.InRange(actor.Mood, 0, 100);
+
+                    int expectedMood = mood;
+                    foreach (ActionEffectDefinition effect in action.Effects)
+                    {
+                        if (effect.Type == ActionEffectType.ChangeMood)
+                        {
+                            expectedMood = (int)System.Math.Clamp((long)expectedMood + effect.Amount, 0L, 100L);
+                        }
+                    }
+
+                    Assert.Equal(expectedMood, actor.Mood);
                 }
             }
         }
