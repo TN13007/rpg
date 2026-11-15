@@ -349,9 +349,10 @@ public sealed class LocationEventLoopTests
 
     private static LocationEventDefinition CreateEvent(string id, double chance)
     {
+        string choiceId = id + "_choice";
         LocationEventChoiceDefinition choice = new LocationEventChoiceDefinition(
-            id + "_choice",
-            new ActionDefinition(id + "_action", "Action", 0));
+            choiceId,
+            new ActionDefinition(choiceId, "Action", 0));
         return new LocationEventDefinition(id, "Event", "REGION", "Description", chance, new[] { choice });
     }
 
