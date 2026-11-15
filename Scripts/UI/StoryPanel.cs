@@ -42,7 +42,7 @@ public partial class StoryPanel : PanelContainer
 
         foreach (ActionDefinition choice in choices)
         {
-            ActionDefinitionButton button = new ActionDefinitionButton
+            StoryChoiceButton button = new StoryChoiceButton
             {
                 Text = choice.Label,
                 ChoiceId = choice.Id,
