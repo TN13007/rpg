@@ -24,10 +24,10 @@ Do not place these terms in one flat list. They describe different levels of the
 | Gameplay Domain | Broad area of player experience; a classification, not automatically a system | Daily Life, Study, Social, Exploration, Combat, Economy, Investigation |
 | Activity | A goal-oriented piece of work that may consist of multiple actions | Eat breakfast, Attend class, Train swordsmanship, Investigate a disappearance |
 | Action | A concrete operation selected or performed by an actor | Eat, Drink, Sleep, Read, Walk, Attack, Dodge, Talk |
-| Effect | A result that changes something | Restore health, consume an item, reveal a clue, change relationship |
+| Effect | A request/operation asking a responsible System to make a domain change | Restore 20 health, consume an item, reveal a clue, change a relationship |
 | State | The current condition of an entity or the world | Health, hunger, inventory quantity, NPC disposition, door unlocked |
 
-A Domain is a taxonomy. An Activity is a useful grouping or player-facing task. An Action is an executable operation. An Effect describes a change. State stores the resulting condition.
+A Domain is a taxonomy. An Activity is a useful grouping or player-facing task. An Action is an executable operation. An Effect requests a domain change. State stores the current condition after processing.
 
 Not every Activity needs its own class or runtime object. Not every Action belongs to exactly one Domain. For example, Eat can be used at the academy, in a town, or while camping in the wilderness.
 
@@ -114,17 +114,37 @@ Equipment and Resource may be item categories or capabilities rather than indepe
 
 Encounter and Event are not synonyms. A trap activation may be an event; being caught in a trap that requires a response may create an encounter. A conversation can be an ordinary interaction or a more structured situation depending on its rules.
 
-## 5. Effects and State Ownership
+## 5. Effects, State and Events
 
-Effects describe changes; state belongs to the entity or relationship being changed.
+These concepts are related but are not interchangeable:
+
+| Concept | Responsibility | Example |
+|---|---|---|
+| Effect | Declares a requested domain operation/change; it is not proof that the change succeeded | `RestoreHealth(20)`, `UnlockAction("InspectAncientDoor")` |
+| State | Stores the current truth about an entity, relationship or world fact | `Player.Health = 80`, `WorldState.AncientDoorUnlocked = true` |
+| Event | Records or announces a fact that has occurred; only create one when something needs to react to or remember it | `PlayerHealed(20)`, `AncientDoorUnlocked` |
+
+The normal processing flow is:
+
+```text
+Action
+  └── Effects (zero or more requested operations)
+        └── Responsible Systems validate and process each Effect
+              ├── Apply successful changes to the owning State
+              └── Publish Events when useful or required
+```
+
+An Effect can be rejected or produce no State change. For example, `RestoreHealth(20)` may be valid but have no practical change when the character is already at maximum health. Conversely, an informational Action such as reading a letter may have no Effect at all. An Event is also optional: resting may update Energy without needing a `PlayerRested` event unless another feature needs to react to it.
+
+State remains the source of truth for current conditions and Action availability. Events may trigger notifications, quest reactions or other follow-up processing, but UI availability should be derived from current State and applicable rules rather than treating an Event as the current truth.
 
 Examples:
 
-- Eating may consume an Item, reduce Hunger and advance time.
-- Sleeping may advance time and change recovery-related character state.
-- Training may change skill progression and fatigue.
-- Defeating a creature may change its life state, grant rewards, alter a local threat and emit an event.
-- Discovering a clue may add Knowledge and update an Investigation or Quest objective.
+- Eating may request item consumption, reduce Hunger and advance time.
+- Sleeping may request time advancement and recovery-related character state changes.
+- Training may request skill progression and fatigue changes.
+- Defeating a creature may request a life-state change, grant rewards, alter a local threat and emit relevant events.
+- Discovering a clue may request adding Knowledge and updating an Investigation or Quest objective.
 
 Do not create a separate state system for every activity. First identify the owner of each state:
 
@@ -310,7 +330,7 @@ erDiagram
 - Request is a distinct responsibility in the user's 13-responsibility code organization: it creates/packages/sends an instruction to the application boundary. Handle receives and routes it. Request may involve a request data object and a sender; it is not necessarily one function.
 - Validate required conditions before applying changes. Multi-Effect atomicity, rollback and partial-failure handling remain implementation questions.
 - Combat remains specialized; do not flatten its turn and resolution rules into generic Action processing.
-- Effects change state; Events record or announce what happened.
+- Effects are requests for domain changes; responsible Systems validate and process them, then Apply updates the owning State. Events record or announce facts that occurred when other parts of the game need to react or remember them. Effects, State changes and Events are related but none is mandatory for every Action.
 - JSON/content data describes definitions and configuration. C# owns executable rules and validation.
 - Do not put arbitrary code or formulas in JSON.
 - Add a dedicated System only when there is a distinct responsibility and rules that justify it.
