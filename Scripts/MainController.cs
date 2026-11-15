@@ -59,12 +59,12 @@ public partial class MainController : Control
     private void ShowLocation()
     {
         LocationContent location = AcademyContent.Get(_currentLocationId);
-        List<StoryChoice> choices = new List<StoryChoice>(location.Actions);
+        List<ActionDefinition> choices = new List<ActionDefinition>(location.Actions);
 
         foreach (string exitId in location.Exits)
         {
             LocationContent exit = AcademyContent.Get(exitId);
-            choices.Add(new StoryChoice("travel:" + exitId, "Travel to " + exit.Name));
+            choices.Add(new ActionDefinition("travel:" + exitId, "Travel to " + exit.Name, 0));
         }
 
         _storyPanel.ShowContent(
@@ -91,7 +91,7 @@ public partial class MainController : Control
 
         _storyPanel.Visible = true;
         _combatPanel.Visible = false;
-        _storyPanel.ShowContent(tab, "ADVENTURER RECORD", description, Array.Empty<StoryChoice>(), _dayClock.GetDisplayText());
+        _storyPanel.ShowContent(tab, "ADVENTURER RECORD", description, Array.Empty<ActionDefinition>(), _dayClock.GetDisplayText());
         _storyPanel.ShowLocationButton(true);
     }
 
@@ -135,7 +135,7 @@ public partial class MainController : Control
         }
 
         LocationContent location = AcademyContent.Get(_currentLocationId);
-        StoryChoice selectedChoice = FindChoice(location.Actions, choiceId);
+        ActionDefinition selectedChoice = FindChoice(location.Actions, choiceId);
 
         if (selectedChoice == null)
         {
@@ -146,9 +146,9 @@ public partial class MainController : Control
         ExecuteActivity(selectedChoice);
     }
 
-    private StoryChoice FindChoice(StoryChoice[] choices, string choiceId)
+    private ActionDefinition FindChoice(ActionDefinition[] choices, string choiceId)
     {
-        foreach (StoryChoice choice in choices)
+        foreach (ActionDefinition choice in choices)
         {
             if (choice.Id == choiceId)
             {
@@ -159,9 +159,9 @@ public partial class MainController : Control
         return null;
     }
 
-    private void ExecuteActivity(StoryChoice choice)
+    private void ExecuteActivity(ActionDefinition choice)
     {
-        int actualDuration = _activityTimeCalculator.Calculate(choice.Activity, _player);
+        int actualDuration = _activityTimeCalculator.Calculate(choice, _player);
         _dayClock.AdvanceMinutes(actualDuration);
         ShowLocation();
 
