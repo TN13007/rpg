@@ -45,6 +45,9 @@ Travel to Academy Courtyard
 | Starting time | Day 1, 07:30 |
 | Locations | Dormitory, Courtyard, Classroom and Guild Hall |
 | Travel | 10 base minutes; Agility can reduce the duration |
+| Courtyard event | First arrival each day rolls once; 50% chance to reveal the Goblin event |
+| Event resolution | Confront the Goblin (Combat mode) or sneak past it (10 minutes and 1 Energy) |
+| Event repeat | The same event cannot be rolled again that day, whether it appears or not |
 | Activities | Each location action declares its duration in academy content JSON |
 | Study modifier | Intelligence can reduce the field-map study duration |
 | Sleep | Available in the Dormitory; moves the clock to 07:30 on the next morning |
@@ -87,6 +90,11 @@ These values are prototype rules, not final balance. Sleep currently changes tim
 
 - [ ] Main scene opens in the Dormitory at Day 1, 07:30.
 - [ ] Travel only succeeds when the destination is listed in the current location's exits.
+- [ ] Entering the Courtyard rolls the configured once-per-day Goblin event chance.
+- [ ] A failed event roll does not reroll on repeated visits that same day.
+- [ ] A triggered event offers both Combat and Stealth resolutions.
+- [ ] Sneaking past the Goblin spends 1 Energy, advances 10 minutes and returns to the Courtyard.
+- [ ] Confronting the Goblin enters Combat and returns to the same location after the encounter.
 - [ ] Exploration activities and travel advance time using configured durations.
 - [ ] Time modifiers use the configured character attribute.
 - [ ] Advancing past midnight increments the day and preserves remaining minutes.
@@ -103,7 +111,7 @@ These values are prototype rules, not final balance. Sleep currently changes tim
 
 ## Not in scope
 
-- Multiple enemies, random encounters, loot tables or inventory drops.
+- Multiple enemies, additional random location events, loot tables or inventory drops.
 - Advanced status effects, skill trees, critical hits or final balance.
 - Persistent save / load.
 - Character recovery, daily schedules and a complete death/rebirth or ghost-play flow.
