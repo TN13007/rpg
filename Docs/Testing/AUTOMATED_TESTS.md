@@ -15,6 +15,7 @@ The test project targets .NET 8 and references the Godot project. It tests domai
 - Character state combinations: every Health value from 0 to MaxHealth, every Energy value from 0 to MaxEnergy, and every Mood value from 0 to MaxMood.
 - Status precedence: Health = 0 means Dead; Energy = 0 with positive Health means Unconscious; a character with no Energy resource is not automatically unconscious.
 - Resource boundaries: damage, healing, Energy spending/recovery, Mood changes and Gold addition.
+- Attributes: every Strength, Agility, Intelligence, Endurance and Wisdom value from 0 to 100 in time-modifier calculations.
 - Action execution: every configured location action across every Health/Energy combination, and across every Mood value.
 - Action data: all 10 configured actions, their Energy costs, effects and durations; Travel modifier; separate combat encounter duration.
 - Combat: Attack, Defend, Dodge, victory, reward, enemy response, invalid targets, insufficient Energy, death, unconsciousness, and repeated actions after encounter completion.
