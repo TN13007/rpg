@@ -16,6 +16,11 @@ public sealed class LocationEventChoiceDefinition
 
         Action = action ?? throw new ArgumentNullException(nameof(action));
 
+        if (action.Id != id)
+        {
+            throw new ArgumentException("Event choice ID must match its Action ID.", nameof(action));
+        }
+
         if (!string.IsNullOrWhiteSpace(encounterActionId) && encounterActionId == action.Id)
         {
             throw new ArgumentException("An event choice cannot reference itself as its encounter action.", nameof(encounterActionId));
