@@ -25,46 +25,33 @@ public sealed class ActivityTimeModifier
     }
 }
 
-public sealed class ActivityDefinition
-{
-    public int DurationMinutes { get; }
-    public ActivityTimeModifier TimeModifier { get; }
-
-    public ActivityDefinition(int durationMinutes, ActivityTimeModifier timeModifier = null)
-    {
-        if (durationMinutes < 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(durationMinutes));
-        }
-
-        DurationMinutes = durationMinutes;
-        TimeModifier = timeModifier;
-    }
-}
-
-public sealed class StoryChoice
+public sealed class ActionDefinition
 {
     public string Id { get; }
     public string Label { get; }
     public string Feedback { get; }
-    public ActivityDefinition Activity { get; }
+    public int DurationMinutes { get; }
+    public ActivityTimeModifier TimeModifier { get; }
 
-    public StoryChoice(string id, string label, ActivityDefinition activity = null, string feedback = "")
+    public ActionDefinition(string id, string label, int durationMinutes, ActivityTimeModifier timeModifier = null, string feedback = "")
     {
-        if (string.IsNullOrWhiteSpace(id))
-        {
-            throw new ArgumentException("Choice ID is required.", nameof(id));
-        }
-
-        if (string.IsNullOrWhiteSpace(label))
-        {
-            throw new ArgumentException("Choice label is required.", nameof(label));
-        }
-
+        if (string.IsNullOrWhiteSpace(id)) throw new ArgumentException("Action ID is required.", nameof(id));
+        if (string.IsNullOrWhiteSpace(label)) throw new ArgumentException("Action label is required.", nameof(label));
+        if (durationMinutes < 0) throw new ArgumentOutOfRangeException(nameof(durationMinutes));
         Id = id;
         Label = label;
-        Activity = activity ?? new ActivityDefinition(0);
+        DurationMinutes = durationMinutes;
+        TimeModifier = timeModifier;
         Feedback = feedback ?? string.Empty;
+
+        /*
+         * FUTURE: Conditions - define when this action is available.
+         * FUTURE: Costs - define resources consumed before execution.
+         * FUTURE: Effects - define state changes after completion.
+         * FUTURE: Modifiers - adjust results using character/world state.
+         * FUTURE: Events - trigger events such as nightmares after sleep.
+         * These features are intentionally not implemented yet.
+         */
     }
 }
 
@@ -75,16 +62,16 @@ public sealed class LocationContent
     public string Region { get; }
     public string Description { get; }
     public string[] Exits { get; }
-    public StoryChoice[] Actions { get; }
+    public ActionDefinition[] Actions { get; }
 
-    public LocationContent(string id, string name, string region, string description, string[] exits, StoryChoice[] actions)
+    public LocationContent(string id, string name, string region, string description, string[] exits, ActionDefinition[] actions)
     {
         Id = id;
         Name = name;
         Region = region;
         Description = description;
         Exits = exits ?? Array.Empty<string>();
-        Actions = actions ?? Array.Empty<StoryChoice>();
+        Actions = actions ?? Array.Empty<ActionDefinition>();
     }
 }
 
@@ -94,8 +81,8 @@ public static class AcademyContent
         new Dictionary<string, LocationContent>(StringComparer.Ordinal);
 
     public static IEnumerable<LocationContent> All => _locations.Values;
-    public static ActivityDefinition Travel { get; private set; } = new ActivityDefinition(10);
-    public static ActivityDefinition CombatEncounter { get; private set; } = new ActivityDefinition(30);
+    public static ActionDefinition Travel { get; private set; } = new ActionDefinition("travel", "Travel", 10);
+    public static ActionDefinition CombatEncounter { get; private set; } = new ActionDefinition("combat_encounter", "Combat Encounter", 30);
 
     public static void Load(string path)
     {
@@ -118,13 +105,13 @@ public static class AcademyContent
             using JsonDocument document = JsonDocument.Parse(json);
             JsonElement root = document.RootElement;
 
-            ActivityDefinition loadedTravel = root.TryGetProperty("travel", out JsonElement travelData)
-                ? ReadActivityDefinition(travelData)
-                : new ActivityDefinition(10);
+            ActionDefinition loadedTravel = root.TryGetProperty("travel", out JsonElement travelData)
+                ? ReadActionDefinition(travelData)
+                : new ActionDefinition(10);
 
-            ActivityDefinition loadedCombatEncounter = root.TryGetProperty("combatEncounter", out JsonElement combatData)
-                ? ReadActivityDefinition(combatData)
-                : new ActivityDefinition(30);
+            ActionDefinition loadedCombatEncounter = root.TryGetProperty("combatEncounter", out JsonElement combatData)
+                ? ReadActionDefinition(combatData)
+                : new ActionDefinition(30);
 
             JsonElement locations = root.GetProperty("locations");
 
@@ -135,7 +122,7 @@ public static class AcademyContent
                 string region = ReadString(locationData, "region");
                 string description = ReadString(locationData, "description");
                 string[] exits = ReadStringArray(locationData.GetProperty("exits"));
-                StoryChoice[] actions = ReadActions(locationData.GetProperty("actions"));
+                ActionDefinition[] actions = ReadActions(locationData.GetProperty("actions"));
 
                 if (loadedLocations.ContainsKey(id))
                 {
@@ -178,11 +165,11 @@ public static class AcademyContent
         return location;
     }
 
-    private static void ValidateActionIds(string locationId, StoryChoice[] actions)
+    private static void ValidateActionIds(string locationId, ActionDefinition[] actions)
     {
         HashSet<string> actionIds = new HashSet<string>(StringComparer.Ordinal);
 
-        foreach (StoryChoice action in actions)
+        foreach (ActionDefinition action in actions)
         {
             if (!actionIds.Add(action.Id))
             {
@@ -246,35 +233,37 @@ public static class AcademyContent
         return values.ToArray();
     }
 
-    private static StoryChoice[] ReadActions(JsonElement data)
+    private static ActionDefinition[] ReadActions(JsonElement data)
     {
-        List<StoryChoice> actions = new List<StoryChoice>();
+        List<ActionDefinition> actions = new List<ActionDefinition>();
 
         foreach (JsonElement item in data.EnumerateArray())
         {
-            ActivityDefinition activity = ReadActivityDefinition(item);
+            int durationMinutes = item.GetProperty("durationMinutes").GetInt32();
+            ActivityTimeModifier modifier = item.TryGetProperty("timeModifier", out JsonElement modifierData) ? ReadTimeModifier(modifierData) : null;
             string feedback = item.TryGetProperty("feedback", out JsonElement feedbackData)
                 ? feedbackData.GetString()
                 : string.Empty;
 
-            actions.Add(new StoryChoice(
+            actions.Add(new ActionDefinition(
                 ReadString(item, "id"),
                 ReadString(item, "label"),
-                activity,
+                durationMinutes,
+                modifier,
                 feedback));
         }
 
         return actions.ToArray();
     }
 
-    private static ActivityDefinition ReadActivityDefinition(JsonElement data)
+    private static ActionDefinition ReadActionDefinition(string id, string label, JsonElement data)
     {
         int durationMinutes = data.GetProperty("durationMinutes").GetInt32();
         ActivityTimeModifier modifier = data.TryGetProperty("timeModifier", out JsonElement modifierData)
             ? ReadTimeModifier(modifierData)
             : null;
 
-        return new ActivityDefinition(durationMinutes, modifier);
+        return new ActionDefinition(id, label, durationMinutes, modifier);
     }
 
     private static ActivityTimeModifier ReadTimeModifier(JsonElement data)
