@@ -25,9 +25,15 @@ public sealed class ActionExecutionService
             throw new ArgumentNullException(nameof(actor));
         }
 
-        if (!actor.IsAlive)
+        if (actor.IsDead)
         {
             failureReason = "You are dead and cannot perform actions.";
+            return false;
+        }
+
+        if (actor.IsUnconscious)
+        {
+            failureReason = "You are unconscious and cannot perform actions.";
             return false;
         }
 
