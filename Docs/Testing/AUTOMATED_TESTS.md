@@ -35,6 +35,7 @@ The test project targets .NET 8 and references the Godot project. It tests domai
 Automated tests do not launch or inspect the Godot UI. Manually verify:
 
 - The Character Panel refreshes after Health, Energy, Mood and Gold changes.
+- A normal action or Travel that spends the final Energy point completes, then displays a collapse message; attempting another action is rejected.
 - Entering a Goblin encounter with exactly 2 Energy consumes the encounter cost and collapses the player before Combat mode opens.
 - Defend with exactly 1 Energy ends combat immediately without a Goblin attack.
 - Dodge with exactly 2 Energy ends combat immediately without a Goblin attack.
