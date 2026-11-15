@@ -143,7 +143,7 @@ public partial class MainController : Control
             return;
         }
 
-        ExecuteActivity(selectedChoice);
+        ExecuteAction(selectedChoice);
     }
 
     private ActionDefinition FindChoice(ActionDefinition[] choices, string choiceId)
@@ -159,7 +159,7 @@ public partial class MainController : Control
         return null;
     }
 
-    private void ExecuteActivity(ActionDefinition choice)
+    private void ExecuteAction(ActionDefinition choice)
     {
         int actualDuration = _activityTimeCalculator.Calculate(choice, _player);
         _dayClock.AdvanceMinutes(actualDuration);
