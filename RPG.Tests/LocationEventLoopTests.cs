@@ -15,9 +15,9 @@ public sealed class LocationEventLoopTests
         Assert.Equal(0.5, courtyard.Events[0].Chance);
         Assert.Equal(2, courtyard.Events[0].Choices.Length);
         Assert.Equal("encounter_goblin", courtyard.Events[0].Choices[0].EncounterActionId);
-        Assert.Null(courtyard.Events[1].EncounterActionId);
-        Assert.Equal(10, courtyard.Events[1].Action.DurationMinutes);
-        Assert.Equal(1, courtyard.Events[1].Action.EnergyCost);
+        Assert.Null(courtyard.Events[0].Choices[1].EncounterActionId);
+        Assert.Equal(10, courtyard.Events[0].Choices[1].Action.DurationMinutes);
+        Assert.Equal(1, courtyard.Events[0].Choices[1].Action.EnergyCost);
     }
 
     [Fact]
