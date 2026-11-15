@@ -179,6 +179,84 @@ public sealed class ActionExecutionTests
     }
 
     [Fact]
+    public void EveryConfiguredAction_CoversEveryHealthAndEnergyCombination()
+    {
+        LoadAcademyContent();
+
+        foreach (LocationContent location in AcademyContent.All)
+        {
+            foreach (ActionDefinition action in location.Actions)
+            {
+                for (int health = 0; health <= 20; health++)
+                {
+                    for (int energy = 0; energy <= 10; energy++)
+                    {
+                        Character actor = TestCharacterFactory.CreatePlayer(
+                            health: health,
+                            energy: energy,
+                            mood: 50);
+                        DayClock clock = new DayClock();
+
+                        bool success = _service.TryExecute(
+                            action,
+                            actor,
+                            clock,
+                            out string reason,
+                            out int duration);
+
+                        bool expectedSuccess = health > 0 && energy > 0 && energy >= action.EnergyCost;
+                        Assert.Equal(expectedSuccess, success);
+
+                        if (!expectedSuccess)
+                        {
+                            Assert.Equal(health, actor.Health);
+                            Assert.Equal(energy, actor.Energy);
+                            Assert.Equal(450, clock.MinutesOfDay);
+                            Assert.Equal(0, duration);
+                            continue;
+                        }
+
+                        Assert.InRange(actor.Health, 0, actor.MaxHealth);
+                        Assert.InRange(actor.Energy, 0, actor.MaxEnergy);
+                        Assert.InRange(actor.Mood, 0, actor.MaxMood);
+                    }
+                }
+            }
+        }
+    }
+
+    [Fact]
+    public void EveryConfiguredAction_CoversEveryMoodValue()
+    {
+        LoadAcademyContent();
+
+        foreach (LocationContent location in AcademyContent.All)
+        {
+            foreach (ActionDefinition action in location.Actions)
+            {
+                for (int mood = 0; mood <= 100; mood++)
+                {
+                    Character actor = TestCharacterFactory.CreatePlayer(
+                        health: 20,
+                        energy: 8,
+                        mood: mood);
+                    DayClock clock = new DayClock();
+
+                    bool success = _service.TryExecute(
+                        action,
+                        actor,
+                        clock,
+                        out string reason,
+                        out int duration);
+
+                    Assert.True(success, location.Id + "/" + action.Id + ": " + reason);
+                    Assert.InRange(actor.Mood, 0, 100);
+                }
+            }
+        }
+    }
+
+    [Fact]
     public void TravelDefinition_AppliesEnergyCostAndAgilityTimeModifier()
     {
         LoadAcademyContent();
