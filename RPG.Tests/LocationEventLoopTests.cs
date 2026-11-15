@@ -113,6 +113,51 @@ public sealed class LocationEventLoopTests
     }
 
     [Fact]
+    public void EventService_SkipsFailedCandidateAndSelectsNextSuccessfulCandidate()
+    {
+        LocationEventDefinition first = CreateEvent("first", 0);
+        LocationEventDefinition second = CreateEvent("second", 1);
+        LocationContent location = CreateLocation("courtyard", first, second);
+        LocationEventService service = new LocationEventService(new Random(1));
+
+        bool result = service.TryTrigger(location, 1, true, out LocationEventDefinition triggeredEvent);
+
+        Assert.True(result);
+        Assert.Same(second, triggeredEvent);
+    }
+
+    [Fact]
+    public void EventChoiceDefinition_RequiresActionIdToMatchChoiceId()
+    {
+        ActionDefinition action = new ActionDefinition("action-id", "Action", 0);
+
+        Assert.Throws<ArgumentException>(() => new LocationEventChoiceDefinition("different-id", action));
+    }
+
+    [Fact]
+    public void EventChoiceDefinition_RejectsSelfReferencingEncounterAction()
+    {
+        ActionDefinition action = new ActionDefinition("same-id", "Action", 0);
+
+        Assert.Throws<ArgumentException>(() => new LocationEventChoiceDefinition("same-id", action, "same-id"));
+    }
+
+    [Fact]
+    public void EventService_RejectsLocationWithoutIdentity()
+    {
+        LocationContent location = new LocationContent(
+            null,
+            "Location",
+            "REGION",
+            "Description",
+            Array.Empty<string>(),
+            Array.Empty<ActionDefinition>());
+        LocationEventService service = new LocationEventService(new Random(1));
+
+        Assert.Throws<ArgumentException>(() => service.TryTrigger(location, 1, true, out _));
+    }
+
+    [Fact]
     public void EventService_RejectsInvalidArguments()
     {
         LocationEventService service = new LocationEventService(new Random(1));
