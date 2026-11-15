@@ -141,6 +141,16 @@ public static class AcademyContent
         }
 
         string json = FileAccess.GetFileAsString(path);
+        LoadJson(json);
+    }
+
+    public static void LoadJson(string json)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            throw new ArgumentException("Academy content JSON is required.", nameof(json));
+        }
+
         Dictionary<string, LocationContent> loadedLocations =
             new Dictionary<string, LocationContent>(StringComparer.Ordinal);
 
