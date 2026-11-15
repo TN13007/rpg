@@ -54,6 +54,11 @@ public sealed class Character
 
     public int RestoreHealth(int amount)
     {
+        if (IsDead)
+        {
+            return 0;
+        }
+
         int restored = System.Math.Min(MaxHealth - Health, System.Math.Max(0, amount));
         Health += restored;
         return restored;
