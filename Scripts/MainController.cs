@@ -202,6 +202,14 @@ public partial class MainController : Control
             return;
         }
 
+        _characterPanel.SetCharacter(new CharacterViewModel(_player));
+
+        if (_player.IsUnconscious)
+        {
+            _storyPanel.ShowFeedback("You collapse from exhaustion before the encounter begins.");
+            return;
+        }
+
         if (!_combatService.TryStartEncounter(out failureReason))
         {
             _player.RestoreEnergy(action.EnergyCost);
