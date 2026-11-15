@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 public sealed class LocationEventService
 {
-    private readonly HashSet<string> _attemptedEvents;
+    private readonly Dictionary<string, int> _lastAttemptedDayByLocation;
     private readonly Random _random;
 
     public LocationEventService()
@@ -14,14 +14,23 @@ public sealed class LocationEventService
     public LocationEventService(Random random)
     {
         _random = random ?? throw new ArgumentNullException(nameof(random));
-        _attemptedEvents = new HashSet<string>(StringComparer.Ordinal);
+        _lastAttemptedDayByLocation = new Dictionary<string, int>(StringComparer.Ordinal);
     }
 
-    public bool TryTrigger(string eventId, int day, double chance)
+    public bool TryTrigger(
+        LocationContent location,
+        int day,
+        bool canAct,
+        out LocationEventDefinition triggeredEvent)
     {
-        if (string.IsNullOrWhiteSpace(eventId))
+        if (location == null)
         {
-            throw new ArgumentException("Event ID is required.", nameof(eventId));
+            throw new ArgumentNullException(nameof(location));
+        }
+
+        if (string.IsNullOrWhiteSpace(location.Id))
+        {
+            throw new ArgumentException("Location ID is required.", nameof(location));
         }
 
         if (day < 1)
@@ -29,18 +38,40 @@ public sealed class LocationEventService
             throw new ArgumentOutOfRangeException(nameof(day));
         }
 
-        if (chance < 0 || chance > 1)
-        {
-            throw new ArgumentOutOfRangeException(nameof(chance));
-        }
+        triggeredEvent = null;
 
-        string attemptKey = eventId + ":" + day;
-
-        if (!_attemptedEvents.Add(attemptKey))
+        if (!canAct || location.Events.Length == 0)
         {
             return false;
         }
 
-        return _random.NextDouble() < chance;
+        if (_lastAttemptedDayByLocation.TryGetValue(location.Id, out int lastAttemptedDay) &&
+            lastAttemptedDay == day)
+        {
+            return false;
+        }
+
+        _lastAttemptedDayByLocation[location.Id] = day;
+
+        foreach (LocationEventDefinition locationEvent in location.Events)
+        {
+            if (locationEvent == null)
+            {
+                throw new ArgumentException("Location events cannot contain null values.", nameof(location));
+            }
+
+            if (locationEvent.Chance <= 0)
+            {
+                continue;
+            }
+
+            if (locationEvent.Chance >= 1 || _random.NextDouble() < locationEvent.Chance)
+            {
+                triggeredEvent = locationEvent;
+                return true;
+            }
+        }
+
+        return false;
     }
 }
