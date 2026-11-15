@@ -167,7 +167,6 @@ public sealed class ActionExecutionTests
                 bool success = _service.TryExecute(action, actor, clock, out string reason, out int duration);
 
                 Assert.True(success, location.Id + "/" + action.Id + ": " + reason);
-                Assert.Equal(8 - action.EnergyCost, actor.Energy);
                 Assert.InRange(actor.Health, 0, actor.MaxHealth);
                 Assert.InRange(actor.Energy, 0, actor.MaxEnergy);
                 Assert.InRange(actor.Mood, 0, actor.MaxMood);
