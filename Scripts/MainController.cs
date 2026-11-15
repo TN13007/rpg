@@ -137,15 +137,15 @@ public partial class MainController : Control
 
     private void HandleChoice(string choiceId)
     {
-        if (choiceId.StartsWith("travel:", StringComparison.Ordinal))
-        {
-            TravelTo(choiceId.Substring("travel:".Length));
-            return;
-        }
-
         if (_activeLocationEvent != null)
         {
             HandleLocationEventChoice(choiceId);
+            return;
+        }
+
+        if (choiceId.StartsWith("travel:", StringComparison.Ordinal))
+        {
+            TravelTo(choiceId.Substring("travel:".Length));
             return;
         }
 
