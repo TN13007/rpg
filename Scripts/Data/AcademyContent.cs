@@ -106,12 +106,12 @@ public static class AcademyContent
             JsonElement root = document.RootElement;
 
             ActionDefinition loadedTravel = root.TryGetProperty("travel", out JsonElement travelData)
-                ? ReadActionDefinition(travelData)
-                : new ActionDefinition(10);
+                ? ReadActionDefinition("travel", "Travel", travelData)
+                : new ActionDefinition("travel", "Travel", 10);
 
             ActionDefinition loadedCombatEncounter = root.TryGetProperty("combatEncounter", out JsonElement combatData)
-                ? ReadActionDefinition(combatData)
-                : new ActionDefinition(30);
+                ? ReadActionDefinition("combat_encounter", "Combat Encounter", combatData)
+                : new ActionDefinition("combat_encounter", "Combat Encounter", 30);
 
             JsonElement locations = root.GetProperty("locations");
 
