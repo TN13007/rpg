@@ -58,15 +58,16 @@ public sealed class CharacterTests
         Character character = TestCharacterFactory.CreatePlayer(health: 5);
         Assert.Equal(0, character.TakeDamage(-10));
         Assert.Equal(5, character.Health);
-        Assert.Equal(5, character.TakeDamage(5));
-        Assert.Equal(0, character.Health);
-        Assert.Equal(0, character.TakeDamage(100));
+        Assert.Equal(2, character.TakeDamage(2));
+        Assert.Equal(3, character.Health);
         Assert.Equal(0, character.RestoreHealth(-10));
-        Assert.Equal(20, character.RestoreHealth(100));
+        Assert.Equal(17, character.RestoreHealth(100));
         Assert.Equal(20, character.Health);
         Assert.Equal(0, character.RestoreHealth(1));
 
         character.TakeDamage(100);
+        Assert.Equal(0, character.Health);
+        Assert.Equal(0, character.TakeDamage(100));
         Assert.Equal(0, character.RestoreHealth(100));
         Assert.True(character.IsDead);
     }
