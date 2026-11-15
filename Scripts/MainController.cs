@@ -82,7 +82,7 @@ public partial class MainController : Control
         List<ActionDefinition> choices = new List<ActionDefinition>();
         foreach (ActionDefinition action in location.Actions)
         {
-            if (action.Id != "encounter_goblin")
+            if (!IsEventEncounterAction(location, action.Id))
             {
                 choices.Add(action);
             }
@@ -158,13 +158,23 @@ public partial class MainController : Control
             return;
         }
 
-        if (selectedAction.Id == "encounter_goblin")
+        ExecuteAction(selectedAction);
+    }
+
+    private bool IsEventEncounterAction(LocationContent location, string actionId)
+    {
+        foreach (LocationEventDefinition locationEvent in location.Events)
         {
-            StartGoblinEncounter(selectedAction);
-            return;
+            foreach (LocationEventChoiceDefinition choice in locationEvent.Choices)
+            {
+                if (choice.EncounterActionId == actionId)
+                {
+                    return true;
+                }
+            }
         }
 
-        ExecuteAction(selectedAction);
+        return false;
     }
 
     private ActionDefinition FindChoice(ActionDefinition[] choices, string choiceId)
