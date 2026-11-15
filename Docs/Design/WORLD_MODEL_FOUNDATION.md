@@ -55,21 +55,20 @@ Some words can appear in multiple domains because domains classify player experi
 
 ## 4. Object Inventory and Terminology
 
-### 4.1 Actors and characters
+### 4.1 Characters and roles
 
-| Concept | Proposed meaning | Modeling question |
-|---|---|---|
-| Actor | An entity capable of participating in gameplay actions or situations | Is Actor a runtime abstraction, and what capabilities does it require? |
-| Character | A living individual with character attributes and state | Is Character a specialized Actor? |
-| Player | The character currently controlled by the user | Is this a control role rather than a separate entity type? |
-| NPC | A character controlled by game logic | How are schedules, needs and behavior represented? |
-| Enemy | An actor participating as a hostile opponent in a context | Is hostility contextual rather than a permanent class? |
-| Companion | A character currently accompanying or assisting the player | Is companion status a relationship/role with availability and rules? |
-| Creature | A non-human living entity | Which creature capabilities differ from humanoid characters? |
+| Concept | Proposed meaning |
+|---|---|
+| Character | A living individual with attributes and state |
+| Player | The character currently controlled by the user |
+| NPC | A character controlled by game logic |
+| Enemy | A character participating as a hostile opponent in a context |
+| Companion | A character currently accompanying or assisting the player |
+| Creature | A non-human living entity |
 
-Initial direction: Player, NPC, Enemy and Companion should be examined as roles or relationships before creating separate entity hierarchies. A character might be an NPC in one context, an enemy in another, and later become a companion.
+**Current decision:** Do not introduce a general-purpose `Actor` base concept yet. Model living participants as `Character`. Treat Player, NPC, Enemy and Companion as roles or contextual relationships rather than automatically creating separate entity types. A character might be an NPC in one context, an enemy in another, and later become a companion.
 
-Not every interactable thing is an Actor. A door, chest, trap or altar may be an object with interaction rules, not a living participant.
+Non-living world objects are modeled separately where needed. An object such as a door, chest, trap or altar may expose interaction rules, but it does not need to inherit from Character or Actor. Use an Interactable capability only where an object genuinely supports player interaction.
 
 ### 4.2 World and places
 
@@ -146,30 +145,29 @@ erDiagram
     LOCATION ||--o{ LOCATION_CONNECTION : has
     LOCATION ||--o{ LOCATION_PRESENCE : records
 
-    ACTOR ||--o| CHARACTER : may_have
-    ACTOR ||--o{ ACTOR_ROLE : has
-    ACTOR ||--o{ LOCATION_PRESENCE : appears_at
-
-    ACTOR ||--o{ ACTION_EXECUTION : performs
+    CHARACTER ||--o{ LOCATION_PRESENCE : appears_at
+    CHARACTER ||--o{ ACTION_EXECUTION : performs
     ACTION_DEFINITION ||--o{ ACTION_EXECUTION : defines
+    ACTION_EXECUTION o|--o| ACTION_TARGET : may_target
+    ACTION_EXECUTION o|--o| ACTION_SOURCE : may_use
     ACTION_EXECUTION ||--o{ ACTION_EFFECT : produces
 
-    ACTOR ||--o{ INVENTORY : owns
+    CHARACTER ||--o{ INVENTORY : owns
     INVENTORY ||--o{ INVENTORY_ITEM : contains
     ITEM_DEFINITION ||--o{ INVENTORY_ITEM : identifies
 
-    ACTOR ||--o{ RELATIONSHIP : participant
-    ACTOR ||--o{ RELATIONSHIP : counterpart
+    CHARACTER ||--o{ RELATIONSHIP : participant
+    CHARACTER ||--o{ RELATIONSHIP : counterpart
 
     LOCATION ||--o{ ENCOUNTER : hosts
     ENCOUNTER ||--o{ ENCOUNTER_PARTICIPANT : includes
-    ACTOR ||--o{ ENCOUNTER_PARTICIPANT : participates
+    CHARACTER ||--o{ ENCOUNTER_PARTICIPANT : participates
 
-    ACTOR ||--o{ KNOWLEDGE : holds
+    CHARACTER ||--o{ KNOWLEDGE : holds
     KNOWLEDGE ||--o{ CLUE : includes
 
     QUEST ||--o{ QUEST_OBJECTIVE : defines
-    ACTOR ||--o{ QUEST_PROGRESS : tracks
+    CHARACTER ||--o{ QUEST_PROGRESS : tracks
     QUEST ||--o{ QUEST_PROGRESS : progresses
 
     WORLD ||--o{ WORLD_EVENT : records
@@ -196,18 +194,12 @@ erDiagram
     LOCATION_PRESENCE {
         string id PK
         string location_id FK
-        string entity_id
+        string entity_ref
         string entity_kind
     }
-    ACTOR {
+    CHARACTER {
         string id PK
         string name
-    }
-    CHARACTER {
-        string actor_id PK,FK
-    }
-    ACTOR_ROLE {
-        string actor_id FK
         string role
     }
     ACTION_DEFINITION {
@@ -217,8 +209,19 @@ erDiagram
     ACTION_EXECUTION {
         string id PK
         string action_id FK
-        string actor_id FK
+        string performer_id FK
         string target_ref
+        string source_ref
+    }
+    ACTION_TARGET {
+        string id PK
+        string target_kind
+        string target_ref
+    }
+    ACTION_SOURCE {
+        string id PK
+        string source_kind
+        string source_ref
     }
     ACTION_EFFECT {
         string id PK
@@ -232,7 +235,7 @@ erDiagram
     }
     INVENTORY {
         string id PK
-        string owner_actor_id FK
+        string owner_character_id FK
     }
     INVENTORY_ITEM {
         string inventory_id FK
@@ -240,8 +243,8 @@ erDiagram
         int quantity
     }
     RELATIONSHIP {
-        string actor_a_id FK
-        string actor_b_id FK
+        string character_a_id FK
+        string character_b_id FK
         string relationship_type
     }
     ENCOUNTER {
@@ -252,11 +255,11 @@ erDiagram
     }
     ENCOUNTER_PARTICIPANT {
         string encounter_id FK
-        string actor_id FK
+        string character_id FK
     }
     KNOWLEDGE {
         string id PK
-        string actor_id FK
+        string character_id FK
         string subject_ref
     }
     CLUE {
@@ -272,7 +275,7 @@ erDiagram
         string quest_id FK
     }
     QUEST_PROGRESS {
-        string actor_id FK
+        string character_id FK
         string quest_id FK
         string status
     }
@@ -290,20 +293,21 @@ erDiagram
 
 ### ERD caveats to resolve
 
-1. `ACTOR` / `CHARACTER`: decide whether Actor is a true supertype or whether Character itself is sufficient for the first playable scope.
-2. `LOCATION_PRESENCE`: actors and objects may need different typed relations; avoid an unvalidated generic entity reference in the final schema.
-3. `ACTION_EXECUTION.target_ref`: targets can be actors, objects, locations or no target. Define a safe typed target model.
-4. `ACTION_EFFECT`: effects may be structured domain operations, not arbitrary string/value pairs or executable code in content data.
-5. `WORLD_STATE`: determine which facts belong to World, Location, Actor or a relationship before selecting storage.
-6. `KNOWLEDGE` / `CLUE`: distinguish raw evidence, discovered facts, and what the player-character actually knows.
-7. `ENCOUNTER`: specialized encounter types may own their own state and rules; do not force all behavior into one generic table.
+1. `LOCATION_PRESENCE`: characters and non-living objects may need different typed relations; avoid an unvalidated generic entity reference in the final schema.
+2. `ACTION_EXECUTION`: Performer is required; Target and Source are optional and may be null. Target and Source can refer to different kinds of domain objects.
+3. `ACTION_EFFECT`: an execution may produce zero or more effects. Effects should be structured domain operations, not arbitrary executable code in content data.
+4. `WORLD_STATE`: determine which facts belong to World, Location, Character or a relationship before selecting storage.
+5. `KNOWLEDGE` / `CLUE`: distinguish raw evidence, discovered facts, and what the player-character actually knows.
+6. `ENCOUNTER`: specialized encounter types may own their own state and rules; do not force all behavior into one generic table.
 
 ## 7. Modeling Rules
 
 - A gameplay category does not automatically imply a software System.
 - An Activity is not necessarily an executable Action.
 - Reuse Actions across domains and locations when their rules are the same.
-- A role such as Enemy or Companion should not automatically become a separate entity type.
+- A role such as Player, NPC, Enemy or Companion should not automatically become a separate entity type.
+- Do not introduce a general Actor abstraction until concrete shared behavior requires it; use Character for living participants and model interactable objects separately.
+- Action Execution records a required Performer, an optional Target, an optional Source and zero or more Effects. A null Target or Source is a valid case, not an execution error.
 - Combat remains specialized; do not flatten its turn and resolution rules into generic Action processing.
 - Effects change state; Events record or announce what happened.
 - JSON/content data describes definitions and configuration. C# owns executable rules and validation.
@@ -317,9 +321,9 @@ We will review and revise one area at a time. Each step should produce a decisio
 
 | Step | Scope | Validation scenario | Exit condition |
 |---|---|---|---|
-| 1 | Actor, Character and roles | Player, student NPC, hostile creature, recruitable companion | Clear identity, capability and role boundaries |
+| 1 | Character and roles | Player, student NPC, hostile creature, recruitable companion | Character and contextual roles are clear; Actor abstraction is justified or omitted |
 | 2 | World, Area, Location and connections | Academy, town, forest, ruins and a multi-room dungeon | Places can be composed without location-specific systems |
-| 3 | Activity and Action | Eat breakfast, attend class, travel, attack, investigate | No category/action duplication; action execution has clear inputs |
+| 3 | Activity, Action and Action Execution | Eat breakfast, sleep, use potion, self-buff, give gift, travel, attack | Performer, optional Target/Source and zero-or-more Effects are clear |
 | 4 | State, Effect and Event | Eat, train, defeat enemy, reveal clue | Ownership and mutation flow are unambiguous |
 | 5 | Encounter | Combat, trap, chase, negotiation, discovery | Shared lifecycle is identified without erasing specialized rules |
 | 6 | Items and inventory | Food, potion, weapon, quest evidence, raw material | Ownership, use, equipment and consumption are clear |
@@ -349,14 +353,14 @@ For each step:
 
 ### Open questions
 
-- Is Actor necessary as a separate abstraction from Character?
+- Which non-living objects need interaction capabilities, and how should those be represented without a universal Actor base?
 - Are Activity and Action both runtime concepts, or is Activity only a grouping/presentation concept?
 - Which character needs are simulated: Hunger, Thirst, Fatigue, Mood, Health or others?
 - Are Area and Location both required at runtime?
 - How are interactable non-living objects represented?
 - What is the boundary between Encounter, Dialogue and Event?
 - How is world state represented without creating one universal untyped state bag?
-- How are actions targeted and how are effects typed and validated?
+- How are optional Action Targets and Sources represented safely, including null cases, and how are Effects typed and validated?
 
 ## 10. Implementation Status
 
