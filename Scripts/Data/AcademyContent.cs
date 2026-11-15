@@ -200,7 +200,7 @@ public static class AcademyContent
         }
         catch (JsonException exception)
         {
-            throw new InvalidOperationException("Invalid academy content JSON: " + path, exception);
+            throw new InvalidOperationException("Invalid academy content JSON.", exception);
         }
     }
 
