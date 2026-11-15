@@ -75,12 +75,15 @@ Non-living world objects are modeled separately where needed. An object such as 
 | Concept | Proposed meaning |
 |---|---|
 | World | The overall simulation context |
-| Area | A broad region containing multiple locations, e.g. Academy Grounds, Town District, Forest |
-| Location | A place where actors and interactable objects can be present |
-| Location Connection | A traversable relationship between two locations, possibly conditional |
-| Location Presence | The fact that an actor or object is currently present at a location |
+| Location | A place in the world where characters and objects can be present; locations may contain smaller locations |
+| Location Presence | The fact that a character or object is currently present at a location |
+| Interaction Context | The object or entity the player is currently interacting with, without necessarily changing location |
 
-A Dungeon is a possible kind of Area or a structured set of Locations, not the universal model for exploration. A Forest, Town, Ruins and Academy should use the same foundational place model where their rules overlap.
+**Current direction:** Do not introduce Area as a required core entity. Represent places with a Location hierarchy using an optional `parent_location_id`. For example, Haunted House can contain Main Hall, Bedroom Floor 2 and Basement; Basement can contain Storage Room. The player's current Location remains the specific place they occupy.
+
+Containment and navigation are different ideas. A child Location is part of its parent, but that does not by itself define every possible route. For the current text-based prototype, movement can be represented by an Action whose Target identifies the destination and whose Effect changes the current Location. A separate Location Connection model is not required yet; reconsider it only if routes need independent querying, shared conditions or map/path functionality.
+
+An object such as a Mirror or Bed is not a Location. Interacting with it can change the Interaction Context while the player remains in the same Location.
 
 ### 4.3 Objects and possessions
 
@@ -140,9 +143,8 @@ This diagram illustrates candidate entities and relationships only. It is not a 
 
 ```mermaid
 erDiagram
-    WORLD ||--o{ AREA : contains
-    AREA ||--o{ LOCATION : contains
-    LOCATION ||--o{ LOCATION_CONNECTION : has
+    WORLD ||--o{ LOCATION : contains
+    LOCATION o|--o{ LOCATION : contains
     LOCATION ||--o{ LOCATION_PRESENCE : records
 
     CHARACTER ||--o{ LOCATION_PRESENCE : appears_at
@@ -176,20 +178,11 @@ erDiagram
     WORLD {
         string id PK
     }
-    AREA {
-        string id PK
-        string world_id FK
-        string name
-    }
     LOCATION {
         string id PK
-        string area_id FK
+        string world_id FK
+        string parent_location_id FK
         string name
-    }
-    LOCATION_CONNECTION {
-        string id PK
-        string source_location_id FK
-        string destination_location_id FK
     }
     LOCATION_PRESENCE {
         string id PK
@@ -204,6 +197,8 @@ erDiagram
     }
     ACTION_DEFINITION {
         string id PK
+        string owner_kind
+        string owner_ref
         string name
     }
     ACTION_EXECUTION {
@@ -294,11 +289,12 @@ erDiagram
 ### ERD caveats to resolve
 
 1. `LOCATION_PRESENCE`: characters and non-living objects may need different typed relations; avoid an unvalidated generic entity reference in the final schema.
-2. `ACTION_EXECUTION`: Performer is required; Target and Source are optional and may be null. Target and Source can refer to different kinds of domain objects.
-3. `ACTION_EFFECT`: an execution may produce zero or more effects. Effects should be structured domain operations, not arbitrary executable code in content data.
-4. `WORLD_STATE`: determine which facts belong to World, Location, Character or a relationship before selecting storage.
-5. `KNOWLEDGE` / `CLUE`: distinguish raw evidence, discovered facts, and what the player-character actually knows.
-6. `ENCOUNTER`: specialized encounter types may own their own state and rules; do not force all behavior into one generic table.
+2. `ACTION_DEFINITION.owner_kind / owner_ref`: the provider of an Action is distinct from its Performer. A Location, Object or Character may provide an Action; the Player may still be the Performer.
+3. `ACTION_EXECUTION`: Performer is required; Target and Source are optional and may be null. Target and Source can refer to different kinds of domain objects.
+4. `ACTION_EFFECT`: an execution may produce zero or more effects. Effects should be structured domain operations, not arbitrary executable code in content data.
+5. `WORLD_STATE`: determine which facts belong to World, Location, Character or a relationship before selecting storage.
+6. `KNOWLEDGE` / `CLUE`: distinguish raw evidence, discovered facts, and what the player-character actually knows.
+7. `ENCOUNTER`: specialized encounter types may own their own state and rules; do not force all behavior into one generic table.
 
 ## 7. Modeling Rules
 
@@ -307,7 +303,12 @@ erDiagram
 - Reuse Actions across domains and locations when their rules are the same.
 - A role such as Player, NPC, Enemy or Companion should not automatically become a separate entity type.
 - Do not introduce a general Actor abstraction until concrete shared behavior requires it; use Character for living participants and model interactable objects separately.
+- An Action is provided/owned by a Character, Location or Object; its provider is not necessarily its Performer.
 - Action Execution records a required Performer, an optional Target, an optional Source and zero or more Effects. A null Target or Source is a valid case, not an execution error.
+- Effects declare requested domain changes. The responsible System validates and applies the Effect; Action execution coordinates the process rather than embedding every System's rules.
+- For the current prototype, use a shared Action execution pipeline: Request → Handle → Orchestrator → Guard/Validator → Effects → responsible Systems → Apply → updated State.
+- Request is a distinct responsibility in the user's 13-responsibility code organization: it creates/packages/sends an instruction to the application boundary. Handle receives and routes it. Request may involve a request data object and a sender; it is not necessarily one function.
+- Validate required conditions before applying changes. Multi-Effect atomicity, rollback and partial-failure handling remain implementation questions.
 - Combat remains specialized; do not flatten its turn and resolution rules into generic Action processing.
 - Effects change state; Events record or announce what happened.
 - JSON/content data describes definitions and configuration. C# owns executable rules and validation.
@@ -322,9 +323,9 @@ We will review and revise one area at a time. Each step should produce a decisio
 | Step | Scope | Validation scenario | Exit condition |
 |---|---|---|---|
 | 1 | Character and roles | Player, student NPC, hostile creature, recruitable companion | Character and contextual roles are clear; Actor abstraction is justified or omitted |
-| 2 | World, Area, Location and connections | Academy, town, forest, ruins and a multi-room dungeon | Places can be composed without location-specific systems |
-| 3 | Activity, Action and Action Execution | Eat breakfast, sleep, use potion, self-buff, give gift, travel, attack | Performer, optional Target/Source and zero-or-more Effects are clear |
-| 4 | State, Effect and Event | Eat, train, defeat enemy, reveal clue | Ownership and mutation flow are unambiguous |
+| 2 | World, Location hierarchy and interaction context | Academy, town, forest, multi-room haunted house, mirror and bed interactions | Containment, current location and interaction context are distinct |
+| 3 | Activity, Action ownership and Action Execution | Eat breakfast, sleep, use potion, self-buff, give gift, travel, inspect mirror | Provider, Performer, optional Target/Source and zero-or-more Effects are clear |
+| 4 | State, Effect and Event | Eat, train, defeat enemy, reveal clue, change location, start interaction | State ownership, Effect dispatch and mutation flow are unambiguous |
 | 5 | Encounter | Combat, trap, chase, negotiation, discovery | Shared lifecycle is identified without erasing specialized rules |
 | 6 | Items and inventory | Food, potion, weapon, quest evidence, raw material | Ownership, use, equipment and consumption are clear |
 | 7 | Relationships and knowledge | Recruit NPC, learn monster weakness, gather evidence | Information and social state are modeled independently |
@@ -347,7 +348,9 @@ For each step:
 
 - The game supports multiple kinds of places and activities, not only dungeons and combat.
 - Location-based navigation is the current prototype direction; free-roam movement is not required.
-- Actions are concrete operations; systems resolve their rules and consequences.
+- Location is hierarchical; Area is not currently part of the core model.
+- Action providers can be Locations, Objects or Characters; the Performer is the entity that actually executes the Action.
+- Actions are concrete operations; Effects declare requested changes and responsible Systems resolve and apply them.
 - Combat has specialized rules and presentation.
 - Content definitions and executable rules remain separated.
 
@@ -356,11 +359,12 @@ For each step:
 - Which non-living objects need interaction capabilities, and how should those be represented without a universal Actor base?
 - Are Activity and Action both runtime concepts, or is Activity only a grouping/presentation concept?
 - Which character needs are simulated: Hunger, Thirst, Fatigue, Mood, Health or others?
-- Are Area and Location both required at runtime?
-- How are interactable non-living objects represented?
+- Does the player need to track both a current Location and a current Interaction Context, and what transitions clear or restore that context?
+- How are interactable non-living objects represented without turning every object into a Location?
 - What is the boundary between Encounter, Dialogue and Event?
 - How is world state represented without creating one universal untyped state bag?
-- How are optional Action Targets and Sources represented safely, including null cases, and how are Effects typed and validated?
+- How are optional Action Targets and Sources represented safely, including null cases, and how are Effects typed, validated and dispatched?
+- What consistency/atomicity guarantees are required when an Action produces multiple Effects and one fails?
 
 ## 10. Implementation Status
 
