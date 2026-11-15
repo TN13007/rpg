@@ -26,11 +26,19 @@ public sealed class CombatService : ICombatService
 
     public bool TryStartEncounter(out string failureReason)
     {
-        if (!_player.IsAlive)
+        if (_player.IsDead)
         {
             _encounterOver = true;
             IsVictory = false;
             failureReason = "You cannot enter combat while your character is dead.";
+            return false;
+        }
+
+        if (_player.IsUnconscious)
+        {
+            _encounterOver = true;
+            IsVictory = false;
+            failureReason = "You cannot enter combat while your character is unconscious.";
             return false;
         }
 
@@ -46,7 +54,7 @@ public sealed class CombatService : ICombatService
 
     public CombatSnapshot GetSnapshot()
     {
-        bool canAct = !_encounterOver && _player.IsAlive && _enemy.IsAlive;
+        bool canAct = !_encounterOver && _player.CanAct && _enemy.IsAlive;
 
         IntentObservation intent = canAct
             ? new IntentObservation(_enemy.Id, _enemy.Name, "The enemy is watching you and preparing to strike.", IntentConfidence.Suspected)
@@ -81,11 +89,18 @@ public sealed class CombatService : ICombatService
             return Failure("The encounter has already ended.");
         }
 
-        if (!_player.IsAlive)
+        if (_player.IsDead)
         {
             _encounterOver = true;
             IsVictory = false;
             return Failure("Your character is dead and cannot act.");
+        }
+
+        if (_player.IsUnconscious)
+        {
+            _encounterOver = true;
+            IsVictory = false;
+            return Failure("Your character is unconscious and cannot act.");
         }
 
         if (!_enemy.IsAlive)
@@ -133,6 +148,16 @@ public sealed class CombatService : ICombatService
             return Failure("That action is not available.");
         }
 
+        if (!_player.CanAct)
+        {
+            _encounterOver = true;
+            IsVictory = false;
+            _defending = false;
+            _dodging = false;
+            events.Add(new CombatEvent(CombatEventType.StatusChanged, _round, detail: "You collapse from exhaustion. The encounter is over."));
+            return Success(events);
+        }
+
         if (!_enemy.IsAlive)
         {
             CompleteVictory(events);
@@ -141,9 +166,10 @@ public sealed class CombatService : ICombatService
 
         ResolveEnemyTurn(events);
 
-        if (!_player.IsAlive)
+        if (_player.IsDead)
         {
             _encounterOver = true;
+            IsVictory = false;
             events.Add(new CombatEvent(CombatEventType.StatusChanged, _round, detail: "You have died. The encounter is over."));
         }
 
