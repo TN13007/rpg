@@ -25,33 +25,77 @@ public sealed class ActivityTimeModifier
     }
 }
 
+public enum ActionTimeMode
+{
+    Duration,
+    NextDay
+}
+
+public enum ActionEffectType
+{
+    RestoreHealth,
+    RestoreEnergy,
+    ChangeMood,
+    AddGold
+}
+
+public sealed class ActionEffectDefinition
+{
+    public ActionEffectType Type { get; }
+    public int Amount { get; }
+
+    public ActionEffectDefinition(ActionEffectType type, int amount)
+    {
+        if (!Enum.IsDefined(typeof(ActionEffectType), type))
+        {
+            throw new ArgumentOutOfRangeException(nameof(type));
+        }
+
+        if (type != ActionEffectType.ChangeMood && amount < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(amount), "This effect amount cannot be negative.");
+        }
+
+        Type = type;
+        Amount = amount;
+    }
+}
+
 public sealed class ActionDefinition
 {
     public string Id { get; }
     public string Label { get; }
     public string Feedback { get; }
     public int DurationMinutes { get; }
+    public int EnergyCost { get; }
     public ActivityTimeModifier TimeModifier { get; }
+    public ActionTimeMode TimeMode { get; }
+    public ActionEffectDefinition[] Effects { get; }
 
-    public ActionDefinition(string id, string label, int durationMinutes, ActivityTimeModifier timeModifier = null, string feedback = "")
+    public ActionDefinition(
+        string id,
+        string label,
+        int durationMinutes,
+        ActivityTimeModifier timeModifier = null,
+        string feedback = "",
+        int energyCost = 0,
+        ActionEffectDefinition[] effects = null,
+        ActionTimeMode timeMode = ActionTimeMode.Duration)
     {
         if (string.IsNullOrWhiteSpace(id)) throw new ArgumentException("Action ID is required.", nameof(id));
         if (string.IsNullOrWhiteSpace(label)) throw new ArgumentException("Action label is required.", nameof(label));
         if (durationMinutes < 0) throw new ArgumentOutOfRangeException(nameof(durationMinutes));
+        if (energyCost < 0) throw new ArgumentOutOfRangeException(nameof(energyCost));
+        if (!Enum.IsDefined(typeof(ActionTimeMode), timeMode)) throw new ArgumentOutOfRangeException(nameof(timeMode));
+
         Id = id;
         Label = label;
         DurationMinutes = durationMinutes;
+        EnergyCost = energyCost;
         TimeModifier = timeModifier;
+        TimeMode = timeMode;
+        Effects = effects ?? Array.Empty<ActionEffectDefinition>();
         Feedback = feedback ?? string.Empty;
-
-        /*
-         * FUTURE: Conditions - define when this action is available.
-         * FUTURE: Costs - define resources consumed before execution.
-         * FUTURE: Effects - define state changes after completion.
-         * FUTURE: Modifiers - adjust results using character/world state.
-         * FUTURE: Events - trigger events such as nightmares after sleep.
-         * These features are intentionally not implemented yet.
-         */
     }
 }
 
@@ -239,18 +283,10 @@ public static class AcademyContent
 
         foreach (JsonElement item in data.EnumerateArray())
         {
-            int durationMinutes = item.GetProperty("durationMinutes").GetInt32();
-            ActivityTimeModifier modifier = item.TryGetProperty("timeModifier", out JsonElement modifierData) ? ReadTimeModifier(modifierData) : null;
-            string feedback = item.TryGetProperty("feedback", out JsonElement feedbackData)
-                ? feedbackData.GetString()
-                : string.Empty;
-
-            actions.Add(new ActionDefinition(
+            actions.Add(ReadActionDefinition(
                 ReadString(item, "id"),
                 ReadString(item, "label"),
-                durationMinutes,
-                modifier,
-                feedback));
+                item));
         }
 
         return actions.ToArray();
@@ -259,11 +295,70 @@ public static class AcademyContent
     private static ActionDefinition ReadActionDefinition(string id, string label, JsonElement data)
     {
         int durationMinutes = data.GetProperty("durationMinutes").GetInt32();
+        int energyCost = data.TryGetProperty("energyCost", out JsonElement energyCostData)
+            ? energyCostData.GetInt32()
+            : 0;
         ActivityTimeModifier modifier = data.TryGetProperty("timeModifier", out JsonElement modifierData)
             ? ReadTimeModifier(modifierData)
             : null;
+        ActionEffectDefinition[] effects = data.TryGetProperty("effects", out JsonElement effectsData)
+            ? ReadEffects(effectsData)
+            : Array.Empty<ActionEffectDefinition>();
+        ActionTimeMode timeMode = data.TryGetProperty("timeMode", out JsonElement timeModeData)
+            ? ReadTimeMode(timeModeData)
+            : ActionTimeMode.Duration;
+        string feedback = data.TryGetProperty("feedback", out JsonElement feedbackData)
+            ? feedbackData.GetString()
+            : string.Empty;
 
-        return new ActionDefinition(id, label, durationMinutes, modifier);
+        return new ActionDefinition(
+            id,
+            label,
+            durationMinutes,
+            modifier,
+            feedback,
+            energyCost,
+            effects,
+            timeMode);
+    }
+
+    private static ActionEffectDefinition[] ReadEffects(JsonElement data)
+    {
+        if (data.ValueKind != JsonValueKind.Array)
+        {
+            throw new InvalidOperationException("Action effects must be an array.");
+        }
+
+        List<ActionEffectDefinition> effects = new List<ActionEffectDefinition>();
+
+        foreach (JsonElement item in data.EnumerateArray())
+        {
+            string typeName = ReadString(item, "type");
+
+            if (!Enum.TryParse(typeName, true, out ActionEffectType type) ||
+                !Enum.IsDefined(typeof(ActionEffectType), type))
+            {
+                throw new InvalidOperationException("Unknown action effect type: " + typeName);
+            }
+
+            int amount = item.GetProperty("amount").GetInt32();
+            effects.Add(new ActionEffectDefinition(type, amount));
+        }
+
+        return effects.ToArray();
+    }
+
+    private static ActionTimeMode ReadTimeMode(JsonElement data)
+    {
+        string modeName = data.GetString();
+
+        if (!Enum.TryParse(modeName, true, out ActionTimeMode mode) ||
+            !Enum.IsDefined(typeof(ActionTimeMode), mode))
+        {
+            throw new InvalidOperationException("Unknown action time mode: " + modeName);
+        }
+
+        return mode;
     }
 
     private static ActivityTimeModifier ReadTimeModifier(JsonElement data)
