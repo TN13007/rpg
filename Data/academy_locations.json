@@ -1,6 +1,7 @@
 {
   "travel": {
     "durationMinutes": 10,
+    "energyCost": 1,
     "timeModifier": {
       "stat": "Agility",
       "maxReduction": 0.5
@@ -21,18 +22,33 @@
           "id": "rest",
           "label": "Take a short rest",
           "durationMinutes": 30,
+          "energyCost": 0,
+          "effects": [
+            { "type": "RestoreEnergy", "amount": 3 },
+            { "type": "ChangeMood", "amount": 2 }
+          ],
           "feedback": "You sit by the window for a moment. The day can wait another minute."
         },
         {
           "id": "inspect_letter",
           "label": "Read the letter on your desk",
           "durationMinutes": 10,
+          "energyCost": 1,
+          "effects": [],
           "feedback": "A short note from the academy reminds you to attend the morning briefing."
         },
         {
           "id": "sleep",
           "label": "Sleep until tomorrow",
-          "durationMinutes": 0
+          "durationMinutes": 0,
+          "timeMode": "NextDay",
+          "energyCost": 0,
+          "effects": [
+            { "type": "RestoreHealth", "amount": 20 },
+            { "type": "RestoreEnergy", "amount": 10 },
+            { "type": "ChangeMood", "amount": 10 }
+          ],
+          "feedback": "You wake up after a night's rest. Another day at the academy begins."
         }
       ]
     },
@@ -47,18 +63,26 @@
           "id": "talk_mira",
           "label": "Talk to Mira",
           "durationMinutes": 15,
+          "energyCost": 1,
+          "effects": [
+            { "type": "ChangeMood", "amount": 3 }
+          ],
           "feedback": "Mira smiles. “Morning! Are you heading to practical training too?”"
         },
         {
           "id": "inspect_board",
           "label": "Read the notice board",
           "durationMinutes": 10,
+          "energyCost": 1,
+          "effects": [],
           "feedback": "The notice board lists today's classes and the training-dungeon briefing."
         },
         {
           "id": "encounter_goblin",
           "label": "Investigate the rustling near the gate",
-          "durationMinutes": 0
+          "durationMinutes": 0,
+          "energyCost": 2,
+          "effects": []
         }
       ]
     },
@@ -73,16 +97,20 @@
           "id": "talk_instructor",
           "label": "Talk to the instructor",
           "durationMinutes": 20,
+          "energyCost": 1,
+          "effects": [],
           "feedback": "The instructor asks you to report to the Guild Hall for your first assignment."
         },
         {
           "id": "inspect_maps",
           "label": "Study the field maps",
           "durationMinutes": 20,
+          "energyCost": 2,
           "timeModifier": {
             "stat": "Intelligence",
             "maxReduction": 0.5
           },
+          "effects": [],
           "feedback": "The field maps show the academy grounds and a small supervised dungeon."
         }
       ]
@@ -98,12 +126,16 @@
           "id": "talk_clerk",
           "label": "Talk to the guild clerk",
           "durationMinutes": 15,
+          "energyCost": 1,
+          "effects": [],
           "feedback": "The clerk explains how expedition reports are submitted."
         },
         {
           "id": "inspect_requests",
           "label": "Browse expedition requests",
           "durationMinutes": 10,
+          "energyCost": 1,
+          "effects": [],
           "feedback": "Most requests are reserved for senior students. One training survey is available."
         }
       ]
