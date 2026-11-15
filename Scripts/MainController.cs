@@ -121,12 +121,6 @@ public partial class MainController : Control
 
     private void HandleChoice(string choiceId)
     {
-        if (!_player.IsAlive)
-        {
-            _storyPanel.ShowFeedback("You are dead and cannot perform actions.");
-            return;
-        }
-
         if (choiceId.StartsWith("travel:", StringComparison.Ordinal))
         {
             TravelTo(choiceId.Substring("travel:".Length));
@@ -197,18 +191,24 @@ public partial class MainController : Control
             return;
         }
 
-        if (!_combatService.TryStartEncounter(out failureReason))
+        if (!_actionExecutionService.TryExecute(
+            action,
+            _player,
+            _dayClock,
+            out failureReason,
+            out _))
         {
             _storyPanel.ShowFeedback(failureReason);
             return;
         }
 
-        _actionExecutionService.TryExecute(
-            action,
-            _player,
-            _dayClock,
-            out failureReason,
-            out _);
+        if (!_combatService.TryStartEncounter(out failureReason))
+        {
+            _player.RestoreEnergy(action.EnergyCost);
+            _characterPanel.SetCharacter(new CharacterViewModel(_player));
+            _storyPanel.ShowFeedback(failureReason);
+            return;
+        }
 
         _characterPanel.SetCharacter(new CharacterViewModel(_player));
         _gameModeController.ShowCombat();
