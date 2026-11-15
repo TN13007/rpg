@@ -21,6 +21,7 @@ public partial class MainController : Control
     private ActivityTimeCalculator _activityTimeCalculator;
     private ActionExecutionService _actionExecutionService;
     private GameModeController _gameModeController;
+    private LocationEventService _locationEventService;
 
     private string _currentLocationId = "dormitory";
 
@@ -46,6 +47,7 @@ public partial class MainController : Control
             _activityTimeCalculator,
             new ActionEffectExecutor());
         _gameModeController = new GameModeController(_storyPanel, _combatPanel);
+        _locationEventService = new LocationEventService();
 
         _sidebar.TabSelected += OpenTab;
         _storyPanel.ChoiceSelected += HandleChoice;
@@ -70,7 +72,14 @@ public partial class MainController : Control
     private void ShowLocation()
     {
         LocationContent location = AcademyContent.Get(_currentLocationId);
-        List<ActionDefinition> choices = new List<ActionDefinition>(location.Actions);
+        List<ActionDefinition> choices = new List<ActionDefinition>();
+        foreach (ActionDefinition action in location.Actions)
+        {
+            if (action.Id != "encounter_goblin")
+            {
+                choices.Add(action);
+            }
+        }
 
         foreach (string exitId in location.Exits)
         {
@@ -295,5 +304,28 @@ public partial class MainController : Control
         }
 
         _storyPanel.ShowFeedback(feedback);
+        TryTriggerLocationEvent();
+    }
+
+    private void TryTriggerLocationEvent()
+    {
+        if (_currentLocationId != "courtyard")
+        {
+            return;
+        }
+
+        if (!_locationEventService.TryTrigger("courtyard_goblin_ambush", _dayClock.Day, 0.5))
+        {
+            return;
+        }
+
+        ActionDefinition eventAction = FindChoice(AcademyContent.Get(_currentLocationId).Actions, "encounter_goblin");
+        if (eventAction == null)
+        {
+            return;
+        }
+
+        _storyPanel.ShowFeedback("You hear movement near the courtyard gate...");
+        StartGoblinEncounter(eventAction);
     }
 }
