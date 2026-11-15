@@ -179,6 +179,35 @@ public sealed class ActionExecutionTests
     }
 
     [Fact]
+    public void TravelDefinition_AppliesEnergyCostAndAgilityTimeModifier()
+    {
+        LoadAcademyContent();
+        Character actor = TestCharacterFactory.CreatePlayer(energy: 8, agility: 30);
+        DayClock clock = new DayClock();
+
+        bool success = _service.TryExecute(
+            AcademyContent.Travel,
+            actor,
+            clock,
+            out string reason,
+            out int duration);
+
+        Assert.True(success, reason);
+        Assert.Equal(1, AcademyContent.Travel.EnergyCost);
+        Assert.Equal(9, duration);
+        Assert.Equal(7, actor.Energy);
+        Assert.Equal(459, clock.MinutesOfDay);
+    }
+
+    [Fact]
+    public void CombatEncounterDuration_IsConfiguredSeparatelyFromLocationActions()
+    {
+        LoadAcademyContent();
+        Assert.Equal(30, AcademyContent.CombatEncounter.DurationMinutes);
+        Assert.Equal(0, AcademyContent.CombatEncounter.EnergyCost);
+    }
+
+    [Fact]
     public void ConfiguredActions_ApplyExpectedEffectsAndCosts()
     {
         LoadAcademyContent();
