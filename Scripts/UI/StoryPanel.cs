@@ -30,7 +30,7 @@ public partial class StoryPanel : PanelContainer
         UiTheme.StyleButton(_returnButton);
     }
 
-    public void ShowContent(string title, string subtitle, string text, IReadOnlyList<StoryChoice> choices, string dayLabel)
+    public void ShowContent(string title, string subtitle, string text, IReadOnlyList<ActionDefinition> choices, string dayLabel)
     {
         _title.Text = title;
         _subtitle.Text = subtitle;
@@ -40,7 +40,7 @@ public partial class StoryPanel : PanelContainer
         _returnButton.Visible = false;
         ClearChoices();
 
-        foreach (StoryChoice choice in choices)
+        foreach (ActionDefinition choice in choices)
         {
             StoryChoiceButton button = new StoryChoiceButton
             {

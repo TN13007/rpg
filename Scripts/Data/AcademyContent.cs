@@ -25,45 +25,76 @@ public sealed class ActivityTimeModifier
     }
 }
 
-public sealed class ActivityDefinition
+public enum ActionTimeMode
 {
-    public int DurationMinutes { get; }
-    public ActivityTimeModifier TimeModifier { get; }
+    Duration,
+    NextDay
+}
 
-    public ActivityDefinition(int durationMinutes, ActivityTimeModifier timeModifier = null)
+public enum ActionEffectType
+{
+    RestoreHealth,
+    RestoreEnergy,
+    ChangeMood,
+    AddGold
+}
+
+public sealed class ActionEffectDefinition
+{
+    public ActionEffectType Type { get; }
+    public int Amount { get; }
+
+    public ActionEffectDefinition(ActionEffectType type, int amount)
     {
-        if (durationMinutes < 0)
+        if (!Enum.IsDefined(typeof(ActionEffectType), type))
         {
-            throw new ArgumentOutOfRangeException(nameof(durationMinutes));
+            throw new ArgumentOutOfRangeException(nameof(type));
         }
 
-        DurationMinutes = durationMinutes;
-        TimeModifier = timeModifier;
+        if (type != ActionEffectType.ChangeMood && amount < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(amount), "This effect amount cannot be negative.");
+        }
+
+        Type = type;
+        Amount = amount;
     }
 }
 
-public sealed class StoryChoice
+public sealed class ActionDefinition
 {
     public string Id { get; }
     public string Label { get; }
     public string Feedback { get; }
-    public ActivityDefinition Activity { get; }
+    public int DurationMinutes { get; }
+    public int EnergyCost { get; }
+    public ActivityTimeModifier TimeModifier { get; }
+    public ActionTimeMode TimeMode { get; }
+    public ActionEffectDefinition[] Effects { get; }
 
-    public StoryChoice(string id, string label, ActivityDefinition activity = null, string feedback = "")
+    public ActionDefinition(
+        string id,
+        string label,
+        int durationMinutes,
+        ActivityTimeModifier timeModifier = null,
+        string feedback = "",
+        int energyCost = 0,
+        ActionEffectDefinition[] effects = null,
+        ActionTimeMode timeMode = ActionTimeMode.Duration)
     {
-        if (string.IsNullOrWhiteSpace(id))
-        {
-            throw new ArgumentException("Choice ID is required.", nameof(id));
-        }
-
-        if (string.IsNullOrWhiteSpace(label))
-        {
-            throw new ArgumentException("Choice label is required.", nameof(label));
-        }
+        if (string.IsNullOrWhiteSpace(id)) throw new ArgumentException("Action ID is required.", nameof(id));
+        if (string.IsNullOrWhiteSpace(label)) throw new ArgumentException("Action label is required.", nameof(label));
+        if (durationMinutes < 0) throw new ArgumentOutOfRangeException(nameof(durationMinutes));
+        if (energyCost < 0) throw new ArgumentOutOfRangeException(nameof(energyCost));
+        if (!Enum.IsDefined(typeof(ActionTimeMode), timeMode)) throw new ArgumentOutOfRangeException(nameof(timeMode));
 
         Id = id;
         Label = label;
-        Activity = activity ?? new ActivityDefinition(0);
+        DurationMinutes = durationMinutes;
+        EnergyCost = energyCost;
+        TimeModifier = timeModifier;
+        TimeMode = timeMode;
+        Effects = effects ?? Array.Empty<ActionEffectDefinition>();
         Feedback = feedback ?? string.Empty;
     }
 }
@@ -75,16 +106,16 @@ public sealed class LocationContent
     public string Region { get; }
     public string Description { get; }
     public string[] Exits { get; }
-    public StoryChoice[] Actions { get; }
+    public ActionDefinition[] Actions { get; }
 
-    public LocationContent(string id, string name, string region, string description, string[] exits, StoryChoice[] actions)
+    public LocationContent(string id, string name, string region, string description, string[] exits, ActionDefinition[] actions)
     {
         Id = id;
         Name = name;
         Region = region;
         Description = description;
         Exits = exits ?? Array.Empty<string>();
-        Actions = actions ?? Array.Empty<StoryChoice>();
+        Actions = actions ?? Array.Empty<ActionDefinition>();
     }
 }
 
@@ -94,8 +125,8 @@ public static class AcademyContent
         new Dictionary<string, LocationContent>(StringComparer.Ordinal);
 
     public static IEnumerable<LocationContent> All => _locations.Values;
-    public static ActivityDefinition Travel { get; private set; } = new ActivityDefinition(10);
-    public static ActivityDefinition CombatEncounter { get; private set; } = new ActivityDefinition(30);
+    public static ActionDefinition Travel { get; private set; } = new ActionDefinition("travel", "Travel", 10);
+    public static ActionDefinition CombatEncounter { get; private set; } = new ActionDefinition("combat_encounter", "Combat Encounter", 30);
 
     public static void Load(string path)
     {
@@ -110,6 +141,16 @@ public static class AcademyContent
         }
 
         string json = FileAccess.GetFileAsString(path);
+        LoadJson(json);
+    }
+
+    public static void LoadJson(string json)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            throw new ArgumentException("Academy content JSON is required.", nameof(json));
+        }
+
         Dictionary<string, LocationContent> loadedLocations =
             new Dictionary<string, LocationContent>(StringComparer.Ordinal);
 
@@ -118,13 +159,13 @@ public static class AcademyContent
             using JsonDocument document = JsonDocument.Parse(json);
             JsonElement root = document.RootElement;
 
-            ActivityDefinition loadedTravel = root.TryGetProperty("travel", out JsonElement travelData)
-                ? ReadActivityDefinition(travelData)
-                : new ActivityDefinition(10);
+            ActionDefinition loadedTravel = root.TryGetProperty("travel", out JsonElement travelData)
+                ? ReadActionDefinition("travel", "Travel", travelData)
+                : new ActionDefinition("travel", "Travel", 10);
 
-            ActivityDefinition loadedCombatEncounter = root.TryGetProperty("combatEncounter", out JsonElement combatData)
-                ? ReadActivityDefinition(combatData)
-                : new ActivityDefinition(30);
+            ActionDefinition loadedCombatEncounter = root.TryGetProperty("combatEncounter", out JsonElement combatData)
+                ? ReadActionDefinition("combat_encounter", "Combat Encounter", combatData)
+                : new ActionDefinition("combat_encounter", "Combat Encounter", 30);
 
             JsonElement locations = root.GetProperty("locations");
 
@@ -135,7 +176,7 @@ public static class AcademyContent
                 string region = ReadString(locationData, "region");
                 string description = ReadString(locationData, "description");
                 string[] exits = ReadStringArray(locationData.GetProperty("exits"));
-                StoryChoice[] actions = ReadActions(locationData.GetProperty("actions"));
+                ActionDefinition[] actions = ReadActions(locationData.GetProperty("actions"));
 
                 if (loadedLocations.ContainsKey(id))
                 {
@@ -159,7 +200,7 @@ public static class AcademyContent
         }
         catch (JsonException exception)
         {
-            throw new InvalidOperationException("Invalid academy content JSON: " + path, exception);
+            throw new InvalidOperationException("Invalid academy content JSON.", exception);
         }
     }
 
@@ -178,11 +219,11 @@ public static class AcademyContent
         return location;
     }
 
-    private static void ValidateActionIds(string locationId, StoryChoice[] actions)
+    private static void ValidateActionIds(string locationId, ActionDefinition[] actions)
     {
         HashSet<string> actionIds = new HashSet<string>(StringComparer.Ordinal);
 
-        foreach (StoryChoice action in actions)
+        foreach (ActionDefinition action in actions)
         {
             if (!actionIds.Add(action.Id))
             {
@@ -246,35 +287,88 @@ public static class AcademyContent
         return values.ToArray();
     }
 
-    private static StoryChoice[] ReadActions(JsonElement data)
+    private static ActionDefinition[] ReadActions(JsonElement data)
     {
-        List<StoryChoice> actions = new List<StoryChoice>();
+        List<ActionDefinition> actions = new List<ActionDefinition>();
 
         foreach (JsonElement item in data.EnumerateArray())
         {
-            ActivityDefinition activity = ReadActivityDefinition(item);
-            string feedback = item.TryGetProperty("feedback", out JsonElement feedbackData)
-                ? feedbackData.GetString()
-                : string.Empty;
-
-            actions.Add(new StoryChoice(
+            actions.Add(ReadActionDefinition(
                 ReadString(item, "id"),
                 ReadString(item, "label"),
-                activity,
-                feedback));
+                item));
         }
 
         return actions.ToArray();
     }
 
-    private static ActivityDefinition ReadActivityDefinition(JsonElement data)
+    private static ActionDefinition ReadActionDefinition(string id, string label, JsonElement data)
     {
         int durationMinutes = data.GetProperty("durationMinutes").GetInt32();
+        int energyCost = data.TryGetProperty("energyCost", out JsonElement energyCostData)
+            ? energyCostData.GetInt32()
+            : 0;
         ActivityTimeModifier modifier = data.TryGetProperty("timeModifier", out JsonElement modifierData)
             ? ReadTimeModifier(modifierData)
             : null;
+        ActionEffectDefinition[] effects = data.TryGetProperty("effects", out JsonElement effectsData)
+            ? ReadEffects(effectsData)
+            : Array.Empty<ActionEffectDefinition>();
+        ActionTimeMode timeMode = data.TryGetProperty("timeMode", out JsonElement timeModeData)
+            ? ReadTimeMode(timeModeData)
+            : ActionTimeMode.Duration;
+        string feedback = data.TryGetProperty("feedback", out JsonElement feedbackData)
+            ? feedbackData.GetString()
+            : string.Empty;
 
-        return new ActivityDefinition(durationMinutes, modifier);
+        return new ActionDefinition(
+            id,
+            label,
+            durationMinutes,
+            modifier,
+            feedback,
+            energyCost,
+            effects,
+            timeMode);
+    }
+
+    private static ActionEffectDefinition[] ReadEffects(JsonElement data)
+    {
+        if (data.ValueKind != JsonValueKind.Array)
+        {
+            throw new InvalidOperationException("Action effects must be an array.");
+        }
+
+        List<ActionEffectDefinition> effects = new List<ActionEffectDefinition>();
+
+        foreach (JsonElement item in data.EnumerateArray())
+        {
+            string typeName = ReadString(item, "type");
+
+            if (!Enum.TryParse(typeName, true, out ActionEffectType type) ||
+                !Enum.IsDefined(typeof(ActionEffectType), type))
+            {
+                throw new InvalidOperationException("Unknown action effect type: " + typeName);
+            }
+
+            int amount = item.GetProperty("amount").GetInt32();
+            effects.Add(new ActionEffectDefinition(type, amount));
+        }
+
+        return effects.ToArray();
+    }
+
+    private static ActionTimeMode ReadTimeMode(JsonElement data)
+    {
+        string modeName = data.GetString();
+
+        if (!Enum.TryParse(modeName, true, out ActionTimeMode mode) ||
+            !Enum.IsDefined(typeof(ActionTimeMode), mode))
+        {
+            throw new InvalidOperationException("Unknown action time mode: " + modeName);
+        }
+
+        return mode;
     }
 
     private static ActivityTimeModifier ReadTimeModifier(JsonElement data)

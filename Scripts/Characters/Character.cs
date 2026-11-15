@@ -15,6 +15,9 @@ public sealed class Character
     public int Gold { get; private set; }
     public CharacterStats Stats => _data.Stats;
     public bool IsAlive => Health > 0;
+    public bool IsDead => !IsAlive;
+    public bool IsUnconscious => IsAlive && MaxEnergy > 0 && Energy == 0;
+    public bool CanAct => IsAlive && !IsUnconscious;
 
     public Character(CharacterData data)
     {
@@ -51,6 +54,11 @@ public sealed class Character
 
     public int RestoreHealth(int amount)
     {
+        if (IsDead)
+        {
+            return 0;
+        }
+
         int restored = System.Math.Min(MaxHealth - Health, System.Math.Max(0, amount));
         Health += restored;
         return restored;
@@ -65,11 +73,11 @@ public sealed class Character
 
     public void ChangeMood(int amount)
     {
-        Mood = System.Math.Clamp(Mood + amount, 0, MaxMood);
+        Mood = (int)System.Math.Clamp((long)Mood + amount, 0L, MaxMood);
     }
 
     public void AddGold(int amount)
     {
-        Gold += System.Math.Max(0, amount);
+        Gold = (int)System.Math.Min(int.MaxValue, (long)Gold + System.Math.Max(0, amount));
     }
 }

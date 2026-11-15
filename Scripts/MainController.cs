@@ -2,6 +2,11 @@ using System;
 using System.Collections.Generic;
 using Godot;
 
+/*
+ * MainController is the application-level orchestrator.
+ * It connects UI input to the relevant game systems and refreshes presentation.
+ * It does not implement action costs, effects, time rules, combat rules, or mode visibility.
+ */
 public partial class MainController : Control
 {
     private Sidebar _sidebar;
@@ -14,6 +19,8 @@ public partial class MainController : Control
     private CombatPresentationMapper _combatMapper;
     private DayClock _dayClock;
     private ActivityTimeCalculator _activityTimeCalculator;
+    private ActionExecutionService _actionExecutionService;
+    private GameModeController _gameModeController;
 
     private string _currentLocationId = "dormitory";
 
@@ -35,6 +42,10 @@ public partial class MainController : Control
         _combatMapper = new CombatPresentationMapper();
         _dayClock = new DayClock();
         _activityTimeCalculator = new ActivityTimeCalculator();
+        _actionExecutionService = new ActionExecutionService(
+            _activityTimeCalculator,
+            new ActionEffectExecutor());
+        _gameModeController = new GameModeController(_storyPanel, _combatPanel);
 
         _sidebar.TabSelected += OpenTab;
         _storyPanel.ChoiceSelected += HandleChoice;
@@ -48,7 +59,7 @@ public partial class MainController : Control
 
     private void OpenTab(string tab)
     {
-        if (_combatPanel.Visible)
+        if (_gameModeController.IsCombatMode)
         {
             return;
         }
@@ -59,14 +70,15 @@ public partial class MainController : Control
     private void ShowLocation()
     {
         LocationContent location = AcademyContent.Get(_currentLocationId);
-        List<StoryChoice> choices = new List<StoryChoice>(location.Actions);
+        List<ActionDefinition> choices = new List<ActionDefinition>(location.Actions);
 
         foreach (string exitId in location.Exits)
         {
             LocationContent exit = AcademyContent.Get(exitId);
-            choices.Add(new StoryChoice("travel:" + exitId, "Travel to " + exit.Name));
+            choices.Add(new ActionDefinition("travel:" + exitId, "Travel to " + exit.Name, 0));
         }
 
+        _gameModeController.ShowExploration();
         _storyPanel.ShowContent(
             location.Name,
             location.Region,
@@ -89,9 +101,8 @@ public partial class MainController : Control
             _ => "Prototype preferences and game settings."
         };
 
-        _storyPanel.Visible = true;
-        _combatPanel.Visible = false;
-        _storyPanel.ShowContent(tab, "ADVENTURER RECORD", description, Array.Empty<StoryChoice>(), _dayClock.GetDisplayText());
+        _gameModeController.ShowExploration();
+        _storyPanel.ShowContent(tab, "ADVENTURER RECORD", description, Array.Empty<ActionDefinition>(), _dayClock.GetDisplayText());
         _storyPanel.ShowLocationButton(true);
     }
 
@@ -110,45 +121,33 @@ public partial class MainController : Control
 
     private void HandleChoice(string choiceId)
     {
-        if (!_player.IsAlive)
-        {
-            _storyPanel.ShowFeedback("You are dead and cannot perform actions.");
-            return;
-        }
-
         if (choiceId.StartsWith("travel:", StringComparison.Ordinal))
         {
             TravelTo(choiceId.Substring("travel:".Length));
             return;
         }
 
-        if (choiceId == "sleep")
-        {
-            Sleep();
-            return;
-        }
-
-        if (choiceId == "encounter_goblin")
-        {
-            StartGoblinEncounter();
-            return;
-        }
-
         LocationContent location = AcademyContent.Get(_currentLocationId);
-        StoryChoice selectedChoice = FindChoice(location.Actions, choiceId);
+        ActionDefinition selectedAction = FindChoice(location.Actions, choiceId);
 
-        if (selectedChoice == null)
+        if (selectedAction == null)
         {
             _storyPanel.ShowFeedback("That action is not available here.");
             return;
         }
 
-        ExecuteActivity(selectedChoice);
+        if (selectedAction.Id == "encounter_goblin")
+        {
+            StartGoblinEncounter(selectedAction);
+            return;
+        }
+
+        ExecuteAction(selectedAction);
     }
 
-    private StoryChoice FindChoice(StoryChoice[] choices, string choiceId)
+    private ActionDefinition FindChoice(ActionDefinition[] choices, string choiceId)
     {
-        foreach (StoryChoice choice in choices)
+        foreach (ActionDefinition choice in choices)
         {
             if (choice.Id == choiceId)
             {
@@ -159,44 +158,73 @@ public partial class MainController : Control
         return null;
     }
 
-    private void ExecuteActivity(StoryChoice choice)
+    private void ExecuteAction(ActionDefinition action)
     {
-        int actualDuration = _activityTimeCalculator.Calculate(choice.Activity, _player);
-        _dayClock.AdvanceMinutes(actualDuration);
-        ShowLocation();
-
-        string feedback = choice.Feedback;
-        if (actualDuration > 0)
-        {
-            feedback += " (" + actualDuration + " minutes)";
-        }
-
-        _storyPanel.ShowFeedback(feedback);
-    }
-
-    private void Sleep()
-    {
-        if (_currentLocationId != "dormitory")
-        {
-            _storyPanel.ShowFeedback("You need to return to your dormitory before sleeping.");
-            return;
-        }
-
-        _dayClock.SleepUntilNextDay();
-        ShowLocation();
-        _storyPanel.ShowFeedback("You wake up after a night's rest. Another day at the academy begins.");
-    }
-
-    private void StartGoblinEncounter()
-    {
-        if (!_combatService.TryStartEncounter(out string failureReason))
+        if (!_actionExecutionService.TryExecute(
+            action,
+            _player,
+            _dayClock,
+            out string failureReason,
+            out int actualDuration))
         {
             _storyPanel.ShowFeedback(failureReason);
             return;
         }
 
-        _storyPanel.Visible = false;
-        _combatPanel.Visible = true;
+        _characterPanel.SetCharacter(new CharacterViewModel(_player));
+        ShowLocation();
+
+        string feedback = action.Feedback;
+        if (actualDuration > 0)
+        {
+            feedback += " (" + actualDuration + " minutes)";
+        }
+
+        if (_player.IsUnconscious)
+        {
+            feedback += " You collapse from exhaustion.";
+        }
+
+        _storyPanel.ShowFeedback(feedback);
+    }
+
+    private void StartGoblinEncounter(ActionDefinition action)
+    {
+        if (!_actionExecutionService.CanExecute(action, _player, out string failureReason))
+        {
+            _storyPanel.ShowFeedback(failureReason);
+            return;
+        }
+
+        if (!_actionExecutionService.TryExecute(
+            action,
+            _player,
+            _dayClock,
+            out failureReason,
+            out _))
+        {
+            _storyPanel.ShowFeedback(failureReason);
+            return;
+        }
+
+        _characterPanel.SetCharacter(new CharacterViewModel(_player));
+
+        if (_player.IsUnconscious)
+        {
+            _storyPanel.ShowFeedback("You collapse from exhaustion before the encounter begins.");
+            return;
+        }
+
+        if (!_combatService.TryStartEncounter(out failureReason))
+        {
+            _player.RestoreEnergy(action.EnergyCost);
+            _characterPanel.SetCharacter(new CharacterViewModel(_player));
+            _storyPanel.ShowFeedback(failureReason);
+            return;
+        }
+
+        _characterPanel.SetCharacter(new CharacterViewModel(_player));
+        _gameModeController.ShowCombat();
         _combatPanel.BeginEncounter("Goblin Ambush");
         _combatPanel.AppendMessage(new CombatMessage(
             "goblin-encounter-start",
@@ -231,8 +259,7 @@ public partial class MainController : Control
 
     private void ReturnToExploration()
     {
-        _combatPanel.Visible = false;
-        _storyPanel.Visible = true;
+        _gameModeController.ShowExploration();
         _characterPanel.SetCharacter(new CharacterViewModel(_player));
         ShowLocation();
     }
@@ -246,10 +273,27 @@ public partial class MainController : Control
             return;
         }
 
-        int actualDuration = _activityTimeCalculator.Calculate(AcademyContent.Travel, _player);
-        _dayClock.AdvanceMinutes(actualDuration);
+        if (!_actionExecutionService.TryExecute(
+            AcademyContent.Travel,
+            _player,
+            _dayClock,
+            out string failureReason,
+            out int actualDuration))
+        {
+            _storyPanel.ShowFeedback(failureReason);
+            return;
+        }
+
         _currentLocationId = destinationId;
+        _characterPanel.SetCharacter(new CharacterViewModel(_player));
         ShowLocation();
-        _storyPanel.ShowFeedback("You arrive at " + AcademyContent.Get(destinationId).Name + ". Travel took " + actualDuration + " minutes.");
+        string feedback = "You arrive at " + AcademyContent.Get(destinationId).Name + ". Travel took " + actualDuration + " minutes.";
+
+        if (_player.IsUnconscious)
+        {
+            feedback += " You collapse from exhaustion.";
+        }
+
+        _storyPanel.ShowFeedback(feedback);
     }
 }
