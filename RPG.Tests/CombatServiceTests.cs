@@ -177,6 +177,119 @@ public sealed class CombatServiceTests
     }
 
     [Fact]
+    public void EveryHealthAndEnergyCombination_UsesDeathBeforeUnconsciousness()
+    {
+        for (int health = 0; health <= 20; health++)
+        {
+            for (int energy = 0; energy <= 10; energy++)
+            {
+                CombatService combat = TestCharacterFactory.CreateCombat(
+                    out Character player,
+                    out Character enemy,
+                    playerHealth: health,
+                    playerEnergy: energy);
+
+                bool started = combat.TryStartEncounter(out string reason);
+                bool shouldStart = health > 0 && energy > 0;
+
+                Assert.Equal(shouldStart, started);
+                Assert.Equal(health == 0, player.IsDead);
+                Assert.Equal(health > 0 && energy == 0, player.IsUnconscious);
+
+                if (!shouldStart)
+                {
+                    Assert.True(combat.IsEncounterOver);
+                    Assert.Equal(40, enemy.Health);
+                }
+            }
+        }
+    }
+
+    [Fact]
+    public void EveryEnergyValue_DefendAndDodgeRespectCostAndExhaustion()
+    {
+        for (int energy = 0; energy <= 10; energy++)
+        {
+            AssertCombatEnergyAction(energy, "defend", 1);
+            AssertCombatEnergyAction(energy, "dodge", 2);
+        }
+    }
+
+    [Fact]
+    public void EveryHealthValue_EnemyResponseResolvesDeathAtZero()
+    {
+        for (int health = 1; health <= 20; health++)
+        {
+            CombatService combat = TestCharacterFactory.CreateCombat(
+                out Character player,
+                out Character enemy,
+                playerHealth: health,
+                playerEnergy: 8);
+
+            Assert.True(combat.TryStartEncounter(out string reason));
+            CombatResult result = combat.ExecuteAction(new CombatActionRequest("attack", enemy.Id));
+
+            Assert.True(result.Success);
+            Assert.Equal(health <= 4, player.IsDead);
+            Assert.Equal(health <= 4, combat.IsEncounterOver);
+            Assert.Equal(health <= 4 ? 0 : health - 4, player.Health);
+        }
+    }
+
+    private static void AssertCombatEnergyAction(int energy, string actionId, int cost)
+    {
+        CombatService combat = TestCharacterFactory.CreateCombat(
+            out Character player,
+            out Character enemy,
+            playerEnergy: energy);
+
+        if (energy == 0)
+        {
+            Assert.False(combat.TryStartEncounter(out string startReason));
+            return;
+        }
+
+        Assert.True(combat.TryStartEncounter(out string reason));
+        CombatResult result = combat.ExecuteAction(new CombatActionRequest(actionId));
+
+        if (energy < cost)
+        {
+            Assert.False(result.Success);
+            Assert.Equal(energy, player.Energy);
+            Assert.Equal(20, player.Health);
+            Assert.Equal(40, enemy.Health);
+            Assert.False(combat.IsEncounterOver);
+            return;
+        }
+
+        Assert.True(result.Success);
+        Assert.Equal(energy - cost, player.Energy);
+
+        if (energy == cost)
+        {
+            Assert.True(player.IsUnconscious);
+            Assert.True(combat.IsEncounterOver);
+            Assert.Equal(20, player.Health);
+            Assert.Equal(40, enemy.Health);
+            Assert.False(HasEvent(result, CombatEventType.EnemyAction));
+            return;
+        }
+
+        Assert.False(player.IsUnconscious);
+        Assert.False(combat.IsEncounterOver);
+        Assert.True(HasEvent(result, CombatEventType.EnemyAction));
+
+        if (actionId == "defend")
+        {
+            Assert.Equal(19, player.Health);
+        }
+        else
+        {
+            Assert.Equal(20, player.Health);
+        }
+    }
+
+    [Fact]
     public void EncounterStart_ResetsEnemyAndCombatFlags()
     {
         CombatService combat = TestCharacterFactory.CreateCombat(out Character player, out Character enemy);
