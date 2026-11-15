@@ -332,7 +332,7 @@ public partial class MainController : Control
 
     private void TryTriggerLocationEvent()
     {
-        if (_currentLocationId != "courtyard")
+        if (_currentLocationId != "courtyard" || !_player.CanAct)
         {
             return;
         }
