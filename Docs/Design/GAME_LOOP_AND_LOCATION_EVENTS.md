@@ -68,6 +68,7 @@ An Event owns its available choices. A choice contains an Action Definition for 
 
 - A choice with `encounterActionId` delegates to the referenced Location Action, then starts the existing Encounter/Combat flow.
 - A choice without `encounterActionId` executes its own Action Definition through `ActionExecutionService`.
+- The Event Choice ID must match its Action ID so the UI's emitted choice identifier always resolves to exactly one authored choice.
 - A choice that cannot currently execute is rejected without spending resources or time; the Event remains available for another choice.
 - Successful non-combat resolution returns to Exploration at the same Location.
 - Successful Combat resolution uses the dedicated Combat UI and `CombatService`. The existing victory reward, defeat/death rules and encounter duration remain authoritative.
