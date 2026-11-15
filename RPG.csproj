@@ -4,4 +4,7 @@
     <EnableDynamicLoading>true</EnableDynamicLoading>
     <RootNamespace>RPG</RootNamespace>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="RPG.Tests/**/*.cs" />
+  </ItemGroup>
 </Project>
