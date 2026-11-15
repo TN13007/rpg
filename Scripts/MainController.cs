@@ -180,6 +180,11 @@ public partial class MainController : Control
             feedback += " (" + actualDuration + " minutes)";
         }
 
+        if (_player.IsUnconscious)
+        {
+            feedback += " You collapse from exhaustion.";
+        }
+
         _storyPanel.ShowFeedback(feedback);
     }
 
@@ -282,6 +287,13 @@ public partial class MainController : Control
         _currentLocationId = destinationId;
         _characterPanel.SetCharacter(new CharacterViewModel(_player));
         ShowLocation();
-        _storyPanel.ShowFeedback("You arrive at " + AcademyContent.Get(destinationId).Name + ". Travel took " + actualDuration + " minutes.");
+        string feedback = "You arrive at " + AcademyContent.Get(destinationId).Name + ". Travel took " + actualDuration + " minutes.";
+
+        if (_player.IsUnconscious)
+        {
+            feedback += " You collapse from exhaustion.";
+        }
+
+        _storyPanel.ShowFeedback(feedback);
     }
 }
