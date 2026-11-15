@@ -136,6 +136,29 @@ public partial class MainController : Control
             return;
         }
 
+        if (choiceId == "event_goblin_attack")
+        {
+            ActionDefinition attackAction = FindChoice(AcademyContent.Get(_currentLocationId).Actions, "encounter_goblin");
+            if (attackAction != null)
+            {
+                StartGoblinEncounter(attackAction);
+            }
+
+            return;
+        }
+
+        if (choiceId == "event_goblin_sneak")
+        {
+            ActionDefinition sneakAction = new ActionDefinition(
+                "sneak_past_goblin",
+                "Sneak past the goblin",
+                10,
+                feedback: "You move quietly around the bushes. The goblin does not notice you.",
+                energyCost: 1);
+            ExecuteAction(sneakAction);
+            return;
+        }
+
         LocationContent location = AcademyContent.Get(_currentLocationId);
         ActionDefinition selectedAction = FindChoice(location.Actions, choiceId);
 
@@ -325,7 +348,24 @@ public partial class MainController : Control
             return;
         }
 
-        _storyPanel.ShowFeedback("You hear movement near the courtyard gate...");
-        StartGoblinEncounter(eventAction);
+        List<ActionDefinition> eventChoices = new List<ActionDefinition>
+        {
+            new ActionDefinition("event_goblin_attack", "Confront the goblin", 0, energyCost: eventAction.EnergyCost),
+            new ActionDefinition(
+                "event_goblin_sneak",
+                "Sneak past the goblin",
+                10,
+                feedback: "You move quietly around the bushes. The goblin does not notice you.",
+                energyCost: 1)
+        };
+
+        _gameModeController.ShowExploration();
+        _storyPanel.ShowContent(
+            "Movement in the bushes",
+            "COURTYARD EVENT",
+            "A goblin is rummaging through a student's dropped bag near the gate. It has not noticed you yet. What will you do?",
+            eventChoices,
+            _dayClock.GetDisplayText());
+        _storyPanel.ShowLocationButton(false);
     }
 }
