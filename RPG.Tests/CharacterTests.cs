@@ -65,6 +65,10 @@ public sealed class CharacterTests
         Assert.Equal(20, character.RestoreHealth(100));
         Assert.Equal(20, character.Health);
         Assert.Equal(0, character.RestoreHealth(1));
+
+        character.TakeDamage(100);
+        Assert.Equal(0, character.RestoreHealth(100));
+        Assert.True(character.IsDead);
     }
 
     [Fact]
