@@ -100,6 +100,25 @@ public sealed class CombatServiceTests
     }
 
     [Fact]
+    public void EnergyDepletedDuringActiveEncounter_BlocksNextAttackImmediately()
+    {
+        CombatService combat = TestCharacterFactory.CreateCombat(
+            out Character player,
+            out Character enemy);
+
+        Assert.True(combat.TryStartEncounter(out string reason));
+        Assert.True(player.SpendEnergy(player.Energy));
+
+        CombatResult result = combat.ExecuteAction(new CombatActionRequest("attack", enemy.Id));
+
+        Assert.False(result.Success);
+        Assert.True(combat.IsEncounterOver);
+        Assert.True(player.IsUnconscious);
+        Assert.Equal(40, enemy.Health);
+        Assert.False(HasEvent(result, CombatEventType.EnemyAction));
+    }
+
+    [Fact]
     public void InsufficientEnergyForDefendOrDodge_DoesNotConsumeTurn()
     {
         CombatService combat = TestCharacterFactory.CreateCombat(out Character player, out Character enemy, playerEnergy: 1);
