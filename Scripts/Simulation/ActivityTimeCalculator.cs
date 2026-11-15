@@ -2,7 +2,7 @@ using System;
 
 public sealed class ActivityTimeCalculator
 {
-    public int Calculate(ActivityDefinition activity, Character character)
+    public int Calculate(ActionDefinition activity, Character character)
     {
         if (activity == null)
         {
