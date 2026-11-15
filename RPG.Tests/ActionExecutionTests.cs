@@ -121,6 +121,36 @@ public sealed class ActionExecutionTests
     }
 
     [Fact]
+    public void EveryCharacterStatValue_ProducesExpectedTimeModifier()
+    {
+        for (int statIndex = 0; statIndex < 5; statIndex++)
+        {
+            CharacterStat stat = (CharacterStat)statIndex;
+
+            for (int value = 0; value <= 100; value++)
+            {
+                CharacterStats stats = new CharacterStats(
+                    stat == CharacterStat.Strength ? value : 0,
+                    stat == CharacterStat.Agility ? value : 0,
+                    stat == CharacterStat.Intelligence ? value : 0,
+                    stat == CharacterStat.Endurance ? value : 0,
+                    stat == CharacterStat.Wisdom ? value : 0);
+
+                CharacterData data = new CharacterData(
+                    "stat-test", "Stat Test", "Test", 1,
+                    20, 10, 100, 20, 10, 50, 0, stats);
+                Character actor = new Character(data);
+                ActionDefinition action = new ActionDefinition(
+                    "stat-time", "Stat Time", 20,
+                    new ActivityTimeModifier(stat, 0.5));
+
+                int expectedDuration = (int)System.Math.Ceiling(20 * (1.0 - value / 100.0 * 0.5));
+                Assert.Equal(expectedDuration, new ActivityTimeCalculator().Calculate(action, actor));
+            }
+        }
+    }
+
+    [Fact]
     public void NextDayAction_AdvancesToWakeUpAndAppliesEffects()
     {
         Character actor = TestCharacterFactory.CreatePlayer(health: 5, energy: 2, mood: 50);
