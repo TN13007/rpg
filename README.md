@@ -19,10 +19,11 @@ Open the project in Godot 4.7.2 .NET and run the main scene (Scenes/Main.tscn).
 1. Start in the Dormitory at Day 1, 07:30.
 2. Travel between the Dormitory, Courtyard, Classroom and Guild Hall. Travel has a configured base duration; Agility can reduce it.
 3. Explore, rest, read and interact. Each action gets its duration and feedback from academy content data. A configured character stat can reduce its duration.
-4. Investigate the rustling in the Courtyard to start the Goblin encounter.
-5. Choose Attack, Defend or Dodge. CombatService validates and resolves the action, updates HP / Energy and lets the Goblin respond.
-6. The completed encounter advances time by its configured duration. Victory grants 25 G.
-7. Return to the Dormitory and choose **Sleep until tomorrow** to move to 07:30 on the next morning.
+4. On the first arrival at the Courtyard each day, the location event roll has a 50% chance to reveal a Goblin rummaging near the gate.
+5. Choose to confront the Goblin or sneak past it. Confronting starts the dedicated Combat mode; sneaking spends 1 Energy and 10 minutes.
+6. Combat offers Attack, Defend or Dodge. CombatService validates and resolves the action, updates HP / Energy and lets the Goblin respond.
+7. The completed encounter advances time by its configured duration. Victory grants 25 G; defeat ends the encounter and the character cannot continue while dead.
+8. Return to Exploration at the same location, continue the day, or return to the Dormitory and choose **Sleep until tomorrow** to move to 07:30 on the next morning.
 
 A character with 0 HP is dead and cannot start an encounter or perform gameplay actions. The current prototype does not yet implement rebirth, ghost play or switching to another character.
 
