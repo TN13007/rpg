@@ -22,6 +22,7 @@ public partial class MainController : Control
     private ActionExecutionService _actionExecutionService;
     private GameModeController _gameModeController;
     private LocationEventService _locationEventService;
+    private LocationEventDefinition _activeLocationEvent;
 
     private string _currentLocationId = "dormitory";
 
@@ -71,6 +72,12 @@ public partial class MainController : Control
 
     private void ShowLocation()
     {
+        if (_activeLocationEvent != null)
+        {
+            ShowLocationEvent(_activeLocationEvent);
+            return;
+        }
+
         LocationContent location = AcademyContent.Get(_currentLocationId);
         List<ActionDefinition> choices = new List<ActionDefinition>();
         foreach (ActionDefinition action in location.Actions)
@@ -136,26 +143,9 @@ public partial class MainController : Control
             return;
         }
 
-        if (choiceId == "event_goblin_attack")
+        if (_activeLocationEvent != null)
         {
-            ActionDefinition attackAction = FindChoice(AcademyContent.Get(_currentLocationId).Actions, "encounter_goblin");
-            if (attackAction != null)
-            {
-                StartGoblinEncounter(attackAction);
-            }
-
-            return;
-        }
-
-        if (choiceId == "event_goblin_sneak")
-        {
-            ActionDefinition sneakAction = new ActionDefinition(
-                "sneak_past_goblin",
-                "Sneak past the goblin",
-                10,
-                feedback: "You move quietly around the bushes. The goblin does not notice you.",
-                energyCost: 1);
-            ExecuteAction(sneakAction);
+            HandleLocationEventChoice(choiceId);
             return;
         }
 
@@ -190,7 +180,7 @@ public partial class MainController : Control
         return null;
     }
 
-    private void ExecuteAction(ActionDefinition action)
+    private bool ExecuteAction(ActionDefinition action)
     {
         if (!_actionExecutionService.TryExecute(
             action,
@@ -200,7 +190,7 @@ public partial class MainController : Control
             out int actualDuration))
         {
             _storyPanel.ShowFeedback(failureReason);
-            return;
+            return false;
         }
 
         _characterPanel.SetCharacter(new CharacterViewModel(_player));
@@ -218,14 +208,21 @@ public partial class MainController : Control
         }
 
         _storyPanel.ShowFeedback(feedback);
+        return true;
     }
 
-    private void StartGoblinEncounter(ActionDefinition action)
+    private bool StartGoblinEncounter(ActionDefinition action)
     {
         if (!_actionExecutionService.CanExecute(action, _player, out string failureReason))
         {
             _storyPanel.ShowFeedback(failureReason);
-            return;
+            return false;
+        }
+
+        if (_player.Energy <= action.EnergyCost)
+        {
+            _storyPanel.ShowFeedback("You need to keep at least 1 Energy to enter combat.");
+            return false;
         }
 
         if (!_actionExecutionService.TryExecute(
@@ -236,7 +233,7 @@ public partial class MainController : Control
             out _))
         {
             _storyPanel.ShowFeedback(failureReason);
-            return;
+            return false;
         }
 
         _characterPanel.SetCharacter(new CharacterViewModel(_player));
@@ -244,7 +241,7 @@ public partial class MainController : Control
         if (_player.IsUnconscious)
         {
             _storyPanel.ShowFeedback("You collapse from exhaustion before the encounter begins.");
-            return;
+            return false;
         }
 
         if (!_combatService.TryStartEncounter(out failureReason))
@@ -252,10 +249,11 @@ public partial class MainController : Control
             _player.RestoreEnergy(action.EnergyCost);
             _characterPanel.SetCharacter(new CharacterViewModel(_player));
             _storyPanel.ShowFeedback(failureReason);
-            return;
+            return false;
         }
 
         _characterPanel.SetCharacter(new CharacterViewModel(_player));
+        _activeLocationEvent = null;
         _gameModeController.ShowCombat();
         _combatPanel.BeginEncounter("Goblin Ambush");
         _combatPanel.AppendMessage(new CombatMessage(
@@ -266,6 +264,7 @@ public partial class MainController : Control
             "SYSTEM",
             "A goblin jumps out from the bushes and blocks your way."));
         _combatPanel.ApplyViewData(_combatMapper.Map(_combatService.GetSnapshot()));
+        return true;
     }
 
     private void HandleCombatAction(CombatActionRequest request)
@@ -316,6 +315,7 @@ public partial class MainController : Control
             return;
         }
 
+        _activeLocationEvent = null;
         _currentLocationId = destinationId;
         _characterPanel.SetCharacter(new CharacterViewModel(_player));
         ShowLocation();
@@ -332,40 +332,82 @@ public partial class MainController : Control
 
     private void TryTriggerLocationEvent()
     {
-        if (_currentLocationId != "courtyard" || !_player.CanAct)
+        LocationContent location = AcademyContent.Get(_currentLocationId);
+
+        if (!_locationEventService.TryTrigger(
+            location,
+            _dayClock.Day,
+            _player.CanAct,
+            out LocationEventDefinition triggeredEvent))
         {
             return;
         }
 
-        if (!_locationEventService.TryTrigger("courtyard_goblin_ambush", _dayClock.Day, 0.5))
-        {
-            return;
-        }
+        _activeLocationEvent = triggeredEvent;
+        ShowLocationEvent(triggeredEvent);
+    }
 
-        ActionDefinition eventAction = FindChoice(AcademyContent.Get(_currentLocationId).Actions, "encounter_goblin");
-        if (eventAction == null)
-        {
-            return;
-        }
+    private void ShowLocationEvent(LocationEventDefinition locationEvent)
+    {
+        List<ActionDefinition> choices = new List<ActionDefinition>();
 
-        List<ActionDefinition> eventChoices = new List<ActionDefinition>
+        foreach (LocationEventChoiceDefinition choice in locationEvent.Choices)
         {
-            new ActionDefinition("event_goblin_attack", "Confront the goblin", 0, energyCost: eventAction.EnergyCost),
-            new ActionDefinition(
-                "event_goblin_sneak",
-                "Sneak past the goblin",
-                10,
-                feedback: "You move quietly around the bushes. The goblin does not notice you.",
-                energyCost: 1)
-        };
+            choices.Add(choice.Action);
+        }
 
         _gameModeController.ShowExploration();
         _storyPanel.ShowContent(
-            "Movement in the bushes",
-            "COURTYARD EVENT",
-            "A goblin is rummaging through a student's dropped bag near the gate. It has not noticed you yet. What will you do?",
-            eventChoices,
+            locationEvent.Title,
+            locationEvent.Region,
+            locationEvent.Description,
+            choices,
             _dayClock.GetDisplayText());
         _storyPanel.ShowLocationButton(false);
+    }
+
+    private void HandleLocationEventChoice(string choiceId)
+    {
+        LocationEventChoiceDefinition selectedChoice = null;
+
+        foreach (LocationEventChoiceDefinition choice in _activeLocationEvent.Choices)
+        {
+            if (choice.Action.Id == choiceId)
+            {
+                selectedChoice = choice;
+                break;
+            }
+        }
+
+        if (selectedChoice == null)
+        {
+            _storyPanel.ShowFeedback("That event choice is not available.");
+            return;
+        }
+
+        if (selectedChoice.EncounterActionId != null)
+        {
+            ActionDefinition encounterAction = FindChoice(
+                AcademyContent.Get(_currentLocationId).Actions,
+                selectedChoice.EncounterActionId);
+
+            if (encounterAction == null)
+            {
+                _storyPanel.ShowFeedback("The encounter action for this event is unavailable.");
+                return;
+            }
+
+            StartGoblinEncounter(encounterAction);
+            return;
+        }
+
+        if (!_actionExecutionService.CanExecute(selectedChoice.Action, _player, out string failureReason))
+        {
+            _storyPanel.ShowFeedback(failureReason);
+            return;
+        }
+
+        _activeLocationEvent = null;
+        ExecuteAction(selectedChoice.Action);
     }
 }
