@@ -6,11 +6,13 @@ Godot 4.7.2 .NET / C# project.
 
 - [Game Overview](Docs/Design/GAME_OVERVIEW.md) — game concept, core experience and prototype boundaries.
 - [World Model Foundation](Docs/Design/WORLD_MODEL_FOUNDATION.md) — provisional gameplay taxonomy, object inventory, conceptual ERD, modeling rules and incremental plan.
+- [World Model Review](Docs/Design/WORLD_MODEL_REVIEW.md) — review of NPC, Object and Location against three concrete prototype scenarios.
 - [UI Architecture](Docs/Design/UI_ARCHITECTURE.md) — main screen, sidebar, Main Panel modes and persistent character state.
 - [Combat Panel Contract](Docs/Design/COMBAT_PANEL_REVIEW.md) — combat data boundary, message model, intent lifecycle and UI behavior.
 - [Open Design Questions](Docs/Design/OPEN_DESIGN_QUESTIONS.md) — unresolved questions and resolved decisions.
 - [Playable Journey Sprint](Docs/Design/SPRINT_PLAYABLE_JOURNEY.md) — the end-to-end academy day and Goblin encounter target.
 - [Gameplay Loop and Location Events](Docs/Design/GAME_LOOP_AND_LOCATION_EVENTS.md) — Event ownership, selection rules, choice resolution and prototype boundaries.
+- [Playable Journey QA Record](Docs/QA/PLAYABLE_JOURNEY_TEST_REPORT.md) — owner-recorded runtime verification status and evidence limitations.
 
 ## Run
 
@@ -79,4 +81,4 @@ The right Character Panel remains visible and shows Health, Energy, Mood and Gol
 
 Combat rules are intentionally small and deterministic: basic attack deals 20 damage, Goblin has 40 HP and deals 4 damage, Defend costs 1 Energy and reduces the next hit to 1, Dodge costs 2 Energy and avoids the next hit. Victory grants 25 G.
 
-Automated tests run with `dotnet test RPG.Tests/RPG.Tests.csproj --configuration Release`. The current Location Event integration still needs a fresh build and runtime check in Godot 4.7.2 .NET. The standalone Combat Preview remains illustrative and is not the main gameplay entry point.
+Automated tests run with `dotnet test RPG.Tests/RPG.Tests.csproj --configuration Release`. The project owner closed [Issue #10](https://github.com/TN13007/rpg/issues/10) with all playable-journey runtime acceptance criteria marked complete in Godot 4.7.2 .NET. The QA record documents that owner-reported result and notes that the original Issue did not retain logs, screenshots or a run-by-run result table. The broader Sprint checklist remains a separate, wider verification scope. The standalone Combat Preview remains illustrative and is not the main gameplay entry point.
