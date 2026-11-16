@@ -18,7 +18,7 @@
 |---|---|---|---|
 | EXP-01 | How much of the location should be represented by illustration versus text? | Text-first with illustrative visuals. Exact balance is undecided. | Open |
 | EXP-02 | Should NPCs and objects appear as inline choices, cards, lists or another interaction pattern? | They must be visible and discoverable; exact control style is undecided. | Open |
-| EXP-03 | How should time be displayed and how clearly should actions communicate time cost? | The clock, activity durations and stat modifiers are implemented in the prototype; schedules and time-based world events remain undecided. | Open |
+| EXP-03 | How should time be displayed and how clearly should actions communicate time cost? | The clock, activity durations and stat modifiers are implemented. Schedules and broader time-based world events remain undecided; location-arrival Event selection has a separate prototype rule. | Open |
 
 ## 3. Character State and Diary
 
@@ -50,6 +50,10 @@
 | COM-R06 | UI receives only a presentation-safe snapshot; hidden AI decisions are never passed to UI. | [Combat Panel Contract](COMBAT_PANEL_REVIEW.md) |
 | COM-R07 | Action availability is replaced from the latest snapshot; gameplay service revalidates every request. | [Combat Panel Contract](COMBAT_PANEL_REVIEW.md) |
 | COM-R08 | A character with 0 HP is dead and cannot start an encounter or perform gameplay actions. CombatService and MainController enforce this rule. | [Playable Journey Sprint](SPRINT_PLAYABLE_JOURNEY.md) |
+| LOOP-R01 | The core loop uses Location travel and optional Location Events; no Expedition or Run wrapper is required. | [Gameplay Loop and Location Events](GAME_LOOP_AND_LOCATION_EVENTS.md) |
+| LOOP-R02 | A Location owns its Event Definitions. An Event is not automatically an Encounter or Combat; the player chooses a resolution. | [Gameplay Loop and Location Events](GAME_LOOP_AND_LOCATION_EVENTS.md) |
+| LOOP-R03 | For this prototype, evaluate a Location's Event pool after successful arrival, at most once per in-game day, only while the player can act. The first successful chance in authored order is selected. | [Gameplay Loop and Location Events](GAME_LOOP_AND_LOCATION_EVENTS.md) |
+| LOOP-R04 | Event choices execute through ActionExecutionService or reference an existing Location Action that starts the relevant Encounter/Combat flow. | [Gameplay Loop and Location Events](GAME_LOOP_AND_LOCATION_EVENTS.md) |
 
 ## 6. Review Priorities
 

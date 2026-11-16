@@ -21,6 +21,8 @@ public partial class MainController : Control
     private ActivityTimeCalculator _activityTimeCalculator;
     private ActionExecutionService _actionExecutionService;
     private GameModeController _gameModeController;
+    private LocationEventService _locationEventService;
+    private LocationEventDefinition _activeLocationEvent;
 
     private string _currentLocationId = "dormitory";
 
@@ -46,6 +48,7 @@ public partial class MainController : Control
             _activityTimeCalculator,
             new ActionEffectExecutor());
         _gameModeController = new GameModeController(_storyPanel, _combatPanel);
+        _locationEventService = new LocationEventService();
 
         _sidebar.TabSelected += OpenTab;
         _storyPanel.ChoiceSelected += HandleChoice;
@@ -69,8 +72,21 @@ public partial class MainController : Control
 
     private void ShowLocation()
     {
+        if (_activeLocationEvent != null)
+        {
+            ShowLocationEvent(_activeLocationEvent);
+            return;
+        }
+
         LocationContent location = AcademyContent.Get(_currentLocationId);
-        List<ActionDefinition> choices = new List<ActionDefinition>(location.Actions);
+        List<ActionDefinition> choices = new List<ActionDefinition>();
+        foreach (ActionDefinition action in location.Actions)
+        {
+            if (!IsEventEncounterAction(location, action.Id))
+            {
+                choices.Add(action);
+            }
+        }
 
         foreach (string exitId in location.Exits)
         {
@@ -121,6 +137,12 @@ public partial class MainController : Control
 
     private void HandleChoice(string choiceId)
     {
+        if (_activeLocationEvent != null)
+        {
+            HandleLocationEventChoice(choiceId);
+            return;
+        }
+
         if (choiceId.StartsWith("travel:", StringComparison.Ordinal))
         {
             TravelTo(choiceId.Substring("travel:".Length));
@@ -136,13 +158,23 @@ public partial class MainController : Control
             return;
         }
 
-        if (selectedAction.Id == "encounter_goblin")
+        ExecuteAction(selectedAction);
+    }
+
+    private bool IsEventEncounterAction(LocationContent location, string actionId)
+    {
+        foreach (LocationEventDefinition locationEvent in location.Events)
         {
-            StartGoblinEncounter(selectedAction);
-            return;
+            foreach (LocationEventChoiceDefinition choice in locationEvent.Choices)
+            {
+                if (choice.EncounterActionId == actionId)
+                {
+                    return true;
+                }
+            }
         }
 
-        ExecuteAction(selectedAction);
+        return false;
     }
 
     private ActionDefinition FindChoice(ActionDefinition[] choices, string choiceId)
@@ -158,7 +190,7 @@ public partial class MainController : Control
         return null;
     }
 
-    private void ExecuteAction(ActionDefinition action)
+    private bool ExecuteAction(ActionDefinition action)
     {
         if (!_actionExecutionService.TryExecute(
             action,
@@ -168,7 +200,7 @@ public partial class MainController : Control
             out int actualDuration))
         {
             _storyPanel.ShowFeedback(failureReason);
-            return;
+            return false;
         }
 
         _characterPanel.SetCharacter(new CharacterViewModel(_player));
@@ -186,14 +218,21 @@ public partial class MainController : Control
         }
 
         _storyPanel.ShowFeedback(feedback);
+        return true;
     }
 
-    private void StartGoblinEncounter(ActionDefinition action)
+    private bool StartGoblinEncounter(ActionDefinition action)
     {
         if (!_actionExecutionService.CanExecute(action, _player, out string failureReason))
         {
             _storyPanel.ShowFeedback(failureReason);
-            return;
+            return false;
+        }
+
+        if (_player.Energy <= action.EnergyCost)
+        {
+            _storyPanel.ShowFeedback("You need to keep at least 1 Energy to enter combat.");
+            return false;
         }
 
         if (!_actionExecutionService.TryExecute(
@@ -204,7 +243,7 @@ public partial class MainController : Control
             out _))
         {
             _storyPanel.ShowFeedback(failureReason);
-            return;
+            return false;
         }
 
         _characterPanel.SetCharacter(new CharacterViewModel(_player));
@@ -212,7 +251,7 @@ public partial class MainController : Control
         if (_player.IsUnconscious)
         {
             _storyPanel.ShowFeedback("You collapse from exhaustion before the encounter begins.");
-            return;
+            return false;
         }
 
         if (!_combatService.TryStartEncounter(out failureReason))
@@ -220,10 +259,11 @@ public partial class MainController : Control
             _player.RestoreEnergy(action.EnergyCost);
             _characterPanel.SetCharacter(new CharacterViewModel(_player));
             _storyPanel.ShowFeedback(failureReason);
-            return;
+            return false;
         }
 
         _characterPanel.SetCharacter(new CharacterViewModel(_player));
+        _activeLocationEvent = null;
         _gameModeController.ShowCombat();
         _combatPanel.BeginEncounter("Goblin Ambush");
         _combatPanel.AppendMessage(new CombatMessage(
@@ -234,6 +274,7 @@ public partial class MainController : Control
             "SYSTEM",
             "A goblin jumps out from the bushes and blocks your way."));
         _combatPanel.ApplyViewData(_combatMapper.Map(_combatService.GetSnapshot()));
+        return true;
     }
 
     private void HandleCombatAction(CombatActionRequest request)
@@ -284,6 +325,7 @@ public partial class MainController : Control
             return;
         }
 
+        _activeLocationEvent = null;
         _currentLocationId = destinationId;
         _characterPanel.SetCharacter(new CharacterViewModel(_player));
         ShowLocation();
@@ -295,5 +337,87 @@ public partial class MainController : Control
         }
 
         _storyPanel.ShowFeedback(feedback);
+        TryTriggerLocationEvent();
+    }
+
+    private void TryTriggerLocationEvent()
+    {
+        LocationContent location = AcademyContent.Get(_currentLocationId);
+
+        if (!_locationEventService.TryTrigger(
+            location,
+            _dayClock.Day,
+            _player.CanAct,
+            out LocationEventDefinition triggeredEvent))
+        {
+            return;
+        }
+
+        _activeLocationEvent = triggeredEvent;
+        ShowLocationEvent(triggeredEvent);
+    }
+
+    private void ShowLocationEvent(LocationEventDefinition locationEvent)
+    {
+        List<ActionDefinition> choices = new List<ActionDefinition>();
+
+        foreach (LocationEventChoiceDefinition choice in locationEvent.Choices)
+        {
+            choices.Add(choice.Action);
+        }
+
+        _gameModeController.ShowExploration();
+        _storyPanel.ShowContent(
+            locationEvent.Title,
+            locationEvent.Region,
+            locationEvent.Description,
+            choices,
+            _dayClock.GetDisplayText());
+        _storyPanel.ShowLocationButton(false);
+    }
+
+    private void HandleLocationEventChoice(string choiceId)
+    {
+        LocationEventChoiceDefinition selectedChoice = null;
+
+        foreach (LocationEventChoiceDefinition choice in _activeLocationEvent.Choices)
+        {
+            if (choice.Action.Id == choiceId)
+            {
+                selectedChoice = choice;
+                break;
+            }
+        }
+
+        if (selectedChoice == null)
+        {
+            _storyPanel.ShowFeedback("That event choice is not available.");
+            return;
+        }
+
+        if (selectedChoice.EncounterActionId != null)
+        {
+            ActionDefinition encounterAction = FindChoice(
+                AcademyContent.Get(_currentLocationId).Actions,
+                selectedChoice.EncounterActionId);
+
+            if (encounterAction == null)
+            {
+                _storyPanel.ShowFeedback("The encounter action for this event is unavailable.");
+                return;
+            }
+
+            StartGoblinEncounter(encounterAction);
+            return;
+        }
+
+        if (!_actionExecutionService.CanExecute(selectedChoice.Action, _player, out string failureReason))
+        {
+            _storyPanel.ShowFeedback(failureReason);
+            return;
+        }
+
+        _activeLocationEvent = null;
+        ExecuteAction(selectedChoice.Action);
     }
 }

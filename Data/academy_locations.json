@@ -16,7 +16,9 @@
       "name": "Dormitory",
       "region": "STUDENT QUARTERS",
       "description": "Morning light slips through the curtains. Your room is quiet, and the academy day is about to begin.",
-      "exits": ["courtyard"],
+      "exits": [
+        "courtyard"
+      ],
       "actions": [
         {
           "id": "rest",
@@ -24,8 +26,14 @@
           "durationMinutes": 30,
           "energyCost": 0,
           "effects": [
-            { "type": "RestoreEnergy", "amount": 3 },
-            { "type": "ChangeMood", "amount": 2 }
+            {
+              "type": "RestoreEnergy",
+              "amount": 3
+            },
+            {
+              "type": "ChangeMood",
+              "amount": 2
+            }
           ],
           "feedback": "You sit by the window for a moment. The day can wait another minute."
         },
@@ -44,9 +52,18 @@
           "timeMode": "NextDay",
           "energyCost": 0,
           "effects": [
-            { "type": "RestoreHealth", "amount": 20 },
-            { "type": "RestoreEnergy", "amount": 10 },
-            { "type": "ChangeMood", "amount": 10 }
+            {
+              "type": "RestoreHealth",
+              "amount": 20
+            },
+            {
+              "type": "RestoreEnergy",
+              "amount": 10
+            },
+            {
+              "type": "ChangeMood",
+              "amount": 10
+            }
           ],
           "feedback": "You wake up after a night's rest. Another day at the academy begins."
         }
@@ -57,7 +74,11 @@
       "name": "Academy Courtyard",
       "region": "ASTERIA ACADEMY",
       "description": "Students cross the courtyard beneath old trees. A rustling comes from the gate. Something small is moving in the bushes.",
-      "exits": ["dormitory", "classroom", "guild_hall"],
+      "exits": [
+        "dormitory",
+        "classroom",
+        "guild_hall"
+      ],
       "actions": [
         {
           "id": "talk_mira",
@@ -65,7 +86,10 @@
           "durationMinutes": 15,
           "energyCost": 1,
           "effects": [
-            { "type": "ChangeMood", "amount": 3 }
+            {
+              "type": "ChangeMood",
+              "amount": 3
+            }
           ],
           "feedback": "Mira smiles. “Morning! Are you heading to practical training too?”"
         },
@@ -84,6 +108,33 @@
           "energyCost": 2,
           "effects": []
         }
+      ],
+      "events": [
+        {
+          "id": "courtyard_goblin_ambush",
+          "title": "Movement in the bushes",
+          "region": "COURTYARD EVENT",
+          "description": "A goblin is rummaging through a student's dropped bag near the gate. It has not noticed you yet. What will you do?",
+          "chance": 0.5,
+          "choices": [
+            {
+              "id": "event_goblin_attack",
+              "label": "Confront the goblin",
+              "durationMinutes": 0,
+              "energyCost": 0,
+              "effects": [],
+              "encounterActionId": "encounter_goblin"
+            },
+            {
+              "id": "event_goblin_sneak",
+              "label": "Sneak past the goblin",
+              "durationMinutes": 10,
+              "energyCost": 1,
+              "effects": [],
+              "feedback": "You move quietly around the bushes. The goblin does not notice you."
+            }
+          ]
+        }
       ]
     },
     {
@@ -91,7 +142,9 @@
       "name": "Practical Classroom",
       "region": "EAST WING",
       "description": "Field maps cover the walls. Training equipment is arranged neatly beside the instructor's desk.",
-      "exits": ["courtyard"],
+      "exits": [
+        "courtyard"
+      ],
       "actions": [
         {
           "id": "talk_instructor",
@@ -120,7 +173,9 @@
       "name": "Guild Hall",
       "region": "EXPEDITION QUARTER",
       "description": "A broad counter separates the students from the expedition clerks. Reports and requests are pinned behind them.",
-      "exits": ["courtyard"],
+      "exits": [
+        "courtyard"
+      ],
       "actions": [
         {
           "id": "talk_clerk",

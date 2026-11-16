@@ -1,6 +1,6 @@
-# Sprint — Playable Academy Day and Goblin Encounter
+# Sprint — Playable Academy Day and Location Event Loop
 
-**Goal:** Deliver a text-first academy day with location travel, timed activities, sleep and one deterministic Goblin encounter. Player and enemy are represented by domain Character objects. A fresh Godot build and runtime verification are still required for this revision.
+**Goal:** Deliver a text-first academy day with location travel, timed activities, sleep and a Location-owned Event that can resolve through Combat or a non-combat Action. Player and enemy are represented by domain Character objects. A fresh Godot build and runtime verification are still required for this revision.
 
 ## Player journey
 
@@ -10,31 +10,35 @@ Dormitory — Day 1, 07:30
         +--> Read, rest or sleep
         |
         v
-Travel to Academy Courtyard
+Travel to a destination Location
         |
-        +--> Social and exploration activities
+        v
+Evaluate destination Event pool
         |
-        +--> Investigate the rustling
-                    |
-                    v
-              Goblin encounter
-                    |
-          CombatService validates
-          and resolves each action
-                    |
-          +---------+---------+
-          |                   |
-       Victory              Defeat
-          |                   |
-       +25 G              Player HP = 0
-          |                   |
-          +---------+---------+
-                    |
-             Return to location
-                    |
-          Continue the day or sleep
-                    |
-             Next morning, 07:30
+        +---- No Event / failed roll
+        |              |
+        |              v
+        |        Location Exploration
+        |
+        +---- Event selected
+                       |
+                 Event choices
+                       |
+             +---------+---------+
+             |                   |
+         Confront             Sneak past
+             |                   |
+          Combat             Action execution
+             |                   |
+      CombatService          Cost / time / effects
+             |                   |
+             +---------+---------+
+                       |
+                Return to same Location
+                       |
+                Continue the day or sleep
+                       |
+                Next morning, 07:30
 ```
 
 ## Scope and rules
@@ -45,6 +49,11 @@ Travel to Academy Courtyard
 | Starting time | Day 1, 07:30 |
 | Locations | Dormitory, Courtyard, Classroom and Guild Hall |
 | Travel | 10 base minutes; Agility can reduce the duration |
+| Location event selection | After successful travel, evaluate the destination's Event pool if the player can act |
+| Event pool | Evaluated at most once per Location per in-game day; first successful event in JSON order wins |
+| Courtyard event | 50% chance to reveal the Goblin Ambush |
+| Event resolution | Confront the Goblin (Combat mode) or sneak past it (10 minutes and 1 Energy) |
+| Failed event roll | No reroll at that Location until the next in-game day |
 | Activities | Each location action declares its duration in academy content JSON |
 | Study modifier | Intelligence can reduce the field-map study duration |
 | Sleep | Available in the Dormitory; moves the clock to 07:30 on the next morning |
@@ -87,6 +96,15 @@ These values are prototype rules, not final balance. Sleep currently changes tim
 
 - [ ] Main scene opens in the Dormitory at Day 1, 07:30.
 - [ ] Travel only succeeds when the destination is listed in the current location's exits.
+- [ ] Successful travel evaluates the destination Location's configured Event pool.
+- [ ] A Location Event pool is evaluated at most once per in-game day.
+- [ ] A failed event roll does not reroll on repeated visits that same day.
+- [ ] A character who cannot act does not consume the Location's daily Event evaluation.
+- [ ] Event selection follows authored JSON order and selects at most one Event.
+- [ ] Event definitions reject invalid chances, duplicate IDs and unknown encounter-action references.
+- [ ] A triggered event offers both Combat and Stealth resolutions.
+- [ ] Sneaking past the Goblin spends 1 Energy, advances 10 minutes and returns to the Courtyard.
+- [ ] Confronting the Goblin enters Combat and returns to the same location after the encounter.
 - [ ] Exploration activities and travel advance time using configured durations.
 - [ ] Time modifiers use the configured character attribute.
 - [ ] Advancing past midnight increments the day and preserves remaining minutes.
@@ -99,11 +117,12 @@ These values are prototype rules, not final balance. Sleep currently changes tim
 - [ ] Defeating the enemy grants exactly 25 G once.
 - [ ] CharacterPanel receives CharacterViewModel, not Character.
 - [ ] Return to Exploration restores the same location and its choices.
+- [ ] Automated Location Event tests pass with `dotnet test RPG.Tests/RPG.Tests.csproj --configuration Release`.
 - [ ] Project builds and the full journey is verified in Godot 4.7.2 .NET.
 
 ## Not in scope
 
-- Multiple enemies, random encounters, loot tables or inventory drops.
+- Multiple enemies, additional random location events, loot tables or inventory drops.
 - Advanced status effects, skill trees, critical hits or final balance.
 - Persistent save / load.
 - Character recovery, daily schedules and a complete death/rebirth or ghost-play flow.

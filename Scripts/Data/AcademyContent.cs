@@ -107,8 +107,16 @@ public sealed class LocationContent
     public string Description { get; }
     public string[] Exits { get; }
     public ActionDefinition[] Actions { get; }
+    public LocationEventDefinition[] Events { get; }
 
-    public LocationContent(string id, string name, string region, string description, string[] exits, ActionDefinition[] actions)
+    public LocationContent(
+        string id,
+        string name,
+        string region,
+        string description,
+        string[] exits,
+        ActionDefinition[] actions,
+        LocationEventDefinition[] events = null)
     {
         Id = id;
         Name = name;
@@ -116,6 +124,7 @@ public sealed class LocationContent
         Description = description;
         Exits = exits ?? Array.Empty<string>();
         Actions = actions ?? Array.Empty<ActionDefinition>();
+        Events = events ?? Array.Empty<LocationEventDefinition>();
     }
 }
 
@@ -177,6 +186,9 @@ public static class AcademyContent
                 string description = ReadString(locationData, "description");
                 string[] exits = ReadStringArray(locationData.GetProperty("exits"));
                 ActionDefinition[] actions = ReadActions(locationData.GetProperty("actions"));
+                LocationEventDefinition[] events = locationData.TryGetProperty("events", out JsonElement eventsData)
+                    ? ReadEvents(eventsData)
+                    : Array.Empty<LocationEventDefinition>();
 
                 if (loadedLocations.ContainsKey(id))
                 {
@@ -184,7 +196,8 @@ public static class AcademyContent
                 }
 
                 ValidateActionIds(id, actions);
-                loadedLocations.Add(id, new LocationContent(id, name, region, description, exits, actions));
+                ValidateLocationEvents(id, actions, events);
+                loadedLocations.Add(id, new LocationContent(id, name, region, description, exits, actions, events));
             }
 
             if (loadedLocations.Count == 0)
@@ -217,6 +230,100 @@ public static class AcademyContent
         }
 
         return location;
+    }
+
+    private static void ValidateLocationEvents(
+        string locationId,
+        ActionDefinition[] actions,
+        LocationEventDefinition[] events)
+    {
+        HashSet<string> eventIds = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (LocationEventDefinition locationEvent in events)
+        {
+            if (locationEvent == null)
+            {
+                throw new InvalidOperationException("Location events cannot contain null values.");
+            }
+
+            if (!eventIds.Add(locationEvent.Id))
+            {
+                throw new InvalidOperationException(
+                    "Duplicate event ID '" + locationEvent.Id + "' in location '" + locationId + "'.");
+            }
+
+            foreach (LocationEventChoiceDefinition choice in locationEvent.Choices)
+            {
+                if (choice.EncounterActionId == null)
+                {
+                    continue;
+                }
+
+                bool actionFound = false;
+                foreach (ActionDefinition action in actions)
+                {
+                    if (action.Id == choice.EncounterActionId)
+                    {
+                        actionFound = true;
+                        break;
+                    }
+                }
+
+                if (!actionFound)
+                {
+                    throw new InvalidOperationException(
+                        "Event choice '" + choice.Id + "' in location '" + locationId
+                        + "' references unknown encounter action '" + choice.EncounterActionId + "'.");
+                }
+            }
+        }
+    }
+
+    private static LocationEventDefinition[] ReadEvents(JsonElement data)
+    {
+        if (data.ValueKind != JsonValueKind.Array)
+        {
+            throw new InvalidOperationException("Location events must be an array.");
+        }
+
+        List<LocationEventDefinition> events = new List<LocationEventDefinition>();
+
+        foreach (JsonElement item in data.EnumerateArray())
+        {
+            string id = ReadString(item, "id");
+            string title = ReadString(item, "title");
+            string region = ReadString(item, "region");
+            string description = ReadString(item, "description");
+            double chance = item.GetProperty("chance").GetDouble();
+            JsonElement choicesData = item.GetProperty("choices");
+
+            if (choicesData.ValueKind != JsonValueKind.Array)
+            {
+                throw new InvalidOperationException("Location event choices must be an array.");
+            }
+
+            List<LocationEventChoiceDefinition> choices = new List<LocationEventChoiceDefinition>();
+            foreach (JsonElement choiceData in choicesData.EnumerateArray())
+            {
+                string choiceId = ReadString(choiceData, "id");
+                string label = ReadString(choiceData, "label");
+                string encounterActionId = choiceData.TryGetProperty("encounterActionId", out JsonElement encounterData)
+                    ? encounterData.GetString()
+                    : null;
+                ActionDefinition action = ReadActionDefinition(choiceId, label, choiceData);
+                choices.Add(new LocationEventChoiceDefinition(choiceId, action, encounterActionId));
+            }
+
+            events.Add(new LocationEventDefinition(
+                id,
+                title,
+                region,
+                description,
+                chance,
+                choices.ToArray()));
+        }
+
+        return events.ToArray();
     }
 
     private static void ValidateActionIds(string locationId, ActionDefinition[] actions)
