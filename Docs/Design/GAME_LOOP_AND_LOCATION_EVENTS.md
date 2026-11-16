@@ -1,6 +1,6 @@
 # Gameplay Loop and Location Events
 
-**Status:** Prototype decisions implemented on `feat/location-event-game-loop`. The rules below define the current vertical slice; they are not a final random-world simulation specification.
+**Status:** Implemented on `main` through PR #9. The rules below define the current vertical slice; they are not a final random-world simulation specification.
 
 ## 1. Core Gameplay Loop
 
@@ -104,7 +104,11 @@ No separate Expedition, Run or general-purpose Event System is introduced.
 - Failed action execution not consuming Energy or advancing time.
 - Content validation for duplicate Event IDs and unknown encounter-action references.
 
-These are automated domain/content tests. The Godot scene, actual UI transitions, mouse interaction and a complete run through the main scene still require runtime verification in Godot 4.7.2 .NET.
+These are automated domain/content tests. GitHub Actions run [#43](https://github.com/TN13007/rpg/actions/runs/43769290553) for commit `f5f018dfe31adb4d600ea4efff95f6987e45250c` completed with 64 passed and 0 failed. This result covers automated .NET tests, not the Godot UI.
+
+### Runtime verification record
+
+[Issue #10](https://github.com/TN13007/rpg/issues/10) was closed by the project owner with all five playable-journey acceptance criteria marked complete for the Godot 4.7.2 .NET runtime check. The retrospective [QA record](../QA/PLAYABLE_JOURNEY_TEST_REPORT.md) records the verified scope and its audit limitations. The Issue did not retain Godot Output logs, screenshots/video, exact per-action values or the exact local build revision; therefore the result is owner-confirmed, not independently reproducible from attached evidence.
 
 ## 7. Deliberately Not Implemented Yet
 
