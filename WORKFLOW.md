@@ -3,7 +3,7 @@
 **Repository:** [TN13007/rpg](https://github.com/TN13007/rpg)  
 **Engine:** Godot 4.7.2 .NET / C#  
 **Last reviewed:** 2026-11-17  
-**Official implementation baseline:** `main` — `fe0153a47aec4b30d6fdc985d957e740693cd2eb`
+**Official implementation baseline:** latest `main` — consult the current branch head rather than a copied commit hash.
 
 > Start here at the beginning and end of every Session. This is the single project-status and handoff tracker. Do not create separate project-state, decision, learning or per-session tracking files.
 
