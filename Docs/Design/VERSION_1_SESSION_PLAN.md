@@ -81,18 +81,27 @@ Presentation availability is advisory; the owning service must revalidate.
 **Player-facing result:** The player sees an approximate duration beside each choice and executes it immediately by selecting it.
 
 ### Learning objective
+
+**Approval status:** Proposed — pending user approval.
+
 **Approval status:** Proposed — pending user approval.
 
 
 Explain the difference between a displayed duration estimate and actual execution duration; trace ActionDefinition → ActionDurationEstimateMapper → ActionChoiceViewData → StoryPanel.
 
 ### Independent practice
+
+**Approval status:** Proposed — pending user approval.
+
 **Approval status:** Proposed — pending user approval.
 
 
 Independently add or adjust one duration-estimate test, predict the displayed value for a stat-modified action, then compare with the test result.
 
 ### Knowledge check
+
+**Approval status:** Proposed — pending user approval.
+
 **Approval status:** Proposed — pending user approval.
 
 
@@ -124,18 +133,27 @@ Explain why the mapper must not mutate state and why execution recalculates actu
 **Player-facing result:** The player spends Energy, becomes unconscious at 0 Energy, and recovers through Rest.
 
 ### Learning objective
+
+**Approval status:** Proposed — pending user approval.
+
 **Approval status:** Proposed — pending user approval.
 
 
 Trace CanExecute, Energy spending, DayClock advancement and ActionEffectExecutor; explain the difference between Dead and Unconscious.
 
 ### Independent practice
+
+**Approval status:** Proposed — pending user approval.
+
 **Approval status:** Proposed — pending user approval.
 
 
 Independently add or modify a boundary test for Rest at 0 Energy and Rest when Health is 0; explain why the outcomes differ.
 
 ### Knowledge check
+
+**Approval status:** Proposed — pending user approval.
+
 **Approval status:** Proposed — pending user approval.
 
 
@@ -162,18 +180,27 @@ PR #22 stores Rest in `selfActions` at the root of `academy_locations.json`. Thi
 **Player-facing result:** Exploration presents choices in clear groups, while the same UI can render choices supplied by different data sources.
 
 ### Learning objective
+
+**Approval status:** Proposed — pending user approval.
+
 **Approval status:** Proposed — pending user approval.
 
 
 Trace a choice from Player/Location JSON through loading, contextual availability query, mapper, grouped ViewModel and StoryPanel; distinguish source identity from presentation group.
 
 ### Independent practice
+
+**Approval status:** Proposed — pending user approval.
+
 **Approval status:** Proposed — pending user approval.
 
 
 Add one small Player Action or query test, predict where it appears in Dormitory versus Courtyard, and debug the result without placing discovery logic in StoryPanel.
 
 ### Knowledge check
+
+**Approval status:** Proposed — pending user approval.
+
 **Approval status:** Proposed — pending user approval.
 
 
@@ -259,18 +286,27 @@ Automated test output plus a Godot recording/screenshots showing at least two Lo
 **Player-facing result:** The player can end the day in the Dormitory and wake at 07:30 on the next morning with recovered character values.
 
 ### Learning objective
+
+**Approval status:** Proposed — pending user approval.
+
 **Approval status:** Proposed — pending user approval.
 
 
 Explain how DayClock's NextDay transition differs from ordinary minute advancement and how authored Sleep Effects are applied.
 
 ### Independent practice
+
+**Approval status:** Proposed — pending user approval.
+
 **Approval status:** Proposed — pending user approval.
 
 
 Independently write or extend one calendar-boundary test and verify the expected day/time.
 
 ### Knowledge check
+
+**Approval status:** Proposed — pending user approval.
+
 **Approval status:** Proposed — pending user approval.
 
 
@@ -308,18 +344,27 @@ Before/after state record plus calendar-boundary automated test output.
 **Player-facing result:** Combat damage has a meaningful daily-life consequence and the Player can recover at the academy Infirmary.
 
 ### Learning objective
+
+**Approval status:** Proposed — pending user approval.
+
 **Approval status:** Proposed — pending user approval.
 
 
 Identify the owner of Health state, trace damage/healing through the responsible rules and explain maximum-value clamping and the death boundary.
 
 ### Independent practice
+
+**Approval status:** Proposed — pending user approval.
+
 **Approval status:** Proposed — pending user approval.
 
 
 Add a focused Health recovery test at a boundary and explain the expected state transition.
 
 ### Knowledge check
+
+**Approval status:** Proposed — pending user approval.
+
 **Approval status:** Proposed — pending user approval.
 
 
@@ -355,18 +400,27 @@ A complete injury → return → travel → treatment → recovered-state run.
 **Player-facing result:** The Player sees a clear description of their emotional condition and understands how daily activities affect Mood.
 
 ### Learning objective
+
+**Approval status:** Proposed — pending user approval.
+
 **Approval status:** Proposed — pending user approval.
 
 
 Explain Mood as a runtime value, distinguish descriptive Mood bands from gameplay modifiers, and trace a Mood Effect to updated Character state.
 
 ### Independent practice
+
+**Approval status:** Proposed — pending user approval.
+
 **Approval status:** Proposed — pending user approval.
 
 
 Add or adjust a boundary test for Mood minimum/maximum or one authored Mood activity; predict the clamped result before running it.
 
 ### Knowledge check
+
+**Approval status:** Proposed — pending user approval.
+
 **Approval status:** Proposed — pending user approval.
 
 
@@ -401,18 +455,27 @@ Runtime examples plus complete Mood-boundary test results.
 **Player-facing result:** The Player has several distinct activities and meaningful decisions about how to spend one day.
 
 ### Learning objective
+
+**Approval status:** Proposed — pending user approval.
+
 **Approval status:** Proposed — pending user approval.
 
 
 Trace one academy activity from authored content to availability, execution, Effects, elapsed time and refreshed UI; identify each rule owner.
 
 ### Independent practice
+
+**Approval status:** Proposed — pending user approval.
+
 **Approval status:** Proposed — pending user approval.
 
 
 Add one concrete daily activity using existing patterns and tests, without adding a generic system or putting rules in UI.
 
 ### Knowledge check
+
+**Approval status:** Proposed — pending user approval.
+
 **Approval status:** Proposed — pending user approval.
 
 
@@ -453,18 +516,27 @@ A playable day recording and test results.
 **Player-facing result:** The Player can review how the day was spent before continuing to the next morning.
 
 ### Learning objective
+
+**Approval status:** Proposed — pending user approval.
+
 **Approval status:** Proposed — pending user approval.
 
 
 Distinguish transient UI feedback, action history and a persisted daily summary; explain how the summary derives from completed gameplay events/state.
 
 ### Independent practice
+
+**Approval status:** Proposed — pending user approval.
+
 **Approval status:** Proposed — pending user approval.
 
 
 Add a focused test for one summary rule such as ordering, empty-day behavior or exclusion of a rejected action.
 
 ### Knowledge check
+
+**Approval status:** Proposed — pending user approval.
+
 **Approval status:** Proposed — pending user approval.
 
 
@@ -501,18 +573,27 @@ Screenshot/recording of a day containing at least three activities plus test out
 **Player-facing result:** The Player can close the game and continue the same academy day later.
 
 ### Learning objective
+
+**Approval status:** Proposed — pending user approval.
+
 **Approval status:** Proposed — pending user approval.
 
 
 Explain serialization boundaries, save schema validation and the difference between restoring state and replaying gameplay Effects.
 
 ### Independent practice
+
+**Approval status:** Proposed — pending user approval.
+
 **Approval status:** Proposed — pending user approval.
 
 
 Independently add a Save/Load regression test for one persisted field or repeated load cycle, then compare the full before/after state.
 
 ### Knowledge check
+
+**Approval status:** Proposed — pending user approval.
+
 **Approval status:** Proposed — pending user approval.
 
 
