@@ -119,7 +119,7 @@ def _stable_signature(value: Any) -> str:
 
 
 def _owner_identity_signature(value: dict[str, Any]) -> str:
-    """Prefer stable authored labels over mutable descriptive/stat fields."""
+    """Prefer stable authored labels; avoid treating wrapper objects as entities."""
     identity = {
         key: value[key]
         for key in ("name", "label", "title")
@@ -129,7 +129,10 @@ def _owner_identity_signature(value: dict[str, Any]) -> str:
         return json.dumps(
             identity, sort_keys=True, ensure_ascii=False, separators=(",", ":")
         )
-    return _stable_signature(value)
+
+    if any(is_identifier_property(key) for key in value):
+        return _stable_signature(value)
+    return ""
 
 
 def collect_id_occurrences(
