@@ -8,8 +8,10 @@ TOOLS_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(TOOLS_DIR))
 
 from CheckProjectNaming import (  # noqa: E402
+    audit_tracked_paths,
     changed_paths,
     is_camel_case,
+    is_dotnet_project_name,
     is_pascal_case,
     is_snake_case,
     path_naming_issues,
@@ -279,6 +281,69 @@ class ChangedPathTests(unittest.TestCase):
             issues = path_naming_issues("base", "M", "legacy_folder/bad_file.txt")
         git_mock.assert_not_called()
         self.assertEqual([], issues)
+
+
+
+class FullRepositoryAuditTests(unittest.TestCase):
+    def test_audit_finds_unchanged_legacy_files_and_directories_once(self):
+        issues, directory_count = audit_tracked_paths(
+            [
+                "bad_folder/first_bad_file.json",
+                "bad_folder/SecondFile.cs",
+                "ValidFolder/ThirdFile.md",
+            ]
+        )
+
+        self.assertEqual(2, directory_count)
+        self.assertEqual(2, len(issues))
+        self.assertTrue(any("directory 'bad_folder'" in issue for issue in issues))
+        self.assertTrue(any("Suggested directory name: 'BadFolder'" in issue for issue in issues))
+        self.assertTrue(any("Suggested path: 'bad_folder/FirstBadFile.json'" in issue for issue in issues))
+
+    def test_audit_accepts_dotnet_project_directory_and_project_file(self):
+        issues, directory_count = audit_tracked_paths(
+            ["RPG.Tests/RPG.Tests.csproj"]
+        )
+
+        self.assertEqual([], issues)
+        self.assertEqual(1, directory_count)
+        self.assertTrue(is_dotnet_project_name("RPG.Tests"))
+
+    def test_audit_suggests_names_for_godot_asset_and_import_sidecar(self):
+        issues, _ = audit_tracked_paths(
+            [
+                "Assets/academy_scene.svg",
+                "Assets/academy_scene.svg.import",
+            ]
+        )
+
+        self.assertEqual(2, len(issues))
+        self.assertTrue(any("Assets/AcademyScene.svg" in issue for issue in issues))
+        self.assertTrue(any("Assets/AcademyScene.svg.import" in issue for issue in issues))
+
+    def test_audit_detects_upper_snake_case_markdown_names(self):
+        issues, _ = audit_tracked_paths(
+            ["Docs/Design/COMBAT_PANEL_REVIEW.md"]
+        )
+
+        self.assertEqual(1, len(issues))
+        self.assertIn(
+            "Suggested path: 'Docs/Design/CombatPanelReview.md'",
+            issues[0],
+        )
+
+    def test_audit_excludes_platform_trees_and_entry_files(self):
+        issues, directory_count = audit_tracked_paths(
+            [
+                ".github/ISSUE_TEMPLATE/bug_report.md",
+                ".godot/imported/bad_name.svg",
+                "README.md",
+                "CONTRIBUTING.md",
+            ]
+        )
+
+        self.assertEqual([], issues)
+        self.assertEqual(0, directory_count)
 
 
 if __name__ == "__main__":
