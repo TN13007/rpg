@@ -136,6 +136,47 @@ public sealed class ActionExecutionTests
     }
 
     [Fact]
+    public void UnconsciousPermission_DoesNotBypassEnergyCost()
+    {
+        Character actor = TestCharacterFactory.CreatePlayer(health: 10, energy: 0, mood: 50, gold: 4);
+        DayClock clock = new DayClock();
+        ActionDefinition costlyRecovery = new ActionDefinition(
+            "costly-recovery",
+            "Costly recovery",
+            20,
+            energyCost: 1,
+            effects: new[] { new ActionEffectDefinition(ActionEffectType.RestoreEnergy, 5) },
+            canExecuteWhenUnconscious: true);
+
+        bool success = _service.TryExecute(
+            costlyRecovery,
+            actor,
+            clock,
+            out string reason,
+            out int duration);
+
+        Assert.False(success);
+        Assert.Contains("enough Energy", reason);
+        Assert.Equal(10, actor.Health);
+        Assert.Equal(0, actor.Energy);
+        Assert.Equal(50, actor.Mood);
+        Assert.Equal(4, actor.Gold);
+        Assert.Equal(450, clock.MinutesOfDay);
+        Assert.Equal(0, duration);
+    }
+
+    [Fact]
+    public void NegativeEnergyCost_IsRejectedByActionDefinition()
+    {
+        Assert.Throws<System.ArgumentOutOfRangeException>(CreateActionWithNegativeEnergyCost);
+    }
+
+    private static void CreateActionWithNegativeEnergyCost()
+    {
+        new ActionDefinition("invalid", "Invalid", 10, energyCost: -1);
+    }
+
+    [Fact]
     public void SelfRestAction_IsAvailableFromEveryLocationThroughContent()
     {
         LoadAcademyContent();
