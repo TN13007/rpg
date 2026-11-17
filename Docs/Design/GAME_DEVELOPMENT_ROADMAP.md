@@ -134,6 +134,8 @@ Daily life is the foundation of the academy fantasy. Character growth, relations
 - State changes are visible and persist at the intended scope.
 - Tests cover insufficient resources, time rollover, recovery, invalid actions and combinations of activities.
 
+**Detailed implementation plan:** [Version 1 — Session-by-Session Implementation Plan](VERSION_1_SESSION_PLAN.md). Version 1 is divided into eight sessions; each session has a player flow, implementation scope, automated tests, Godot runtime acceptance and completion evidence. No session is complete with code-only output.
+
 ## Version 2 — Character Development
 
 **Player-facing promise:** The player's choices shape what their character becomes capable of doing.
