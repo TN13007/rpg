@@ -102,7 +102,22 @@ For a focused Python validator test run while developing the validator itself:
 python -m unittest discover -s Tools/Tests -p "*Tests.py" -v
 ```
 
-For Godot/runtime changes, additionally run `Scenes/Main.tscn` in Godot 4.7.2 .NET and verify the affected player journey. The automated validation command does not launch the Godot editor or game.
+The validator checks the following scoped rules:
+
+- JSON property names are checked when newly introduced or renamed; unchanged legacy property names are grandfathered.
+- New or changed content IDs and ID references must use `snake_case`. An unchanged ID/reference remains grandfathered only when it belongs to the same JSON object and field; moving objects within arrays does not by itself count as an ID change.
+- String values under `type`, `timeMode` and `stat` must use `PascalCase` in a modified JSON document.
+- Every newly added or renamed tracked file is checked for a `PascalCase` logical name regardless of extension. Godot sidecars such as `.cs.uid` and `.svg.import` are checked using the underlying source/asset name.
+- Newly created directories must use `PascalCase`; unchanged legacy paths are not revalidated just because file contents change.
+- Explicit exceptions are the repository entry/configuration files `README.md`, `CONTRIBUTING.md`, `.editorconfig`, `.gitattributes`, `.gitignore`, and Godot's `project.godot`, `icon.svg`, and `icon.svg.import`; the `.github` and `.godot` platform/tool-managed trees are also exempt.
+
+The Pull Request source branch must match `<type>/issue-<number>-<kebab-case-description>`.
+
+Open the project in Godot 4.7.2 .NET and run:
+
+```text
+Scenes/Main.tscn
+```
 
 ## 8. Definition of Done
 
