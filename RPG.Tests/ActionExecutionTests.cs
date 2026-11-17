@@ -32,7 +32,7 @@ public sealed class ActionExecutionTests
         bool success = _service.TryExecute(action, actor, clock, out string reason, out int duration);
 
         Assert.False(success);
-        Assert.NotEmpty(reason);
+        Assert.Contains("Rest before continuing", reason);
         Assert.Equal(0, duration);
         Assert.Equal(2, actor.Energy);
         Assert.Equal(20, actor.Health);

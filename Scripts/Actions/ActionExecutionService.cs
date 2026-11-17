@@ -33,13 +33,13 @@ public sealed class ActionExecutionService
 
         if (actor.IsUnconscious && !action.CanExecuteWhenUnconscious)
         {
-            failureReason = "You are unconscious and cannot perform this action.";
+            failureReason = "You are unconscious. Rest before continuing.";
             return false;
         }
 
         if (actor.Energy < action.EnergyCost)
         {
-            failureReason = "You do not have enough Energy to perform this action.";
+            failureReason = "Not enough Energy. Rest before continuing.";
             return false;
         }
 
@@ -71,7 +71,7 @@ public sealed class ActionExecutionService
 
         if (!actor.SpendEnergy(action.EnergyCost))
         {
-            failureReason = "You do not have enough Energy to perform this action.";
+            failureReason = "Not enough Energy. Rest before continuing.";
             actualDuration = 0;
             return false;
         }

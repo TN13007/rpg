@@ -260,11 +260,10 @@ Rest handles short-term recovery. Sleep establishes the daily boundary that make
 
 1. The player returns to the Dormitory.
 2. The player chooses “Sleep until tomorrow”.
-3. The UI explains that the action ends the current day and shows the expected recovery.
-4. The player confirms.
-5. The day advances to the next morning at 07:30.
-6. Health, Energy and Mood recover according to the authored sleep effects.
-7. The location remains the Dormitory and the Main Panel displays the new day.
+3. The player selects “Sleep until tomorrow”; the action executes immediately.
+4. The day advances to the next morning at 07:30.
+5. Health, Energy and Mood recover according to the authored sleep effects.
+6. The location remains the Dormitory and the Main Panel displays the new day.
 
 ### Scope
 
