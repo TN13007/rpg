@@ -22,7 +22,11 @@ Naming:
 - Feature: `feat/issue-<number>-<short-name>`
 - Bug fix: `fix/issue-<number>-<short-name>`
 - Design / documentation: `docs/issue-<number>-<short-name>`
+- Tests: `test/issue-<number>-<short-name>`
+- Refactoring: `refactor/issue-<number>-<short-name>`
 - Maintenance: `chore/issue-<number>-<short-name>`
+
+Use a `kebab-case` short description. The allowed branch prefixes are `feat`, `fix`, `docs`, `test`, `refactor` and `chore`.
 
 Examples:
 - `docs/issue-11-gameplay-loop`
@@ -106,13 +110,13 @@ A task is done when:
 
 ## 9. Naming conventions
 
-Use the [Google C# Style Guide](https://google.github.io/styleguide/csharpguide.html) as the naming and organization baseline for C# code. The rules below adapt it to this Godot project and define conventions for project areas that the C# guide does not cover. Follow these rules for new code and files. Do not rename existing serialized IDs or resources as a drive-by cleanup; migrate them in a focused change and update every reference.
+Use the [Google C# Style Guide](https://google.github.io/styleguide/csharpguide.html) as the naming baseline for C# code. The rules below adapt it to this Godot project and define conventions for project areas that the C# guide does not cover. This section adopts naming rules only; it does not automatically adopt every Google formatting rule. Follow these rules for new code and files. Do not rename existing serialized IDs or resources as a drive-by cleanup; migrate them in a focused change and update every reference.
 
 ### C# identifiers
 
 | Element | Convention | Example |
 |---|---|---|
-| Class, struct, record, enum, delegate, method | `PascalCase` | `CharacterData`, `CalculateDuration` |
+| Class, struct, record, enum, delegate, method and test method | `PascalCase` | `CharacterData`, `CalculateDuration`, `RestAtMaximumEnergyDoesNotExceedMaximum` |
 | Public or protected property, field, event | `PascalCase` | `MaxHealth`, `ActionSelected` |
 | Interface | `I` + `PascalCase` | `IActionExecutor` |
 | Parameter and local variable | `camelCase` | `startingEnergy` |
@@ -127,6 +131,7 @@ Use namespaces only where they provide a useful boundary. Keep namespaces to two
 
 - Use `PascalCase` for directory and file names.
 - A C# file should match its main type, and should generally contain one core type: `CombatService.cs`.
+- Name test methods in `PascalCase`; do not use underscores to divide test-name segments.
 - Use `PascalCase` for Godot scene files, custom node names and resource files: `CombatPanel.tscn`.
 - Use `PascalCase` for JSON data filenames, assets and Markdown document filenames: `AcademyLocations.json`, `CharacterPortrait.svg`, `MainController.md`.
 - Keep the conventional repository entry files `README.md` and `CONTRIBUTING.md`, plus platform/tool-managed names such as `.github` and `.editorconfig`, unchanged.
