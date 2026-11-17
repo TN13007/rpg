@@ -59,6 +59,13 @@ class NamingConventionTests(unittest.TestCase):
             [], validate_json_document("Goblin.json", current, previous)
         )
 
+
+    def test_existing_legacy_id_is_preserved_when_list_items_move(self):
+        previous = '{"items":[{"id":"old-a"},{"id":"old-b"}]}'
+        current = '{"items":[{"id":"new_item"},{"id":"old-a"},{"id":"old-b"}]}'
+        issues = validate_json_document("Items.json", current, previous)
+        self.assertEqual([], issues)
+
     def test_new_or_changed_legacy_style_id_is_rejected(self):
         previous = '{"id":"goblin-a"}'
         current = '{"id":"goblin-b"}'
