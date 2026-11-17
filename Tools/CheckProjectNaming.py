@@ -298,7 +298,11 @@ def _file_name_stem(filename: str) -> str:
 def _suggest_pascal_case_name(value: str) -> str | None:
     """Suggest PascalCase only when separators make the conversion unambiguous."""
     segments = re.split(r"[_-]+", value)
-    if len(segments) < 2 or any(
+    if len(segments) == 1:
+        if re.fullmatch(r"[a-z][a-z0-9]*", value):
+            return value[0].upper() + value[1:]
+        return None
+    if any(
         not re.fullmatch(r"[A-Za-z0-9]+", segment) for segment in segments
     ):
         return None
