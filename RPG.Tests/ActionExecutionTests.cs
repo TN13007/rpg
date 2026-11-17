@@ -6,7 +6,7 @@ public sealed class ActionExecutionTests
         new ActionExecutionService(new ActivityTimeCalculator(), new ActionEffectExecutor());
 
     [Fact]
-    public void ZeroEnergy_CannotPerformEvenZeroCostAction()
+    public void ZeroEnergyCannotPerformEvenZeroCostAction()
     {
         Character actor = TestCharacterFactory.CreatePlayer(health: 20, energy: 0);
         DayClock clock = new DayClock();
@@ -23,7 +23,7 @@ public sealed class ActionExecutionTests
     }
 
     [Fact]
-    public void InsufficientEnergy_DoesNotSpendResourcesOrAdvanceTime()
+    public void InsufficientEnergyDoesNotSpendResourcesOrAdvanceTime()
     {
         Character actor = TestCharacterFactory.CreatePlayer(energy: 2);
         DayClock clock = new DayClock();
@@ -42,7 +42,7 @@ public sealed class ActionExecutionTests
     }
 
     [Fact]
-    public void SpendingLastEnergy_CompletesCurrentActionThenLeavesActorUnconscious()
+    public void SpendingLastEnergyCompletesCurrentActionThenLeavesActorUnconscious()
     {
         Character actor = TestCharacterFactory.CreatePlayer(energy: 1);
         DayClock clock = new DayClock();
@@ -59,7 +59,7 @@ public sealed class ActionExecutionTests
     }
 
     [Fact]
-    public void DeadActor_CannotUseRestToRecover()
+    public void DeadActorCannotUseRestToRecover()
     {
         LoadAcademyContent();
         Character actor = TestCharacterFactory.CreatePlayer(health: 0, energy: 0);
@@ -78,7 +78,7 @@ public sealed class ActionExecutionTests
     }
 
     [Fact]
-    public void RestFromZeroEnergy_RecoversAndAllowsTheCharacterToAct()
+    public void RestFromZeroEnergyRecoversAndAllowsTheCharacterToAct()
     {
         LoadAcademyContent();
         Character actor = TestCharacterFactory.CreatePlayer(health: 12, energy: 0, mood: 40, gold: 7);
@@ -101,7 +101,7 @@ public sealed class ActionExecutionTests
     }
 
     [Fact]
-    public void RestAtMaximumEnergy_DoesNotExceedMaximum()
+    public void RestAtMaximumEnergyDoesNotExceedMaximum()
     {
         LoadAcademyContent();
         Character actor = TestCharacterFactory.CreatePlayer(energy: 10);
@@ -117,7 +117,7 @@ public sealed class ActionExecutionTests
     }
 
     [Fact]
-    public void OnlyExplicitlyConfiguredActions_CanExecuteWhileUnconscious()
+    public void OnlyExplicitlyConfiguredActionsCanExecuteWhileUnconscious()
     {
         LoadAcademyContent();
         ActionDefinition rest = FindAction("rest");
@@ -136,7 +136,7 @@ public sealed class ActionExecutionTests
     }
 
     [Fact]
-    public void UnconsciousPermission_DoesNotBypassEnergyCost()
+    public void UnconsciousPermissionDoesNotBypassEnergyCost()
     {
         Character actor = TestCharacterFactory.CreatePlayer(health: 10, energy: 0, mood: 50, gold: 4);
         DayClock clock = new DayClock();
@@ -166,7 +166,7 @@ public sealed class ActionExecutionTests
     }
 
     [Fact]
-    public void NegativeEnergyCost_IsRejectedByActionDefinition()
+    public void NegativeEnergyCostIsRejectedByActionDefinition()
     {
         Assert.Throws<System.ArgumentOutOfRangeException>(CreateActionWithNegativeEnergyCost);
     }
@@ -177,7 +177,7 @@ public sealed class ActionExecutionTests
     }
 
     [Fact]
-    public void SelfRestAction_IsAvailableFromEveryLocationThroughContent()
+    public void SelfRestActionIsAvailableFromEveryLocationThroughContent()
     {
         LoadAcademyContent();
         Assert.Single(AcademyContent.SelfActions);
@@ -194,7 +194,7 @@ public sealed class ActionExecutionTests
     }
 
     [Fact]
-    public void Effects_ApplyAndClampAllCharacterResources()
+    public void EffectsApplyAndClampAllCharacterResources()
     {
         Character actor = TestCharacterFactory.CreatePlayer(health: 18, energy: 9, mood: 98, gold: 20);
         ActionDefinition action = new ActionDefinition(
@@ -216,7 +216,7 @@ public sealed class ActionExecutionTests
     }
 
     [Fact]
-    public void NegativeMoodEffect_CanReduceMoodButCannotGoBelowZero()
+    public void NegativeMoodEffectCanReduceMoodButCannotGoBelowZero()
     {
         Character actor = TestCharacterFactory.CreatePlayer(mood: 5);
         ActionDefinition action = new ActionDefinition(
@@ -228,7 +228,7 @@ public sealed class ActionExecutionTests
     }
 
     [Fact]
-    public void TimeModifier_UsesMinimumOneMinuteAndStatMaximum()
+    public void TimeModifierUsesMinimumOneMinuteAndStatMaximum()
     {
         Character lowStat = TestCharacterFactory.CreatePlayer(intelligence: 0);
         Character highStat = TestCharacterFactory.CreatePlayer(intelligence: 100);
@@ -241,7 +241,7 @@ public sealed class ActionExecutionTests
     }
 
     [Fact]
-    public void EveryCharacterStatValue_ProducesExpectedTimeModifier()
+    public void EveryCharacterStatValueProducesExpectedTimeModifier()
     {
         for (int statIndex = 0; statIndex < 5; statIndex++)
         {
@@ -271,7 +271,7 @@ public sealed class ActionExecutionTests
     }
 
     [Fact]
-    public void NextDayAction_AdvancesToWakeUpAndAppliesEffects()
+    public void NextDayActionAdvancesToWakeUpAndAppliesEffects()
     {
         Character actor = TestCharacterFactory.CreatePlayer(health: 5, energy: 2, mood: 50);
         DayClock clock = new DayClock(1, 22, 0);
@@ -298,7 +298,7 @@ public sealed class ActionExecutionTests
     }
 
     [Fact]
-    public void EveryConfiguredLocationAction_CanExecuteAndHasValidCostsAndEffects()
+    public void EveryConfiguredLocationActionCanExecuteAndHasValidCostsAndEffects()
     {
         LoadAcademyContent();
         int actionCount = 0;
@@ -329,7 +329,7 @@ public sealed class ActionExecutionTests
     }
 
     [Fact]
-    public void SelfAction_RestHandlesEveryHealthAndEnergyCombination()
+    public void SelfActionRestHandlesEveryHealthAndEnergyCombination()
     {
         LoadAcademyContent();
         ActionDefinition rest = FindAction("rest");
@@ -373,7 +373,7 @@ public sealed class ActionExecutionTests
     }
 
     [Fact]
-    public void EveryConfiguredAction_CoversEveryHealthAndEnergyCombination()
+    public void EveryConfiguredActionCoversEveryHealthAndEnergyCombination()
     {
         LoadAcademyContent();
 
@@ -440,7 +440,7 @@ public sealed class ActionExecutionTests
     }
 
     [Fact]
-    public void EveryConfiguredAction_CoversEveryMoodValue()
+    public void EveryConfiguredActionCoversEveryMoodValue()
     {
         LoadAcademyContent();
 
@@ -481,7 +481,7 @@ public sealed class ActionExecutionTests
     }
 
     [Fact]
-    public void TravelDefinition_AppliesEnergyCostAndAgilityTimeModifier()
+    public void TravelDefinitionAppliesEnergyCostAndAgilityTimeModifier()
     {
         LoadAcademyContent();
         Character actor = TestCharacterFactory.CreatePlayer(energy: 8, agility: 30);
@@ -502,7 +502,7 @@ public sealed class ActionExecutionTests
     }
 
     [Fact]
-    public void CombatEncounterDuration_IsConfiguredSeparatelyFromLocationActions()
+    public void CombatEncounterDurationIsConfiguredSeparatelyFromLocationActions()
     {
         LoadAcademyContent();
         Assert.Equal(30, AcademyContent.CombatEncounter.DurationMinutes);
@@ -510,7 +510,7 @@ public sealed class ActionExecutionTests
     }
 
     [Fact]
-    public void ConfiguredActions_ApplyExpectedEffectsAndCosts()
+    public void ConfiguredActionsApplyExpectedEffectsAndCosts()
     {
         LoadAcademyContent();
         AssertActionResult("rest", 0, 5, 10, 52, 10, 30);
