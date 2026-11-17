@@ -40,7 +40,7 @@ A common Action Definition is appropriate for shared fields such as ID, label, d
 
 ### 3.1 Player Actions
 
-Player Actions are authored as part of the Player's character definition in `Data/Characters/player.json`, under `playerActions`.
+Player Actions are authored as part of the Player's character definition in `Data/Characters/Player.json`, under `playerActions`.
 
 Examples:
 - Rest: can be used at any Location.
@@ -53,7 +53,7 @@ The Version 1 migration moves the existing Rest and Sleep definitions out of the
 
 ### 3.2 Location Actions
 
-Location Actions are authored by a Location in `Data/academy_locations.json`.
+Location Actions are authored by a Location in `Data/AcademyLocations.json`.
 
 Examples:
 - Read the notice board.
@@ -145,7 +145,7 @@ JSON content
 ### Loader
 
 A Loader reads and validates its own source data and creates immutable definitions. Examples:
-- `CharacterDataLoader`: `player.json` and `playerActions`.
+- `CharacterDataLoader`: `Player.json` and `playerActions`.
 - `AcademyContent`: Locations, their actions, exits and Event definitions.
 - Future loaders should be introduced with their respective content features.
 
@@ -270,7 +270,7 @@ Do not put Attack, Defend, Dodge or future Parry into the Exploration Player Act
 ## 9. Version 1 implementation boundary
 
 Implement now:
-- Player Actions loaded from `player.json`.
+- Player Actions loaded from `Player.json`.
 - Location Actions loaded from academy content.
 - Travel choices derived from current Location exits.
 - Event choices rendered through the same choice presentation contract while preserving focused Event behavior.
@@ -289,7 +289,7 @@ Defer:
 
 ## 10. Acceptance criteria
 
-- Adding a Player Action to `player.json` makes it available according to its authored context requirements without editing StoryPanel.
+- Adding a Player Action to `Player.json` makes it available according to its authored context requirements without editing StoryPanel.
 - Rest appears in Personal at every Location, including when the Player is unconscious; death still blocks it.
 - Sleep is a Player-owned action but appears only in an allowed context.
 - Adding a Location Action to a Location's JSON makes it appear only at that Location.
