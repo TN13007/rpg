@@ -131,7 +131,7 @@ Use the [Google C# Style Guide](https://google.github.io/styleguide/csharpguide.
 | Element | Convention | Example |
 |---|---|---|
 | Class, struct, record, enum, delegate, method and test method | `PascalCase` | `CharacterData`, `CalculateDuration`, `RestAtMaximumEnergyDoesNotExceedMaximum` |
-| Public or protected property, field, event | `PascalCase` | `MaxHealth`, `ActionSelected` |
+| Public field/property, and event at any accessibility | `PascalCase` | `MaxHealth`, `ActionSelected` |
 | Interface | `I` + `PascalCase` | `IActionExecutor` |
 | Parameter and local variable | `camelCase` | `startingEnergy` |
 | Private, protected or internal field/property | `_camelCase` | `_combatService` |
