@@ -84,7 +84,6 @@ Presentation availability is advisory; the owning service must revalidate.
 
 **Approval status:** Proposed — pending user approval.
 
-**Approval status:** Proposed — pending user approval.
 
 
 Explain the difference between a displayed duration estimate and actual execution duration; trace ActionDefinition → ActionDurationEstimateMapper → ActionChoiceViewData → StoryPanel.
@@ -93,7 +92,6 @@ Explain the difference between a displayed duration estimate and actual executio
 
 **Approval status:** Proposed — pending user approval.
 
-**Approval status:** Proposed — pending user approval.
 
 
 Independently add or adjust one duration-estimate test, predict the displayed value for a stat-modified action, then compare with the test result.
@@ -102,7 +100,6 @@ Independently add or adjust one duration-estimate test, predict the displayed va
 
 **Approval status:** Proposed — pending user approval.
 
-**Approval status:** Proposed — pending user approval.
 
 
 Explain why the mapper must not mutate state and why execution recalculates actual duration.
@@ -136,7 +133,6 @@ Explain why the mapper must not mutate state and why execution recalculates actu
 
 **Approval status:** Proposed — pending user approval.
 
-**Approval status:** Proposed — pending user approval.
 
 
 Trace CanExecute, Energy spending, DayClock advancement and ActionEffectExecutor; explain the difference between Dead and Unconscious.
@@ -145,7 +141,6 @@ Trace CanExecute, Energy spending, DayClock advancement and ActionEffectExecutor
 
 **Approval status:** Proposed — pending user approval.
 
-**Approval status:** Proposed — pending user approval.
 
 
 Independently add or modify a boundary test for Rest at 0 Energy and Rest when Health is 0; explain why the outcomes differ.
@@ -154,7 +149,6 @@ Independently add or modify a boundary test for Rest at 0 Energy and Rest when H
 
 **Approval status:** Proposed — pending user approval.
 
-**Approval status:** Proposed — pending user approval.
 
 
 Explain why only explicitly permitted actions can run while unconscious and why permission does not bypass Energy cost.
@@ -183,7 +177,6 @@ PR #22 stores Rest in `selfActions` at the root of `academy_locations.json`. Thi
 
 **Approval status:** Proposed — pending user approval.
 
-**Approval status:** Proposed — pending user approval.
 
 
 Trace a choice from Player/Location JSON through loading, contextual availability query, mapper, grouped ViewModel and StoryPanel; distinguish source identity from presentation group.
@@ -192,7 +185,6 @@ Trace a choice from Player/Location JSON through loading, contextual availabilit
 
 **Approval status:** Proposed — pending user approval.
 
-**Approval status:** Proposed — pending user approval.
 
 
 Add one small Player Action or query test, predict where it appears in Dormitory versus Courtyard, and debug the result without placing discovery logic in StoryPanel.
@@ -201,7 +193,6 @@ Add one small Player Action or query test, predict where it appears in Dormitory
 
 **Approval status:** Proposed — pending user approval.
 
-**Approval status:** Proposed — pending user approval.
 
 
 Explain the distinct responsibilities of Loader, Query, Mapper, ViewModel, UI and execution handler.
@@ -289,7 +280,6 @@ Automated test output plus a Godot recording/screenshots showing at least two Lo
 
 **Approval status:** Proposed — pending user approval.
 
-**Approval status:** Proposed — pending user approval.
 
 
 Explain how DayClock's NextDay transition differs from ordinary minute advancement and how authored Sleep Effects are applied.
@@ -298,7 +288,6 @@ Explain how DayClock's NextDay transition differs from ordinary minute advanceme
 
 **Approval status:** Proposed — pending user approval.
 
-**Approval status:** Proposed — pending user approval.
 
 
 Independently write or extend one calendar-boundary test and verify the expected day/time.
@@ -307,7 +296,6 @@ Independently write or extend one calendar-boundary test and verify the expected
 
 **Approval status:** Proposed — pending user approval.
 
-**Approval status:** Proposed — pending user approval.
 
 
 Explain how the implementation prevents double day increments and duplicate recovery.
@@ -347,7 +335,6 @@ Before/after state record plus calendar-boundary automated test output.
 
 **Approval status:** Proposed — pending user approval.
 
-**Approval status:** Proposed — pending user approval.
 
 
 Identify the owner of Health state, trace damage/healing through the responsible rules and explain maximum-value clamping and the death boundary.
@@ -356,7 +343,6 @@ Identify the owner of Health state, trace damage/healing through the responsible
 
 **Approval status:** Proposed — pending user approval.
 
-**Approval status:** Proposed — pending user approval.
 
 
 Add a focused Health recovery test at a boundary and explain the expected state transition.
@@ -365,7 +351,6 @@ Add a focused Health recovery test at a boundary and explain the expected state 
 
 **Approval status:** Proposed — pending user approval.
 
-**Approval status:** Proposed — pending user approval.
 
 
 Explain why restoring Health must not silently revive a dead character unless a rule explicitly allows it.
@@ -403,7 +388,6 @@ A complete injury → return → travel → treatment → recovered-state run.
 
 **Approval status:** Proposed — pending user approval.
 
-**Approval status:** Proposed — pending user approval.
 
 
 Explain Mood as a runtime value, distinguish descriptive Mood bands from gameplay modifiers, and trace a Mood Effect to updated Character state.
@@ -412,7 +396,6 @@ Explain Mood as a runtime value, distinguish descriptive Mood bands from gamepla
 
 **Approval status:** Proposed — pending user approval.
 
-**Approval status:** Proposed — pending user approval.
 
 
 Add or adjust a boundary test for Mood minimum/maximum or one authored Mood activity; predict the clamped result before running it.
@@ -421,7 +404,6 @@ Add or adjust a boundary test for Mood minimum/maximum or one authored Mood acti
 
 **Approval status:** Proposed — pending user approval.
 
-**Approval status:** Proposed — pending user approval.
 
 
 Explain which Mood behavior is data-driven and which remains descriptive in Version 1.
@@ -458,7 +440,6 @@ Runtime examples plus complete Mood-boundary test results.
 
 **Approval status:** Proposed — pending user approval.
 
-**Approval status:** Proposed — pending user approval.
 
 
 Trace one academy activity from authored content to availability, execution, Effects, elapsed time and refreshed UI; identify each rule owner.
@@ -467,7 +448,6 @@ Trace one academy activity from authored content to availability, execution, Eff
 
 **Approval status:** Proposed — pending user approval.
 
-**Approval status:** Proposed — pending user approval.
 
 
 Add one concrete daily activity using existing patterns and tests, without adding a generic system or putting rules in UI.
@@ -476,7 +456,6 @@ Add one concrete daily activity using existing patterns and tests, without addin
 
 **Approval status:** Proposed — pending user approval.
 
-**Approval status:** Proposed — pending user approval.
 
 
 Explain why the activity belongs in its current source/service and what would justify a separate responsibility.
@@ -519,7 +498,6 @@ A playable day recording and test results.
 
 **Approval status:** Proposed — pending user approval.
 
-**Approval status:** Proposed — pending user approval.
 
 
 Distinguish transient UI feedback, action history and a persisted daily summary; explain how the summary derives from completed gameplay events/state.
@@ -528,7 +506,6 @@ Distinguish transient UI feedback, action history and a persisted daily summary;
 
 **Approval status:** Proposed — pending user approval.
 
-**Approval status:** Proposed — pending user approval.
 
 
 Add a focused test for one summary rule such as ordering, empty-day behavior or exclusion of a rejected action.
@@ -537,7 +514,6 @@ Add a focused test for one summary rule such as ordering, empty-day behavior or 
 
 **Approval status:** Proposed — pending user approval.
 
-**Approval status:** Proposed — pending user approval.
 
 
 Explain how the summary avoids treating failed requests or temporary clock feedback as completed activities.
@@ -576,7 +552,6 @@ Screenshot/recording of a day containing at least three activities plus test out
 
 **Approval status:** Proposed — pending user approval.
 
-**Approval status:** Proposed — pending user approval.
 
 
 Explain serialization boundaries, save schema validation and the difference between restoring state and replaying gameplay Effects.
@@ -585,7 +560,6 @@ Explain serialization boundaries, save schema validation and the difference betw
 
 **Approval status:** Proposed — pending user approval.
 
-**Approval status:** Proposed — pending user approval.
 
 
 Independently add a Save/Load regression test for one persisted field or repeated load cycle, then compare the full before/after state.
@@ -594,7 +568,6 @@ Independently add a Save/Load regression test for one persisted field or repeate
 
 **Approval status:** Proposed — pending user approval.
 
-**Approval status:** Proposed — pending user approval.
 
 
 Explain why loading a save must not grant the same reward or recovery Effect again.
