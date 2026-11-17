@@ -15,6 +15,7 @@ Godot 4.7.2 .NET / C# project.
 - [Playable Journey Sprint](Docs/Design/SPRINT_PLAYABLE_JOURNEY.md) — the end-to-end academy day and Goblin encounter target.
 - [Gameplay Loop and Location Events](Docs/Design/GAME_LOOP_AND_LOCATION_EVENTS.md) — Event ownership, selection rules, choice resolution and prototype boundaries.
 - [Playable Journey QA Record](Docs/QA/PLAYABLE_JOURNEY_TEST_REPORT.md) — owner-recorded runtime verification status and evidence limitations.
+- [Day 1 Playable Scenario](Docs/QA/DAY_1_PLAYABLE_SCENARIO.md) — narrative, expected state transitions and acceptance paths for the first complete academy day.
 
 ## Run
 
