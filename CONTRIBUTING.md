@@ -1,5 +1,7 @@
 # Contributing to RPG
 
+Use [WORKFLOW.md](WORKFLOW.md) as the single project/session status and Learning-first hub. Treat latest `main` as the official implementation baseline; open or unmerged PRs are proposals. Follow the Session protocol there, and keep Product verification separate from Learning verification.
+
 This repository uses an Issue → Branch → Commit + Tests → Pull Request → Review → Merge workflow.
 
 ## 1. Start with an Issue

@@ -1,5 +1,7 @@
 # Open Design Questions
 
+**Project/session status and handoff:** Maintained centrally in [WORKFLOW.md](../../WORKFLOW.md). This file remains the owner of detailed gameplay, UI and world-design questions.
+
 **Purpose:** Keep undecided choices visible so reviewers do not mistake assumptions for requirements.  
 **Status:** Living document. Update a question when a decision is made.
 
