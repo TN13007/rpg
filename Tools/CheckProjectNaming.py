@@ -122,6 +122,7 @@ def validate_json_document(
             previous = None
 
     previous_ids = collect_id_values(previous) if previous is not None else {}
+    previous_id_values = set(previous_ids.values())
     current_ids = collect_id_values(current)
 
     def walk(value: Any, current_path: str = "$") -> None:
@@ -149,8 +150,8 @@ def validate_json_document(
     walk(current)
 
     for id_path, identifier in current_ids.items():
-        if previous_ids.get(id_path) == identifier:
-            continue  # Preserve unchanged legacy IDs; validate IDs when introduced or changed.
+        if identifier in previous_id_values:
+            continue  # Preserve legacy IDs even when their list position changes.
         if not is_snake_case(identifier):
             issues.append(
                 f"{path}:{id_path}: new or changed ID '{identifier}' must use snake_case."
