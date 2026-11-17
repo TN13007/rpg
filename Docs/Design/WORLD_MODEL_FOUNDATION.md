@@ -383,7 +383,7 @@ For each step:
 - How are interactable non-living objects represented without turning every object into a Location?
 - What is the boundary between Encounter, Dialogue and Event?
 - How is world state represented without creating one universal untyped state bag?
-- How are optional Action Targets and Sources represented safely, including null cases, and how are Effects typed, validated and dispatched?
+- How should source/target references be represented when supporting polymorphic NPC and Interactable definitions beyond the initial Version 1 request contract?
 - What consistency/atomicity guarantees are required when an Action produces multiple Effects and one fails?
 
 ## 10. Implementation Status
@@ -391,3 +391,50 @@ For each step:
 This document is a design proposal. It does not claim that the listed entities, relationships, gameplay domains or systems are implemented.
 
 The current prototype still has its existing Academy/Goblin vertical slice and Energy-based character model. The proposed broader world model and any future Fatigue/AP redesign must be treated as design work until separately implemented and tested.
+
+
+## 11. Exploration Action Sources and Choice Presentation
+
+The following direction is accepted for the Version 1 Exploration pipeline and should be applied incrementally. It does not mean NPC, Item, Interactable or Puzzle systems already exist.
+
+### Action source vs. performer vs. target
+
+An Action is performed by a Character, but its definition may be supplied by a different source. A Player Action is supplied by the Player's character data; a Location Action is supplied by the current Location; an NPC or object may later supply interactions. A target identifies the specific entity the operation acts upon. Do not treat these identities as interchangeable.
+
+A concrete choice request should preserve enough identity to route unambiguously:
+- Source kind and source ID.
+- Action ID within that source.
+- Optional target/destination ID.
+
+Action IDs are not assumed globally unique. Two different chests may both define an `open` action without sharing the same choice identity.
+
+### Loader, Query, Mapper and View
+
+The data-to-UI boundary is:
+
+```text
+JSON Loader -> immutable definitions
+Definitions + current Runtime State / Context
+    -> Available Interaction Query
+    -> Action Choice Mapper
+    -> grouped Exploration ViewModel
+    -> StoryPanel
+```
+
+- Loaders parse and validate content. They do not decide which choices appear now.
+- Query resolves contextual availability from definitions and current state. It is read-only.
+- Mapper converts query results into presentation-safe grouped data. It does not read JSON or mutate domain state.
+- ViewModel describes what the UI needs to display.
+- View renders supplied groups and emits a selection request. It does not own gameplay rules.
+
+### Version 1 choice sources
+
+Version 1 implements Player Actions, Location Actions, Travel choices derived from Location exits, and Event Choices. Their intended presentation groups are Personal, At This Location, Travel and Current Situation. The active Event remains a focused context; ordinary Location and Travel choices do not leak into an unresolved Event screen.
+
+### Future extension points
+
+Present NPCs, Items and Interactable Objects may later provide choices in a Nearby group. Containers can expose Inspect/Open/Search/Take actions; doors and switches can expose their own interactions; Puzzles can expose Examine/Activate/Solve choices. Each feature still needs its own data definitions, runtime state and responsible rule owner. The generic UI pipeline only discovers, groups and renders those choices; it does not implement their gameplay behavior.
+
+Combat remains a specialized pipeline. Skills represent learned capabilities; Combat Actions are operations available during combat and may be unlocked or modified by Skills. Do not mix Combat Actions into the Exploration Player Actions list.
+
+See [Exploration Action Choice Pipeline](EXPLORATION_ACTION_PIPELINE.md) for the implementation contract.
