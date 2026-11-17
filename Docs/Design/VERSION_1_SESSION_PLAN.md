@@ -81,11 +81,11 @@ These bands are descriptive in Version 1. Do not add hidden combat penalties, sk
 
 Every activity must follow the same visible and domain-level sequence:
 
-1. The player sees the activity's description, duration, Energy cost and authored effects.
-2. The player confirms the activity.
+1. The player sees the activity's description and approximate duration beside its choice.
+2. The player selects the activity.
 3. The game validates that the character is alive, conscious and has enough Energy.
-4. If validation fails, no time, Energy, Health, Mood or Gold is changed.
-5. If validation succeeds, the action's costs, time and effects are applied exactly once.
+4. If validation fails, no time, Energy, Health, Mood or Gold is changed and a clear reason is displayed.
+5. If validation succeeds, the action's costs, actual calculated time and effects are applied exactly once.
 6. The Character Panel and Main Panel refresh from the resulting state.
 7. The player receives a clear result message.
 
@@ -97,76 +97,83 @@ For NextDay actions, the action must use the dedicated next-day transition rathe
 
 # 4. Session Plan
 
-## Session 1 — Action Preview and Cost Clarity
+## Session 1 — Inline Action Duration Estimates
 
-**Player-facing result:** Before committing to an activity, the player can understand what it costs and what it will change.
+**Player-facing result:** The player sees an approximate duration beside each action and performs the action immediately by selecting it.
 
 ### Why this is first
 
-The existing game already has timed actions and resource costs, but the player should not have to guess what a button will do. This session makes the existing action model understandable and gives every later activity a consistent interaction pattern.
+The game already has timed actions. The player should understand the time commitment without leaving the story flow or opening a separate confirmation screen. A compact estimate beside the action gives useful planning information while keeping interaction immediate.
 
 ### Player flow
 
 1. The player opens the Dormitory.
-2. The player selects “Take a short rest”.
-3. The Main Panel displays the activity details.
-4. The player sees its 30-minute duration, Energy cost of 0, and expected effects: +3 Energy and +2 Mood.
-5. The player confirms.
-6. The clock and Character Panel update, and the player sees the result.
-
-The same interaction works for reading the letter, studying maps, talking to Mira and travel where applicable.
+2. The player sees choices such as:
+   - Read the letter on your desk (0:10–0:20).
+   - Take a short rest (0:30).
+   - Sleep until tomorrow (Until next morning).
+3. The player selects an action.
+4. The action executes immediately. The system validates the character, spends Energy, advances the actual calculated duration and applies effects.
+5. The clock, Character Panel and story feedback update.
 
 ### Scope
 
-- Add an action detail/confirmation presentation inside the existing Main Panel.
-- Show duration after applying the existing stat-based time modifier.
-- Show Energy cost.
-- Show authored effects using readable labels, for example “Restore 3 Energy” rather than enum names.
-- Show the current time and resulting expected time for ordinary duration-based actions.
-- Clearly identify actions that use a special time mode such as NextDay.
-- Show a disabled or rejected state when the character cannot perform the action.
-- Keep the persistent Character Panel as the current-state display; do not duplicate a second permanent stat panel.
-- Preserve the current exploration and combat presentation modes.
+- Remove the separate Action Preview screen and Confirm / Cancel interaction.
+- Display a compact duration label directly beside each action choice.
+- Support optional authored estimate bounds on ActionDefinition.
+- Apply the existing stat-based time modifier to both estimate bounds.
+- If an action has no estimate range, display its calculated duration as a single value.
+- Display NextDay actions as “Until next morning”; do not display them as zero minutes.
+- Keep Energy validation and failure feedback in ActionExecutionService.
+- Selecting an unavailable action must show the rejection reason and make no state changes.
+- Apply the same choice presentation to normal actions, travel and non-combat Event choices.
+- Keep Combat transitions on their existing dedicated flow.
+- Do not display predicted Effects, current time, resulting time or a second confirmation panel.
 
-### Not in scope
+### Estimate semantics
 
-- A general activity planner or calendar.
-- Drag-and-drop schedules.
-- Skill XP or progression previews.
-- Inventory, shopping or crafting.
-- A separate sidebar page for activities.
+The estimate is presentation guidance, not a second execution rule. Estimate bounds are authored in content and displayed to the player. The actual duration remains calculated by ActivityTimeCalculator using the action's configured base duration and stat modifier. After a successful action, the UI briefly displays the actual elapsed time beside the clock and animates the clock from its previous value to the new value. Do not repeat elapsed minutes in the Story Log.
 
 ### Implementation slices
 
-1. Inspect the current StoryPanel choice flow and how ActionDefinition is passed from content to UI.
-2. Add a presentation model for action preview data. UI must not calculate costs or effects itself.
-3. Add a mapper/calculator path that uses the same duration calculation as actual execution.
-4. Add confirm and cancel behavior.
-5. Connect confirmation to the existing action execution path.
-6. Refresh the Main Panel and Character Panel after success.
+1. Remove the ActionPreview panel, pending-action state and Confirm / Cancel signals.
+2. Add optional estimated duration bounds to ActionDefinition and parse them from academy content.
+3. Add ActionDurationEstimateMapper to format fixed durations, estimate ranges and NextDay labels.
+4. Add ActionChoiceViewData so StoryPanel receives ready-to-render choice labels and duration text.
+5. Show the estimate beside each action label and execute the selected action immediately.
+6. Update travel and Event choice flows to use the same presentation and direct execution path.
+7. Refresh the Main Panel and Character Panel after successful execution.
 
 ### Automated tests
 
-- Preview duration equals the duration used by execution.
-- Stat modifiers are reflected in the preview.
-- Zero-duration actions are displayed correctly.
-- NextDay is not represented as an ordinary zero-minute action.
-- Effects are mapped to readable values.
-- Invalid action IDs cannot be confirmed.
-- A dead or unconscious character cannot confirm an action.
-- Cancelling a preview changes no game state.
-- Opening and cancelling a preview repeatedly does not duplicate event handlers or execute the action.
+- A configured estimate range is displayed with both bounds.
+- Both estimate bounds use the same stat modifier as actual action duration.
+- A fixed-duration action without estimate bounds displays its calculated duration.
+- A NextDay action displays “Until next morning”.
+- A zero-duration action displays “Immediate” or omits the duration label consistently.
+- Estimate bounds must be provided together.
+- Negative bounds and a maximum lower than the minimum are rejected.
+- NextDay actions cannot define ordinary duration bounds.
+- Mapping choices does not mutate character state or the clock.
+- Insufficient Energy, unconsciousness and death are still rejected by ActionExecutionService without mutation.
+- Selecting an action executes it once; there is no preview confirmation path.
+- Travel and non-combat Event choices execute through their existing rule owners.
 
 ### Godot runtime acceptance
 
-- The player can preview and cancel at least three different actions.
-- The player can confirm one action and see the correct time/state result.
-- No action is executed merely by opening its preview.
+- The Dormitory action list shows “Read the letter on your desk (0:10–0:20)”.
+- Rest displays its configured fixed duration.
+- Sleep displays “Until next morning”.
+- Selecting an action executes it immediately and updates the Character Panel.
+- The clock rapidly counts from its previous time to the new time.
+- The actual elapsed time appears beside the clock for approximately 5–6 seconds, then fades away.
+- An unavailable action shows a clear rejection and does not change state or show time feedback.
+- Travel updates the location after execution.
 - The existing Goblin Event and Combat flow still work.
 
 ### Session completion evidence
 
-A short runtime recording or screenshots showing: action list → preview → cancel → preview → confirm → updated clock and Character Panel. Attach the automated test result.
+A short runtime recording or screenshots showing the action list with inline estimates, immediate action execution, updated clock and Character Panel, plus automated test results.
 
 ---
 
@@ -333,7 +340,7 @@ Health already represents survival and Combat can reduce it. Without a recovery 
 - Use the existing Action execution and Effect application path.
 - Make treatment unavailable to a dead character.
 - Do not allow treatment to exceed MaxHealth.
-- Show the expected Health recovery in the action preview.
+- Keep treatment's Health recovery in the action result feedback; do not add a separate preview screen.
 - Keep the existing combat death rule unchanged.
 - Keep the feature intentionally small: no doctor NPC, medicine inventory, diagnoses, injuries list or medical minigame.
 
@@ -392,7 +399,7 @@ Health and Energy describe physical survival and capacity. Mood gives daily choi
 - Use the four documented bands: Very Low, Low, Steady and Positive.
 - Preserve Mood effects already authored on rest, sleep and social/context actions.
 - Add one simple restorative leisure action in an existing suitable Location if the current content does not provide enough ways to change Mood.
-- Show Mood change in the activity preview and result feedback.
+- Show Mood change in the activity result feedback.
 - Clamp all Mood changes between 0 and MaxMood.
 - Do not let Mood change action success, combat damage, Energy cost or time calculation in this version.
 
@@ -411,7 +418,7 @@ The labels and descriptive copy may be revised after playtesting; the numeric bo
 - Negative changes clamp at 0.
 - Positive changes clamp at MaxMood.
 - A character with a MaxMood other than 100 maps correctly if the implementation supports configurable maxima; otherwise validate and document the chosen normalization.
-- Preview and result feedback show the same Mood delta.
+- Action result feedback shows the applied Mood delta.
 - Mood band changes refresh immediately after an action.
 - Mood does not silently alter action availability or combat calculations.
 - Rest and sleep apply Mood effects exactly once.
@@ -491,7 +498,7 @@ These values are starting points for the first playable day. Adjust only after r
 - A meal restores Energy without exceeding MaxEnergy.
 - A lesson or practice action fails cleanly when Energy is insufficient.
 - Each successful activity advances time exactly once.
-- Stat modifiers are applied consistently to preview and execution.
+- Stat modifiers are applied consistently to displayed duration estimates and actual execution.
 - Activities do not grant XP, skill levels or inventory items in Version 1.
 - A sequence of activities cannot produce Health, Energy or Mood outside their valid ranges.
 - Invalid content does not partially replace the already loaded content.
@@ -602,7 +609,7 @@ Do not persist immutable definitions such as character base stats or authored Lo
 - A save with an unknown character or Location ID must be rejected safely.
 - Clamp or reject out-of-range character values according to one documented policy; never silently accept impossible state.
 - Loading must restore the same gameplay state without replaying activity effects.
-- Saving while an action preview is open must not execute that action.
+- Saving during an action selection does not execute an action; actions execute only after the player selects them.
 - Saving during Combat is out of scope unless the existing game explicitly supports it; Version 1 save points should be limited to safe Exploration states.
 
 ### Automated tests
@@ -639,7 +646,7 @@ A reproducible save/restart/load scenario with before/after state values and tes
 
 The sessions are intentionally ordered so every step builds on a playable foundation.
 
-Session 1: Action preview and cost clarity
+Session 1: Inline action duration estimates
   → Session 2: Energy economy and rest
   → Session 3: Sleep and next-day transition
   → Session 4: Health and recovery
@@ -673,7 +680,7 @@ A session is not complete when only its service or data model exists. It must ha
 The complete Version 1 release must support this end-to-end scenario:
 
 1. Start a new game in the Dormitory at Day 1, 07:30.
-2. Inspect an activity and see its time, Energy cost and expected effects.
+2. See approximate activity duration beside each choice.
 3. Perform an activity and observe the clock and character state change.
 4. Perform enough activities to make Energy management relevant.
 5. Attempt an activity without sufficient Energy and verify that nothing is spent.

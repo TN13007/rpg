@@ -71,6 +71,8 @@ public sealed class ActionDefinition
     public ActivityTimeModifier TimeModifier { get; }
     public ActionTimeMode TimeMode { get; }
     public ActionEffectDefinition[] Effects { get; }
+    public int? EstimatedDurationMinMinutes { get; }
+    public int? EstimatedDurationMaxMinutes { get; }
 
     public ActionDefinition(
         string id,
@@ -80,13 +82,30 @@ public sealed class ActionDefinition
         string feedback = "",
         int energyCost = 0,
         ActionEffectDefinition[] effects = null,
-        ActionTimeMode timeMode = ActionTimeMode.Duration)
+        ActionTimeMode timeMode = ActionTimeMode.Duration,
+        int? estimatedDurationMinMinutes = null,
+        int? estimatedDurationMaxMinutes = null)
     {
         if (string.IsNullOrWhiteSpace(id)) throw new ArgumentException("Action ID is required.", nameof(id));
         if (string.IsNullOrWhiteSpace(label)) throw new ArgumentException("Action label is required.", nameof(label));
         if (durationMinutes < 0) throw new ArgumentOutOfRangeException(nameof(durationMinutes));
         if (energyCost < 0) throw new ArgumentOutOfRangeException(nameof(energyCost));
         if (!Enum.IsDefined(typeof(ActionTimeMode), timeMode)) throw new ArgumentOutOfRangeException(nameof(timeMode));
+        if (estimatedDurationMinMinutes.HasValue != estimatedDurationMaxMinutes.HasValue)
+        {
+            throw new ArgumentException("Both estimated duration bounds must be provided together.");
+        }
+        if (estimatedDurationMinMinutes.HasValue &&
+            (estimatedDurationMinMinutes.Value < 0 ||
+             estimatedDurationMaxMinutes.Value < estimatedDurationMinMinutes.Value))
+        {
+            throw new ArgumentOutOfRangeException(nameof(estimatedDurationMinMinutes));
+        }
+        if (timeMode == ActionTimeMode.NextDay &&
+            (estimatedDurationMinMinutes.HasValue || estimatedDurationMaxMinutes.HasValue))
+        {
+            throw new ArgumentException("NextDay actions cannot define a duration estimate.");
+        }
 
         Id = id;
         Label = label;
@@ -96,6 +115,8 @@ public sealed class ActionDefinition
         TimeMode = timeMode;
         Effects = effects ?? Array.Empty<ActionEffectDefinition>();
         Feedback = feedback ?? string.Empty;
+        EstimatedDurationMinMinutes = estimatedDurationMinMinutes;
+        EstimatedDurationMaxMinutes = estimatedDurationMaxMinutes;
     }
 }
 
@@ -427,6 +448,12 @@ public static class AcademyContent
         string feedback = data.TryGetProperty("feedback", out JsonElement feedbackData)
             ? feedbackData.GetString()
             : string.Empty;
+        int? estimatedDurationMinMinutes = data.TryGetProperty("estimatedDurationMinMinutes", out JsonElement minDurationData)
+            ? minDurationData.GetInt32()
+            : null;
+        int? estimatedDurationMaxMinutes = data.TryGetProperty("estimatedDurationMaxMinutes", out JsonElement maxDurationData)
+            ? maxDurationData.GetInt32()
+            : null;
 
         return new ActionDefinition(
             id,
@@ -436,7 +463,9 @@ public static class AcademyContent
             feedback,
             energyCost,
             effects,
-            timeMode);
+            timeMode,
+            estimatedDurationMinMinutes,
+            estimatedDurationMaxMinutes);
     }
 
     private static ActionEffectDefinition[] ReadEffects(JsonElement data)

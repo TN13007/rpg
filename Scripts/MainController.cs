@@ -20,9 +20,13 @@ public partial class MainController : Control
     private DayClock _dayClock;
     private ActivityTimeCalculator _activityTimeCalculator;
     private ActionExecutionService _actionExecutionService;
+    private ActionDurationEstimateMapper _durationEstimateMapper;
     private GameModeController _gameModeController;
     private LocationEventService _locationEventService;
     private LocationEventDefinition _activeLocationEvent;
+    private int _combatStartDay;
+    private int _combatStartMinutes;
+    private bool _hasCombatTimeFeedback;
 
     private string _currentLocationId = "dormitory";
 
@@ -47,6 +51,7 @@ public partial class MainController : Control
         _actionExecutionService = new ActionExecutionService(
             _activityTimeCalculator,
             new ActionEffectExecutor());
+        _durationEstimateMapper = new ActionDurationEstimateMapper(_activityTimeCalculator);
         _gameModeController = new GameModeController(_storyPanel, _combatPanel);
         _locationEventService = new LocationEventService();
 
@@ -91,7 +96,18 @@ public partial class MainController : Control
         foreach (string exitId in location.Exits)
         {
             LocationContent exit = AcademyContent.Get(exitId);
-            choices.Add(new ActionDefinition("travel:" + exitId, "Travel to " + exit.Name, 0));
+            ActionDefinition travel = AcademyContent.Travel;
+            choices.Add(new ActionDefinition(
+                "travel:" + exitId,
+                "Travel to " + exit.Name,
+                travel.DurationMinutes,
+                travel.TimeModifier,
+                travel.Feedback,
+                travel.EnergyCost,
+                travel.Effects,
+                travel.TimeMode,
+                travel.EstimatedDurationMinMinutes,
+                travel.EstimatedDurationMaxMinutes));
         }
 
         _gameModeController.ShowExploration();
@@ -99,7 +115,7 @@ public partial class MainController : Control
             location.Name,
             location.Region,
             location.Description,
-            choices,
+            MapActionChoices(choices),
             _dayClock.GetDisplayText());
         _storyPanel.ShowLocationButton(false);
     }
@@ -118,7 +134,7 @@ public partial class MainController : Control
         };
 
         _gameModeController.ShowExploration();
-        _storyPanel.ShowContent(tab, "ADVENTURER RECORD", description, Array.Empty<ActionDefinition>(), _dayClock.GetDisplayText());
+        _storyPanel.ShowContent(tab, "ADVENTURER RECORD", description, Array.Empty<ActionChoiceViewData>(), _dayClock.GetDisplayText());
         _storyPanel.ShowLocationButton(true);
     }
 
@@ -177,6 +193,19 @@ public partial class MainController : Control
         return false;
     }
 
+    private List<ActionChoiceViewData> MapActionChoices(IReadOnlyList<ActionDefinition> actions)
+    {
+        List<ActionChoiceViewData> choices = new List<ActionChoiceViewData>();
+
+        foreach (ActionDefinition action in actions)
+        {
+            string durationLabel = _durationEstimateMapper.Map(action, _player);
+            choices.Add(new ActionChoiceViewData(action.Id, action.Label, durationLabel));
+        }
+
+        return choices;
+    }
+
     private ActionDefinition FindChoice(ActionDefinition[] choices, string choiceId)
     {
         foreach (ActionDefinition choice in choices)
@@ -192,12 +221,15 @@ public partial class MainController : Control
 
     private bool ExecuteAction(ActionDefinition action)
     {
+        int startDay = _dayClock.Day;
+        int startMinutes = _dayClock.MinutesOfDay;
+
         if (!_actionExecutionService.TryExecute(
             action,
             _player,
             _dayClock,
             out string failureReason,
-            out int actualDuration))
+            out _))
         {
             _storyPanel.ShowFeedback(failureReason);
             return false;
@@ -205,12 +237,13 @@ public partial class MainController : Control
 
         _characterPanel.SetCharacter(new CharacterViewModel(_player));
         ShowLocation();
+        _storyPanel.ShowTimeAdvanceFeedback(
+            startDay,
+            startMinutes,
+            _dayClock.Day,
+            _dayClock.MinutesOfDay);
 
         string feedback = action.Feedback;
-        if (actualDuration > 0)
-        {
-            feedback += " (" + actualDuration + " minutes)";
-        }
 
         if (_player.IsUnconscious)
         {
@@ -234,6 +267,9 @@ public partial class MainController : Control
             _storyPanel.ShowFeedback("You need to keep at least 1 Energy to enter combat.");
             return false;
         }
+
+        int startDay = _dayClock.Day;
+        int startMinutes = _dayClock.MinutesOfDay;
 
         if (!_actionExecutionService.TryExecute(
             action,
@@ -263,6 +299,9 @@ public partial class MainController : Control
         }
 
         _characterPanel.SetCharacter(new CharacterViewModel(_player));
+        _combatStartDay = startDay;
+        _combatStartMinutes = startMinutes;
+        _hasCombatTimeFeedback = true;
         _activeLocationEvent = null;
         _gameModeController.ShowCombat();
         _combatPanel.BeginEncounter("Goblin Ambush");
@@ -303,10 +342,22 @@ public partial class MainController : Control
         _gameModeController.ShowExploration();
         _characterPanel.SetCharacter(new CharacterViewModel(_player));
         ShowLocation();
+
+        if (_hasCombatTimeFeedback)
+        {
+            _storyPanel.ShowTimeAdvanceFeedback(
+                _combatStartDay,
+                _combatStartMinutes,
+                _dayClock.Day,
+                _dayClock.MinutesOfDay);
+            _hasCombatTimeFeedback = false;
+        }
     }
 
     private void TravelTo(string destinationId)
     {
+        int startDay = _dayClock.Day;
+        int startMinutes = _dayClock.MinutesOfDay;
         LocationContent current = AcademyContent.Get(_currentLocationId);
         if (Array.IndexOf(current.Exits, destinationId) < 0)
         {
@@ -319,7 +370,7 @@ public partial class MainController : Control
             _player,
             _dayClock,
             out string failureReason,
-            out int actualDuration))
+            out _))
         {
             _storyPanel.ShowFeedback(failureReason);
             return;
@@ -329,7 +380,12 @@ public partial class MainController : Control
         _currentLocationId = destinationId;
         _characterPanel.SetCharacter(new CharacterViewModel(_player));
         ShowLocation();
-        string feedback = "You arrive at " + AcademyContent.Get(destinationId).Name + ". Travel took " + actualDuration + " minutes.";
+        _storyPanel.ShowTimeAdvanceFeedback(
+            startDay,
+            startMinutes,
+            _dayClock.Day,
+            _dayClock.MinutesOfDay);
+        string feedback = "You arrive at " + AcademyContent.Get(destinationId).Name + ".";
 
         if (_player.IsUnconscious)
         {
@@ -371,7 +427,7 @@ public partial class MainController : Control
             locationEvent.Title,
             locationEvent.Region,
             locationEvent.Description,
-            choices,
+            MapActionChoices(choices),
             _dayClock.GetDisplayText());
         _storyPanel.ShowLocationButton(false);
     }
@@ -411,13 +467,13 @@ public partial class MainController : Control
             return;
         }
 
-        if (!_actionExecutionService.CanExecute(selectedChoice.Action, _player, out string failureReason))
-        {
-            _storyPanel.ShowFeedback(failureReason);
-            return;
-        }
-
+        LocationEventDefinition previousEvent = _activeLocationEvent;
         _activeLocationEvent = null;
-        ExecuteAction(selectedChoice.Action);
+
+        if (!ExecuteAction(selectedChoice.Action))
+        {
+            _activeLocationEvent = previousEvent;
+            ShowLocationEvent(previousEvent);
+        }
     }
 }

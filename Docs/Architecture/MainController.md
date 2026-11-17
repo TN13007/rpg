@@ -14,7 +14,7 @@ It is not the place where game rules are implemented.
    - Subscribe to UI events.
 
 2. **Handle player-facing requests**
-   - Receive selected choices from StoryPanel.
+   - Receive selected action choices from StoryPanel.
    - Receive combat commands from CombatPanel.
    - Receive sidebar navigation requests.
 
@@ -38,6 +38,7 @@ It is not the place where game rules are implemented.
 
 | Concern | Owner |
 |---|---|
+| Action duration estimate mapping | ActionDurationEstimateMapper |
 | Action Energy validation and spending | ActionExecutionService |
 | Applying HP, Energy, Mood, and Gold Effects | ActionEffectExecutor |
 | Calculating action duration | ActivityTimeCalculator |
@@ -45,15 +46,17 @@ It is not the place where game rules are implemented.
 | Combat rules and encounter state | CombatService |
 | Exploration/Combat UI visibility | GameModeController |
 | Reading JSON content | AcademyContent |
-| Rendering UI elements | StoryPanel, CombatPanel, CharacterPanel |
+| Rendering UI elements and clock feedback animation | StoryPanel, CombatPanel, CharacterPanel |
 
 ## Current request flow
 
 ### Normal Action
 
-`UI choice → MainController → ActionExecutionService → DayClock / ActionEffectExecutor → MainController → UI refresh`
+`UI choice with estimated duration → MainController → ActionExecutionService → DayClock / ActionEffectExecutor → UI refresh`
 
-ActionExecutionService checks whether the Player is alive and has enough Energy before changing state. It then spends Energy, advances time, and applies the declared Effects.
+ActionDurationEstimateMapper converts authored estimate bounds into a compact label beside each choice. It reuses ActivityTimeCalculator so stat modifiers affect both ends of the displayed range. The mapper does not change gameplay state. Selecting a choice executes it immediately; ActionExecutionService remains responsible for validating the actor, spending Energy, advancing time and applying effects. After success, MainController passes the DayClock values from before and after execution to StoryPanel. StoryPanel briefly displays the elapsed time beside the clock and animates the clock display to its new value. The elapsed-time feedback is not added to the Story Log.
+
+Travel uses the same choice presentation and executes immediately after MainController validates that the destination is connected. Its actual duration still comes from the shared travel definition and ActivityTimeCalculator.
 
 ### Travel
 
