@@ -15,13 +15,15 @@ Treat `main` as the implemented baseline. Open or unmerged PRs are proposals.
 
 Open the repository in Godot 4.7.2 .NET and run `Scenes/Main.tscn`.
 
-Run automated tests from the repository root:
+Run all automated repository checks from the repository root:
 
 ```powershell
-dotnet test RPG.Tests/RPG.Tests.csproj --configuration Release
+git fetch origin main
+$branch = git branch --show-current
+python Tools/Validate.py --base origin/main --head HEAD --branch $branch --check-branch
 ```
 
-.NET tests do not launch Godot or verify scene wiring, rendered UI or input interactions. Use the relevant Session acceptance criteria and record runtime results in `WORKFLOW.md`.
+This runs the Python validator tests, project naming checks, changed-file C# naming checks and the .NET test suite. Godot runtime/UI checks remain manual and must be recorded separately in `WORKFLOW.md`.
 
 ## Design and technical references
 
