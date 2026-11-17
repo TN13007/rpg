@@ -31,9 +31,9 @@ public sealed class ActionExecutionService
             return false;
         }
 
-        if (actor.IsUnconscious)
+        if (actor.IsUnconscious && !action.CanExecuteWhenUnconscious)
         {
-            failureReason = "You are unconscious and cannot perform actions.";
+            failureReason = "You are unconscious and cannot perform this action.";
             return false;
         }
 

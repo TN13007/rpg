@@ -27,7 +27,7 @@ It is not the place where game rules are implemented.
 4. **Coordinate world context**
    - Keep the current location ID.
    - Verify that a requested travel destination is connected.
-   - Ask AcademyContent for the relevant location data.
+   - Ask AcademyContent for the relevant location data and global Self Actions.
 
 5. **Refresh presentation**
    - Update CharacterPanel after a completed action or combat result.
@@ -45,7 +45,7 @@ It is not the place where game rules are implemented.
 | Advancing the calendar | DayClock |
 | Combat rules and encounter state | CombatService |
 | Exploration/Combat UI visibility | GameModeController |
-| Reading JSON content | AcademyContent |
+| Reading location and global Self Action content | AcademyContent |
 | Rendering UI elements and clock feedback animation | StoryPanel, CombatPanel, CharacterPanel |
 
 ## Current request flow
@@ -57,6 +57,8 @@ It is not the place where game rules are implemented.
 ActionDurationEstimateMapper converts authored estimate bounds into a compact label beside each choice. It reuses ActivityTimeCalculator so stat modifiers affect both ends of the displayed range. The mapper does not change gameplay state. Selecting a choice executes it immediately; ActionExecutionService remains responsible for validating the actor, spending Energy, advancing time and applying effects. After success, MainController passes the DayClock values from before and after execution to StoryPanel. StoryPanel briefly displays the elapsed time beside the clock and animates the clock display to its new value. The elapsed-time feedback is not added to the Story Log.
 
 Travel uses the same choice presentation and executes immediately after MainController validates that the destination is connected. Its actual duration still comes from the shared travel definition and ActivityTimeCalculator.
+
+AcademyContent also exposes global Self Actions authored in the root `selfActions` array of `academy_locations.json`. MainController adds these choices at every Location and resolves them through the same ActionExecutionService path. The action definition's `canExecuteWhenUnconscious` flag defaults to false; ActionExecutionService still rejects death first and only permits unconscious execution for explicitly configured actions.
 
 ### Travel
 

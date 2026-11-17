@@ -93,6 +93,11 @@ public partial class MainController : Control
             }
         }
 
+        foreach (ActionDefinition action in AcademyContent.SelfActions)
+        {
+            choices.Add(action);
+        }
+
         foreach (string exitId in location.Exits)
         {
             LocationContent exit = AcademyContent.Get(exitId);
@@ -167,6 +172,10 @@ public partial class MainController : Control
 
         LocationContent location = AcademyContent.Get(_currentLocationId);
         ActionDefinition selectedAction = FindChoice(location.Actions, choiceId);
+        if (selectedAction == null)
+        {
+            selectedAction = FindChoice(AcademyContent.SelfActions, choiceId);
+        }
 
         if (selectedAction == null)
         {

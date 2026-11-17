@@ -35,6 +35,9 @@ public sealed class ActionExecutionTests
         Assert.NotEmpty(reason);
         Assert.Equal(0, duration);
         Assert.Equal(2, actor.Energy);
+        Assert.Equal(20, actor.Health);
+        Assert.Equal(70, actor.Mood);
+        Assert.Equal(20, actor.Gold);
         Assert.Equal(450, clock.MinutesOfDay);
     }
 
@@ -56,21 +59,94 @@ public sealed class ActionExecutionTests
     }
 
     [Fact]
-    public void DeadActor_CannotPerformRecoveryAction()
+    public void DeadActor_CannotUseRestToRecover()
     {
+        LoadAcademyContent();
         Character actor = TestCharacterFactory.CreatePlayer(health: 0, energy: 0);
         DayClock clock = new DayClock();
-        ActionDefinition sleep = new ActionDefinition(
-            "sleep", "Sleep", 0,
-            effects: new[] { new ActionEffectDefinition(ActionEffectType.RestoreHealth, 20) },
-            timeMode: ActionTimeMode.NextDay);
+        ActionDefinition rest = FindAction("rest");
 
-        bool success = _service.TryExecute(sleep, actor, clock, out string reason, out int duration);
+        bool success = _service.TryExecute(rest, actor, clock, out string reason, out int duration);
 
         Assert.False(success);
         Assert.Contains("dead", reason);
         Assert.Equal(0, actor.Health);
+        Assert.Equal(0, actor.Energy);
         Assert.Equal(1, clock.Day);
+        Assert.Equal(450, clock.MinutesOfDay);
+        Assert.Equal(0, duration);
+    }
+
+    [Fact]
+    public void RestFromZeroEnergy_RecoversAndAllowsTheCharacterToAct()
+    {
+        LoadAcademyContent();
+        Character actor = TestCharacterFactory.CreatePlayer(health: 12, energy: 0, mood: 40, gold: 7);
+        DayClock clock = new DayClock();
+        ActionDefinition rest = FindAction("rest");
+
+        bool success = _service.TryExecute(rest, actor, clock, out string reason, out int duration);
+
+        Assert.True(success, reason);
+        Assert.Empty(reason);
+        Assert.Equal(30, duration);
+        Assert.Equal(12, actor.Health);
+        Assert.Equal(3, actor.Energy);
+        Assert.Equal(42, actor.Mood);
+        Assert.Equal(7, actor.Gold);
+        Assert.False(actor.IsUnconscious);
+        Assert.True(actor.CanAct);
+        Assert.Equal(1, clock.Day);
+        Assert.Equal(480, clock.MinutesOfDay);
+    }
+
+    [Fact]
+    public void RestAtMaximumEnergy_DoesNotExceedMaximum()
+    {
+        LoadAcademyContent();
+        Character actor = TestCharacterFactory.CreatePlayer(energy: 10);
+        DayClock clock = new DayClock();
+        ActionDefinition rest = FindAction("rest");
+
+        bool success = _service.TryExecute(rest, actor, clock, out string reason, out int duration);
+
+        Assert.True(success, reason);
+        Assert.Equal(10, actor.Energy);
+        Assert.Equal(30, duration);
+        Assert.Equal(480, clock.MinutesOfDay);
+    }
+
+    [Fact]
+    public void OnlyExplicitlyConfiguredActions_CanExecuteWhileUnconscious()
+    {
+        LoadAcademyContent();
+        ActionDefinition rest = FindAction("rest");
+        ActionDefinition ordinaryAction = FindAction("inspect_letter");
+        Character actor = TestCharacterFactory.CreatePlayer(energy: 0);
+
+        Assert.True(rest.CanExecuteWhenUnconscious);
+        Assert.False(ordinaryAction.CanExecuteWhenUnconscious);
+        Assert.True(_service.CanExecute(rest, actor, out string restFailure));
+        Assert.Empty(restFailure);
+        Assert.False(_service.CanExecute(ordinaryAction, actor, out string ordinaryFailure));
+        Assert.Contains("unconscious", ordinaryFailure);
+    }
+
+    [Fact]
+    public void SelfRestAction_IsAvailableFromEveryLocationThroughContent()
+    {
+        LoadAcademyContent();
+        Assert.Single(AcademyContent.SelfActions);
+        Assert.Equal("rest", AcademyContent.SelfActions[0].Id);
+        Assert.True(AcademyContent.SelfActions[0].CanExecuteWhenUnconscious);
+
+        int locationCount = 0;
+        foreach (LocationContent location in AcademyContent.All)
+        {
+            locationCount++;
+        }
+
+        Assert.Equal(4, locationCount);
     }
 
     [Fact]
@@ -204,7 +280,29 @@ public sealed class ActionExecutionTests
             }
         }
 
-        Assert.Equal(10, actionCount);
+        Assert.Equal(9, actionCount);
+        Assert.Single(AcademyContent.SelfActions);
+    }
+
+    [Fact]
+    public void SelfAction_RestCanExecuteAcrossEveryEnergyValue()
+    {
+        LoadAcademyContent();
+        ActionDefinition rest = FindAction("rest");
+
+        for (int energy = 0; energy <= 10; energy++)
+        {
+            Character actor = TestCharacterFactory.CreatePlayer(health: 20, energy: energy, mood: 50);
+            DayClock clock = new DayClock();
+
+            bool success = _service.TryExecute(rest, actor, clock, out string reason, out int duration);
+
+            Assert.True(success, "Energy " + energy + ": " + reason);
+            Assert.Equal(System.Math.Min(10, energy + 3), actor.Energy);
+            Assert.Equal(52, actor.Mood);
+            Assert.Equal(30, duration);
+            Assert.Equal(480, clock.MinutesOfDay);
+        }
     }
 
     [Fact]
@@ -387,6 +485,14 @@ public sealed class ActionExecutionTests
                 {
                     return action;
                 }
+            }
+        }
+
+        foreach (ActionDefinition action in AcademyContent.SelfActions)
+        {
+            if (action.Id == actionId)
+            {
+                return action;
             }
         }
 
