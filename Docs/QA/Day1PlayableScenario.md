@@ -247,7 +247,7 @@ The Event service uses a random source in the live game. If the event does not t
 ## 6. Known implementation gaps to resolve during Version 1
 
 1. **Grouped Exploration choices:** MainController still combines Location Actions, global Self Actions and Travel into a flat list. Session 3 proposes the contextual Query → Mapper → grouped ViewModel pipeline; this target is not implemented on `main`.
-2. **Player-owned actions:** Rest remains in root `selfActions` in `academy_locations.json`, and Sleep remains a Dormitory Location Action. Session 3 proposes moving both to Player-owned data and enforcing the Sleep context rule.
+2. **Player-owned actions:** Rest remains in root `selfActions` in `AcademyLocations.json`, and Sleep remains a Dormitory Location Action. Session 3 proposes moving both to Player-owned data and enforcing the Sleep context rule.
 3. **Daily activities:** Cafeteria, Infirmary, meal, lesson and practice are not present in the current academy content.
 4. **Daily summary:** the current flow does not yet provide the complete activity history and daily summary described by Version 1.
 5. **Save / Load:** the current prototype does not persist the complete daily-life state or the Event evaluation state.
