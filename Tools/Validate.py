@@ -144,6 +144,13 @@ def main() -> int:
         if code != 0:
             return code
 
+    # Run .NET tests first; restore/build also prepares assets for format checks.
+    code = run_command(
+        ["dotnet", "test", TEST_PROJECT, "--configuration", "Release"]
+    )
+    if code != 0:
+        return code
+
     if format_commands:
         for command in format_commands:
             code = run_command(command)
@@ -152,9 +159,7 @@ def main() -> int:
     else:
         print("\nC# naming check: skipped (no changed C# files).")
 
-    return run_command(
-        ["dotnet", "test", TEST_PROJECT, "--configuration", "Release"]
-    )
+    return 0
 
 
 if __name__ == "__main__":
