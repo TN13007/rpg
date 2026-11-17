@@ -118,6 +118,20 @@ def _stable_signature(value: Any) -> str:
     )
 
 
+def _owner_identity_signature(value: dict[str, Any]) -> str:
+    """Prefer stable authored labels over mutable descriptive/stat fields."""
+    identity = {
+        key: value[key]
+        for key in ("name", "label", "title")
+        if isinstance(value.get(key), str)
+    }
+    if identity:
+        return json.dumps(
+            identity, sort_keys=True, ensure_ascii=False, separators=(",", ":")
+        )
+    return _stable_signature(value)
+
+
 def collect_id_occurrences(
     value: Any, path: str = "$"
 ) -> list[tuple[str, str, str, str]]:
@@ -129,9 +143,10 @@ def collect_id_occurrences(
     """
     occurrences: list[tuple[str, str, str, str]] = []
 
-    def visit(node: Any, node_path: str) -> None:
+    def visit(node: Any, node_path: str, ancestor_identity: str = "") -> None:
         if isinstance(node, dict):
-            owner_signature = _stable_signature(node)
+            local_identity = _owner_identity_signature(node)
+            owner_signature = f"{ancestor_identity}/{local_identity}"
             for key, child in node.items():
                 if not is_identifier_property(key):
                     continue
@@ -143,10 +158,10 @@ def collect_id_occurrences(
                             occurrences.append((node_path, owner_signature, key, item))
 
             for key, child in node.items():
-                visit(child, f"{node_path}.{key}")
+                visit(child, f"{node_path}.{key}", owner_signature)
         elif isinstance(node, list):
             for child in node:
-                visit(child, f"{node_path}[*]")
+                visit(child, f"{node_path}[*]", ancestor_identity)
 
     visit(value, path)
     return occurrences
