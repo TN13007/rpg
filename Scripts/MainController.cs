@@ -24,6 +24,9 @@ public partial class MainController : Control
     private GameModeController _gameModeController;
     private LocationEventService _locationEventService;
     private LocationEventDefinition _activeLocationEvent;
+    private int _combatStartDay;
+    private int _combatStartMinutes;
+    private bool _hasCombatTimeFeedback;
 
     private string _currentLocationId = "dormitory";
 
@@ -218,12 +221,15 @@ public partial class MainController : Control
 
     private bool ExecuteAction(ActionDefinition action)
     {
+        int startDay = _dayClock.Day;
+        int startMinutes = _dayClock.MinutesOfDay;
+
         if (!_actionExecutionService.TryExecute(
             action,
             _player,
             _dayClock,
             out string failureReason,
-            out int actualDuration))
+            out _))
         {
             _storyPanel.ShowFeedback(failureReason);
             return false;
@@ -231,12 +237,13 @@ public partial class MainController : Control
 
         _characterPanel.SetCharacter(new CharacterViewModel(_player));
         ShowLocation();
+        _storyPanel.ShowTimeAdvanceFeedback(
+            startDay,
+            startMinutes,
+            _dayClock.Day,
+            _dayClock.MinutesOfDay);
 
         string feedback = action.Feedback;
-        if (actualDuration > 0)
-        {
-            feedback += " (" + actualDuration + " minutes)";
-        }
 
         if (_player.IsUnconscious)
         {
@@ -260,6 +267,9 @@ public partial class MainController : Control
             _storyPanel.ShowFeedback("You need to keep at least 1 Energy to enter combat.");
             return false;
         }
+
+        int startDay = _dayClock.Day;
+        int startMinutes = _dayClock.MinutesOfDay;
 
         if (!_actionExecutionService.TryExecute(
             action,
@@ -289,6 +299,9 @@ public partial class MainController : Control
         }
 
         _characterPanel.SetCharacter(new CharacterViewModel(_player));
+        _combatStartDay = startDay;
+        _combatStartMinutes = startMinutes;
+        _hasCombatTimeFeedback = true;
         _activeLocationEvent = null;
         _gameModeController.ShowCombat();
         _combatPanel.BeginEncounter("Goblin Ambush");
@@ -329,10 +342,22 @@ public partial class MainController : Control
         _gameModeController.ShowExploration();
         _characterPanel.SetCharacter(new CharacterViewModel(_player));
         ShowLocation();
+
+        if (_hasCombatTimeFeedback)
+        {
+            _storyPanel.ShowTimeAdvanceFeedback(
+                _combatStartDay,
+                _combatStartMinutes,
+                _dayClock.Day,
+                _dayClock.MinutesOfDay);
+            _hasCombatTimeFeedback = false;
+        }
     }
 
     private void TravelTo(string destinationId)
     {
+        int startDay = _dayClock.Day;
+        int startMinutes = _dayClock.MinutesOfDay;
         LocationContent current = AcademyContent.Get(_currentLocationId);
         if (Array.IndexOf(current.Exits, destinationId) < 0)
         {
@@ -345,7 +370,7 @@ public partial class MainController : Control
             _player,
             _dayClock,
             out string failureReason,
-            out int actualDuration))
+            out _))
         {
             _storyPanel.ShowFeedback(failureReason);
             return;
@@ -355,7 +380,12 @@ public partial class MainController : Control
         _currentLocationId = destinationId;
         _characterPanel.SetCharacter(new CharacterViewModel(_player));
         ShowLocation();
-        string feedback = "You arrive at " + AcademyContent.Get(destinationId).Name + ". Travel took " + actualDuration + " minutes.";
+        _storyPanel.ShowTimeAdvanceFeedback(
+            startDay,
+            startMinutes,
+            _dayClock.Day,
+            _dayClock.MinutesOfDay);
+        string feedback = "You arrive at " + AcademyContent.Get(destinationId).Name + ".";
 
         if (_player.IsUnconscious)
         {

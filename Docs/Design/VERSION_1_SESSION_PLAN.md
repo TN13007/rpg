@@ -132,7 +132,7 @@ The game already has timed actions. The player should understand the time commit
 
 ### Estimate semantics
 
-The estimate is presentation guidance, not a second execution rule. Estimate bounds are authored in content and displayed to the player. The actual duration remains calculated by ActivityTimeCalculator using the action's configured base duration and stat modifier. The system must report the actual duration after execution.
+The estimate is presentation guidance, not a second execution rule. Estimate bounds are authored in content and displayed to the player. The actual duration remains calculated by ActivityTimeCalculator using the action's configured base duration and stat modifier. After a successful action, the UI briefly displays the actual elapsed time beside the clock and animates the clock from its previous value to the new value. Do not repeat elapsed minutes in the Story Log.
 
 ### Implementation slices
 
@@ -164,8 +164,10 @@ The estimate is presentation guidance, not a second execution rule. Estimate bou
 - The Dormitory action list shows “Read the letter on your desk (0:10–0:20)”.
 - Rest displays its configured fixed duration.
 - Sleep displays “Until next morning”.
-- Selecting an action executes it immediately and updates the clock and Character Panel.
-- An unavailable action shows a clear rejection and does not change state.
+- Selecting an action executes it immediately and updates the Character Panel.
+- The clock rapidly counts from its previous time to the new time.
+- The actual elapsed time appears beside the clock for approximately 5–6 seconds, then fades away.
+- An unavailable action shows a clear rejection and does not change state or show time feedback.
 - Travel updates the location after execution.
 - The existing Goblin Event and Combat flow still work.
 

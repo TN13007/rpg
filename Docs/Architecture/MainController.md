@@ -46,7 +46,7 @@ It is not the place where game rules are implemented.
 | Combat rules and encounter state | CombatService |
 | Exploration/Combat UI visibility | GameModeController |
 | Reading JSON content | AcademyContent |
-| Rendering UI elements | StoryPanel, CombatPanel, CharacterPanel |
+| Rendering UI elements and clock feedback animation | StoryPanel, CombatPanel, CharacterPanel |
 
 ## Current request flow
 
@@ -54,7 +54,7 @@ It is not the place where game rules are implemented.
 
 `UI choice with estimated duration → MainController → ActionExecutionService → DayClock / ActionEffectExecutor → UI refresh`
 
-ActionDurationEstimateMapper converts authored estimate bounds into a compact label beside each choice. It reuses ActivityTimeCalculator so stat modifiers affect both ends of the displayed range. The mapper does not change gameplay state. Selecting a choice executes it immediately; ActionExecutionService remains responsible for validating the actor, spending Energy, advancing time and applying effects.
+ActionDurationEstimateMapper converts authored estimate bounds into a compact label beside each choice. It reuses ActivityTimeCalculator so stat modifiers affect both ends of the displayed range. The mapper does not change gameplay state. Selecting a choice executes it immediately; ActionExecutionService remains responsible for validating the actor, spending Energy, advancing time and applying effects. After success, MainController passes the DayClock values from before and after execution to StoryPanel. StoryPanel briefly displays the elapsed time beside the clock and animates the clock display to its new value. The elapsed-time feedback is not added to the Story Log.
 
 Travel uses the same choice presentation and executes immediately after MainController validates that the destination is connected. Its actual duration still comes from the shared travel definition and ActivityTimeCalculator.
 
