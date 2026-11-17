@@ -82,6 +82,7 @@ public partial class MainController : Control
             return;
         }
 
+        ClearPendingAction();
         ShowPage(tab);
     }
 
