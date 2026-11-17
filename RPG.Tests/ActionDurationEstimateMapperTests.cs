@@ -20,44 +20,7 @@ public sealed class ActionDurationEstimateMapperTests
         string result = _mapper.Map(action, actor);
 
         Assert.Equal("0:10–0:20", result);
-    
-    private void MapNullAction()
-    {
-        _mapper.Map(null, TestCharacterFactory.CreatePlayer());
     }
-
-    private void MapNullActor()
-    {
-        _mapper.Map(new ActionDefinition("read", "Read", 10), null);
-    }
-
-    private void CreateActionWithIncompleteEstimate()
-    {
-        new ActionDefinition("read", "Read", 10, estimatedDurationMinMinutes: 5);
-    }
-
-    private void CreateActionWithNegativeEstimate()
-    {
-        new ActionDefinition("read", "Read", 10,
-            estimatedDurationMinMinutes: -1,
-            estimatedDurationMaxMinutes: 10);
-    }
-
-    private void CreateActionWithReversedEstimate()
-    {
-        new ActionDefinition("read", "Read", 10,
-            estimatedDurationMinMinutes: 20,
-            estimatedDurationMaxMinutes: 10);
-    }
-
-    private void CreateNextDayActionWithEstimate()
-    {
-        new ActionDefinition("sleep", "Sleep", 0,
-            timeMode: ActionTimeMode.NextDay,
-            estimatedDurationMinMinutes: 10,
-            estimatedDurationMaxMinutes: 20);
-    }
-}
 
     [Fact]
     public void Map_AppliesStatModifierToBothEstimateBounds()
@@ -149,5 +112,42 @@ public sealed class ActionDurationEstimateMapperTests
     public void ActionDefinition_RejectsEstimateBoundsForNextDay()
     {
         Assert.Throws<ArgumentException>(CreateNextDayActionWithEstimate);
+    }
+
+    private void MapNullAction()
+    {
+        _mapper.Map(null, TestCharacterFactory.CreatePlayer());
+    }
+
+    private void MapNullActor()
+    {
+        _mapper.Map(new ActionDefinition("read", "Read", 10), null);
+    }
+
+    private void CreateActionWithIncompleteEstimate()
+    {
+        new ActionDefinition("read", "Read", 10, estimatedDurationMinMinutes: 5);
+    }
+
+    private void CreateActionWithNegativeEstimate()
+    {
+        new ActionDefinition("read", "Read", 10,
+            estimatedDurationMinMinutes: -1,
+            estimatedDurationMaxMinutes: 10);
+    }
+
+    private void CreateActionWithReversedEstimate()
+    {
+        new ActionDefinition("read", "Read", 10,
+            estimatedDurationMinMinutes: 20,
+            estimatedDurationMaxMinutes: 10);
+    }
+
+    private void CreateNextDayActionWithEstimate()
+    {
+        new ActionDefinition("sleep", "Sleep", 0,
+            timeMode: ActionTimeMode.NextDay,
+            estimatedDurationMinMinutes: 10,
+            estimatedDurationMaxMinutes: 20);
     }
 }
