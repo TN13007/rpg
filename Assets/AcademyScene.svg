@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="520" viewBox="0 0 1200 520">
+<defs>
+  <linearGradient id="sky" x2="0" y2="1"><stop stop-color="#23384b"/><stop offset="1" stop-color="#8b927e"/></linearGradient>
+  <linearGradient id="stone" x2="0" y2="1"><stop stop-color="#a9a08c"/><stop offset="1" stop-color="#625f5a"/></linearGradient>
+  <linearGradient id="ground" x2="0" y2="1"><stop stop-color="#576b55"/><stop offset="1" stop-color="#263c39"/></linearGradient>
+</defs>
+<rect width="1200" height="520" fill="url(#sky)"/>
+<circle cx="910" cy="105" r="42" fill="#e7c995" opacity=".75"/>
+<path d="M0 380 L0 290 100 250 210 300 330 230 450 300 570 260 700 300 810 235 930 290 1080 245 1200 300 1200 520 0 520Z" fill="#3b514d"/>
+<path d="M325 360 V185 L420 120 515 185 V360Z" fill="url(#stone)"/>
+<path d="M280 190 L420 83 560 190Z" fill="#424b52"/>
+<path d="M360 360 V245 Q420 175 480 245 V360Z" fill="#273b4a"/>
+<path d="M390 360 V270 Q420 220 450 270 V360Z" fill="#d3b17b" opacity=".8"/>
+<rect x="580" y="215" width="360" height="145" fill="#77786f"/>
+<path d="M550 220 L760 135 970 220Z" fill="#414d53"/>
+<rect x="625" y="245" width="72" height="115" fill="#2c3d48"/>
+<rect x="735" y="245" width="72" height="115" fill="#2c3d48"/>
+<rect x="845" y="245" width="60" height="115" fill="#2c3d48"/>
+<path d="M0 405 Q260 360 460 405 T900 405 T1200 395 V520 H0Z" fill="url(#ground)"/>
+<path d="M450 520 Q560 430 670 385 Q790 430 930 520Z" fill="#9a8b72" opacity=".55"/>
+<g fill="#293e37">
+  <path d="M95 395 Q70 325 95 260 Q118 215 145 260 Q175 325 150 395Z"/><path d="M75 290 Q90 205 145 205 Q205 205 215 295 Q165 330 75 290Z"/>
+  <path d="M1010 400 Q985 320 1015 245 Q1045 190 1085 250 Q1120 330 1090 400Z"/><path d="M980 285 Q1000 195 1060 190 Q1130 205 1145 295 Q1060 330 980 285Z"/>
+</g>
+<g fill="#d2b887" opacity=".7">
+  <circle cx="160" cy="145" r="3"/><circle cx="225" cy="95" r="2"/><circle cx="1030" cy="155" r="3"/><circle cx="875" cy="215" r="2"/>
+</g>
+<path d="M0 455 Q230 425 440 455 T850 448 T1200 445" fill="none" stroke="#b6a37f" stroke-width="3" opacity=".3"/>
+</svg>
