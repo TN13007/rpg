@@ -177,6 +177,49 @@ public sealed class ActionPreviewMapperTests
         Assert.Equal("2 Energy", preview.EnergyCost);
     }
 
+    [Fact]
+    public void PreviewDurationMatchesTheDurationUsedByExecution()
+    {
+        Character actor = TestCharacterFactory.CreatePlayer(energy: 8, intelligence: 25);
+        DayClock clock = new DayClock();
+        ActionDefinition action = new ActionDefinition(
+            "study",
+            "Study the field maps",
+            20,
+            new ActivityTimeModifier(CharacterStat.Intelligence, 0.5),
+            energyCost: 2,
+            effects: new[] { new ActionEffectDefinition(ActionEffectType.ChangeMood, 3) });
+
+        ActionPreviewData preview = CreateMapper().Map(action, actor, clock);
+        bool success = _executionService.TryExecute(
+            action,
+            actor,
+            clock,
+            out string failureReason,
+            out int actualDuration);
+
+        Assert.True(success, failureReason);
+        Assert.Equal("18 minutes", preview.Duration);
+        Assert.Equal(18, actualDuration);
+        Assert.Equal("DAY 01 · 07:48", preview.ExpectedTime);
+        Assert.Equal(468, clock.MinutesOfDay);
+        Assert.Equal(6, actor.Energy);
+        Assert.Equal(73, actor.Mood);
+    }
+
+    [Fact]
+    public void Map_RejectsNullInputs()
+    {
+        ActionPreviewMapper mapper = CreateMapper();
+        Character actor = TestCharacterFactory.CreatePlayer();
+        DayClock clock = new DayClock();
+        ActionDefinition action = new ActionDefinition("rest", "Rest", 30);
+
+        Assert.Throws<System.ArgumentNullException>(() => mapper.Map(null, actor, clock));
+        Assert.Throws<System.ArgumentNullException>(() => mapper.Map(action, null, clock));
+        Assert.Throws<System.ArgumentNullException>(() => mapper.Map(action, actor, null));
+    }
+
     private ActionPreviewMapper CreateMapper()
     {
         return new ActionPreviewMapper(_timeCalculator, _executionService);
