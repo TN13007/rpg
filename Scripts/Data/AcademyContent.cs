@@ -68,6 +68,7 @@ public sealed class ActionDefinition
     public string Feedback { get; }
     public int DurationMinutes { get; }
     public int EnergyCost { get; }
+    public bool CanExecuteWhenUnconscious { get; }
     public ActivityTimeModifier TimeModifier { get; }
     public ActionTimeMode TimeMode { get; }
     public ActionEffectDefinition[] Effects { get; }
@@ -84,7 +85,8 @@ public sealed class ActionDefinition
         ActionEffectDefinition[] effects = null,
         ActionTimeMode timeMode = ActionTimeMode.Duration,
         int? estimatedDurationMinMinutes = null,
-        int? estimatedDurationMaxMinutes = null)
+        int? estimatedDurationMaxMinutes = null,
+        bool canExecuteWhenUnconscious = false)
     {
         if (string.IsNullOrWhiteSpace(id)) throw new ArgumentException("Action ID is required.", nameof(id));
         if (string.IsNullOrWhiteSpace(label)) throw new ArgumentException("Action label is required.", nameof(label));
@@ -111,6 +113,7 @@ public sealed class ActionDefinition
         Label = label;
         DurationMinutes = durationMinutes;
         EnergyCost = energyCost;
+        CanExecuteWhenUnconscious = canExecuteWhenUnconscious;
         TimeModifier = timeModifier;
         TimeMode = timeMode;
         Effects = effects ?? Array.Empty<ActionEffectDefinition>();
@@ -155,6 +158,7 @@ public static class AcademyContent
         new Dictionary<string, LocationContent>(StringComparer.Ordinal);
 
     public static IEnumerable<LocationContent> All => _locations.Values;
+    public static ActionDefinition[] SelfActions { get; private set; } = Array.Empty<ActionDefinition>();
     public static ActionDefinition Travel { get; private set; } = new ActionDefinition("travel", "Travel", 10);
     public static ActionDefinition CombatEncounter { get; private set; } = new ActionDefinition("combat_encounter", "Combat Encounter", 30);
 
@@ -196,6 +200,9 @@ public static class AcademyContent
             ActionDefinition loadedCombatEncounter = root.TryGetProperty("combatEncounter", out JsonElement combatData)
                 ? ReadActionDefinition("combat_encounter", "Combat Encounter", combatData)
                 : new ActionDefinition("combat_encounter", "Combat Encounter", 30);
+            ActionDefinition[] loadedSelfActions = root.TryGetProperty("selfActions", out JsonElement selfActionsData)
+                ? ReadActions(selfActionsData)
+                : Array.Empty<ActionDefinition>();
 
             JsonElement locations = root.GetProperty("locations");
 
@@ -227,8 +234,10 @@ public static class AcademyContent
             }
 
             ValidateLocationExits(loadedLocations);
+            ValidateSelfActionIds(loadedLocations, loadedSelfActions);
 
             _locations = loadedLocations;
+            SelfActions = loadedSelfActions;
             Travel = loadedTravel;
             CombatEncounter = loadedCombatEncounter;
         }
@@ -251,6 +260,31 @@ public static class AcademyContent
         }
 
         return location;
+    }
+
+    private static void ValidateSelfActionIds(
+        Dictionary<string, LocationContent> locations,
+        ActionDefinition[] selfActions)
+    {
+        ValidateActionIds("self", selfActions);
+
+        HashSet<string> selfActionIds = new HashSet<string>(StringComparer.Ordinal);
+        foreach (ActionDefinition action in selfActions)
+        {
+            selfActionIds.Add(action.Id);
+        }
+
+        foreach (LocationContent location in locations.Values)
+        {
+            foreach (ActionDefinition action in location.Actions)
+            {
+                if (selfActionIds.Contains(action.Id))
+                {
+                    throw new InvalidOperationException(
+                        "Self action ID '" + action.Id + "' conflicts with an action in location '" + location.Id + "'.");
+                }
+            }
+        }
     }
 
     private static void ValidateLocationEvents(
@@ -454,6 +488,8 @@ public static class AcademyContent
         int? estimatedDurationMaxMinutes = data.TryGetProperty("estimatedDurationMaxMinutes", out JsonElement maxDurationData)
             ? maxDurationData.GetInt32()
             : null;
+        bool canExecuteWhenUnconscious = data.TryGetProperty("canExecuteWhenUnconscious", out JsonElement unconsciousData)
+            && unconsciousData.GetBoolean();
 
         return new ActionDefinition(
             id,
@@ -465,7 +501,8 @@ public static class AcademyContent
             effects,
             timeMode,
             estimatedDurationMinMinutes,
-            estimatedDurationMaxMinutes);
+            estimatedDurationMaxMinutes,
+            canExecuteWhenUnconscious);
     }
 
     private static ActionEffectDefinition[] ReadEffects(JsonElement data)

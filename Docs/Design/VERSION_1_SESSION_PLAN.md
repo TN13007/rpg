@@ -38,7 +38,7 @@ The repository currently records:
 - ActivityTimeCalculator calculates duration after an optional stat modifier.
 - ActionEffectDefinition currently describes RestoreHealth, RestoreEnergy, ChangeMood and AddGold.
 - academy_locations.json already contains actions such as resting, reading a letter, talking to Mira, inspecting the notice board, studying maps and sleeping.
-- The Dormitory rest action is authored as 30 minutes, restoring 3 Energy and 2 Mood.
+- The short-rest Self Action is authored as 30 minutes, restoring 3 Energy and 2 Mood; it is available at every Location.
 - The sleep action is authored with NextDay time mode and effects to restore 20 Health, 10 Energy and 10 Mood.
 - The current player data starts at 20/20 Health, 8/10 Energy, 70/100 Mood and 20 Gold.
 - The UI already shows Health, Energy, Mood and Gold in the persistent Character Panel. The current time is passed into the Main Panel.
@@ -155,7 +155,7 @@ The estimate is presentation guidance, not a second execution rule. Estimate bou
 - Negative bounds and a maximum lower than the minimum are rejected.
 - NextDay actions cannot define ordinary duration bounds.
 - Mapping choices does not mutate character state or the clock.
-- Insufficient Energy, unconsciousness and death are still rejected by ActionExecutionService without mutation.
+- Insufficient Energy, unconsciousness for actions not explicitly permitted, and death are rejected by ActionExecutionService without mutation.
 - Selecting an action executes it once; there is no preview confirmation path.
 - Travel and non-combat Event choices execute through their existing rule owners.
 
@@ -191,17 +191,19 @@ Energy already limits actions and 0 Energy already means unconsciousness. This s
 2. The player performs an activity that costs Energy.
 3. The Energy display decreases by the configured cost.
 4. When Energy is insufficient, the activity is rejected with a clear reason and no state changes.
-5. The player returns to the Dormitory and takes a short rest.
+5. The player uses the short-rest Self Action, available from any Location.
 6. Energy increases by the authored recovery amount, up to MaxEnergy.
-7. The player can continue activities.
+7. The player can continue activities, including after recovering from unconsciousness.
 
 ### Scope
 
 - Audit and consolidate Energy validation in the existing action execution path.
 - Ensure all normal activities use ActionDefinition.EnergyCost.
 - Ensure an action with a cost greater than current Energy is rejected before any mutation.
-- Preserve the current rule: a living character at 0 Energy is unconscious and cannot act.
-- Preserve the current rest action as the first Energy recovery activity, unless runtime verification finds that it does not execute correctly.
+- Preserve the current rule: a living character at 0 Energy is unconscious and cannot perform ordinary actions.
+- Move the existing short-rest action into the global Self Action list so it is available at every Location; do not require an unconscious player to travel back to the Dormitory.
+- Add the authored `canExecuteWhenUnconscious` flag to ActionDefinition. Its default is false; only explicitly configured recovery actions may execute while unconscious.
+- Keep the short-rest action at 30 minutes, 0 Energy cost, +3 Energy and +2 Mood.
 - Display current Energy and maximum Energy consistently.
 - Make the failure message actionable, e.g. “Not enough Energy. Rest before continuing.”
 - Ensure a character who becomes unconscious after an action cannot immediately perform another action.
@@ -225,6 +227,8 @@ Do not rebalance all costs in this session. First make the rules correct and obs
 - Negative Energy costs are rejected by content/domain validation.
 - Rest at maximum Energy does not exceed maximum.
 - Rest from 0 Energy restores the character and makes them able to act.
+- The global Self Action is available from every Location, including when the player is unconscious.
+- Ordinary actions and Travel remain blocked while unconscious.
 - A dead character cannot use rest to revive.
 - An action that reduces Energy to 0 applies its configured effects/time once, then the character becomes unconscious.
 - A second action after unconsciousness is rejected.
@@ -235,8 +239,8 @@ Do not rebalance all costs in this session. First make the rules correct and obs
 
 - Perform an Energy-consuming activity and observe the decrease.
 - Attempt another activity without enough Energy and observe a rejection.
-- Rest and observe recovery.
-- Reach 0 Energy through a valid action and verify that further actions are blocked until recovery.
+- Use the short-rest Self Action from at least two different Locations and observe recovery.
+- Reach 0 Energy through a valid action, verify ordinary actions and Travel are blocked, then use Rest and verify that action becomes available again.
 
 ### Session completion evidence
 
@@ -256,11 +260,10 @@ Rest handles short-term recovery. Sleep establishes the daily boundary that make
 
 1. The player returns to the Dormitory.
 2. The player chooses “Sleep until tomorrow”.
-3. The UI explains that the action ends the current day and shows the expected recovery.
-4. The player confirms.
-5. The day advances to the next morning at 07:30.
-6. Health, Energy and Mood recover according to the authored sleep effects.
-7. The location remains the Dormitory and the Main Panel displays the new day.
+3. The player selects “Sleep until tomorrow”; the action executes immediately.
+4. The day advances to the next morning at 07:30.
+5. Health, Energy and Mood recover according to the authored sleep effects.
+6. The location remains the Dormitory and the Main Panel displays the new day.
 
 ### Scope
 

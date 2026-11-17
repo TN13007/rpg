@@ -21,23 +21,6 @@
       ],
       "actions": [
         {
-          "id": "rest",
-          "label": "Take a short rest",
-          "durationMinutes": 30,
-          "energyCost": 0,
-          "effects": [
-            {
-              "type": "RestoreEnergy",
-              "amount": 3
-            },
-            {
-              "type": "ChangeMood",
-              "amount": 2
-            }
-          ],
-          "feedback": "You sit by the window for a moment. The day can wait another minute."
-        },
-        {
           "id": "inspect_letter",
           "label": "Read the letter on your desk",
           "durationMinutes": 10,
@@ -196,6 +179,26 @@
           "feedback": "Most requests are reserved for senior students. One training survey is available."
         }
       ]
+    }
+  ],
+  "selfActions": [
+    {
+      "id": "rest",
+      "label": "Take a short rest",
+      "durationMinutes": 30,
+      "energyCost": 0,
+      "effects": [
+        {
+          "type": "RestoreEnergy",
+          "amount": 3
+        },
+        {
+          "type": "ChangeMood",
+          "amount": 2
+        }
+      ],
+      "feedback": "You pause, catch your breath and let the fatigue ease.",
+      "canExecuteWhenUnconscious": true
     }
   ]
 }
