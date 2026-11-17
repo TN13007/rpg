@@ -127,7 +127,7 @@ def collect_id_occurrences(
     array does not make its unchanged ID look new. The non-ID fields identify the
     owning object, preventing an ID on one object from being borrowed by another.
     """
-    occurrences: list[tuple[str, str, str]] = []
+    occurrences: list[tuple[str, str, str, str]] = []
 
     def visit(node: Any, node_path: str) -> None:
         if isinstance(node, dict):
