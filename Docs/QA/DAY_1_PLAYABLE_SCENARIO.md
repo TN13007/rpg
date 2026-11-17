@@ -1,5 +1,9 @@
 # Day 1 — The First Day at Adventurer Academy
 
+**Interaction contract:** Selecting an action executes it immediately. A duration estimate is informational; there is no Preview / Confirm / Cancel step.
+
+**Verification note:** This document defines an acceptance scenario. It is not evidence that the current `main` build has completed Godot runtime acceptance.
+
 **Purpose:** A repeatable narrative and gameplay acceptance scenario for Version 1.  
 **Related plan:** [Version 1 Session Plan](../Design/VERSION_1_SESSION_PLAN.md)  
 **Starting point:** Main scene, Dormitory, Day 1 at 07:30.  
@@ -47,7 +51,7 @@ Current authored result:
 - Expected clock: 07:40.
 - Expected Energy: 7.
 
-The player may preview the action, cancel it without mutation, then confirm it.
+The player selects the action and it executes immediately. The duration estimate helps the player understand the time commitment; it does not open a separate preview or confirmation flow.
 
 ### Scene 2 — The courtyard
 
@@ -211,8 +215,8 @@ All three paths must reach Day 2 at 07:30 and preserve their distinct Gold / pri
 ### Required automated coverage
 
 - Starting state loads with the exact Day 1 values.
-- Previewing and cancelling any action changes no state.
-- Confirmed actions apply duration, Energy cost and effects exactly once.
+- Selecting a valid action executes it immediately and applies duration, Energy cost and configured Effects exactly once.
+- A rejected action request changes no character state, time or location.
 - Travel duration for Ari is 9 minutes and costs 1 Energy.
 - The Event is attempted at most once per Courtyard per day.
 - Event chance 0, 0.5 and 1 behave correctly; tests use an injected seeded `Random` for repeatability.
@@ -224,13 +228,13 @@ All three paths must reach Day 2 at 07:30 and preserve their distinct Gold / pri
 - Rest restores 3 Energy and 2 Mood without exceeding their maxima.
 - Sleep advances to Day 2 at 07:30 and applies recovery exactly once.
 - Save / Load preserves the selected branch's resulting Day 2 state without replaying actions or rewards.
-- Rejected actions and cancelled previews do not appear as successful activity history entries.
+- Rejected action requests are not reported as successful actions.
 
 ### Godot runtime acceptance
 
 Run each of the three paths from a fresh game start. Capture:
 - Day 1 opening state.
-- Action preview and cancel, followed by confirmation.
+- Inline duration estimate, immediate action selection and resulting clock/resource feedback.
 - Courtyard Event or failed-roll Exploration.
 - Combat or Stealth result where applicable.
 - Rest result.
@@ -242,12 +246,16 @@ The Event service uses a random source in the live game. If the event does not t
 
 ## 6. Known implementation gaps to resolve during Version 1
 
-1. **Action preview:** the current action execution service executes directly; the player-facing preview / confirm / cancel flow is still required.
-2. **Daily activities:** Cafeteria, Infirmary, meal, lesson and practice are not present in current academy content.
-3. **Daily summary:** the current flow does not yet provide the complete activity history and daily summary described by Version 1.
-4. **Save / Load:** the current prototype does not persist the complete daily-life state or the Event evaluation state.
-5. **Unconscious recovery rule:** `ActionExecutionService.CanExecute` currently rejects every action when Energy is 0, including Rest and Sleep. This conflicts with the Version 1 test expectation that resting from 0 Energy can restore the character. Before implementing that test, explicitly define and test how a character recovers from unconsciousness. Do not silently claim that the current Rest action can already solve it.
-6. **Sleep documentation:** the current action execution path applies the Health, Energy and Mood effects authored in JSON. Update stale documentation after runtime verification; do not add duplicate recovery logic.
+1. **Grouped Exploration choices:** MainController still combines Location Actions, global Self Actions and Travel into a flat list. Session 3 proposes the contextual Query → Mapper → grouped ViewModel pipeline; this target is not implemented on `main`.
+2. **Player-owned actions:** Rest remains in root `selfActions` in `academy_locations.json`, and Sleep remains a Dormitory Location Action. Session 3 proposes moving both to Player-owned data and enforcing the Sleep context rule.
+3. **Daily activities:** Cafeteria, Infirmary, meal, lesson and practice are not present in the current academy content.
+4. **Daily summary:** the current flow does not yet provide the complete activity history and daily summary described by Version 1.
+5. **Save / Load:** the current prototype does not persist the complete daily-life state or the Event evaluation state.
+6. **Runtime verification:** PR #21 and PR #22 record passing .NET CI but pending Godot runtime acceptance. Run affected flows in Godot 4.7.2 .NET and retain reproducible evidence before marking those runtime checks complete.
+
+**Unconsciousness rule already implemented:** A living Player at 0 Energy may use Rest because that action explicitly sets `canExecuteWhenUnconscious: true`. Rest costs 0 Energy, takes 30 minutes, restores up to 3 Energy and adds 2 Mood. Health = 0 still means Dead and blocks Rest. Ordinary actions and Travel remain unavailable while unconscious. Sleep is not currently configured to execute while unconscious.
+
+**Sleep behavior:** Sleep is currently authored at the Dormitory with `NextDay` and configured Health, Energy and Mood Effects. The action execution path advances the clock and applies those Effects. Session 4 must verify calendar boundaries and exactly-once behavior in runtime; do not add a second recovery implementation.
 
 ## 7. Out of scope
 
