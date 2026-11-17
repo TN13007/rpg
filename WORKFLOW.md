@@ -3,7 +3,7 @@
 **Repository:** [TN13007/rpg](https://github.com/TN13007/rpg)  
 **Engine:** Godot 4.7.2 .NET / C#  
 **Last reviewed:** 2026-11-17  
-**Official implementation baseline:** `main` — `5e0bad3ae2ccda8fd55d0445ffbc3cbb49d5e207`
+**Official implementation baseline:** `main` — `fe0153a47aec4b30d6fdc985d957e740693cd2eb`
 
 > Start here at the beginning and end of every Session. This is the single project-status and handoff tracker. Do not create separate project-state, decision, learning or per-session tracking files.
 
@@ -167,8 +167,8 @@ Track known disagreements between the documents and official implementation here
 - [Issue #11 — Decide the long-term gameplay loop](https://github.com/TN13007/rpg/issues/11) remains a separate design question. Do not add speculative progression systems to Version 1 to resolve it.
 - [PR #23 — Version 1 Exploration architecture and Session plan](https://github.com/TN13007/rpg/pull/23) is merged; the accepted design is not yet fully implemented.
 - [PR #24 — QA documentation alignment](https://github.com/TN13007/rpg/pull/24) is merged.
-- [PR #31 — naming-validator hardening](https://github.com/TN13007/rpg/pull/31) is open and requires review of ambiguous/duplicate owner identities before merge.
-- [PR #33 — unified validation and repository workflow](https://github.com/TN13007/rpg/pull/33) is open; it closes Issue #32 when merged.
+- [PR #31 — naming-validator hardening](https://github.com/TN13007/rpg/pull/31) is merged; Issue #30 is closed.
+- [PR #33 — unified validation and repository workflow](https://github.com/TN13007/rpg/pull/33) is merged; Issue #32 is closed.
 
 ## 6. Next Session handoff
 
