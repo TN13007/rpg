@@ -14,8 +14,56 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
       - name: Run automated tests
         run: dotnet test RPG.Tests/RPG.Tests.csproj --configuration Release
+      - name: Check C# naming conventions in changed files
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_BRANCH: ${{ github.base_ref }}
+          BEFORE_SHA: ${{ github.event.before }}
+        run: |
+          if [[ "$EVENT_NAME" == "pull_request" ]]; then
+            BASE_REF="origin/$BASE_BRANCH"
+          else
+            BASE_REF="$BEFORE_SHA"
+          fi
+
+          if [[ -z "$BASE_REF" || "$BASE_REF" =~ ^0+$ ]]; then
+            BASE_REF="HEAD^"
+          fi
+
+          mapfile -t CHANGED_CS_FILES < <(git diff --name-only "$BASE_REF...HEAD" -- '*.cs')
+          APP_FILES=()
+          TEST_FILES=()
+
+          for path in "${CHANGED_CS_FILES[@]}"; do
+            if [[ ! -f "$path" ]]; then
+              continue
+            fi
+
+            if [[ "$path" == RPG.Tests/* ]]; then
+              TEST_FILES+=("$path")
+            else
+              APP_FILES+=("$path")
+            fi
+          done
+
+          if ((${#APP_FILES[@]} > 0)); then
+            echo "Checking application C# naming..."
+            dotnet format style RPG.csproj --no-restore --verify-no-changes --diagnostics IDE1006 --severity warn --include "${APP_FILES[@]}"
+          fi
+
+          if ((${#TEST_FILES[@]} > 0)); then
+            echo "Checking test C# naming..."
+            dotnet format style RPG.Tests/RPG.Tests.csproj --no-restore --verify-no-changes --diagnostics IDE1006 --severity warn --include "${TEST_FILES[@]}"
+          fi
+
+          if ((${#APP_FILES[@]} == 0 && ${#TEST_FILES[@]} == 0)); then
+            echo "No changed C# files; naming check skipped."
+          fi

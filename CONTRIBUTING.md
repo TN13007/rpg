@@ -93,6 +93,20 @@ Automated tests:
 dotnet test RPG.Tests/RPG.Tests.csproj --configuration Release
 ```
 
+Check naming conventions for a changed application file:
+
+```powershell
+dotnet format style RPG.csproj --verify-no-changes --diagnostics IDE1006 --severity warn --include Scripts/Actions/ActionExecutionService.cs
+```
+
+Check naming conventions for a changed test file:
+
+```powershell
+dotnet format style RPG.Tests/RPG.Tests.csproj --verify-no-changes --diagnostics IDE1006 --severity warn --include RPG.Tests/ActionExecutionTests.cs
+```
+
+Replace the example paths with the C# files changed in your task. The CI workflow runs the same IDE1006 check on changed C# files only, so unrelated legacy naming issues do not block changes to other files.
+
 Open the project in Godot 4.7.2 .NET and run:
 
 ```text
@@ -117,7 +131,7 @@ Use the [Google C# Style Guide](https://google.github.io/styleguide/csharpguide.
 | Element | Convention | Example |
 |---|---|---|
 | Class, struct, record, enum, delegate, method and test method | `PascalCase` | `CharacterData`, `CalculateDuration`, `RestAtMaximumEnergyDoesNotExceedMaximum` |
-| Public or protected property, field, event | `PascalCase` | `MaxHealth`, `ActionSelected` |
+| Public field/property, and event at any accessibility | `PascalCase` | `MaxHealth`, `ActionSelected` |
 | Interface | `I` + `PascalCase` | `IActionExecutor` |
 | Parameter and local variable | `camelCase` | `startingEnergy` |
 | Private, protected or internal field/property | `_camelCase` | `_combatService` |

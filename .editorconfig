@@ -2,3 +2,64 @@ root = true
 
 [*]
 charset = utf-8
+
+[*.cs]
+# IDE1006: Enforce the repository's Google C# naming conventions.
+dotnet_diagnostic.IDE1006.severity = warning
+
+# Types and namespaces use PascalCase.
+dotnet_naming_rule.types_and_namespaces_should_be_pascal_case.severity = warning
+dotnet_naming_rule.types_and_namespaces_should_be_pascal_case.symbols = types_and_namespaces
+dotnet_naming_rule.types_and_namespaces_should_be_pascal_case.style = pascal_case
+
+dotnet_naming_symbols.types_and_namespaces.applicable_kinds = class, struct, enum, delegate, namespace
+dotnet_naming_symbols.types_and_namespaces.applicable_accessibilities = *
+
+dotnet_naming_style.pascal_case.capitalization = pascal_case
+
+# Interfaces use an I prefix followed by PascalCase.
+dotnet_naming_rule.interfaces_should_be_ipascal_case.severity = warning
+dotnet_naming_rule.interfaces_should_be_ipascal_case.symbols = interfaces
+dotnet_naming_rule.interfaces_should_be_ipascal_case.style = ipascal_case
+
+dotnet_naming_symbols.interfaces.applicable_kinds = interface
+dotnet_naming_symbols.interfaces.applicable_accessibilities = *
+
+dotnet_naming_style.ipascal_case.required_prefix = I
+dotnet_naming_style.ipascal_case.capitalization = pascal_case
+
+# Methods, local functions and events use PascalCase at every accessibility.
+dotnet_naming_rule.methods_and_events_should_be_pascal_case.severity = warning
+dotnet_naming_rule.methods_and_events_should_be_pascal_case.symbols = methods_and_events
+dotnet_naming_rule.methods_and_events_should_be_pascal_case.style = pascal_case
+
+dotnet_naming_symbols.methods_and_events.applicable_kinds = method, local_function, event
+dotnet_naming_symbols.methods_and_events.applicable_accessibilities = *
+
+# Public fields and properties use PascalCase.
+dotnet_naming_rule.public_fields_and_properties_should_be_pascal_case.severity = warning
+dotnet_naming_rule.public_fields_and_properties_should_be_pascal_case.symbols = public_fields_and_properties
+dotnet_naming_rule.public_fields_and_properties_should_be_pascal_case.style = pascal_case
+
+dotnet_naming_symbols.public_fields_and_properties.applicable_kinds = field, property
+dotnet_naming_symbols.public_fields_and_properties.applicable_accessibilities = public
+
+# Non-public fields and properties use _camelCase, regardless of const, static or readonly.
+dotnet_naming_rule.non_public_fields_and_properties_should_be_camel_case_with_underscore.severity = warning
+dotnet_naming_rule.non_public_fields_and_properties_should_be_camel_case_with_underscore.symbols = non_public_fields_and_properties
+dotnet_naming_rule.non_public_fields_and_properties_should_be_camel_case_with_underscore.style = camel_case_with_underscore
+
+dotnet_naming_symbols.non_public_fields_and_properties.applicable_kinds = field, property
+dotnet_naming_symbols.non_public_fields_and_properties.applicable_accessibilities = private, internal, protected, protected_internal, private_protected
+
+dotnet_naming_style.camel_case_with_underscore.required_prefix = _
+dotnet_naming_style.camel_case_with_underscore.capitalization = camel_case
+
+# Parameters and local variables use camelCase.
+dotnet_naming_rule.parameters_and_locals_should_be_camel_case.severity = warning
+dotnet_naming_rule.parameters_and_locals_should_be_camel_case.symbols = parameters_and_locals
+dotnet_naming_rule.parameters_and_locals_should_be_camel_case.style = camel_case
+
+dotnet_naming_symbols.parameters_and_locals.applicable_kinds = parameter, local
+dotnet_naming_symbols.parameters_and_locals.applicable_accessibilities = *
+dotnet_naming_style.camel_case.capitalization = camel_case
