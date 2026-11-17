@@ -5,7 +5,7 @@
 **Verification note:** This document defines an acceptance scenario. It is not evidence that the current `main` build has completed Godot runtime acceptance.
 
 **Purpose:** A repeatable narrative and gameplay acceptance scenario for Version 1.  
-**Related plan:** [Version 1 Session Plan](../Design/VERSION_1_SESSION_PLAN.md)  
+**Related plan:** [Version 1 Session Plan](../Design/Version1SessionPlan.md)  
 **Starting point:** Main scene, Dormitory, Day 1 at 07:30.  
 **Scenario status:** Proposed test content. Existing behavior and planned Version 1 additions are distinguished below.
 

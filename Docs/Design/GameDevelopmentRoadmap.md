@@ -138,7 +138,7 @@ Daily life needs both a meaningful time/resource loop and a reliable way to disc
 - State changes are visible and persist at the intended scope.
 - Tests cover insufficient resources, availability/context, invalid/stale requests, time rollover, recovery, summary and save/load.
 
-**Detailed implementation plan:** [Version 1 — Session-by-Session Implementation Plan](VERSION_1_SESSION_PLAN.md). The revised plan contains nine sessions. Sessions 1 and 2 have merged implementations; Session 3 establishes the grouped Exploration choice pipeline before the remaining daily-life features. Every session requires automated tests and Godot runtime acceptance; code-only output is not completion.
+**Detailed implementation plan:** [Version 1 — Session-by-Session Implementation Plan](Version1SessionPlan.md). The revised plan contains nine sessions. Sessions 1 and 2 have merged implementations; Session 3 establishes the grouped Exploration choice pipeline before the remaining daily-life features. Every session requires automated tests and Godot runtime acceptance; code-only output is not completion.
 
 ## Version 2 — Character Development
 
@@ -407,10 +407,10 @@ Do not start a later version merely because its code seems interesting. Start it
 
 This roadmap organizes delivery order. It does not replace the detailed rules in the owning documents.
 
-- [Game Overview](GAME_OVERVIEW.md) defines the product concept and experience.
-- [Gameplay Loop and Location Events](GAME_LOOP_AND_LOCATION_EVENTS.md) defines the current location/event flow.
-- [World Model Foundation](WORLD_MODEL_FOUNDATION.md) defines provisional domain vocabulary and modeling constraints.
-- [Open Design Questions](OPEN_DESIGN_QUESTIONS.md) tracks decisions that are not yet settled.
-- [Long-Term World and Challenges](LONG_TERM_WORLD_AND_CHALLENGES.md), if/when merged, records the direction for evolving world challenges.
+- [Game Overview](GameOverview.md) defines the product concept and experience.
+- [Gameplay Loop and Location Events](GameLoopAndLocationEvents.md) defines the current location/event flow.
+- [World Model Foundation](WorldModelFoundation.md) defines provisional domain vocabulary and modeling constraints.
+- [Open Design Questions](OpenDesignQuestions.md) tracks decisions that are not yet settled.
+- [Long-Term World and Challenges](LongTermWorldAndChallenges.md), if/when merged, records the direction for evolving world challenges.
 
 If this roadmap conflicts with a more specific, already accepted design decision, preserve the accepted decision and update the roadmap. A proposal in an unmerged branch is not automatically an accepted requirement.

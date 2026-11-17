@@ -1,7 +1,7 @@
 # World Model Review — NPC, Object and Location
 
 **Related issue:** [#12 — Review NPC, Object and Location](https://github.com/TN13007/rpg/issues/12)  
-**Reference documents:** [World Model Foundation](WORLD_MODEL_FOUNDATION.md), [Game Overview](GAME_OVERVIEW.md), [UI Architecture](UI_ARCHITECTURE.md), [Gameplay Loop and Location Events](GAME_LOOP_AND_LOCATION_EVENTS.md)  
+**Reference documents:** [World Model Foundation](WorldModelFoundation.md), [Game Overview](GameOverview.md), [UI Architecture](UiArchitecture.md), [Gameplay Loop and Location Events](GameLoopAndLocationEvents.md)  
 **Scope:** Design review only. This document records what the current prototype actually models and what remains conceptual.
 
 ## 1. Summary
@@ -148,7 +148,7 @@ This is compatible with the responsibility boundaries in World Model Foundation.
 
 ## 6. Conclusion
 
-The existing `WORLD_MODEL_FOUNDATION.md` remains a suitable provisional foundation. The three scenarios reveal implementation gaps, but no contradiction requiring an immediate redesign.
+The existing `WorldModelFoundation.md` remains a suitable provisional foundation. The three scenarios reveal implementation gaps, but no contradiction requiring an immediate redesign.
 
 The smallest correct next step is to preserve the existing concepts and add explicit NPC/Object presence and target ownership only when a gameplay feature needs them. No implementation change is required by this review.
 

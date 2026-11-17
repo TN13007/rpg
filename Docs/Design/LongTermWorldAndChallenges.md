@@ -2,7 +2,7 @@
 
 **Status:** Design direction — early concept, not an implementation specification.  
 **Scope:** Long-term world simulation and challenge design for Adventurer Academy RPG.  
-**Related:** [Game Overview](GAME_OVERVIEW.md), [Gameplay Loop and Location Events](GAME_LOOP_AND_LOCATION_EVENTS.md).
+**Related:** [Game Overview](GameOverview.md), [Gameplay Loop and Location Events](GameLoopAndLocationEvents.md).
 
 ## 1. Core Vision
 

@@ -437,4 +437,4 @@ Present NPCs, Items and Interactable Objects may later provide choices in a Near
 
 Combat remains a specialized pipeline. Skills represent learned capabilities; Combat Actions are operations available during combat and may be unlocked or modified by Skills. Do not mix Combat Actions into the Exploration Player Actions list.
 
-See [Exploration Action Choice Pipeline](EXPLORATION_ACTION_PIPELINE.md) for the implementation contract.
+See [Exploration Action Choice Pipeline](ExplorationActionPipeline.md) for the implementation contract.

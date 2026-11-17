@@ -124,7 +124,7 @@ These values are prototype rules, not final balance. Sleep currently changes tim
 
 [Issue #10](https://github.com/TN13007/rpg/issues/10) was closed with all five of its playable-journey acceptance criteria marked complete by the project owner. Its scope covered the main scene, travel among the prototype Locations, Event appearance/non-appearance, Confront and Sneak, Combat actions/outcomes, character UI and resource/time behavior.
 
-The [QA verification record](../QA/PLAYABLE_JOURNEY_TEST_REPORT.md) documents this owner-reported result. The Issue did not retain raw Godot Output logs, screenshots/video, exact before/after values or the exact local build revision.
+The [QA verification record](../QA/PlayableJourneyTestReport.md) documents this owner-reported result. The Issue did not retain raw Godot Output logs, screenshots/video, exact before/after values or the exact local build revision.
 
 The checklist above is broader than Issue #10. Its unchecked items remain unverified in the repository record; do not treat Issue #10 closure as proof that every Sprint acceptance criterion has been individually tested.
 

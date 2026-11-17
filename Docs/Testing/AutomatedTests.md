@@ -61,4 +61,4 @@ Record the tested branch/commit and attach the relevant Godot Output, screenshot
 - This test project does not launch the Godot scene, inspect rendered controls or validate mouse/input wiring.
 - Rest provides the current short-term recovery path for a living unconscious Player. This does not imply that a larger infirmary, collapse consequence or world-level recovery system exists.
 - PR #21 and PR #22 report passing GitHub Actions .NET tests, but both PR descriptions leave Godot runtime acceptance pending. Verify the current `main` build before recording those runtime checks as complete.
-- A previous owner-marked playable-journey pass is documented in `Docs/QA/PLAYABLE_JOURNEY_TEST_REPORT.md`; that record explicitly notes that raw logs/screenshots and per-action measurements were not retained.
+- A previous owner-marked playable-journey pass is documented in `Docs/QA/PlayableJourneyTestReport.md`; that record explicitly notes that raw logs/screenshots and per-action measurements were not retained.

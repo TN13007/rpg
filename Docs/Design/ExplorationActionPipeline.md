@@ -2,7 +2,7 @@
 
 **Project:** RPG — Adventurer Academy  
 **Status:** Accepted design direction; implementation is incremental through Version 1  
-**Related documents:** [World Model Foundation](WORLD_MODEL_FOUNDATION.md), [UI Architecture](UI_ARCHITECTURE.md), [Version 1 Session Plan](VERSION_1_SESSION_PLAN.md)
+**Related documents:** [World Model Foundation](WorldModelFoundation.md), [UI Architecture](UiArchitecture.md), [Version 1 Session Plan](Version1SessionPlan.md)
 
 ## 1. Purpose
 

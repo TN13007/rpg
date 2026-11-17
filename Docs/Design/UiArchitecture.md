@@ -1,7 +1,7 @@
 # UI Architecture — Main Game Interface
 
 **Status:** Design direction with an integrated playable encounter slice  
-**Related documents:** [Game Overview](GAME_OVERVIEW.md), [Exploration Action Choice Pipeline](EXPLORATION_ACTION_PIPELINE.md), [Combat Panel Contract](COMBAT_PANEL_REVIEW.md)
+**Related documents:** [Game Overview](GameOverview.md), [Exploration Action Choice Pipeline](ExplorationActionPipeline.md), [Combat Panel Contract](CombatPanelReview.md)
 
 ## 1. Main Screen Composition
 
@@ -106,7 +106,7 @@ CombatService
 
 CombatService owns validation, resolution and combat state mutation. UI availability is advisory and the service revalidates requests.
 
-Detailed contracts are defined in [Combat Panel Contract](COMBAT_PANEL_REVIEW.md).
+Detailed contracts are defined in [Combat Panel Contract](CombatPanelReview.md).
 
 ### 3.6 Other Activity Modes
 

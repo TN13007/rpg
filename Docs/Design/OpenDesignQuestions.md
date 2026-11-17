@@ -49,22 +49,22 @@
 
 | ID | Decision | Source |
 |---|---|---|
-| UI-R01 | Keep the Character, Diary and System Sidebar taxonomy; the Main Panel owns Location exploration. | [UI Architecture](UI_ARCHITECTURE.md) |
-| COM-R01 | Keep three message types: Player, Enemy and System. Thoughts and inferences are categorized System messages. | [Combat Panel Contract](COMBAT_PANEL_REVIEW.md) |
-| COM-R02 | Use visible speaker and category labels; alignment and color are not the only identity cues. | [Combat Panel Contract](COMBAT_PANEL_REVIEW.md) |
-| COM-R03 | Show exact enemy HP in the current prototype. Status shows current HP; log records damage deltas. | [Combat Panel Contract](COMBAT_PANEL_REVIEW.md) |
-| COM-R04 | Use a styled System message for round separators; timestamps are not required. | [Combat Panel Contract](COMBAT_PANEL_REVIEW.md) |
-| COM-R05 | Bound the message log to 60 messages and auto-scroll only when already at the bottom. | [Combat Panel Contract](COMBAT_PANEL_REVIEW.md) |
-| COM-R06 | UI receives only a presentation-safe snapshot; hidden AI decisions are never passed to UI. | [Combat Panel Contract](COMBAT_PANEL_REVIEW.md) |
-| COM-R07 | Combat action availability is replaced from the latest snapshot; CombatService revalidates every request. | [Combat Panel Contract](COMBAT_PANEL_REVIEW.md) |
-| COM-R08 | A character with 0 HP is dead and cannot start an encounter or perform gameplay actions. | [Playable Journey Sprint](SPRINT_PLAYABLE_JOURNEY.md) |
-| LOOP-R01 | The core loop uses Location travel and optional Location Events; no Expedition or Run wrapper is required. | [Gameplay Loop and Location Events](GAME_LOOP_AND_LOCATION_EVENTS.md) |
-| LOOP-R02 | A Location owns its Event Definitions. An Event is not automatically an Encounter or Combat; the player chooses a resolution. | [Gameplay Loop and Location Events](GAME_LOOP_AND_LOCATION_EVENTS.md) |
-| LOOP-R03 | Evaluate a Location's Event pool after successful arrival, at most once per in-game day, only while the Player can act. | [Gameplay Loop and Location Events](GAME_LOOP_AND_LOCATION_EVENTS.md) |
-| LOOP-R04 | Event choices execute through the normal action path or reference an action that starts the relevant Encounter/Combat flow. | [Gameplay Loop and Location Events](GAME_LOOP_AND_LOCATION_EVENTS.md) |
-| ACT-R01 | Exploration choices come from distinct sources (Player, Location, Travel, Target and Event) and are grouped for presentation. | [Exploration Action Choice Pipeline](EXPLORATION_ACTION_PIPELINE.md) |
-| ACT-R02 | Loaders parse content; Query selects contextually available choices; Mapper creates ViewModels; UI renders them. | [Exploration Action Choice Pipeline](EXPLORATION_ACTION_PIPELINE.md) |
-| ACT-R03 | Combat Actions and Skills remain separate from the Exploration action-choice pipeline. | [Exploration Action Choice Pipeline](EXPLORATION_ACTION_PIPELINE.md) |
+| UI-R01 | Keep the Character, Diary and System Sidebar taxonomy; the Main Panel owns Location exploration. | [UI Architecture](UiArchitecture.md) |
+| COM-R01 | Keep three message types: Player, Enemy and System. Thoughts and inferences are categorized System messages. | [Combat Panel Contract](CombatPanelReview.md) |
+| COM-R02 | Use visible speaker and category labels; alignment and color are not the only identity cues. | [Combat Panel Contract](CombatPanelReview.md) |
+| COM-R03 | Show exact enemy HP in the current prototype. Status shows current HP; log records damage deltas. | [Combat Panel Contract](CombatPanelReview.md) |
+| COM-R04 | Use a styled System message for round separators; timestamps are not required. | [Combat Panel Contract](CombatPanelReview.md) |
+| COM-R05 | Bound the message log to 60 messages and auto-scroll only when already at the bottom. | [Combat Panel Contract](CombatPanelReview.md) |
+| COM-R06 | UI receives only a presentation-safe snapshot; hidden AI decisions are never passed to UI. | [Combat Panel Contract](CombatPanelReview.md) |
+| COM-R07 | Combat action availability is replaced from the latest snapshot; CombatService revalidates every request. | [Combat Panel Contract](CombatPanelReview.md) |
+| COM-R08 | A character with 0 HP is dead and cannot start an encounter or perform gameplay actions. | [Playable Journey Sprint](SprintPlayableJourney.md) |
+| LOOP-R01 | The core loop uses Location travel and optional Location Events; no Expedition or Run wrapper is required. | [Gameplay Loop and Location Events](GameLoopAndLocationEvents.md) |
+| LOOP-R02 | A Location owns its Event Definitions. An Event is not automatically an Encounter or Combat; the player chooses a resolution. | [Gameplay Loop and Location Events](GameLoopAndLocationEvents.md) |
+| LOOP-R03 | Evaluate a Location's Event pool after successful arrival, at most once per in-game day, only while the Player can act. | [Gameplay Loop and Location Events](GameLoopAndLocationEvents.md) |
+| LOOP-R04 | Event choices execute through the normal action path or reference an action that starts the relevant Encounter/Combat flow. | [Gameplay Loop and Location Events](GameLoopAndLocationEvents.md) |
+| ACT-R01 | Exploration choices come from distinct sources (Player, Location, Travel, Target and Event) and are grouped for presentation. | [Exploration Action Choice Pipeline](ExplorationActionPipeline.md) |
+| ACT-R02 | Loaders parse content; Query selects contextually available choices; Mapper creates ViewModels; UI renders them. | [Exploration Action Choice Pipeline](ExplorationActionPipeline.md) |
+| ACT-R03 | Combat Actions and Skills remain separate from the Exploration action-choice pipeline. | [Exploration Action Choice Pipeline](ExplorationActionPipeline.md) |
 
 ## 6. Review Priorities
 
