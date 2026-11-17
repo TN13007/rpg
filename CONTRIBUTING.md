@@ -102,13 +102,22 @@ For a focused Python validator test run while developing the validator itself:
 python -m unittest discover -s Tools/Tests -p "*Tests.py" -v
 ```
 
+To audit every Git-tracked file and directory, including unchanged legacy paths, run:
+
+```powershell
+python Tools/CheckProjectNaming.py --audit-all
+```
+
+This standalone audit reports violations and safe PascalCase suggestions; it does not rename files. It exits with code 1 while violations remain. Untracked files are intentionally excluded. The initial findings and staged remediation plan are recorded in [Project Naming Audit](Docs/Quality/ProjectNamingAudit.md).
+
 The validator checks the following scoped rules:
 
 - JSON property names are checked when newly introduced or renamed; unchanged legacy property names are grandfathered.
 - New or changed content IDs and ID references must use `snake_case`. An unchanged ID/reference remains grandfathered only when it belongs to the same JSON object and field; moving objects within arrays does not by itself count as an ID change.
 - String values under `type`, `timeMode` and `stat` must use `PascalCase` in a modified JSON document.
 - Every newly added or renamed tracked file is checked for a `PascalCase` logical name regardless of extension. Godot sidecars such as `.cs.uid` and `.svg.import` are checked using the underlying source/asset name.
-- Newly created directories must use `PascalCase`; unchanged legacy paths are not revalidated just because file contents change.
+- Newly created directories must use `PascalCase`; unchanged legacy paths are not revalidated just because file contents change. Use the standalone `--audit-all` mode to find legacy path violations.
+- Dot-separated PascalCase .NET project names such as `RPG.Tests` and `RPG.Tests.csproj` are accepted as project naming conventions.
 - Explicit exceptions are the repository entry/configuration files `README.md`, `CONTRIBUTING.md`, `.editorconfig`, `.gitattributes`, `.gitignore`, and Godot's `project.godot`, `icon.svg`, and `icon.svg.import`; the `.github` and `.godot` platform/tool-managed trees are also exempt.
 
 The Pull Request source branch must match `<type>/issue-<number>-<kebab-case-description>`.

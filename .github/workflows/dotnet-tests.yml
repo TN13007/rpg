@@ -34,3 +34,7 @@ jobs:
             ARGS+=(--check-branch)
           fi
           python3 Tools/Validate.py "${ARGS[@]}"
+
+      - name: Report full repository naming audit (non-blocking)
+        shell: bash
+        run: python3 Tools/CheckProjectNaming.py --audit-all --report-only
