@@ -20,7 +20,44 @@ public sealed class ActionDurationEstimateMapperTests
         string result = _mapper.Map(action, actor);
 
         Assert.Equal("0:10–0:20", result);
+    
+    private void MapNullAction()
+    {
+        _mapper.Map(null, TestCharacterFactory.CreatePlayer());
     }
+
+    private void MapNullActor()
+    {
+        _mapper.Map(new ActionDefinition("read", "Read", 10), null);
+    }
+
+    private void CreateActionWithIncompleteEstimate()
+    {
+        new ActionDefinition("read", "Read", 10, estimatedDurationMinMinutes: 5);
+    }
+
+    private void CreateActionWithNegativeEstimate()
+    {
+        new ActionDefinition("read", "Read", 10,
+            estimatedDurationMinMinutes: -1,
+            estimatedDurationMaxMinutes: 10);
+    }
+
+    private void CreateActionWithReversedEstimate()
+    {
+        new ActionDefinition("read", "Read", 10,
+            estimatedDurationMinMinutes: 20,
+            estimatedDurationMaxMinutes: 10);
+    }
+
+    private void CreateNextDayActionWithEstimate()
+    {
+        new ActionDefinition("sleep", "Sleep", 0,
+            timeMode: ActionTimeMode.NextDay,
+            estimatedDurationMinMinutes: 10,
+            estimatedDurationMaxMinutes: 20);
+    }
+}
 
     [Fact]
     public void Map_AppliesStatModifierToBothEstimateBounds()
@@ -86,51 +123,31 @@ public sealed class ActionDurationEstimateMapperTests
         Character actor = TestCharacterFactory.CreatePlayer();
         ActionDefinition action = new ActionDefinition("read", "Read", 10);
 
-        Assert.Throws<ArgumentNullException>(() => _mapper.Map(null, actor));
-        Assert.Throws<ArgumentNullException>(() => _mapper.Map(action, null));
+        Assert.Throws<ArgumentNullException>(MapNullAction);
+        Assert.Throws<ArgumentNullException>(MapNullActor);
     }
 
     [Fact]
     public void ActionDefinition_RejectsIncompleteEstimateBounds()
     {
-        Assert.Throws<ArgumentException>(() => new ActionDefinition(
-            "read",
-            "Read",
-            10,
-            estimatedDurationMinMinutes: 5));
+        Assert.Throws<ArgumentException>(CreateActionWithIncompleteEstimate);
     }
 
     [Fact]
     public void ActionDefinition_RejectsNegativeEstimateBounds()
     {
-        Assert.Throws<ArgumentOutOfRangeException>(() => new ActionDefinition(
-            "read",
-            "Read",
-            10,
-            estimatedDurationMinMinutes: -1,
-            estimatedDurationMaxMinutes: 10));
+        Assert.Throws<ArgumentOutOfRangeException>(CreateActionWithNegativeEstimate);
     }
 
     [Fact]
     public void ActionDefinition_RejectsMaximumBelowMinimum()
     {
-        Assert.Throws<ArgumentOutOfRangeException>(() => new ActionDefinition(
-            "read",
-            "Read",
-            10,
-            estimatedDurationMinMinutes: 20,
-            estimatedDurationMaxMinutes: 10));
+        Assert.Throws<ArgumentOutOfRangeException>(CreateActionWithReversedEstimate);
     }
 
     [Fact]
     public void ActionDefinition_RejectsEstimateBoundsForNextDay()
     {
-        Assert.Throws<ArgumentException>(() => new ActionDefinition(
-            "sleep",
-            "Sleep",
-            0,
-            timeMode: ActionTimeMode.NextDay,
-            estimatedDurationMinMinutes: 10,
-            estimatedDurationMaxMinutes: 20));
+        Assert.Throws<ArgumentException>(CreateNextDayActionWithEstimate);
     }
 }
