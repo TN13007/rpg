@@ -126,10 +126,13 @@ public sealed class ActionExecutionTests
 
         Assert.True(rest.CanExecuteWhenUnconscious);
         Assert.False(ordinaryAction.CanExecuteWhenUnconscious);
+        Assert.False(AcademyContent.Travel.CanExecuteWhenUnconscious);
         Assert.True(_service.CanExecute(rest, actor, out string restFailure));
         Assert.Empty(restFailure);
         Assert.False(_service.CanExecute(ordinaryAction, actor, out string ordinaryFailure));
         Assert.Contains("unconscious", ordinaryFailure);
+        Assert.False(_service.CanExecute(AcademyContent.Travel, actor, out string travelFailure));
+        Assert.Contains("unconscious", travelFailure);
     }
 
     [Fact]
@@ -285,23 +288,46 @@ public sealed class ActionExecutionTests
     }
 
     [Fact]
-    public void SelfAction_RestCanExecuteAcrossEveryEnergyValue()
+    public void SelfAction_RestHandlesEveryHealthAndEnergyCombination()
     {
         LoadAcademyContent();
         ActionDefinition rest = FindAction("rest");
 
-        for (int energy = 0; energy <= 10; energy++)
+        for (int health = 0; health <= 20; health++)
         {
-            Character actor = TestCharacterFactory.CreatePlayer(health: 20, energy: energy, mood: 50);
-            DayClock clock = new DayClock();
+            for (int energy = 0; energy <= 10; energy++)
+            {
+                Character actor = TestCharacterFactory.CreatePlayer(
+                    health: health,
+                    energy: energy,
+                    mood: 50,
+                    gold: 10);
+                DayClock clock = new DayClock();
 
-            bool success = _service.TryExecute(rest, actor, clock, out string reason, out int duration);
+                bool success = _service.TryExecute(rest, actor, clock, out string reason, out int duration);
+                bool expectedSuccess = health > 0;
 
-            Assert.True(success, "Energy " + energy + ": " + reason);
-            Assert.Equal(System.Math.Min(10, energy + 3), actor.Energy);
-            Assert.Equal(52, actor.Mood);
-            Assert.Equal(30, duration);
-            Assert.Equal(480, clock.MinutesOfDay);
+                Assert.Equal(expectedSuccess, success);
+
+                if (expectedSuccess)
+                {
+                    Assert.Empty(reason);
+                    Assert.Equal(System.Math.Min(10, energy + 3), actor.Energy);
+                    Assert.Equal(52, actor.Mood);
+                    Assert.False(actor.IsUnconscious);
+                    Assert.Equal(480, clock.MinutesOfDay);
+                    Assert.Equal(30, duration);
+                    continue;
+                }
+
+                Assert.Contains("dead", reason);
+                Assert.Equal(0, actor.Health);
+                Assert.Equal(energy, actor.Energy);
+                Assert.Equal(50, actor.Mood);
+                Assert.Equal(10, actor.Gold);
+                Assert.Equal(450, clock.MinutesOfDay);
+                Assert.Equal(0, duration);
+            }
         }
     }
 
