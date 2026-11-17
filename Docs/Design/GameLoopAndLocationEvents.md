@@ -46,7 +46,7 @@ An Event is an optional situation introduced during exploration. It does not aut
 - A `Location` declares the Event Definitions that may occur there.
 - An Event Definition is reusable content: identity, title, description, chance and available choices.
 - A runtime occurrence exists only when the selection process chooses that definition. The current prototype presents it immediately and keeps the active choice context in `MainController`.
-- Event content is stored in `Data/academy_locations.json`; C# owns selection, validation and execution rules.
+- Event content is stored in `Data/AcademyLocations.json`; C# owns selection, validation and execution rules.
 - An Event is not the same as an Encounter. The Goblin event offers a confrontation choice that starts the existing Combat encounter. Sneaking resolves through the normal Action execution path.
 
 ## 3. Prototype Event Selection Rules
