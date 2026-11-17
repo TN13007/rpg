@@ -6,6 +6,7 @@ Godot 4.7.2 .NET / C# project.
 
 - [Game Overview](Docs/Design/GAME_OVERVIEW.md) — game concept, core experience and prototype boundaries.
 - [Game Development Roadmap](Docs/Design/GAME_DEVELOPMENT_ROADMAP.md) — versioned product roadmap, visible player-facing milestones and exit criteria.
+- [Version 1 Session Plan](Docs/Design/VERSION_1_SESSION_PLAN.md) — detailed playable sessions, implementation scope, test cases and runtime acceptance.
 - [World Model Foundation](Docs/Design/WORLD_MODEL_FOUNDATION.md) — provisional gameplay taxonomy, object inventory, conceptual ERD, modeling rules and incremental plan.
 - [World Model Review](Docs/Design/WORLD_MODEL_REVIEW.md) — review of NPC, Object and Location against three concrete prototype scenarios.
 - [UI Architecture](Docs/Design/UI_ARCHITECTURE.md) — main screen, sidebar, Main Panel modes and persistent character state.
