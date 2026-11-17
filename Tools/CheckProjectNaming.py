@@ -13,6 +13,7 @@ from pathlib import PurePosixPath
 from typing import Any
 
 PASCAL_CASE = re.compile(r"^[A-Z][A-Za-z0-9]*$")
+DOTNET_PROJECT_NAME = re.compile(r"^[A-Z][A-Za-z0-9]*(?:\.[A-Z][A-Za-z0-9]*)+$")
 CAMEL_CASE = re.compile(r"^[a-z][A-Za-z0-9]*$")
 SNAKE_CASE = re.compile(r"^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$")
 BRANCH_NAME = re.compile(
@@ -78,6 +79,24 @@ def base_file_text(base_ref: str, path: str | None) -> str | None:
 
 def is_pascal_case(value: str) -> bool:
     return bool(PASCAL_CASE.fullmatch(value))
+
+
+def is_dotnet_project_name(value: str) -> bool:
+    """Accept dot-separated PascalCase segments used by .NET project names."""
+    return bool(DOTNET_PROJECT_NAME.fullmatch(value))
+
+
+def is_valid_directory_name(value: str) -> bool:
+    return is_pascal_case(value) or is_dotnet_project_name(value)
+
+
+def is_valid_file_stem(filename: str, stem: str) -> bool:
+    if is_pascal_case(stem):
+        return True
+    return (
+        PurePosixPath(filename).suffix.lower() == ".csproj"
+        and is_dotnet_project_name(stem)
+    )
 
 
 def is_camel_case(value: str) -> bool:
@@ -276,6 +295,86 @@ def _file_name_stem(filename: str) -> str:
     return name
 
 
+def _suggest_pascal_case_name(value: str) -> str | None:
+    """Suggest PascalCase only when separators make the conversion unambiguous."""
+    segments = re.split(r"[_-]+", value)
+    if len(segments) < 2 or any(
+        not re.fullmatch(r"[A-Za-z0-9]+", segment) for segment in segments
+    ):
+        return None
+    return "".join(segment[0].upper() + segment[1:].lower() for segment in segments)
+
+
+def _suggested_file_name(filename: str) -> str | None:
+    """Suggest a renamed file while preserving source and Godot sidecar suffixes."""
+    stem = _file_name_stem(filename)
+    suggested_stem = _suggest_pascal_case_name(stem)
+    if suggested_stem is None:
+        return None
+    return suggested_stem + filename[len(stem) :]
+
+
+def tracked_paths() -> list[str]:
+    """Return all paths currently tracked by Git."""
+    result = git("ls-files", "-z")
+    return [path for path in result.stdout.split("\0") if path]
+
+
+def audit_tracked_paths(paths: list[str]) -> tuple[list[str], int]:
+    """Audit every tracked path, including unchanged legacy names.
+
+    Directory findings are emitted once even when several tracked files share the
+    same directory. Platform-managed trees and repository entry files keep their
+    existing exceptions.
+    """
+    issues: list[str] = []
+    checked_directories: set[str] = set()
+
+    for path in sorted(set(paths)):
+        parts = PurePosixPath(path).parts
+        if not parts or any(part in PLATFORM_DIRECTORY_NAMES for part in parts[:-1]):
+            continue
+
+        for index, directory in enumerate(parts[:-1]):
+            if directory in PLATFORM_DIRECTORY_NAMES:
+                continue
+
+            directory_path = "/".join(parts[: index + 1])
+            if directory_path in checked_directories:
+                continue
+            checked_directories.add(directory_path)
+
+            if not is_valid_directory_name(directory):
+                suggestion = _suggest_pascal_case_name(directory)
+                suggestion_text = (
+                    f" Suggested directory name: '{suggestion}'."
+                    if suggestion
+                    else ""
+                )
+                issues.append(
+                    f"{path}: directory '{directory_path}' must use PascalCase."
+                    f"{suggestion_text}"
+                )
+
+        filename = parts[-1]
+        if filename in ENTRY_FILE_NAMES:
+            continue
+
+        stem = _file_name_stem(filename)
+        if not is_valid_file_stem(filename, stem):
+            suggested_name = _suggested_file_name(filename)
+            suggestion_text = ""
+            if suggested_name:
+                suggested_path = str(PurePosixPath(path).with_name(suggested_name))
+                suggestion_text = f" Suggested path: '{suggested_path}'."
+            issues.append(
+                f"{path}: logical file name '{stem}' must use PascalCase."
+                f"{suggestion_text}"
+            )
+
+    return issues, len(checked_directories)
+
+
 def path_naming_issues(base_ref: str, status: str, path: str) -> list[str]:
     """Check newly added/renamed paths without revalidating unchanged legacy paths."""
     if status not in {"A", "R", "C"}:
@@ -300,9 +399,14 @@ def path_naming_issues(base_ref: str, status: str, path: str) -> list[str]:
             git("cat-file", "-e", f"{base_ref}:{directory_path}", check=False).returncode
             == 0
         )
-        if not exists_in_base and not is_pascal_case(directory):
+        if not exists_in_base and not is_valid_directory_name(directory):
+            suggestion = _suggest_pascal_case_name(directory)
+            suggestion_text = (
+                f" Suggested directory name: '{suggestion}'." if suggestion else ""
+            )
             issues.append(
                 f"{path}: new directory '{directory_path}' must use PascalCase."
+                f"{suggestion_text}"
             )
 
     filename = parts[-1]
@@ -310,13 +414,17 @@ def path_naming_issues(base_ref: str, status: str, path: str) -> list[str]:
         return issues
 
     stem = _file_name_stem(filename)
-    if not is_pascal_case(stem):
+    if not is_valid_file_stem(filename, stem):
+        suggested_name = _suggested_file_name(filename)
+        suggestion_text = (
+            f" Suggested file name: '{suggested_name}'." if suggested_name else ""
+        )
         issues.append(
             f"{path}: new or renamed file '{filename}' must use PascalCase."
+            f"{suggestion_text}"
         )
 
     return issues
-
 
 def validate_branch_name(branch: str) -> list[str]:
     if BRANCH_NAME.fullmatch(branch):
@@ -330,8 +438,13 @@ def validate_branch_name(branch: str) -> list[str]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--base", required=True, help="Base commit/ref for the diff.")
-    parser.add_argument("--head", required=True, help="Head commit/ref for the diff.")
+    parser.add_argument("--base", help="Base commit/ref for the diff.")
+    parser.add_argument("--head", help="Head commit/ref for the diff.")
+    parser.add_argument(
+        "--audit-all",
+        action="store_true",
+        help="Audit every Git-tracked path, including unchanged legacy paths.",
+    )
     parser.add_argument("--branch", default="", help="Pull request source branch name.")
     parser.add_argument(
         "--check-branch", action="store_true", help="Validate the branch name."
@@ -342,6 +455,32 @@ def main() -> int:
 
     if args.check_branch:
         issues.extend(validate_branch_name(args.branch))
+
+    if args.audit_all:
+        try:
+            paths = tracked_paths()
+        except (subprocess.CalledProcessError, OSError) as error:
+            details = getattr(error, "stderr", None) or str(error)
+            print(details or "Could not list Git-tracked paths.", file=sys.stderr)
+            return 2
+
+        audit_issues, directory_count = audit_tracked_paths(paths)
+        print(
+            "Full repository path naming audit: "
+            f"{len(paths)} tracked files and {directory_count} directories checked."
+        )
+        issues.extend(audit_issues)
+        if issues:
+            print(f"Project naming audit found {len(issues)} violation(s):")
+            for issue in issues:
+                print(f"- {issue}")
+            return 1
+
+        print("Full repository path naming audit passed.")
+        return 0
+
+    if not args.base or not args.head:
+        parser.error("--base and --head are required unless --audit-all is used.")
 
     try:
         changes = changed_paths(args.base, args.head)
