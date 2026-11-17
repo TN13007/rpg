@@ -1,8 +1,12 @@
 import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
+
+TOOLS_DIR = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(TOOLS_DIR))
 
 from Validate import (
     APP_PROJECT,
