@@ -72,12 +72,12 @@ Runtime state + context
 ### Current prototype behavior
 
 The current implementation is transitional:
-- AcademyContent loads root `selfActions` from `academy_locations.json`.
+- AcademyContent loads root `selfActions` from `AcademyLocations.json`.
 - MainController.ShowLocation combines Location Actions, global Self Actions and derived Travel choices.
 - MainController maps that flat collection into ActionChoiceViewData and calls StoryPanel.ShowContent.
 - HandleChoice resolves by action ID across Location Actions and Academy Self Actions.
 
-This is the behavior Session 3 replaces. Rest moves to PlayerData in `player.json`; the new query composes Player, Location and Travel choices; the Mapper creates grouped ViewModels; StoryPanel only renders those ViewModels.
+This is the behavior Session 3 replaces. Rest moves to PlayerData in `Player.json`; the new query composes Player, Location and Travel choices; the Mapper creates grouped ViewModels; StoryPanel only renders those ViewModels.
 
 ### Event context
 

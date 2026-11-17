@@ -16,6 +16,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../RPG.csproj" />
-    <None Include="../Data/academy_locations.json" Link="Data/academy_locations.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../Data/AcademyLocations.json" Link="Data/AcademyLocations.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

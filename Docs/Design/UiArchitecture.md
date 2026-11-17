@@ -157,7 +157,7 @@ Currently implemented:
 - A dedicated Combat Panel and Combat Service → Mapper → ViewData pipeline for the Goblin encounter.
 
 Planned in Version 1:
-- Player Actions authored in `player.json`.
+- Player Actions authored in `Player.json`.
 - Available Interaction Query for Player, Location, Travel and Event sources.
 - Grouped Exploration ViewModel and grouped StoryPanel rendering.
 - Stable source/action request identity and MainController orchestration without flat-list composition.

@@ -104,7 +104,7 @@ Adventurer Academy is a fantasy life-simulation RPG prototype about daily life, 
 - Location Actions, travel duration calculation and inline duration estimates.
 - Location Events, including the Courtyard Goblin Ambush with Confront and Sneak choices.
 - Dedicated Combat flow with Attack, Defend and Dodge.
-- Rest is currently a global Self Action in root `selfActions` in `Data/academy_locations.json`. It takes 30 minutes, costs 0 Energy, restores up to 3 Energy and adds 2 Mood. It explicitly permits execution while unconscious.
+- Rest is currently a global Self Action in root `selfActions` in `Data/AcademyLocations.json`. It takes 30 minutes, costs 0 Energy, restores up to 3 Energy and adds 2 Mood. It explicitly permits execution while unconscious.
 - Sleep is currently a Dormitory Location Action. It uses `NextDay` and has configured Health, Energy and Mood recovery Effects.
 
 ### Current behavior boundaries
@@ -156,7 +156,7 @@ Track known disagreements between the documents and official implementation here
 | ID | Mismatch / risk | Canonical truth or owner | Status / next action |
 |---|---|---|---|
 | SYNC-01 | Day 1 scenario previously expected Preview / Confirm / Cancel, although Session 1 executes choices immediately. | PR #21 defines immediate execution; [Day 1 QA](Docs/QA/Day1PlayableScenario.md) was corrected in merged PR #24. | **Resolved — PR #24 merged.** |
-| SYNC-02 | Automated-test documentation previously misstated the unconscious-state rule. | `ActionExecutionService`, `academy_locations.json` and `RPG.Tests/ActionExecutionTests.cs` confirm the explicit Rest exception; [Automated Tests](Docs/Testing/AutomatedTests.md) was corrected in merged PR #24. | **Resolved — PR #24 merged.** |
+| SYNC-02 | Automated-test documentation previously misstated the unconscious-state rule. | `ActionExecutionService`, `AcademyLocations.json` and `RPG.Tests/ActionExecutionTests.cs` confirm the explicit Rest exception; [Automated Tests](Docs/Testing/AutomatedTests.md) was corrected in merged PR #24. | **Resolved — PR #24 merged.** |
 | SYNC-03 | The accepted Version 1 plan targets a grouped Player/Location/Travel/Event choice pipeline; current MainController still assembles a flat list. | [Exploration Pipeline](Docs/Design/ExplorationActionPipeline.md) and [Version 1 Session Plan](Docs/Design/Version1SessionPlan.md) were accepted/merged in PR #23. | **Design accepted; implementation pending Session 3.** |
 | SYNC-04 | Rest and Sleep ownership differ from the proposed Player Action model. | Current main: Rest is root `selfActions`; Sleep is a Dormitory Location Action. Target proposal: Player-owned actions in Session 3. | **Design-to-implementation work is not started.** |
 | SYNC-05 | Sessions 1–2 passed their .NET CI checks, but Godot runtime acceptance remains unrecorded. | [PR #21](https://github.com/TN13007/rpg/pull/21) and [PR #22](https://github.com/TN13007/rpg/pull/22). | **Run the affected journeys in Godot or explicitly defer with a reason.** |

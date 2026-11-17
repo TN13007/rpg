@@ -164,7 +164,7 @@ Explain why only explicitly permitted actions can run while unconscious and why 
 - Failure feedback explains that the player should Rest.
 
 ### Transitional data placement
-PR #22 stores Rest in `selfActions` at the root of `academy_locations.json`. This works in the current prototype, but does not express Player ownership. Session 3 will move it into `player.json` and remove the duplicate global Self Action source. Do not reimplement Session 2's Energy rules during that migration.
+PR #22 stores Rest in `selfActions` at the root of `AcademyLocations.json`. This works in the current prototype, but does not express Player ownership. Session 3 will move it into `Player.json` and remove the duplicate global Self Action source. Do not reimplement Session 2's Energy rules during that migration.
 
 
 <a id="session-3"></a>
@@ -212,8 +212,8 @@ Sessions 1 and 2 already introduced action duration, costs and execution. Before
 
 | Source | Definition location | Version 1 example |
 |---|---|---|
-| Player Actions | `Data/Characters/player.json` → `playerActions` | Rest, Sleep |
-| Location Actions | `Data/academy_locations.json` → `locations[].actions` | Read letter, Inspect board, Study maps |
+| Player Actions | `Data/Characters/Player.json` → `playerActions` | Rest, Sleep |
+| Location Actions | `Data/AcademyLocations.json` → `locations[].actions` | Read letter, Inspect board, Study maps |
 | Travel | Derived from `locations[].exits` plus shared Travel configuration | Go to Courtyard |
 | Event Choices | `locations[].events[].choices` | Confront Goblin, Sneak past |
 | NPC / Item / Interactable | Future source-specific content | Not implemented in this session |

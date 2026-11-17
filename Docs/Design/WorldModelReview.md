@@ -24,7 +24,7 @@ These are known prototype boundaries, not reasons to introduce abstractions imme
 
 **Current prototype representation**
 
-- `Data/academy_locations.json` defines `talk_mira` under the Courtyard's `actions`.
+- `Data/AcademyLocations.json` defines `talk_mira` under the Courtyard's `actions`.
 - The action costs 1 Energy, advances 15 minutes and applies a Mood effect.
 - The label and feedback mention Mira.
 - The current action definition does not identify Mira with a Character ID or an explicit target reference.
