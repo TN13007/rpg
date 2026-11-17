@@ -166,10 +166,10 @@ class ChangedPathTests(unittest.TestCase):
 
     def test_changed_paths_parses_added_modified_deleted_and_renamed_entries(self):
         output = (
-            "A\\0AddedFile.txt\\0"
-            "M\\0ModifiedFile.cs\\0"
-            "D\\0DeletedFile.cs\\0"
-            "R100\\0OldFolder/OldFile.txt\\0NewFolder/NewFile.txt\\0"
+            "A\0AddedFile.txt\0"
+            "M\0ModifiedFile.cs\0"
+            "D\0DeletedFile.cs\0"
+            "R100\0OldFolder/OldFile.txt\0NewFolder/NewFile.txt\0"
         )
         with patch(
             "CheckProjectNaming.git",
