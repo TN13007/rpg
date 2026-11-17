@@ -78,6 +78,35 @@ class NamingConventionTests(unittest.TestCase):
             [], validate_json_document("Locations.json", current, previous)
         )
 
+    def test_legacy_id_survives_non_identity_field_changes(self):
+        previous = (
+            '{"locations":[{"id":"room-a","name":"Room A",'
+            '"description":"An old description"}]}'
+        )
+        current = (
+            '{"locations":[{"id":"room-a","name":"Room A",'
+            '"description":"A revised description"}]}'
+        )
+        self.assertEqual(
+            [], validate_json_document("Locations.json", current, previous)
+        )
+
+    def test_nested_ids_are_scoped_to_their_parent_entity(self):
+        previous = (
+            '{"locations":['
+            '{"name":"Room A","actions":[{"id":"attack-a","label":"Attack"}]},'
+            '{"name":"Room B","actions":[{"id":"attack-b","label":"Attack"}]}'
+            ']}'
+        )
+        current = (
+            '{"locations":['
+            '{"name":"Room A","actions":[{"id":"attack-b","label":"Attack"}]},'
+            '{"name":"Room B","actions":[{"id":"attack-b","label":"Attack"}]}'
+            ']}'
+        )
+        issues = validate_json_document("Locations.json", current, previous)
+        self.assertTrue(any("attack-b" in issue for issue in issues))
+
     def test_changed_id_cannot_borrow_another_entities_old_id(self):
         previous = (
             '{"characters":['
