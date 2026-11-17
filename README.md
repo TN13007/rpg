@@ -9,8 +9,7 @@ Godot 4.7.2 .NET / C# project.
 - [Version 1 Session Plan](Docs/Design/VERSION_1_SESSION_PLAN.md) — detailed playable sessions, implementation scope, test cases and runtime acceptance.
 - [World Model Foundation](Docs/Design/WORLD_MODEL_FOUNDATION.md) — provisional gameplay taxonomy, object inventory, conceptual ERD, modeling rules and incremental plan.
 - [World Model Review](Docs/Design/WORLD_MODEL_REVIEW.md) — review of NPC, Object and Location against three concrete prototype scenarios.
-- [UI Architecture](Docs/Design/UI_ARCHITECTURE.md) — main screen, grouped Exploration choices, Sidebar, Main Panel modes and persistent character state.
-- [Exploration Action Choice Pipeline](Docs/Design/EXPLORATION_ACTION_PIPELINE.md) — action sources, Loaders, contextual Query, Mapper, ViewModel and execution boundaries.
+- [UI Architecture](Docs/Design/UI_ARCHITECTURE.md) — main screen, sidebar, Main Panel modes and persistent character state.
 - [Combat Panel Contract](Docs/Design/COMBAT_PANEL_REVIEW.md) — combat data boundary, message model, intent lifecycle and UI behavior.
 - [Open Design Questions](Docs/Design/OPEN_DESIGN_QUESTIONS.md) — unresolved questions and resolved decisions.
 - [Playable Journey Sprint](Docs/Design/SPRINT_PLAYABLE_JOURNEY.md) — the end-to-end academy day and Goblin encounter target.
@@ -33,29 +32,28 @@ Open the project in Godot 4.7.2 .NET and run the main scene (Scenes/Main.tscn).
 7. The completed encounter advances time by its configured duration. Victory grants 25 G; defeat ends the encounter and the character cannot continue while dead.
 8. Return to Exploration at the same location, continue the day, or return to the Dormitory and choose **Sleep until tomorrow** to move to 07:30 on the next morning.
 
-A character with 0 HP is dead and cannot start an encounter or perform gameplay actions. A living character with 0 Energy is unconscious; the Player's Rest action can recover Energy. The current prototype does not implement rebirth, ghost play or switching to another character.
+A character with 0 HP is dead and cannot start an encounter or perform gameplay actions. The current prototype does not yet implement rebirth, ghost play or switching to another character.
 
 The right Character Panel remains visible and shows Health, Energy, Mood and Gold. The left Sidebar contains Character, Diary and System navigation; location exploration remains in the Main Panel rather than becoming a separate sidebar tab.
 
 ## Day and time prototype
 
 - `DayClock` owns the calendar day and minute of day. The prototype starts at Day 1, 07:30.
-- `ActionDefinition` stores common action data such as duration, Energy Cost, optional stat modifier, time mode and Effects. `ActivityTimeCalculator` calculates the actual duration.
+- `ActivityDefinition` stores a base duration and optional stat modifier. `ActivityTimeCalculator` calculates the final duration for an activity.
 - Location actions, travel and combat encounter duration are configured in `Data/academy_locations.json`.
 - The clock rolls over automatically at midnight, increments the day and preserves remaining minutes.
 - Sleeping moves the player to 07:30 on the next morning. If midnight has already passed, sleeping does not increment the day a second time.
-- The current Sleep action is configured with Health, Energy and Mood recovery Effects. Session 4 verifies next-day boundary behavior and confirms those Effects are applied exactly once; daily schedules remain out of scope.
+- Sleep currently changes time only; character recovery and daily schedules are not implemented.
 
 ## Data and presentation flow
 
-- `Data/Characters/player.json` and `Data/Characters/goblin.json` define character identity, role, level, maximum values, starting values and attributes. Player Actions are planned to move into `player.json` in Version 1 Session 3; currently Rest is in the transitional academy-wide `selfActions` list.
+- `Data/Characters/player.json` and `Data/Characters/goblin.json` define character identity, role, level, maximum values, starting values and attributes.
 - `CharacterDataLoader` reads a JSON definition and creates immutable `CharacterData`.
 - `Character` owns runtime state and state-changing operations.
-- `Data/academy_locations.json` defines Locations, exits, Location Actions, Travel configuration and each Location's Event pool. Its root `selfActions` list is transitional and will be removed during Session 3.
+- `Data/academy_locations.json` defines locations, exits, actions, feedback, activity durations and each Location's Event pool.
 - `LocationEventService` evaluates a Location's Event pool once per day and selects the first successful event in authored order. Event definitions and choices are validated while AcademyContent loads.
-- `AcademyContent` loads Location and Event definitions, then validates IDs and Location exit references.
-- Current Exploration flow: `MainController` combines Location Actions, transitional Self Actions and derived Travel choices into a flat list; `ActionChoiceViewData` is passed to `StoryPanel`.
-- Target Version 1 flow: Loaders create content models; Available Interaction Query combines definitions with current context; Action Choice Mapper creates grouped `ExplorationViewModel`; StoryPanel renders those groups. See [Exploration Action Choice Pipeline](Docs/Design/EXPLORATION_ACTION_PIPELINE.md).
+- `AcademyContent` loads location and activity definitions, then validates duplicate IDs and location exit references before publishing the content.
+- `StoryPanel` renders the supplied `StoryChoice` collection. It does not define location choices itself.
 - `CombatService` validates combat actions, enforces the alive/dead rule, resolves turns and grants the victory reward.
 - `CharacterViewModel` is a read-only presentation model created from `Character`; `CharacterPanel` does not access the domain object directly.
 - `CombatPresentationMapper` maps service results into `CombatViewData` for `CombatPanel`.
@@ -65,8 +63,7 @@ The right Character Panel remains visible and shows Health, Energy, Mood and Gol
 - `Scripts/Characters/CharacterData.cs`: immutable character configuration, character attributes and JSON loading.
 - `Scripts/Characters/Character.cs`: runtime character state and state-changing operations.
 - `Scripts/UI/CharacterViewModel.cs`: read-only character data for UI presentation.
-- `Scripts/Data/AcademyContent.cs`: action definitions, location and Event models, and academy content loading/validation.
-- `Docs/Design/EXPLORATION_ACTION_PIPELINE.md`: target boundary for contextual Exploration choice discovery and rendering.
+- `Scripts/Data/AcademyContent.cs`: activity definitions, location and choice models, and academy content loading/validation.
 - `Scripts/Simulation/ActivityTimeCalculator.cs`: calculates final activity duration from an ActivityDefinition and character stats.
 - `Scripts/Simulation/DayClock.cs`: advances calendar time and handles midnight rollover.
 - `Scripts/Services/LocationEventService.cs`: evaluates Location Event pools and selects an eligible Event.
@@ -75,13 +72,13 @@ The right Character Panel remains visible and shows Health, Energy, Mood and Gol
 - `Scripts/Data/CombatPresentation.cs`: action request, result, safe snapshot, event and combat view-data contracts.
 - `Scripts/Data/CombatPresentationMapper.cs`: maps combat events and snapshots into presentation messages and CombatViewData.
 - `Scripts/UI/CharacterPanel.cs`: renders CharacterViewModel.
-- `Scripts/UI/StoryPanel.cs`: currently renders flat `ActionChoiceViewData` choices; Version 1 Session 3 will update it to render grouped Exploration ViewModels.
+- `Scripts/UI/StoryPanel.cs`: renders StoryChoice models as exploration buttons.
 - `Scripts/UI/Combat/CombatPanel.cs`: coordinates combat status, message log, action selection and the return-to-exploration action.
 - `Scripts/UI/Combat/CombatStatusPanel.cs`: current round, enemy HP / condition and observed intent.
 - `Scripts/UI/Combat/CombatMessageLog.cs`: bounded history and conditional auto-scroll.
 - `Scripts/UI/Combat/CombatMessageEntry.cs`: Player-right, Enemy-left and System-center message presentation.
 - `Scripts/UI/Combat/CombatActionPanel.cs`: renders CombatActionOption models and emits action requests.
-- `Scripts/MainController.cs`: currently initializes game systems and orchestrates Exploration / Combat transitions and choice handling; Session 3 will move choice discovery and mapping into dedicated Query/Mapper responsibilities.
+- `Scripts/MainController.cs`: initializes game systems and orchestrates Exploration / Combat mode transitions and player actions.
 
 ## Prototype limitations
 

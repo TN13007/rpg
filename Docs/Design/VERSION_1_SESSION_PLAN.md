@@ -8,6 +8,9 @@
 
 ## 1. Version Goal
 
+**Learning-target approval:** All Learning objectives, Independent practices and Knowledge checks below are AI-drafted proposals. Each is marked **Proposed** and requires explicit user approval before its Session begins. They are not evidence that the learner has already demonstrated the skill.
+
+
 Version 1 turns the current academy prototype into a small, complete daily-life loop. The player can choose what to do, understand the time/resource commitment, manage Health/Energy/Mood, experience the current academy event/combat slice, sleep, review the day and continue after restarting the game.
 
 Version 1 also establishes a modest, reusable Exploration choice pipeline. It must support Player Actions, Location Actions, Travel and Event Choices without making StoryPanel depend on their data source.
@@ -25,30 +28,9 @@ At the end of Version 1, the player can:
 
 Version 1 is not a character-progression, social-simulation, inventory or world-exploration release. NPC schedules/relationships, item ownership and use, puzzles, containers, skill progression, towers and world simulation remain outside its implementation scope.
 
-## 2. Current Baseline and Verified Repository State
+## 2. Status Ownership
 
-The following is present on `main` after PR #21 and PR #22 were merged:
-
-- `DayClock` tracks day/minute, rolls over at midnight and exposes `SleepUntilNextDay()`.
-- `Character` owns Health, Energy, Mood, Gold and alive/unconscious state.
-- `ActionDefinition` contains common action data: duration, Energy cost, time mode, Effects, duration estimate and `CanExecuteWhenUnconscious`.
-- `ActionExecutionService` checks death, unconsciousness permission and Energy; advances time; applies configured Effects.
-- `ActionEffectExecutor` applies RestoreHealth, RestoreEnergy, ChangeMood and AddGold.
-- `ActionDurationEstimateMapper` produces fixed/ranged/NextDay labels.
-- `academy_locations.json` contains Location Actions, exits, Event content, Travel configuration and a root `selfActions` array.
-- PR #22 moved Rest into that root `selfActions` array and MainController appends it to every Location choice list.
-- `player.json` defines identity, base values and stats, but does not yet define Player Actions.
-- `MainController.ShowLocation()` currently combines Location Actions, global Self Actions and derived Travel choices; it then maps a flat list into `ActionChoiceViewData`.
-- `StoryPanel` renders a flat list of buttons. It does not render action groups.
-- `ShowLocationEvent()` shows the active Event's choices in a focused presentation.
-- Combat already has its own Service → Snapshot/Result → Mapper → ViewData → Combat UI pipeline. It currently offers Attack, Defend and Dodge directly from CombatService.
-- GitHub Actions tests passed for the PR #21 and PR #22 implementation commits. Repository documents record owner verification of the earlier playable journey, but each Version 1 session still requires its own Godot runtime acceptance.
-
-### Architecture gap this plan closes
-
-The current `selfActions` placement is a transitional implementation, not the target data ownership. Rest is a Player-owned action and should be authored in `player.json`. The current flat MainController composition is also transitional. Session 3 introduces the Query → Mapper → grouped ViewModel → UI pipeline described in [Exploration Action Choice Pipeline](EXPLORATION_ACTION_PIPELINE.md).
-
-Do not duplicate the current execution rules while moving data ownership. Preserve the existing Energy, time and Effect behavior.
+Current implementation, active PRs, Session progress, learning evidence and documentation mismatches are tracked only in [WORKFLOW.md](../../WORKFLOW.md). This plan defines intended behavior, Session scope and acceptance criteria; it is not a second progress dashboard.
 
 ## 3. Shared Player Rules
 
@@ -91,11 +73,31 @@ Presentation availability is advisory; the owning service must revalidate.
 
 # 4. Session Plan
 
+<a id="session-1"></a>
+
 ## Session 1 — Inline Action Duration Estimates
 
-**Status: Implementation merged in PR #21.**
 
 **Player-facing result:** The player sees an approximate duration beside each choice and executes it immediately by selecting it.
+
+### Learning objective
+**Approval status:** Proposed — pending user approval.
+
+
+Explain the difference between a displayed duration estimate and actual execution duration; trace ActionDefinition → ActionDurationEstimateMapper → ActionChoiceViewData → StoryPanel.
+
+### Independent practice
+**Approval status:** Proposed — pending user approval.
+
+
+Independently add or adjust one duration-estimate test, predict the displayed value for a stat-modified action, then compare with the test result.
+
+### Knowledge check
+**Approval status:** Proposed — pending user approval.
+
+
+Explain why the mapper must not mutate state and why execution recalculates actual duration.
+
 
 ### Existing implementation
 - Removed the full Action Preview / Confirm / Cancel screen.
@@ -113,14 +115,32 @@ Presentation availability is advisory; the owning service must revalidate.
 - Travel, Event and Goblin Combat flow remain functional.
 - Godot runtime evidence should accompany the implementation PR/issue; automated tests alone do not prove rendered UI behavior.
 
-### Completion record
-Implementation is merged and its automated tests passed. Preserve runtime acceptance as a separately recorded check; do not infer a manual pass from CI.
+
+<a id="session-2"></a>
 
 ## Session 2 — Energy Economy and Rest
 
-**Status: Gameplay implementation merged in PR #22.**
 
 **Player-facing result:** The player spends Energy, becomes unconscious at 0 Energy, and recovers through Rest.
+
+### Learning objective
+**Approval status:** Proposed — pending user approval.
+
+
+Trace CanExecute, Energy spending, DayClock advancement and ActionEffectExecutor; explain the difference between Dead and Unconscious.
+
+### Independent practice
+**Approval status:** Proposed — pending user approval.
+
+
+Independently add or modify a boundary test for Rest at 0 Energy and Rest when Health is 0; explain why the outcomes differ.
+
+### Knowledge check
+**Approval status:** Proposed — pending user approval.
+
+
+Explain why only explicitly permitted actions can run while unconscious and why permission does not bypass Energy cost.
+
 
 ### Existing implementation
 - Energy Cost is validated before mutation.
@@ -134,12 +154,30 @@ Implementation is merged and its automated tests passed. Preserve runtime accept
 ### Transitional data placement
 PR #22 stores Rest in `selfActions` at the root of `academy_locations.json`. This works in the current prototype, but does not express Player ownership. Session 3 will move it into `player.json` and remove the duplicate global Self Action source. Do not reimplement Session 2's Energy rules during that migration.
 
-### Completion record
-Gameplay implementation and automated tests are merged. Godot runtime acceptance must still be explicitly recorded for the current main build.
+
+<a id="session-3"></a>
 
 ## Session 3 — Exploration Action Choice Pipeline
 
 **Player-facing result:** Exploration presents choices in clear groups, while the same UI can render choices supplied by different data sources.
+
+### Learning objective
+**Approval status:** Proposed — pending user approval.
+
+
+Trace a choice from Player/Location JSON through loading, contextual availability query, mapper, grouped ViewModel and StoryPanel; distinguish source identity from presentation group.
+
+### Independent practice
+**Approval status:** Proposed — pending user approval.
+
+
+Add one small Player Action or query test, predict where it appears in Dormitory versus Courtyard, and debug the result without placing discovery logic in StoryPanel.
+
+### Knowledge check
+**Approval status:** Proposed — pending user approval.
+
+
+Explain the distinct responsibilities of Loader, Query, Mapper, ViewModel, UI and execution handler.
 
 ### Why this is third
 Sessions 1 and 2 already introduced action duration, costs and execution. Before adding more activities, the game needs a clear data-to-UI path. Otherwise each new action source increases controller and UI coupling. This session corrects the temporary Self Actions implementation before later sessions add more Player Actions.
@@ -214,9 +252,29 @@ Sessions 1 and 2 already introduced action duration, costs and execution. Before
 ### Session completion evidence
 Automated test output plus a Godot recording/screenshots showing at least two Locations, grouped Personal/Location/Travel choices, Rest at 0 Energy and the Event flow.
 
+<a id="session-4"></a>
+
 ## Session 4 — Sleep and the Next-Day Transition
 
 **Player-facing result:** The player can end the day in the Dormitory and wake at 07:30 on the next morning with recovered character values.
+
+### Learning objective
+**Approval status:** Proposed — pending user approval.
+
+
+Explain how DayClock's NextDay transition differs from ordinary minute advancement and how authored Sleep Effects are applied.
+
+### Independent practice
+**Approval status:** Proposed — pending user approval.
+
+
+Independently write or extend one calendar-boundary test and verify the expected day/time.
+
+### Knowledge check
+**Approval status:** Proposed — pending user approval.
+
+
+Explain how the implementation prevents double day increments and duplicate recovery.
 
 ### Scope
 - Use `DayClock.SleepUntilNextDay()` as the only owner of the calendar transition.
@@ -243,9 +301,29 @@ Complete a normal day, sleep and verify day, 07:30 time, Dormitory location, Hea
 ### Completion evidence
 Before/after state record plus calendar-boundary automated test output.
 
+<a id="session-5"></a>
+
 ## Session 5 — Health, Injury and Recovery
 
 **Player-facing result:** Combat damage has a meaningful daily-life consequence and the Player can recover at the academy Infirmary.
+
+### Learning objective
+**Approval status:** Proposed — pending user approval.
+
+
+Identify the owner of Health state, trace damage/healing through the responsible rules and explain maximum-value clamping and the death boundary.
+
+### Independent practice
+**Approval status:** Proposed — pending user approval.
+
+
+Add a focused Health recovery test at a boundary and explain the expected state transition.
+
+### Knowledge check
+**Approval status:** Proposed — pending user approval.
+
+
+Explain why restoring Health must not silently revive a dead character unless a rule explicitly allows it.
 
 ### Scope
 - Add one Infirmary Location connected to the existing Location graph.
@@ -270,9 +348,29 @@ Take damage in Goblin Combat, return to Exploration, travel to Infirmary, receiv
 ### Completion evidence
 A complete injury → return → travel → treatment → recovered-state run.
 
+<a id="session-6"></a>
+
 ## Session 6 — Mood and Daily Wellbeing
 
 **Player-facing result:** The Player sees a clear description of their emotional condition and understands how daily activities affect Mood.
+
+### Learning objective
+**Approval status:** Proposed — pending user approval.
+
+
+Explain Mood as a runtime value, distinguish descriptive Mood bands from gameplay modifiers, and trace a Mood Effect to updated Character state.
+
+### Independent practice
+**Approval status:** Proposed — pending user approval.
+
+
+Add or adjust a boundary test for Mood minimum/maximum or one authored Mood activity; predict the clamped result before running it.
+
+### Knowledge check
+**Approval status:** Proposed — pending user approval.
+
+
+Explain which Mood behavior is data-driven and which remains descriptive in Version 1.
 
 ### Scope
 - Centralize Mood band mapping: Very Low (0–24), Low (25–49), Steady (50–74), Positive (75–100).
@@ -296,9 +394,29 @@ Perform actions that cross at least one Mood boundary in both directions and ver
 ### Completion evidence
 Runtime examples plus complete Mood-boundary test results.
 
+<a id="session-7"></a>
+
 ## Session 7 — A Small, Complete Academy Routine
 
 **Player-facing result:** The Player has several distinct activities and meaningful decisions about how to spend one day.
+
+### Learning objective
+**Approval status:** Proposed — pending user approval.
+
+
+Trace one academy activity from authored content to availability, execution, Effects, elapsed time and refreshed UI; identify each rule owner.
+
+### Independent practice
+**Approval status:** Proposed — pending user approval.
+
+
+Add one concrete daily activity using existing patterns and tests, without adding a generic system or putting rules in UI.
+
+### Knowledge check
+**Approval status:** Proposed — pending user approval.
+
+
+Explain why the activity belongs in its current source/service and what would justify a separate responsibility.
 
 ### Scope
 Add a small set of data-authored activities:
@@ -328,9 +446,29 @@ Play a day with at least three activity types and a meaningful time/Energy trade
 ### Completion evidence
 A playable day recording and test results.
 
+<a id="session-8"></a>
+
 ## Session 8 — Daily Summary and Day Continuity
 
 **Player-facing result:** The Player can review how the day was spent before continuing to the next morning.
+
+### Learning objective
+**Approval status:** Proposed — pending user approval.
+
+
+Distinguish transient UI feedback, action history and a persisted daily summary; explain how the summary derives from completed gameplay events/state.
+
+### Independent practice
+**Approval status:** Proposed — pending user approval.
+
+
+Add a focused test for one summary rule such as ordering, empty-day behavior or exclusion of a rejected action.
+
+### Knowledge check
+**Approval status:** Proposed — pending user approval.
+
+
+Explain how the summary avoids treating failed requests or temporary clock feedback as completed activities.
 
 ### Scope
 - Record successful completed activities only.
@@ -356,9 +494,29 @@ Perform several activities, sleep, inspect the summary and continue. Verify next
 ### Completion evidence
 Screenshot/recording of a day containing at least three activities plus test output.
 
+<a id="session-9"></a>
+
 ## Session 9 — Save and Load the Daily-Life Loop
 
 **Player-facing result:** The Player can close the game and continue the same academy day later.
+
+### Learning objective
+**Approval status:** Proposed — pending user approval.
+
+
+Explain serialization boundaries, save schema validation and the difference between restoring state and replaying gameplay Effects.
+
+### Independent practice
+**Approval status:** Proposed — pending user approval.
+
+
+Independently add a Save/Load regression test for one persisted field or repeated load cycle, then compare the full before/after state.
+
+### Knowledge check
+**Approval status:** Proposed — pending user approval.
+
+
+Explain why loading a save must not grant the same reward or recovery Effect again.
 
 ### Minimum save scope
 - Schema version.
@@ -400,11 +558,11 @@ Reproducible before/after save record and automated test results.
 # 5. Dependency Map
 
 ```text
-Session 1: Inline Action Duration Estimates       [merged]
+Session 1: Inline Action Duration Estimates
         |
-Session 2: Energy Economy and Rest                [merged]
+Session 2: Energy Economy and Rest
         |
-Session 3: Exploration Action Choice Pipeline     [next]
+Session 3: Exploration Action Choice Pipeline
         |
 Session 4: Sleep and Next-Day Transition
         |
