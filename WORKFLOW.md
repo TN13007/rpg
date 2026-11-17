@@ -122,15 +122,15 @@ The nine-Session Version 1 plan is a proposal in [PR #23](https://github.com/TN1
 
 | Session | Scope | Product status | Learning status |
 |---|---|---|---|
-| Session 1 | Inline Action Duration Estimates | **Implemented** — PR #21 merged; .NET CI passed; Godot runtime acceptance pending | **Not assessed** — no structured independent evidence recorded |
-| Session 2 | Energy Economy and Rest | **Implemented** — PR #22 merged; .NET CI passed; Godot runtime acceptance pending | **Not assessed** — no structured independent evidence recorded |
-| Session 3 | Exploration Action Choice Pipeline | **Proposed** — design/plan in open PR #23; no implementation on main | **Proposed** — learning target requires user approval |
-| Session 4 | Sleep and Next-Day Transition | **Proposed** — scope in open PR #23 | **Proposed** — learning target requires user approval |
-| Session 5 | Health, Injury and Recovery | **Proposed** — scope in open PR #23 | **Proposed** — learning target requires user approval |
-| Session 6 | Mood and Daily Wellbeing | **Proposed** — scope in open PR #23 | **Proposed** — learning target requires user approval |
-| Session 7 | A Small, Complete Academy Routine | **Proposed** — scope in open PR #23 | **Proposed** — learning target requires user approval |
-| Session 8 | Daily Summary and Day Continuity | **Proposed** — scope in open PR #23 | **Proposed** — learning target requires user approval |
-| Session 9 | Save and Load the Daily-Life Loop | **Proposed** — scope in open PR #23 | **Proposed** — learning target requires user approval |
+| [Session 1](https://github.com/TN13007/rpg/blob/docs/version-1-action-choice-replan/Docs/Design/VERSION_1_SESSION_PLAN.md#session-1) | Inline Action Duration Estimates | **Implemented** — PR #21 merged; .NET CI passed; Godot runtime acceptance pending | **Not assessed** — no structured independent evidence recorded |
+| [Session 2](https://github.com/TN13007/rpg/blob/docs/version-1-action-choice-replan/Docs/Design/VERSION_1_SESSION_PLAN.md#session-2) | Energy Economy and Rest | **Implemented** — PR #22 merged; .NET CI passed; Godot runtime acceptance pending | **Not assessed** — no structured independent evidence recorded |
+| [Session 3](https://github.com/TN13007/rpg/blob/docs/version-1-action-choice-replan/Docs/Design/VERSION_1_SESSION_PLAN.md#session-3) | Exploration Action Choice Pipeline | **Proposed** — design/plan in open PR #23; no implementation on main | **Proposed** — learning target requires user approval |
+| [Session 4](https://github.com/TN13007/rpg/blob/docs/version-1-action-choice-replan/Docs/Design/VERSION_1_SESSION_PLAN.md#session-4) | Sleep and Next-Day Transition | **Proposed** — scope in open PR #23 | **Proposed** — learning target requires user approval |
+| [Session 5](https://github.com/TN13007/rpg/blob/docs/version-1-action-choice-replan/Docs/Design/VERSION_1_SESSION_PLAN.md#session-5) | Health, Injury and Recovery | **Proposed** — scope in open PR #23 | **Proposed** — learning target requires user approval |
+| [Session 6](https://github.com/TN13007/rpg/blob/docs/version-1-action-choice-replan/Docs/Design/VERSION_1_SESSION_PLAN.md#session-6) | Mood and Daily Wellbeing | **Proposed** — scope in open PR #23 | **Proposed** — learning target requires user approval |
+| [Session 7](https://github.com/TN13007/rpg/blob/docs/version-1-action-choice-replan/Docs/Design/VERSION_1_SESSION_PLAN.md#session-7) | A Small, Complete Academy Routine | **Proposed** — scope in open PR #23 | **Proposed** — learning target requires user approval |
+| [Session 8](https://github.com/TN13007/rpg/blob/docs/version-1-action-choice-replan/Docs/Design/VERSION_1_SESSION_PLAN.md#session-8) | Daily Summary and Day Continuity | **Proposed** — scope in open PR #23 | **Proposed** — learning target requires user approval |
+| [Session 9](https://github.com/TN13007/rpg/blob/docs/version-1-action-choice-replan/Docs/Design/VERSION_1_SESSION_PLAN.md#session-9) | Save and Load the Daily-Life Loop | **Proposed** — scope in open PR #23 | **Proposed** — learning target requires user approval |
 
 ### Learning evidence log
 
