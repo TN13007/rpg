@@ -39,21 +39,22 @@ The right Character Panel remains visible and shows Health, Energy, Mood and Gol
 ## Day and time prototype
 
 - `DayClock` owns the calendar day and minute of day. The prototype starts at Day 1, 07:30.
-- `ActivityDefinition` stores a base duration and optional stat modifier. `ActivityTimeCalculator` calculates the final duration for an activity.
+- `ActionDefinition` stores common action data such as duration, Energy Cost, optional stat modifier, time mode and Effects. `ActivityTimeCalculator` calculates the actual duration.
 - Location actions, travel and combat encounter duration are configured in `Data/academy_locations.json`.
 - The clock rolls over automatically at midnight, increments the day and preserves remaining minutes.
 - Sleeping moves the player to 07:30 on the next morning. If midnight has already passed, sleeping does not increment the day a second time.
-- Sleep currently changes time only; character recovery and daily schedules are not implemented.
+- The current Sleep action is configured with Health, Energy and Mood recovery Effects. Session 4 verifies next-day boundary behavior and confirms those Effects are applied exactly once; daily schedules remain out of scope.
 
 ## Data and presentation flow
 
-- `Data/Characters/player.json` and `Data/Characters/goblin.json` define character identity, role, level, maximum values, starting values and attributes.
+- `Data/Characters/player.json` and `Data/Characters/goblin.json` define character identity, role, level, maximum values, starting values and attributes. Player Actions are planned to move into `player.json` in Version 1 Session 3; currently Rest is in the transitional academy-wide `selfActions` list.
 - `CharacterDataLoader` reads a JSON definition and creates immutable `CharacterData`.
 - `Character` owns runtime state and state-changing operations.
-- `Data/academy_locations.json` defines locations, exits, actions, feedback, activity durations and each Location's Event pool.
+- `Data/academy_locations.json` defines Locations, exits, Location Actions, Travel configuration and each Location's Event pool. Its root `selfActions` list is transitional and will be removed during Session 3.
 - `LocationEventService` evaluates a Location's Event pool once per day and selects the first successful event in authored order. Event definitions and choices are validated while AcademyContent loads.
-- `AcademyContent` loads location and activity definitions, then validates duplicate IDs and location exit references before publishing the content.
-- `StoryPanel` renders the supplied `StoryChoice` collection. It does not define location choices itself.
+- `AcademyContent` loads Location and Event definitions, then validates IDs and Location exit references.
+- Current Exploration flow: `MainController` combines Location Actions, transitional Self Actions and derived Travel choices into a flat list; `ActionChoiceViewData` is passed to `StoryPanel`.
+- Target Version 1 flow: Loaders create content models; Available Interaction Query combines definitions with current context; Action Choice Mapper creates grouped `ExplorationViewModel`; StoryPanel renders those groups. See [Exploration Action Choice Pipeline](Docs/Design/EXPLORATION_ACTION_PIPELINE.md).
 - `CombatService` validates combat actions, enforces the alive/dead rule, resolves turns and grants the victory reward.
 - `CharacterViewModel` is a read-only presentation model created from `Character`; `CharacterPanel` does not access the domain object directly.
 - `CombatPresentationMapper` maps service results into `CombatViewData` for `CombatPanel`.
@@ -72,13 +73,13 @@ The right Character Panel remains visible and shows Health, Energy, Mood and Gol
 - `Scripts/Data/CombatPresentation.cs`: action request, result, safe snapshot, event and combat view-data contracts.
 - `Scripts/Data/CombatPresentationMapper.cs`: maps combat events and snapshots into presentation messages and CombatViewData.
 - `Scripts/UI/CharacterPanel.cs`: renders CharacterViewModel.
-- `Scripts/UI/StoryPanel.cs`: renders StoryChoice models as exploration buttons.
+- `Scripts/UI/StoryPanel.cs`: currently renders flat `ActionChoiceViewData` choices; Version 1 Session 3 will update it to render grouped Exploration ViewModels.
 - `Scripts/UI/Combat/CombatPanel.cs`: coordinates combat status, message log, action selection and the return-to-exploration action.
 - `Scripts/UI/Combat/CombatStatusPanel.cs`: current round, enemy HP / condition and observed intent.
 - `Scripts/UI/Combat/CombatMessageLog.cs`: bounded history and conditional auto-scroll.
 - `Scripts/UI/Combat/CombatMessageEntry.cs`: Player-right, Enemy-left and System-center message presentation.
 - `Scripts/UI/Combat/CombatActionPanel.cs`: renders CombatActionOption models and emits action requests.
-- `Scripts/MainController.cs`: currently initializes game systems and orchestrates Exploration / Combat transitions and choice handling; Session 3 will remove flat choice aggregation/mapping from this class.
+- `Scripts/MainController.cs`: currently initializes game systems and orchestrates Exploration / Combat transitions and choice handling; Session 3 will move choice discovery and mapping into dedicated Query/Mapper responsibilities.
 
 ## Prototype limitations
 

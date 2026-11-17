@@ -93,7 +93,7 @@ Presentation availability is advisory; the owning service must revalidate.
 
 ## Session 1 — Inline Action Duration Estimates
 
-<badge>Implementation merged in PR #21</badge>
+**Status: Implementation merged in PR #21.**
 
 **Player-facing result:** The player sees an approximate duration beside each choice and executes it immediately by selecting it.
 
@@ -118,7 +118,7 @@ Implementation is merged and its automated tests passed. Preserve runtime accept
 
 ## Session 2 — Energy Economy and Rest
 
-<badge>Gameplay implementation merged in PR #22</badge>
+**Status: Gameplay implementation merged in PR #22.**
 
 **Player-facing result:** The player spends Energy, becomes unconscious at 0 Energy, and recovers through Rest.
 

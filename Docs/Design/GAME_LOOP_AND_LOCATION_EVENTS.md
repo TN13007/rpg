@@ -77,6 +77,12 @@ The first event is `courtyard_goblin_ambush`:
 - **Confront the goblin:** references the Courtyard's existing `encounter_goblin` action and enters Combat.
 - **Sneak past the goblin:** spends 1 Energy and 10 minutes, then returns to Courtyard Exploration.
 
+## 5. Choice Presentation Boundary
+
+An Event owns its Event Choices, but it does not own the general Exploration UI. Event Choices use the common Action Choice presentation contract described in [Exploration Action Choice Pipeline](EXPLORATION_ACTION_PIPELINE.md). For Version 1, an active Event is a focused context: show its situation choices and do not mix ordinary Location or Travel choices into the unresolved Event screen.
+
+The Event query/presentation path is responsible for turning the active Event's authored choices into presentation data. Event resolution remains with the Event/application flow; a non-combat choice may use the normal action execution rules, while a confrontation can enter the dedicated Combat pipeline.
+
 ## 5. Responsibility Boundaries
 
 | Responsibility | Owner |
