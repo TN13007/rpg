@@ -3,7 +3,7 @@
 **Repository:** [TN13007/rpg](https://github.com/TN13007/rpg)  
 **Engine:** Godot 4.7.2 .NET / C#  
 **Last reviewed:** 2026-11-17  
-**Official implementation baseline:** `main` — `0b0ec6db58baf100601c0b6f565db98da719eab2`
+**Official implementation baseline:** `main` — `5e0bad3ae2ccda8fd55d0445ffbc3cbb49d5e207`
 
 > Start here at the beginning and end of every Session. This is the single project-status and handoff tracker. Do not create separate project-state, decision, learning or per-session tracking files.
 
@@ -113,24 +113,24 @@ Adventurer Academy is a fantasy life-simulation RPG prototype about daily life, 
 - Health = 0 means Dead and blocks all actions. Health > 0 with Energy = 0 means Unconscious. Only actions explicitly configured with `canExecuteWhenUnconscious` may run while unconscious; the flag does not waive Energy cost.
 - Rest currently works while unconscious; Sleep is not configured to do so.
 - Current Exploration choices are assembled by MainController into a flat list. Rest comes from global `selfActions`; Sleep remains a Location Action.
-- The grouped Query → Mapper → Exploration ViewModel pipeline and Player-owned Player Actions are proposed in open PR #23, not implemented on `main`.
+- The grouped Query → Mapper → Exploration ViewModel pipeline and Player-owned Player Actions are accepted design from merged PR #23, but are not yet implemented on `main`.
 - The complete academy routine, daily summary and full Save/Load loop are not implemented yet.
 
 ## 4. Session index and progress
 
-The nine-Session Version 1 plan is a proposal in [PR #23](https://github.com/TN13007/rpg/pull/23), not an accepted or implemented roadmap. Its learning objectives, independent practices and knowledge checks are AI-drafted proposals and require explicit approval before the corresponding Session begins.
+The nine-Session Version 1 plan is accepted design scope, merged through [PR #23](https://github.com/TN13007/rpg/pull/23). It defines intended product scope and acceptance criteria; it does not mean its future Sessions are implemented. Learning objectives, independent practices and knowledge checks remain AI-drafted proposals and require explicit approval before the corresponding Session begins.
 
 | Session | Scope | Product status | Learning status |
 |---|---|---|---|
-| [Session 1](https://github.com/TN13007/rpg/blob/docs/version-1-action-choice-replan/Docs/Design/VERSION_1_SESSION_PLAN.md#session-1) | Inline Action Duration Estimates | **Implemented** — PR #21 merged; .NET CI passed; Godot runtime acceptance pending | **Not assessed** — no structured independent evidence recorded |
-| [Session 2](https://github.com/TN13007/rpg/blob/docs/version-1-action-choice-replan/Docs/Design/VERSION_1_SESSION_PLAN.md#session-2) | Energy Economy and Rest | **Implemented** — PR #22 merged; .NET CI passed; Godot runtime acceptance pending | **Not assessed** — no structured independent evidence recorded |
-| [Session 3](https://github.com/TN13007/rpg/blob/docs/version-1-action-choice-replan/Docs/Design/VERSION_1_SESSION_PLAN.md#session-3) | Exploration Action Choice Pipeline | **Proposed** — design/plan in open PR #23; no implementation on main | **Proposed** — learning target requires user approval |
-| [Session 4](https://github.com/TN13007/rpg/blob/docs/version-1-action-choice-replan/Docs/Design/VERSION_1_SESSION_PLAN.md#session-4) | Sleep and Next-Day Transition | **Proposed** — scope in open PR #23 | **Proposed** — learning target requires user approval |
-| [Session 5](https://github.com/TN13007/rpg/blob/docs/version-1-action-choice-replan/Docs/Design/VERSION_1_SESSION_PLAN.md#session-5) | Health, Injury and Recovery | **Proposed** — scope in open PR #23 | **Proposed** — learning target requires user approval |
-| [Session 6](https://github.com/TN13007/rpg/blob/docs/version-1-action-choice-replan/Docs/Design/VERSION_1_SESSION_PLAN.md#session-6) | Mood and Daily Wellbeing | **Proposed** — scope in open PR #23 | **Proposed** — learning target requires user approval |
-| [Session 7](https://github.com/TN13007/rpg/blob/docs/version-1-action-choice-replan/Docs/Design/VERSION_1_SESSION_PLAN.md#session-7) | A Small, Complete Academy Routine | **Proposed** — scope in open PR #23 | **Proposed** — learning target requires user approval |
-| [Session 8](https://github.com/TN13007/rpg/blob/docs/version-1-action-choice-replan/Docs/Design/VERSION_1_SESSION_PLAN.md#session-8) | Daily Summary and Day Continuity | **Proposed** — scope in open PR #23 | **Proposed** — learning target requires user approval |
-| [Session 9](https://github.com/TN13007/rpg/blob/docs/version-1-action-choice-replan/Docs/Design/VERSION_1_SESSION_PLAN.md#session-9) | Save and Load the Daily-Life Loop | **Proposed** — scope in open PR #23 | **Proposed** — learning target requires user approval |
+| [Session 1](https://github.com/TN13007/rpg/blob/main/Docs/Design/VERSION_1_SESSION_PLAN.md#session-1) | Inline Action Duration Estimates | **Implemented** — PR #21 merged; .NET CI passed; Godot runtime acceptance pending | **Not assessed** — no structured independent evidence recorded |
+| [Session 2](https://github.com/TN13007/rpg/blob/main/Docs/Design/VERSION_1_SESSION_PLAN.md#session-2) | Energy Economy and Rest | **Implemented** — PR #22 merged; .NET CI passed; Godot runtime acceptance pending | **Not assessed** — no structured independent evidence recorded |
+| [Session 3](https://github.com/TN13007/rpg/blob/main/Docs/Design/VERSION_1_SESSION_PLAN.md#session-3) | Exploration Action Choice Pipeline | **Planned** — accepted scope; no implementation on main | **Proposed** — learning target requires user approval |
+| [Session 4](https://github.com/TN13007/rpg/blob/main/Docs/Design/VERSION_1_SESSION_PLAN.md#session-4) | Sleep and Next-Day Transition | **Planned** — accepted scope; not implemented | **Proposed** — learning target requires user approval |
+| [Session 5](https://github.com/TN13007/rpg/blob/main/Docs/Design/VERSION_1_SESSION_PLAN.md#session-5) | Health, Injury and Recovery | **Planned** — accepted scope; not implemented | **Proposed** — learning target requires user approval |
+| [Session 6](https://github.com/TN13007/rpg/blob/main/Docs/Design/VERSION_1_SESSION_PLAN.md#session-6) | Mood and Daily Wellbeing | **Planned** — accepted scope; not implemented | **Proposed** — learning target requires user approval |
+| [Session 7](https://github.com/TN13007/rpg/blob/main/Docs/Design/VERSION_1_SESSION_PLAN.md#session-7) | A Small, Complete Academy Routine | **Planned** — accepted scope; not implemented | **Proposed** — learning target requires user approval |
+| [Session 8](https://github.com/TN13007/rpg/blob/main/Docs/Design/VERSION_1_SESSION_PLAN.md#session-8) | Daily Summary and Day Continuity | **Planned** — accepted scope; not implemented | **Proposed** — learning target requires user approval |
+| [Session 9](https://github.com/TN13007/rpg/blob/main/Docs/Design/VERSION_1_SESSION_PLAN.md#session-9) | Save and Load the Daily-Life Loop | **Planned** — accepted scope; not implemented | **Proposed** — learning target requires user approval |
 
 ### Learning evidence log
 
@@ -155,24 +155,25 @@ Track known disagreements between the documents and official implementation here
 
 | ID | Mismatch / risk | Canonical truth or owner | Status / next action |
 |---|---|---|---|
-| SYNC-01 | Day 1 scenario previously expected Preview / Confirm / Cancel, although Session 1 executes choices immediately. | PR #21 defines immediate execution; [Day 1 QA](Docs/QA/DAY_1_PLAYABLE_SCENARIO.md) is corrected in open PR #24. | **Pending PR #24 review/merge.** |
-| SYNC-02 | Automated-test documentation previously misstated the unconscious-state rule. | `ActionExecutionService`, `academy_locations.json` and `RPG.Tests/ActionExecutionTests.cs` confirm the explicit Rest exception; [Automated Tests](Docs/Testing/AUTOMATED_TESTS.md) is corrected in open PR #24. | **Pending PR #24 review/merge.** |
-| SYNC-03 | Version 1 architecture and the nine-Session plan differ from the older material on main. | [PR #23](https://github.com/TN13007/rpg/pull/23) proposes the updated pipeline, roadmap and Session plan. | **Proposal pending review; main remains authoritative.** |
+| SYNC-01 | Day 1 scenario previously expected Preview / Confirm / Cancel, although Session 1 executes choices immediately. | PR #21 defines immediate execution; [Day 1 QA](Docs/QA/DAY_1_PLAYABLE_SCENARIO.md) was corrected in merged PR #24. | **Resolved — PR #24 merged.** |
+| SYNC-02 | Automated-test documentation previously misstated the unconscious-state rule. | `ActionExecutionService`, `academy_locations.json` and `RPG.Tests/ActionExecutionTests.cs` confirm the explicit Rest exception; [Automated Tests](Docs/Testing/AUTOMATED_TESTS.md) was corrected in merged PR #24. | **Resolved — PR #24 merged.** |
+| SYNC-03 | The accepted Version 1 plan targets a grouped Player/Location/Travel/Event choice pipeline; current MainController still assembles a flat list. | [Exploration Pipeline](Docs/Design/EXPLORATION_ACTION_PIPELINE.md) and [Version 1 Session Plan](Docs/Design/VERSION_1_SESSION_PLAN.md) were accepted/merged in PR #23. | **Design accepted; implementation pending Session 3.** |
 | SYNC-04 | Rest and Sleep ownership differ from the proposed Player Action model. | Current main: Rest is root `selfActions`; Sleep is a Dormitory Location Action. Target proposal: Player-owned actions in Session 3. | **Design-to-implementation work is not started.** |
 | SYNC-05 | Sessions 1–2 passed their .NET CI checks, but Godot runtime acceptance remains unrecorded. | [PR #21](https://github.com/TN13007/rpg/pull/21) and [PR #22](https://github.com/TN13007/rpg/pull/22). | **Run the affected journeys in Godot or explicitly defer with a reason.** |
-| SYNC-06 | Issue #15 (extract Location/Event and Combat flow from MainController) may overlap with Session 3's Exploration query/choice pipeline. | [Issue #15](https://github.com/TN13007/rpg/issues/15) and [Exploration Pipeline proposal](https://github.com/TN13007/rpg/blob/docs/version-1-action-choice-replan/Docs/Design/EXPLORATION_ACTION_PIPELINE.md). | **Reconcile ownership and boundaries before Session 3 implementation; keep Issue #15 open.** |
+| SYNC-06 | Issue #15 (extract Location/Event and Combat flow from MainController) may overlap with Session 3's Exploration query/choice pipeline. | [Issue #15](https://github.com/TN13007/rpg/issues/15) and [Exploration Pipeline](Docs/Design/EXPLORATION_ACTION_PIPELINE.md). | **Reconcile ownership and boundaries before Session 3 implementation; keep Issue #15 open.** |
 
 ### Other active work
 
 - [Issue #11 — Decide the long-term gameplay loop](https://github.com/TN13007/rpg/issues/11) remains a separate design question. Do not add speculative progression systems to Version 1 to resolve it.
-- [PR #23 — Version 1 Exploration architecture proposal](https://github.com/TN13007/rpg/pull/23) is open and unmerged.
-- [PR #24 — QA documentation alignment](https://github.com/TN13007/rpg/pull/24) is open and unmerged.
+- [PR #23 — Version 1 Exploration architecture and Session plan](https://github.com/TN13007/rpg/pull/23) is merged; the accepted design is not yet fully implemented.
+- [PR #24 — QA documentation alignment](https://github.com/TN13007/rpg/pull/24) is merged.
+- [PR #31 — naming-validator hardening](https://github.com/TN13007/rpg/pull/31) is open and requires review of ambiguous/duplicate owner identities before merge.
+- [PR #33 — unified validation and repository workflow](https://github.com/TN13007/rpg/pull/33) is open; it closes Issue #32 when merged.
 
 ## 6. Next Session handoff
 
-1. Review PR #24's QA corrections; keep Godot runtime acceptance separate from .NET CI.
-2. Complete or explicitly defer the Godot runtime checks for Sessions 1–2.
-3. Perform independent Learning checks for Sessions 1–2 before claiming mastery.
-4. Review the Version 1 architecture proposal in PR #23. Treat all new learning objectives as proposed until approved.
-5. Reconcile Issue #15 with Session 3's proposed boundaries before implementing overlapping work.
-6. Start a new Session only after its Product and Learning objectives are agreed.
+1. Complete or explicitly defer the Godot runtime checks for Sessions 1–2; .NET CI is not runtime evidence.
+2. Perform independent Learning checks for Sessions 1–2 before claiming mastery.
+3. Implement Session 3 from the accepted Version 1 plan; first reconcile Issue #15 with the agreed Exploration/MainController boundaries.
+4. Approve or revise the Session 3 Learning objective, independent practice and knowledge check before using them.
+5. Record Product verification, Learning evidence and remaining blockers in this file only.

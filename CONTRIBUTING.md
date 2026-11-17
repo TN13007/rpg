@@ -46,20 +46,11 @@ Suggested commit prefixes: `feat:`, `fix:`, `test:`, `refactor:`, `docs:`, `chor
 
 ## 4. Test before opening a Pull Request
 
-For code changes, run:
+For code changes, run the unified validation command in Section 7. It runs the Python validator tests, project naming checks, IDE1006 checks for changed C# files and the complete .NET test suite. GitHub Actions uses the same Python entry point.
 
-```powershell
-dotnet test RPG.Tests/RPG.Tests.csproj --configuration Release
-```
+Tests should cover normal behavior, invalid and boundary inputs, state/resource invariants, relevant edge-case combinations and regression behavior for the changed flow.
 
-Tests should cover:
-- Normal behavior.
-- Invalid and boundary inputs.
-- State/resource invariants.
-- Relevant combinations of edge cases.
-- Regression behavior for the changed flow.
-
-If a change affects Godot scenes, node paths, UI or input, also run the main scene in Godot 4.7.2 .NET and verify the affected journey manually. Automated .NET tests do not prove that scene wiring or UI interactions work.
+If a change affects Godot scenes, node paths, UI, input or gameplay runtime, also open the project in Godot 4.7.2 .NET and verify the affected journey manually. The automated command does not launch Godot or prove scene wiring/rendered UI behavior. Record any manual checks and anything not tested in the PR.
 
 For documentation-only changes, review links, terminology, consistency with existing decisions and rendered Markdown. Do not claim runtime tests were run when no runtime code changed.
 
@@ -85,34 +76,29 @@ Before merge:
 
 Merge only after the PR is ready and the repository owner approves it.
 
-## 7. Current project commands
+## 7. One-command validation
 
-Automated tests:
+Prerequisites: Git, Python 3.10+, .NET 8 SDK and (for manual runtime checks) Godot 4.7.2 .NET.
 
-```powershell
-dotnet test RPG.Tests/RPG.Tests.csproj --configuration Release
-```
-
-Check naming conventions for a changed application file:
+From the repository root, fetch the latest base branch and run the complete automated validation:
 
 ```powershell
-dotnet format style RPG.csproj --verify-no-changes --diagnostics IDE1006 --severity warn --include Scripts/Actions/ActionExecutionService.cs
-```
-
-Check naming conventions for a changed test file:
-
-```powershell
-dotnet format style RPG.Tests/RPG.Tests.csproj --verify-no-changes --diagnostics IDE1006 --severity warn --include RPG.Tests/ActionExecutionTests.cs
-```
-
-Replace the example paths with the C# files changed in your task. The CI workflow runs the same IDE1006 check on changed C# files only, so unrelated legacy naming issues do not block changes to other files.
-
-Run the project-specific naming validator and its unit tests:
-
-```powershell
-$base = git merge-base origin/main HEAD
+git fetch origin main
 $branch = git branch --show-current
-python Tools/CheckProjectNaming.py --base $base --head HEAD --branch $branch --check-branch
+python Tools/Validate.py --base origin/main --head HEAD --branch $branch --check-branch
+```
+
+The command runs, in order:
+1. Python unit tests for the project naming validator and validation runner.
+2. Project naming checks for changed paths and JSON content; branch naming is checked when `--check-branch` is supplied.
+3. C# IDE1006 naming checks for changed application/test files only. If no C# files changed, the check is explicitly reported as skipped.
+4. The full .NET test suite in Release configuration.
+
+The command stops at the first failure and returns a non-zero exit code. GitHub Actions calls this same script with the Pull Request base/head commits, so local and CI validation use the same orchestration. Documentation-only changes still run the suite; this keeps the verification path predictable.
+
+For a focused Python validator test run while developing the validator itself:
+
+```powershell
 python -m unittest discover -s Tools/Tests -p "*Tests.py" -v
 ```
 
