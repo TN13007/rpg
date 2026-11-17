@@ -21,6 +21,24 @@ jobs:
           dotnet-version: 8.0.x
       - name: Run automated tests
         run: dotnet test RPG.Tests/RPG.Tests.csproj --configuration Release
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Test project naming validator
+        run: python3 -m unittest discover -s Tools/Tests -p '*Tests.py' -v
+      - name: Check project naming conventions
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_REF: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD_REF: ${{ github.sha }}
+          BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
+        run: |
+          ARGS=(--base "$BASE_REF" --head "$HEAD_REF" --branch "$BRANCH_NAME")
+          if [[ "$EVENT_NAME" == "pull_request" ]]; then
+            ARGS+=(--check-branch)
+          fi
+          python3 Tools/CheckProjectNaming.py "${ARGS[@]}"
       - name: Check C# naming conventions in changed files
         shell: bash
         env:

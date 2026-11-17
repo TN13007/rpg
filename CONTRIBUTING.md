@@ -107,6 +107,17 @@ dotnet format style RPG.Tests/RPG.Tests.csproj --verify-no-changes --diagnostics
 
 Replace the example paths with the C# files changed in your task. The CI workflow runs the same IDE1006 check on changed C# files only, so unrelated legacy naming issues do not block changes to other files.
 
+Run the project-specific naming validator and its unit tests:
+
+```powershell
+$base = git merge-base origin/main HEAD
+$branch = git branch --show-current
+python Tools/CheckProjectNaming.py --base $base --head HEAD --branch $branch --check-branch
+python -m unittest discover -s Tools/Tests -p "*Tests.py" -v
+```
+
+The validator checks camelCase JSON keys, newly introduced or changed snake_case content IDs, PascalCase enum-like values, newly added or renamed file/directory names, and the Pull Request branch format. Unchanged legacy IDs and existing file paths are not rejected by unrelated changes.
+
 Open the project in Godot 4.7.2 .NET and run:
 
 ```text
