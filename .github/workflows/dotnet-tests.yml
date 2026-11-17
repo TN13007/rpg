@@ -54,16 +54,16 @@ jobs:
             fi
           done
 
-          if (('${#APP_FILES[@]}' > 0)); then
+          if ((${#APP_FILES[@]} > 0)); then
             echo "Checking application C# naming..."
             dotnet format style RPG.csproj --no-restore --verify-no-changes --diagnostics IDE1006 --severity warn --include "${APP_FILES[@]}"
           fi
 
-          if (('${#TEST_FILES[@]}' > 0)); then
+          if ((${#TEST_FILES[@]} > 0)); then
             echo "Checking test C# naming..."
             dotnet format style RPG.Tests/RPG.Tests.csproj --no-restore --verify-no-changes --diagnostics IDE1006 --severity warn --include "${TEST_FILES[@]}"
           fi
 
-          if (('${#APP_FILES[@]}' == 0 && '${#TEST_FILES[@]}' == 0)); then
+          if ((${#APP_FILES[@]} == 0 && ${#TEST_FILES[@]} == 0)); then
             echo "No changed C# files; naming check skipped."
           fi
