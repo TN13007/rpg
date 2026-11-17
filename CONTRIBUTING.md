@@ -1,5 +1,7 @@
 # Contributing to RPG
 
+Use [WORKFLOW.md](WORKFLOW.md) as the single project/session status and Learning-first hub. Treat latest `main` as the official implementation baseline; open or unmerged PRs are proposals. Follow the Session protocol there, and keep Product verification separate from Learning verification.
+
 This repository uses an Issue → Branch → Commit + Tests → Pull Request → Review → Merge workflow.
 
 ## 1. Start with an Issue
@@ -20,7 +22,11 @@ Naming:
 - Feature: `feat/issue-<number>-<short-name>`
 - Bug fix: `fix/issue-<number>-<short-name>`
 - Design / documentation: `docs/issue-<number>-<short-name>`
+- Tests: `test/issue-<number>-<short-name>`
+- Refactoring: `refactor/issue-<number>-<short-name>`
 - Maintenance: `chore/issue-<number>-<short-name>`
+
+Use a `kebab-case` short description. The allowed branch prefixes are `feat`, `fix`, `docs`, `test`, `refactor` and `chore`.
 
 Examples:
 - `docs/issue-11-gameplay-loop`
@@ -101,3 +107,52 @@ A task is done when:
 - Runtime behavior is manually checked when applicable.
 - Documentation reflects the actual implementation.
 - The PR is reviewed and merged.
+
+## 9. Naming conventions
+
+Use the [Google C# Style Guide](https://google.github.io/styleguide/csharpguide.html) as the naming baseline for C# code. The rules below adapt it to this Godot project and define conventions for project areas that the C# guide does not cover. This section adopts naming rules only; it does not automatically adopt every Google formatting rule. Follow these rules for new code and files. Do not rename existing serialized IDs or resources as a drive-by cleanup; migrate them in a focused change and update every reference.
+
+### C# identifiers
+
+| Element | Convention | Example |
+|---|---|---|
+| Class, struct, record, enum, delegate, method and test method | `PascalCase` | `CharacterData`, `CalculateDuration`, `RestAtMaximumEnergyDoesNotExceedMaximum` |
+| Public or protected property, field, event | `PascalCase` | `MaxHealth`, `ActionSelected` |
+| Interface | `I` + `PascalCase` | `IActionExecutor` |
+| Parameter and local variable | `camelCase` | `startingEnergy` |
+| Private, protected or internal field/property | `_camelCase` | `_combatService` |
+| Namespace | `PascalCase` | `RPG.Services` |
+
+Casing depends on visibility, not on modifiers: `static`, `const` and `readonly` do not change the naming rule. Treat acronyms as ordinary words: use `UiTheme`, `LoadRpcRequest` and `CharacterId`, not `UITheme`, `LoadRPCRequest` or `CharacterID`. Prefer clear, descriptive names over unexplained abbreviations.
+
+Use namespaces only where they provide a useful boundary. Keep namespaces to two levels where practical; do not create namespaces mechanically from the folder tree. This is a Godot application, so existing application-level types may remain in the global namespace until a deliberate namespace design is adopted.
+
+### Files, folders and Godot resources
+
+- Use `PascalCase` for directory and file names.
+- A C# file should match its main type, and should generally contain one core type: `CombatService.cs`.
+- Name test methods in `PascalCase`; do not use underscores to divide test-name segments.
+- Use `PascalCase` for Godot scene files, custom node names and resource files: `CombatPanel.tscn`.
+- Use `PascalCase` for JSON data filenames, assets and Markdown document filenames: `AcademyLocations.json`, `CharacterPortrait.svg`, `MainController.md`.
+- Keep the conventional repository entry files `README.md` and `CONTRIBUTING.md`, plus platform/tool-managed names such as `.github` and `.editorconfig`, unchanged.
+
+### JSON and game content
+
+| Element | Convention | Example |
+|---|---|---|
+| JSON property | `camelCase` | `startingEnergy`, `maxHealth` |
+| Game content ID | `snake_case` | `player_ari`, `inspect_letter`, `courtyard_goblin_ambush` |
+| Serialized enum-like value | `PascalCase` | `RestoreEnergy`, `NextDay`, `Agility` |
+| Player-facing label/text | Natural language | `"Read the letter on your desk"` |
+
+Use `snake_case` consistently for IDs of Characters, Locations, Actions, Events, Choices and other authored content. IDs are machine-facing stable identifiers; labels and descriptions are player-facing text. Do not mix hyphens and underscores within the same ID system.
+
+### Git names
+
+Google's C# guide does not define Git naming. This repository uses:
+
+- Branch: `<type>/issue-<number>-<short-description>`, with a `kebab-case` description. Allowed types: `feat`, `fix`, `docs`, `test`, `refactor`, `chore`.
+- Commit: Conventional Commit prefixes in lowercase, such as `feat:`, `fix:`, `test:`, `refactor:`, `docs:` and `chore:`.
+
+Examples: `feat/issue-26-location-action-pipeline`, `docs/issue-28-naming-conventions`, `feat: add location action pipeline`.
+

@@ -24,5 +24,13 @@ Mô tả trách nhiệm chính, luồng dữ liệu và các file quan trọng.
 - [ ] Đã cập nhật README / design docs liên quan.
 - [ ] Không có tài liệu bị lỗi thời do thay đổi này.
 
+## Learning record
+- [ ] If this PR belongs to a Learning-first Session, update the relevant entry in [WORKFLOW.md](../WORKFLOW.md).
+- [ ] Product verification and Learning verification are recorded separately.
+- [ ] AI-generated code or passing CI is not presented as independent learner evidence.
+- Session (if applicable):
+- Learner evidence (only if checked):
+- Remaining practice (if any):
+
 ## Reviewer notes
 Nêu điểm cần reviewer tập trung kiểm tra.
