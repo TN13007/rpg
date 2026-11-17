@@ -41,6 +41,8 @@
           "id": "inspect_letter",
           "label": "Read the letter on your desk",
           "durationMinutes": 10,
+          "estimatedDurationMinMinutes": 10,
+          "estimatedDurationMaxMinutes": 20,
           "energyCost": 1,
           "effects": [],
           "feedback": "A short note from the academy reminds you to attend the morning briefing."

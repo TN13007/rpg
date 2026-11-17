@@ -20,23 +20,12 @@ public partial class MainController : Control
     private DayClock _dayClock;
     private ActivityTimeCalculator _activityTimeCalculator;
     private ActionExecutionService _actionExecutionService;
-    private ActionPreviewMapper _actionPreviewMapper;
-    private ActionDefinition _pendingAction;
-    private string _pendingChoiceValue;
-    private PendingActionType _pendingActionType;
+    private ActionDurationEstimateMapper _durationEstimateMapper;
     private GameModeController _gameModeController;
     private LocationEventService _locationEventService;
     private LocationEventDefinition _activeLocationEvent;
 
     private string _currentLocationId = "dormitory";
-
-    private enum PendingActionType
-    {
-        None,
-        Execute,
-        Travel,
-        EventAction
-    }
 
     public override void _Ready()
     {
@@ -59,15 +48,13 @@ public partial class MainController : Control
         _actionExecutionService = new ActionExecutionService(
             _activityTimeCalculator,
             new ActionEffectExecutor());
-        _actionPreviewMapper = new ActionPreviewMapper(_activityTimeCalculator, _actionExecutionService);
+        _durationEstimateMapper = new ActionDurationEstimateMapper(_activityTimeCalculator);
         _gameModeController = new GameModeController(_storyPanel, _combatPanel);
         _locationEventService = new LocationEventService();
 
         _sidebar.TabSelected += OpenTab;
         _storyPanel.ChoiceSelected += HandleChoice;
         _storyPanel.ReturnToLocationRequested += ShowLocation;
-        _storyPanel.ActionPreviewConfirmed += ConfirmPendingAction;
-        _storyPanel.ActionPreviewCancelled += CancelPendingAction;
         _combatPanel.ActionSelected += HandleCombatAction;
         _combatPanel.ContinueRequested += ReturnToExploration;
 
@@ -82,7 +69,6 @@ public partial class MainController : Control
             return;
         }
 
-        ClearPendingAction();
         ShowPage(tab);
     }
 
@@ -107,7 +93,18 @@ public partial class MainController : Control
         foreach (string exitId in location.Exits)
         {
             LocationContent exit = AcademyContent.Get(exitId);
-            choices.Add(new ActionDefinition("travel:" + exitId, "Travel to " + exit.Name, 0));
+            ActionDefinition travel = AcademyContent.Travel;
+            choices.Add(new ActionDefinition(
+                "travel:" + exitId,
+                "Travel to " + exit.Name,
+                travel.DurationMinutes,
+                travel.TimeModifier,
+                travel.Feedback,
+                travel.EnergyCost,
+                travel.Effects,
+                travel.TimeMode,
+                travel.EstimatedDurationMinMinutes,
+                travel.EstimatedDurationMaxMinutes));
         }
 
         _gameModeController.ShowExploration();
@@ -115,7 +112,7 @@ public partial class MainController : Control
             location.Name,
             location.Region,
             location.Description,
-            choices,
+            MapActionChoices(choices),
             _dayClock.GetDisplayText());
         _storyPanel.ShowLocationButton(false);
     }
@@ -134,7 +131,7 @@ public partial class MainController : Control
         };
 
         _gameModeController.ShowExploration();
-        _storyPanel.ShowContent(tab, "ADVENTURER RECORD", description, Array.Empty<ActionDefinition>(), _dayClock.GetDisplayText());
+        _storyPanel.ShowContent(tab, "ADVENTURER RECORD", description, Array.Empty<ActionChoiceViewData>(), _dayClock.GetDisplayText());
         _storyPanel.ShowLocationButton(true);
     }
 
@@ -161,7 +158,7 @@ public partial class MainController : Control
 
         if (choiceId.StartsWith("travel:", StringComparison.Ordinal))
         {
-            BeginTravelPreview(choiceId.Substring("travel:".Length));
+            TravelTo(choiceId.Substring("travel:".Length));
             return;
         }
 
@@ -174,102 +171,7 @@ public partial class MainController : Control
             return;
         }
 
-        BeginActionPreview(selectedAction, selectedAction.Id, PendingActionType.Execute);
-    }
-
-    private void BeginTravelPreview(string destinationId)
-    {
-        LocationContent current = AcademyContent.Get(_currentLocationId);
-        if (Array.IndexOf(current.Exits, destinationId) < 0)
-        {
-            _storyPanel.ShowFeedback("That location is not connected to your current position.");
-            return;
-        }
-
-        LocationContent destination = AcademyContent.Get(destinationId);
-        ActionDefinition travel = AcademyContent.Travel;
-        ActionDefinition previewAction = new ActionDefinition(
-            "travel:" + destinationId,
-            "Travel to " + destination.Name,
-            travel.DurationMinutes,
-            travel.TimeModifier,
-            travel.Feedback,
-            travel.EnergyCost,
-            travel.Effects,
-            travel.TimeMode);
-
-        BeginActionPreview(previewAction, destinationId, PendingActionType.Travel);
-    }
-
-    private void BeginActionPreview(ActionDefinition action, string choiceValue, PendingActionType actionType)
-    {
-        if (action == null || actionType == PendingActionType.None)
-        {
-            _storyPanel.ShowFeedback("That action is not available.");
-            return;
-        }
-
-        _pendingAction = action;
-        _pendingChoiceValue = choiceValue;
-        _pendingActionType = actionType;
-
-        ActionPreviewData preview = _actionPreviewMapper.Map(action, _player, _dayClock);
-        _storyPanel.ShowActionPreview(preview);
-    }
-
-    private void ConfirmPendingAction()
-    {
-        if (_pendingAction == null || _pendingActionType == PendingActionType.None)
-        {
-            return;
-        }
-
-        ActionDefinition action = _pendingAction;
-        string choiceValue = _pendingChoiceValue;
-        PendingActionType actionType = _pendingActionType;
-        ClearPendingAction();
-
-        if (actionType == PendingActionType.Travel)
-        {
-            TravelTo(choiceValue);
-            return;
-        }
-
-        if (actionType == PendingActionType.EventAction)
-        {
-            LocationEventDefinition previousEvent = _activeLocationEvent;
-            _activeLocationEvent = null;
-
-            if (!ExecuteAction(action))
-            {
-                _activeLocationEvent = previousEvent;
-                ShowLocationEvent(previousEvent);
-            }
-
-            return;
-        }
-
-        ExecuteAction(action);
-    }
-
-    private void CancelPendingAction()
-    {
-        ClearPendingAction();
-
-        if (_activeLocationEvent != null)
-        {
-            ShowLocationEvent(_activeLocationEvent);
-            return;
-        }
-
-        ShowLocation();
-    }
-
-    private void ClearPendingAction()
-    {
-        _pendingAction = null;
-        _pendingChoiceValue = null;
-        _pendingActionType = PendingActionType.None;
+        ExecuteAction(selectedAction);
     }
 
     private bool IsEventEncounterAction(LocationContent location, string actionId)
@@ -286,6 +188,19 @@ public partial class MainController : Control
         }
 
         return false;
+    }
+
+    private List<ActionChoiceViewData> MapActionChoices(IReadOnlyList<ActionDefinition> actions)
+    {
+        List<ActionChoiceViewData> choices = new List<ActionChoiceViewData>();
+
+        foreach (ActionDefinition action in actions)
+        {
+            string durationLabel = _durationEstimateMapper.Map(action, _player);
+            choices.Add(new ActionChoiceViewData(action.Id, action.Label, durationLabel));
+        }
+
+        return choices;
     }
 
     private ActionDefinition FindChoice(ActionDefinition[] choices, string choiceId)
@@ -482,7 +397,7 @@ public partial class MainController : Control
             locationEvent.Title,
             locationEvent.Region,
             locationEvent.Description,
-            choices,
+            MapActionChoices(choices),
             _dayClock.GetDisplayText());
         _storyPanel.ShowLocationButton(false);
     }
@@ -522,6 +437,13 @@ public partial class MainController : Control
             return;
         }
 
-        BeginActionPreview(selectedChoice.Action, selectedChoice.Action.Id, PendingActionType.EventAction);
+        LocationEventDefinition previousEvent = _activeLocationEvent;
+        _activeLocationEvent = null;
+
+        if (!ExecuteAction(selectedChoice.Action))
+        {
+            _activeLocationEvent = previousEvent;
+            ShowLocationEvent(previousEvent);
+        }
     }
 }
