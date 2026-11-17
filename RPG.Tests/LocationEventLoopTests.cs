@@ -378,7 +378,7 @@ public sealed class LocationEventLoopTests
 
     private static void LoadAcademyContent()
     {
-        string path = System.IO.Path.Combine(System.AppContext.BaseDirectory, "Data", "academy_locations.json");
+        string path = System.IO.Path.Combine(System.AppContext.BaseDirectory, "Data", "AcademyLocations.json");
         AcademyContent.LoadJson(System.IO.File.ReadAllText(path));
     }
 }
