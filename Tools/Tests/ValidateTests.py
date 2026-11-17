@@ -1,4 +1,5 @@
 import subprocess
+import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -14,25 +15,35 @@ from Validate import (
 
 class CSharpChangeDetectionTests(unittest.TestCase):
     def test_changed_csharp_files_uses_three_dot_diff_and_filters_deleted_files(self):
-        output = "Scripts/CombatService.cs\0RPG.Tests/CombatServiceTests.cs\0Scripts/Old.cs\0"
-        existing = {
-            Path("Scripts/CombatService.cs"),
-            Path("RPG.Tests/CombatServiceTests.cs"),
-        }
-        with (
-            patch(
-                "Validate.git",
-                return_value=subprocess.CompletedProcess(
-                    args=["git"], returncode=0, stdout=output, stderr=""
-                ),
-            ) as git_mock,
-            patch("Validate.ROOT", Path(".")),
-            patch("pathlib.Path.is_file", side_effect=lambda path: path in existing),
-        ):
-            self.assertEqual(
-                ["Scripts/CombatService.cs", "RPG.Tests/CombatServiceTests.cs"],
-                changed_csharp_files("origin/main", "HEAD"),
+        output = (
+            "Scripts/CombatService.cs\\0"
+            "RPG.Tests/CombatServiceTests.cs\\0"
+            "Scripts/Old.cs\\0"
+        )
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            existing_paths = (
+                root / "Scripts" / "CombatService.cs",
+                root / "RPG.Tests" / "CombatServiceTests.cs",
             )
+            for path in existing_paths:
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text("// test fixture", encoding="utf-8")
+
+            with (
+                patch("Validate.ROOT", root),
+                patch(
+                    "Validate.git",
+                    return_value=subprocess.CompletedProcess(
+                        args=["git"], returncode=0, stdout=output, stderr=""
+                    ),
+                ) as git_mock,
+            ):
+                self.assertEqual(
+                    ["Scripts/CombatService.cs", "RPG.Tests/CombatServiceTests.cs"],
+                    changed_csharp_files("origin/main", "HEAD"),
+                )
+
         git_mock.assert_called_once_with(
             "diff", "--name-only", "-z", "origin/main...HEAD", "--", "*.cs"
         )
