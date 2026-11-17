@@ -1,14 +1,18 @@
+import subprocess
 import sys
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 TOOLS_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(TOOLS_DIR))
 
 from CheckProjectNaming import (  # noqa: E402
+    changed_paths,
     is_camel_case,
     is_pascal_case,
     is_snake_case,
+    path_naming_issues,
     validate_branch_name,
     validate_json_document,
 )
@@ -18,9 +22,7 @@ class NamingConventionTests(unittest.TestCase):
     def test_pascal_case(self):
         self.assertTrue(is_pascal_case("CharacterData"))
         self.assertTrue(is_pascal_case("CombatPanel2"))
-        self.assertTrue(is_pascal_case("characterData") is False)
-        # Acronym normalization such as UI vs Ui is not inferred by this structural check.
-        self.assertTrue(is_pascal_case("UITheme"))
+        self.assertFalse(is_pascal_case("characterData"))
         self.assertFalse(is_pascal_case("Main_Controller"))
 
     def test_camel_case(self):
@@ -36,12 +38,12 @@ class NamingConventionTests(unittest.TestCase):
 
     def test_valid_branch_name(self):
         self.assertEqual(
-            [], validate_branch_name("chore/issue-28-project-naming-validators")
+            [], validate_branch_name("chore/issue-30-harden-project-naming-validator")
         )
 
     def test_invalid_branch_name(self):
         self.assertTrue(validate_branch_name("feature/naming-check"))
-        self.assertTrue(validate_branch_name("feat/issue-28-Bad-Name"))
+        self.assertTrue(validate_branch_name("feat/issue-30-Bad-Name"))
 
     def test_valid_json_names(self):
         document = (
@@ -53,34 +55,201 @@ class NamingConventionTests(unittest.TestCase):
         )
 
     def test_existing_legacy_id_is_grandfathered(self):
-        previous = '{"id":"goblin-a","maxHealth":20}'
-        current = '{"id":"goblin-a","maxHealth":30}'
+        previous = '{"id":"goblin-a","name":"Goblin","maxHealth":20}'
+        current = '{"id":"goblin-a","name":"Goblin","maxHealth":30}'
         self.assertEqual(
             [], validate_json_document("Goblin.json", current, previous)
         )
 
+    def test_existing_legacy_ids_are_preserved_when_array_items_move(self):
+        previous = (
+            '{"locations":['
+            '{"id":"room-a","name":"Room A","exits":["room-b"]},'
+            '{"id":"room-b","name":"Room B","exits":["room-a"]}'
+            ']}'
+        )
+        current = (
+            '{"locations":['
+            '{"id":"room-b","name":"Room B","exits":["room-a"]},'
+            '{"id":"room-a","name":"Room A","exits":["room-b"]}'
+            ']}'
+        )
+        self.assertEqual(
+            [], validate_json_document("Locations.json", current, previous)
+        )
 
-    def test_existing_legacy_id_is_preserved_when_list_items_move(self):
-        previous = '{"items":[{"id":"old-a"},{"id":"old-b"}]}'
-        current = '{"items":[{"id":"new_item"},{"id":"old-a"},{"id":"old-b"}]}'
-        issues = validate_json_document("Items.json", current, previous)
-        self.assertEqual([], issues)
+    def test_changed_id_cannot_borrow_another_entities_old_id(self):
+        previous = (
+            '{"characters":['
+            '{"id":"goblin-a","name":"Goblin"},'
+            '{"id":"slime-a","name":"Slime"}'
+            ']}'
+        )
+        current = (
+            '{"characters":['
+            '{"id":"slime-a","name":"Goblin"},'
+            '{"id":"slime-a","name":"Slime"}'
+            ']}'
+        )
+        issues = validate_json_document("Characters.json", current, previous)
+        self.assertTrue(any("new or changed ID/reference" in issue for issue in issues))
+
+    def test_changed_reference_cannot_borrow_another_entities_old_id(self):
+        previous = (
+            '{"locations":['
+            '{"id":"room_a","name":"Room A","exits":["room-b"]},'
+            '{"id":"room_b","name":"Room B"},'
+            '{"id":"room_c","name":"Room C"}'
+            ']}'
+        )
+        current = (
+            '{"locations":['
+            '{"id":"room_a","name":"Room A","exits":["room-c"]},'
+            '{"id":"room_b","name":"Room B"},'
+            '{"id":"room_c","name":"Room C"}'
+            ']}'
+        )
+        issues = validate_json_document("Locations.json", current, previous)
+        self.assertTrue(any("room-c" in issue for issue in issues))
 
     def test_new_or_changed_legacy_style_id_is_rejected(self):
-        previous = '{"id":"goblin-a"}'
-        current = '{"id":"goblin-b"}'
+        previous = '{"id":"goblin-a","name":"Goblin"}'
+        current = '{"id":"goblin-b","name":"Goblin"}'
         issues = validate_json_document("Goblin.json", current, previous)
         self.assertTrue(any("snake_case" in issue for issue in issues))
 
-    def test_invalid_json_property_name_is_rejected(self):
-        document = '{"max_health":20}'
-        issues = validate_json_document("Character.json", document, None)
-        self.assertTrue(any("camelCase" in issue for issue in issues))
+    def test_new_invalid_json_property_name_is_rejected(self):
+        previous = '{"id":"player_ari","name":"Ari"}'
+        current = '{"id":"player_ari","name":"Ari","max_health":20}'
+        issues = validate_json_document("Character.json", current, previous)
+        self.assertTrue(any("max_health" in issue for issue in issues))
+
+    def test_renamed_invalid_json_property_name_is_rejected(self):
+        previous = '{"id":"player_ari","max_health":20}'
+        current = '{"id":"player_ari","max-health":20}'
+        issues = validate_json_document("Character.json", current, previous)
+        self.assertTrue(any("max-health" in issue for issue in issues))
+
+    def test_unchanged_legacy_property_is_grandfathered_when_other_values_change(self):
+        previous = '{"id":"player_ari","max_health":20,"name":"Ari"}'
+        current = '{"id":"player_ari","max_health":20,"name":"Ari the Brave"}'
+        self.assertEqual(
+            [], validate_json_document("Character.json", current, previous)
+        )
+
+    def test_unchanged_legacy_property_is_grandfathered_when_array_items_move(self):
+        previous = (
+            '{"items":['
+            '{"id":"item_a","bad_key":1,"name":"A"},'
+            '{"id":"item_b","name":"B"}'
+            ']}'
+        )
+        current = (
+            '{"items":['
+            '{"id":"item_b","name":"B"},'
+            '{"id":"item_a","bad_key":2,"name":"A"}'
+            ']}'
+        )
+        self.assertEqual([], validate_json_document("Items.json", current, previous))
 
     def test_invalid_enum_like_value_is_rejected(self):
         document = '{"timeMode":"next_day"}'
         issues = validate_json_document("Location.json", document, None)
         self.assertTrue(any("PascalCase" in issue for issue in issues))
+
+
+class ChangedPathTests(unittest.TestCase):
+    def _git_result(self, returncode=1):
+        return subprocess.CompletedProcess(
+            args=["git"], returncode=returncode, stdout="", stderr=""
+        )
+
+    def test_changed_paths_parses_added_modified_deleted_and_renamed_entries(self):
+        output = (
+            "A\\0AddedFile.txt\\0"
+            "M\\0ModifiedFile.cs\\0"
+            "D\\0DeletedFile.cs\\0"
+            "R100\\0OldFolder/OldFile.txt\\0NewFolder/NewFile.txt\\0"
+        )
+        with patch(
+            "CheckProjectNaming.git",
+            return_value=subprocess.CompletedProcess(
+                args=["git"], returncode=0, stdout=output, stderr=""
+            ),
+        ):
+            self.assertEqual(
+                [
+                    ("A", "AddedFile.txt", None),
+                    ("M", "ModifiedFile.cs", None),
+                    ("D", "DeletedFile.cs", None),
+                    ("R", "NewFolder/NewFile.txt", "OldFolder/OldFile.txt"),
+                ],
+                changed_paths("base", "head"),
+            )
+
+    def test_added_file_with_unlisted_extension_is_checked(self):
+        with patch("CheckProjectNaming.git", return_value=self._git_result()):
+            issues = path_naming_issues("base", "A", "Data/Bad_Name.txt")
+        self.assertTrue(any("Bad_Name.txt" in issue for issue in issues))
+
+    def test_renamed_file_is_checked(self):
+        with patch("CheckProjectNaming.git", return_value=self._git_result()):
+            issues = path_naming_issues("base", "R", "Data/Bad_Name.bin")
+        self.assertTrue(any("Bad_Name.bin" in issue for issue in issues))
+
+    def test_godot_uid_sidecar_uses_source_file_name(self):
+        with patch("CheckProjectNaming.git", return_value=self._git_result()):
+            issues = path_naming_issues(
+                "base", "A", "Scripts/ActionExecutionService.cs.uid"
+            )
+        self.assertEqual([], issues)
+
+    def test_godot_import_sidecar_checks_asset_name(self):
+        with patch("CheckProjectNaming.git", return_value=self._git_result()):
+            issues = path_naming_issues(
+                "base", "A", "Assets/academy_scene.svg.import"
+            )
+        self.assertTrue(any("academy_scene.svg.import" in issue for issue in issues))
+
+    def test_repository_and_godot_entry_files_are_exempt(self):
+        for path in (
+            "README.md",
+            "CONTRIBUTING.md",
+            ".editorconfig",
+            ".gitattributes",
+            ".gitignore",
+            "project.godot",
+            "icon.svg",
+            "icon.svg.import",
+        ):
+            with self.subTest(path=path):
+                self.assertEqual([], path_naming_issues("base", "A", path))
+
+    def test_github_platform_paths_are_exempt(self):
+        self.assertEqual(
+            [],
+            path_naming_issues(
+                "base", "A", ".github/workflows/dotnet-tests.yml"
+            ),
+        )
+
+    def test_new_directory_must_use_pascal_case(self):
+        with patch("CheckProjectNaming.git", return_value=self._git_result()):
+            issues = path_naming_issues("base", "A", "bad_directory/ValidFile.bin")
+        self.assertTrue(any("bad_directory" in issue for issue in issues))
+
+    def test_existing_legacy_directory_is_not_revalidated(self):
+        with patch(
+            "CheckProjectNaming.git", return_value=self._git_result(returncode=0)
+        ):
+            issues = path_naming_issues("base", "A", "legacy_folder/ValidFile.bin")
+        self.assertEqual([], issues)
+
+    def test_modified_file_path_is_not_revalidated(self):
+        with patch("CheckProjectNaming.git") as git_mock:
+            issues = path_naming_issues("base", "M", "legacy_folder/bad_file.txt")
+        git_mock.assert_not_called()
+        self.assertEqual([], issues)
 
 
 if __name__ == "__main__":
