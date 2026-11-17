@@ -78,6 +78,40 @@ text = "WHAT DO YOU DO?"
 layout_mode = 2
 theme_override_constants/separation = 7
 
+[node name="ActionPreview" type="VBoxContainer" parent="Margin/Content"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="PreviewTitle" type="Label" parent="Margin/Content/ActionPreview"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 17
+theme_override_colors/font_color = Color(0.91, 0.89, 0.84, 1)
+text = "Action Preview"
+
+[node name="PreviewDetails" type="RichTextLabel" parent="Margin/Content/ActionPreview"]
+custom_minimum_size = Vector2(0, 150)
+layout_mode = 2
+bbcode_enabled = false
+fit_content = true
+scroll_active = true
+theme_override_colors/default_color = Color(0.86, 0.85, 0.81, 1)
+theme_override_font_sizes/normal_font_size = 14
+
+[node name="Buttons" type="HBoxContainer" parent="Margin/Content/ActionPreview"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ConfirmButton" type="Button" parent="Margin/Content/ActionPreview/Buttons"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Confirm"
+
+[node name="CancelButton" type="Button" parent="Margin/Content/ActionPreview/Buttons"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Cancel"
+
 [node name="Feedback" type="Label" parent="Margin/Content"]
 layout_mode = 2
 autowrap_mode = 3
