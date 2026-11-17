@@ -1,91 +1,97 @@
 # Version 1 — Session-by-Session Implementation Plan
 
 **Parent roadmap:** [Game Development Roadmap](GAME_DEVELOPMENT_ROADMAP.md)  
-**Architecture contract:** [Exploration Action Choice Pipeline](EXPLORATION_ACTION_PIPELINE.md)  
 **Version:** 1 — A Day at the Academy  
+**Status:** Detailed implementation proposal  
 **Engine:** Godot 4.7.2 .NET / C#  
 **Delivery rule:** Every session ends with a runnable feature in the Godot main scene.
 
+---
+
 ## 1. Version Goal
 
-Version 1 turns the current academy prototype into a small, complete daily-life loop. The player can choose what to do, understand the time/resource commitment, manage Health/Energy/Mood, experience the current academy event/combat slice, sleep, review the day and continue after restarting the game.
+Version 1 turns the existing academy prototype into a small but complete daily-life loop.
 
-Version 1 also establishes a modest, reusable Exploration choice pipeline. It must support Player Actions, Location Actions, Travel and Event Choices without making StoryPanel depend on their data source.
+At the end of this version, the player should be able to:
 
-At the end of Version 1, the player can:
-1. Understand the current day, time, Location and character condition.
-2. See contextual, grouped choices and their duration/cost.
-3. Perform Player Actions such as Rest and Sleep under explicit context rules.
-4. Perform Location Actions and travel along valid Location exits.
-5. Resolve the existing Event through a non-combat or Combat path.
-6. Spend and recover Energy; understand unconsciousness and death.
-7. Recover Health and Mood through a small set of academy activities.
-8. Complete a day, inspect a summary and continue.
-9. Save and load the current daily-life state.
+1. Understand the current day, time, location and character condition.
+2. Choose an activity after seeing its time and resource costs.
+3. Spend and recover Energy through daily activities.
+4. Sleep and begin the next day with recovered Health, Energy and Mood.
+5. Use a small set of academy activities to make meaningful choices about time and wellbeing.
+6. Finish a day, understand what happened and continue.
+7. Save and load the current daily-life state.
 
-Version 1 is not a character-progression, social-simulation, inventory or world-exploration release. NPC schedules/relationships, item ownership and use, puzzles, containers, skill progression, towers and world simulation remain outside its implementation scope.
+This version is deliberately not a character-progression release. It does not add skill XP, levels, skill trees, relationship progression, a general NPC schedule simulator, inventory, crafting, quests or a world simulation. Those belong to later versions.
 
-## 2. Current Baseline and Verified Repository State
+## 2. What Already Exists
 
-The following is present on `main` after PR #21 and PR #22 were merged:
+The plan must extend the current implementation rather than rebuild it.
 
-- `DayClock` tracks day/minute, rolls over at midnight and exposes `SleepUntilNextDay()`.
-- `Character` owns Health, Energy, Mood, Gold and alive/unconscious state.
-- `ActionDefinition` contains common action data: duration, Energy cost, time mode, Effects, duration estimate and `CanExecuteWhenUnconscious`.
-- `ActionExecutionService` checks death, unconsciousness permission and Energy; advances time; applies configured Effects.
-- `ActionEffectExecutor` applies RestoreHealth, RestoreEnergy, ChangeMood and AddGold.
-- `ActionDurationEstimateMapper` produces fixed/ranged/NextDay labels.
-- `academy_locations.json` contains Location Actions, exits, Event content, Travel configuration and a root `selfActions` array.
-- PR #22 moved Rest into that root `selfActions` array and MainController appends it to every Location choice list.
-- `player.json` defines identity, base values and stats, but does not yet define Player Actions.
-- `MainController.ShowLocation()` currently combines Location Actions, global Self Actions and derived Travel choices; it then maps a flat list into `ActionChoiceViewData`.
-- `StoryPanel` renders a flat list of buttons. It does not render action groups.
-- `ShowLocationEvent()` shows the active Event's choices in a focused presentation.
-- Combat already has its own Service → Snapshot/Result → Mapper → ViewData → Combat UI pipeline. It currently offers Attack, Defend and Dodge directly from CombatService.
-- GitHub Actions tests passed for the PR #21 and PR #22 implementation commits. Repository documents record owner verification of the earlier playable journey, but each Version 1 session still requires its own Godot runtime acceptance.
+The repository currently records:
 
-### Architecture gap this plan closes
+- DayClock tracks day and minute, rolls over at midnight and supports SleepUntilNextDay().
+- Character owns Health, Energy, Mood, Gold and alive/unconscious state.
+- Health is bounded by 0..MaxHealth; Energy by 0..MaxEnergy; Mood by 0..MaxMood.
+- A character with 0 Health is dead. A living character with 0 Energy is unconscious and cannot act.
+- ActionDefinition already contains duration, Energy cost, time modifier, time mode and Effects.
+- ActivityTimeCalculator calculates duration after an optional stat modifier.
+- ActionEffectDefinition currently describes RestoreHealth, RestoreEnergy, ChangeMood and AddGold.
+- academy_locations.json already contains actions such as resting, reading a letter, talking to Mira, inspecting the notice board, studying maps and sleeping.
+- The short-rest Self Action is authored as 30 minutes, restoring 3 Energy and 2 Mood; it is available at every Location.
+- The sleep action is authored with NextDay time mode and effects to restore 20 Health, 10 Energy and 10 Mood.
+- The current player data starts at 20/20 Health, 8/10 Energy, 70/100 Mood and 20 Gold.
+- The UI already shows Health, Energy, Mood and Gold in the persistent Character Panel. The current time is passed into the Main Panel.
 
-The current `selfActions` placement is a transitional implementation, not the target data ownership. Rest is a Player-owned action and should be authored in `player.json`. The current flat MainController composition is also transitional. Session 3 introduces the Query → Mapper → grouped ViewModel → UI pipeline described in [Exploration Action Choice Pipeline](EXPLORATION_ACTION_PIPELINE.md).
+### Important baseline discrepancy to resolve
 
-Do not duplicate the current execution rules while moving data ownership. Preserve the existing Energy, time and Effect behavior.
+The README says that sleep currently changes time only and does not recover character values. However, academy_locations.json already authors Health, Energy and Mood recovery effects for the sleep action.
 
-## 3. Shared Player Rules
+Therefore, Session 1 must verify the actual runtime behavior before changing the sleep implementation. The source of truth must be the executed code and a Godot runtime test, not an assumption based on either document. If the effects already work, preserve them and update the stale documentation; do not implement the same behavior twice.
+
+## 3. Player Experience and Initial Rules
+
+The following rules define the proposed Version 1 baseline. Values already present in character data or action content should be preserved unless a runtime test shows they are invalid. New numeric values are initial tuning candidates and must be playtested.
 
 ### 3.1 Character indicators
 
-| Indicator | Initial range | Version 1 meaning |
-|---|---:|---|
-| Health | 0–20 for current Player | Physical survival; 0 means dead |
-| Energy | 0–10 for current Player | Capacity to continue activities; 0 while alive means unconscious |
-| Mood | 0–100 | Emotional wellbeing; descriptive bands only in Version 1 |
-| Gold | Non-negative integer | Preserve existing reward value; no shop/economy loop in Version 1 |
+| Indicator | Range | Meaning in Version 1 | Gameplay consequence |
+|---|---:|---|---|
+| Health | 0–20 for the current player | Physical condition and survival | At 0, the character is dead and cannot perform gameplay actions. |
+| Energy | 0–10 for the current player | Capacity to continue activities | At 0 while alive, the character is unconscious and cannot act until Energy is restored. |
+| Mood | 0–100 | Emotional wellbeing | Activities can raise or lower it. Mood bands change the displayed condition and feedback; they do not silently change action success or costs in Version 1. |
+| Gold | Current integer value | Existing currency | Preserve current behavior. Do not introduce a shop or economy loop in this version. |
 
-These values remain content-configurable. Tests must include characters with different maximums.
+The current player values are content configuration, not universal constants. Tests must also use characters with different maximum values.
 
 ### 3.2 Mood bands
 
-| Mood | Label |
-|---:|---|
-| 0–24 | Very Low |
-| 25–49 | Low |
-| 50–74 | Steady |
-| 75–100 | Positive |
+Use four presentation bands as an initial, easily readable interpretation:
 
-Mood bands are descriptive only. Do not introduce hidden penalties or action probability modifiers in Version 1.
+| Mood | Label | Presentation |
+|---:|---|---|
+| 0–24 | Very Low | Character appears emotionally drained. |
+| 25–49 | Low | Character is not feeling well. |
+| 50–74 | Steady | Ordinary emotional condition. |
+| 75–100 | Positive | Character is in good spirits. |
 
-### 3.3 Action execution contract
+These bands are descriptive in Version 1. Do not add hidden combat penalties, skill penalties, action lockouts or probability modifiers based on Mood. If playtesting shows that Mood should affect mechanics, define that as a separate, explicit design decision.
 
-1. The player sees a choice and its available duration/cost information.
-2. The player selects the choice.
-3. The authoritative handler/service validates current state and context again.
-4. A failed request changes no Health, Energy, Mood, Gold, time, location or target state.
-5. A successful request applies configured costs, time and Effects once.
-6. Runtime state updates.
-7. Query and Mapper regenerate the current choices.
-8. UI renders the updated state and clear result feedback.
+### 3.3 Activity execution contract
 
-Presentation availability is advisory; the owning service must revalidate.
+Every activity must follow the same visible and domain-level sequence:
+
+1. The player sees the activity's description and approximate duration beside its choice.
+2. The player selects the activity.
+3. The game validates that the character is alive, conscious and has enough Energy.
+4. If validation fails, no time, Energy, Health, Mood or Gold is changed and a clear reason is displayed.
+5. If validation succeeds, the action's costs, actual calculated time and effects are applied exactly once.
+6. The Character Panel and Main Panel refresh from the resulting state.
+7. The player receives a clear result message.
+
+The operation must be atomic from the player's perspective. A failed action must never spend Energy but fail to advance time, or advance time but fail to apply the expected effects.
+
+For NextDay actions, the action must use the dedicated next-day transition rather than adding an arbitrary duration and then separately incrementing the day. Recovery effects must be applied exactly once.
 
 ---
 
@@ -93,386 +99,629 @@ Presentation availability is advisory; the owning service must revalidate.
 
 ## Session 1 — Inline Action Duration Estimates
 
-**Status: Implementation merged in PR #21.**
+**Player-facing result:** The player sees an approximate duration beside each action and performs the action immediately by selecting it.
 
-**Player-facing result:** The player sees an approximate duration beside each choice and executes it immediately by selecting it.
+### Why this is first
 
-### Existing implementation
-- Removed the full Action Preview / Confirm / Cancel screen.
-- Added optional authored estimate bounds and `ActionDurationEstimateMapper`.
-- Reused the character-stat duration modifier for both estimate bounds.
-- Displayed NextDay as “Until next morning” and zero-duration as “Immediate”.
-- Executed selected normal actions, travel and non-combat Event choices immediately.
-- Added actual elapsed-time feedback beside the clock for approximately 5–6 seconds and clock count-up animation.
-- Removed duplicate elapsed-minute narration from Story Log.
-
-### Verification expected
-- Fixed duration, range, stat modifier, NextDay and Immediate labels.
-- Invalid estimate bounds rejected.
-- Rejected actions do not advance time or show success feedback.
-- Travel, Event and Goblin Combat flow remain functional.
-- Godot runtime evidence should accompany the implementation PR/issue; automated tests alone do not prove rendered UI behavior.
-
-### Completion record
-Implementation is merged and its automated tests passed. Preserve runtime acceptance as a separately recorded check; do not infer a manual pass from CI.
-
-## Session 2 — Energy Economy and Rest
-
-**Status: Gameplay implementation merged in PR #22.**
-
-**Player-facing result:** The player spends Energy, becomes unconscious at 0 Energy, and recovers through Rest.
-
-### Existing implementation
-- Energy Cost is validated before mutation.
-- Cost equal to current Energy succeeds and can leave the Player unconscious after the current action.
-- Cost greater than current Energy is rejected without mutation.
-- Rest restores up to 3 Energy and changes Mood by +2; it takes 30 minutes and costs no Energy.
-- Rest is allowed while unconscious through `canExecuteWhenUnconscious`; dead characters remain blocked.
-- Ordinary actions and Travel are blocked while unconscious.
-- Failure feedback explains that the player should Rest.
-
-### Transitional data placement
-PR #22 stores Rest in `selfActions` at the root of `academy_locations.json`. This works in the current prototype, but does not express Player ownership. Session 3 will move it into `player.json` and remove the duplicate global Self Action source. Do not reimplement Session 2's Energy rules during that migration.
-
-### Completion record
-Gameplay implementation and automated tests are merged. Godot runtime acceptance must still be explicitly recorded for the current main build.
-
-## Session 3 — Exploration Action Choice Pipeline
-
-**Player-facing result:** Exploration presents choices in clear groups, while the same UI can render choices supplied by different data sources.
-
-### Why this is third
-Sessions 1 and 2 already introduced action duration, costs and execution. Before adding more activities, the game needs a clear data-to-UI path. Otherwise each new action source increases controller and UI coupling. This session corrects the temporary Self Actions implementation before later sessions add more Player Actions.
+The game already has timed actions. The player should understand the time commitment without leaving the story flow or opening a separate confirmation screen. A compact estimate beside the action gives useful planning information while keeping interaction immediate.
 
 ### Player flow
-1. At any normal Location, the player sees Personal choices such as Rest.
-2. The player sees actions belonging to the current Location.
-3. The player sees Travel choices derived from that Location's exits.
-4. If an Event is active, its choices are presented in the focused Event context.
-5. Selecting a choice routes to the responsible rule owner.
-6. After a successful state change, the choice list is rebuilt from current state.
 
-### Data sources in Version 1
-
-| Source | Definition location | Version 1 example |
-|---|---|---|
-| Player Actions | `Data/Characters/player.json` → `playerActions` | Rest, Sleep |
-| Location Actions | `Data/academy_locations.json` → `locations[].actions` | Read letter, Inspect board, Study maps |
-| Travel | Derived from `locations[].exits` plus shared Travel configuration | Go to Courtyard |
-| Event Choices | `locations[].events[].choices` | Confront Goblin, Sneak past |
-| NPC / Item / Interactable | Future source-specific content | Not implemented in this session |
-| Combat Actions | CombatService and its own snapshot | Remain separate |
+1. The player opens the Dormitory.
+2. The player sees choices such as:
+   - Read the letter on your desk (0:10–0:20).
+   - Take a short rest (0:30).
+   - Sleep until tomorrow (Until next morning).
+3. The player selects an action.
+4. The action executes immediately. The system validates the character, spends Energy, advances the actual calculated duration and applies effects.
+5. The clock, Character Panel and story feedback update.
 
 ### Scope
-- Add `playerActions` parsing and validation to `CharacterDataLoader` / `CharacterData`.
-- Move Rest from root `selfActions` into Player Actions. Preserve 30 minutes, 0 Energy Cost, +3 Energy, +2 Mood and unconscious permission.
-- Move Sleep's definition into Player Actions as a Player-owned operation; give it a context requirement that initially permits it only in Dormitory. Preserve NextDay and its current authored recovery Effects.
-- Remove root `selfActions` after migration; avoid two competing ownership sources.
-- Introduce a small Action Choice source/request contract that carries source kind, source ID, action ID and optional target/destination ID. Keep identity unambiguous.
-- Introduce an Available Interaction Query for the implemented sources: Player, Location, Travel and active Event.
-- Query is read-only. It distinguishes choices absent from the current context from contextual choices temporarily disabled by a resource/state condition.
-- Introduce an Exploration Mapper and grouped `ExplorationViewModel` / `ActionGroupViewModel` / `ActionChoiceViewModel` (names may follow repository conventions).
-- Render groups in StoryPanel. Initial groups: Personal, At This Location and Travel. Event uses a focused Current Situation group/view.
-- Keep MainController as orchestrator: gather current context, submit selection request, delegate and refresh. Remove action-source merging and flat-list mapping from MainController.
-- Preserve the existing ActionExecutionService, ActivityTimeCalculator, Effects, Location Event behavior and Combat pipeline.
-- Document future extension points for Nearby NPC/Object interactions, but do not implement their loaders or services.
 
-### Availability rules
-- Rest is Personal and available at every Location for a living Player, including unconscious.
-- Sleep is Player-owned but only appears in the Dormitory.
-- Location Actions appear only at their owning Location.
-- Travel appears only for valid exits.
-- Event Choices appear only while their Event is active.
-- Ordinary actions/Travel remain unavailable to an unconscious Player; dead Player cannot execute any gameplay action.
+- Remove the separate Action Preview screen and Confirm / Cancel interaction.
+- Display a compact duration label directly beside each action choice.
+- Support optional authored estimate bounds on ActionDefinition.
+- Apply the existing stat-based time modifier to both estimate bounds.
+- If an action has no estimate range, display its calculated duration as a single value.
+- Display NextDay actions as “Until next morning”; do not display them as zero minutes.
+- Keep Energy validation and failure feedback in ActionExecutionService.
+- Selecting an unavailable action must show the rejection reason and make no state changes.
+- Apply the same choice presentation to normal actions, travel and non-combat Event choices.
+- Keep Combat transitions on their existing dedicated flow.
+- Do not display predicted Effects, current time, resulting time or a second confirmation panel.
+
+### Estimate semantics
+
+The estimate is presentation guidance, not a second execution rule. Estimate bounds are authored in content and displayed to the player. The actual duration remains calculated by ActivityTimeCalculator using the action's configured base duration and stat modifier. After a successful action, the UI briefly displays the actual elapsed time beside the clock and animates the clock from its previous value to the new value. Do not repeat elapsed minutes in the Story Log.
+
+### Implementation slices
+
+1. Remove the ActionPreview panel, pending-action state and Confirm / Cancel signals.
+2. Add optional estimated duration bounds to ActionDefinition and parse them from academy content.
+3. Add ActionDurationEstimateMapper to format fixed durations, estimate ranges and NextDay labels.
+4. Add ActionChoiceViewData so StoryPanel receives ready-to-render choice labels and duration text.
+5. Show the estimate beside each action label and execute the selected action immediately.
+6. Update travel and Event choice flows to use the same presentation and direct execution path.
+7. Refresh the Main Panel and Character Panel after successful execution.
 
 ### Automated tests
-- Player Action JSON loads, validates and retains all action fields.
-- Missing/malformed `playerActions`, duplicate IDs and invalid context references are handled safely.
-- Rest comes from PlayerData, is visible at every Location, works at 0 Energy and cannot revive death.
-- Sleep comes from PlayerData and is not offered outside its allowed context.
-- Location Actions are only returned for the current Location.
-- Travel choices are derived only from current valid exits and retain destination identity.
-- Active Event choices are mapped with stable identity and do not accidentally include ordinary Location/Travel choices.
-- Query does not mutate character, clock, location or target state.
-- Mapper does not read JSON or mutate runtime state.
-- Empty groups are omitted and deterministic group order is preserved.
-- Different sources may reuse an Action ID without causing request routing collisions.
-- Invalid/stale requests are revalidated at execution and fail without partial mutation.
-- Successful action refresh reflects the resulting state.
+
+- A configured estimate range is displayed with both bounds.
+- Both estimate bounds use the same stat modifier as actual action duration.
+- A fixed-duration action without estimate bounds displays its calculated duration.
+- A NextDay action displays “Until next morning”.
+- A zero-duration action displays “Immediate” or omits the duration label consistently.
+- Estimate bounds must be provided together.
+- Negative bounds and a maximum lower than the minimum are rejected.
+- NextDay actions cannot define ordinary duration bounds.
+- Mapping choices does not mutate character state or the clock.
+- Insufficient Energy, unconsciousness for actions not explicitly permitted, and death are rejected by ActionExecutionService without mutation.
+- Selecting an action executes it once; there is no preview confirmation path.
+- Travel and non-combat Event choices execute through their existing rule owners.
 
 ### Godot runtime acceptance
-- Rest appears under Personal in Dormitory, Courtyard, Classroom and Guild Hall.
-- Sleep appears only in Dormitory.
-- Location-specific choices change when moving between Locations.
-- Travel options reflect each Location's exits.
-- Current Event screen displays Event choices using the shared presentation contract.
-- Select Rest, observe 30 minutes, Energy +3 up to maximum and Mood +2.
-- Reach 0 Energy, confirm Rest remains usable while ordinary actions and Travel are unavailable.
-- Existing Goblin Event and Combat flow still work.
-- UI group labels and choice ordering are readable and no stale choices remain after an action or travel.
+
+- The Dormitory action list shows “Read the letter on your desk (0:10–0:20)”.
+- Rest displays its configured fixed duration.
+- Sleep displays “Until next morning”.
+- Selecting an action executes it immediately and updates the Character Panel.
+- The clock rapidly counts from its previous time to the new time.
+- The actual elapsed time appears beside the clock for approximately 5–6 seconds, then fades away.
+- An unavailable action shows a clear rejection and does not change state or show time feedback.
+- Travel updates the location after execution.
+- The existing Goblin Event and Combat flow still work.
 
 ### Session completion evidence
-Automated test output plus a Godot recording/screenshots showing at least two Locations, grouped Personal/Location/Travel choices, Rest at 0 Energy and the Event flow.
 
-## Session 4 — Sleep and the Next-Day Transition
-
-**Player-facing result:** The player can end the day in the Dormitory and wake at 07:30 on the next morning with recovered character values.
-
-### Scope
-- Use `DayClock.SleepUntilNextDay()` as the only owner of the calendar transition.
-- Use Player-owned Sleep from Session 3; enforce Dormitory context through availability and authoritative validation.
-- Apply authored Sleep Effects exactly once: restore up to 20 Health, 10 Energy and 10 Mood.
-- Keep wake-up time at 07:30.
-- Keep the Player in Dormitory and refresh Character Panel and Exploration ViewModel after waking.
-- A dead character cannot sleep to revive.
-- Do not add schedules or world simulation.
-
-### Calendar rules and tests
-- Sleep from 07:30, noon and 23:59 advances exactly one day and wakes at 07:30.
-- Sleep at 02:00 after midnight does not increment the day a second time.
-- Verify 07:29 boundary behavior against the documented DayClock rule.
-- Recovery clamps to each maximum.
-- Full values do not exceed maxima.
-- Effects are applied once; failed sleep changes nothing.
-- Sleep outside Dormitory is hidden and direct stale/forged request is rejected.
-- Day counter overflow is handled explicitly.
-
-### Godot runtime acceptance
-Complete a normal day, sleep and verify day, 07:30 time, Dormitory location, Health, Energy and Mood.
-
-### Completion evidence
-Before/after state record plus calendar-boundary automated test output.
-
-## Session 5 — Health, Injury and Recovery
-
-**Player-facing result:** Combat damage has a meaningful daily-life consequence and the Player can recover at the academy Infirmary.
-
-### Scope
-- Add one Infirmary Location connected to the existing Location graph.
-- Add one basic treatment Location Action.
-- Initial tuning candidate: 60 minutes, 0 Energy Cost, restore up to 5 Health, no Gold cost.
-- Reuse common action duration/cost/effect execution where applicable.
-- Death cannot be bypassed by treatment.
-- No doctor NPC, medicine inventory, diagnosis, injury list or medical minigame.
-
-### Automated tests
-- Treatment restores configured Health and clamps to MaxHealth.
-- Full Health receives no additional Health.
-- Dead Player cannot be treated/revived.
-- Treatment advances time exactly once.
-- Failed treatment changes nothing.
-- Invalid Location/action references are rejected.
-- Treatment does not alter Energy, Mood or Gold unless explicitly configured.
-
-### Godot runtime acceptance
-Take damage in Goblin Combat, return to Exploration, travel to Infirmary, receive treatment and observe Health recovery/time cost.
-
-### Completion evidence
-A complete injury → return → travel → treatment → recovered-state run.
-
-## Session 6 — Mood and Daily Wellbeing
-
-**Player-facing result:** The Player sees a clear description of their emotional condition and understands how daily activities affect Mood.
-
-### Scope
-- Centralize Mood band mapping: Very Low (0–24), Low (25–49), Steady (50–74), Positive (75–100).
-- Show the band and update it after actions.
-- Preserve Mood Effects on Rest, Sleep and existing suitable actions.
-- Add one restorative leisure action only if current content does not provide enough meaningful Mood variation.
-- Show the actual Mood change in result feedback.
-- Mood remains descriptive; it does not affect action success, costs, duration or Combat in Version 1.
-
-### Automated tests
-- Test every boundary: 0, 24, 25, 49, 50, 74, 75 and 100.
-- Negative/positive changes clamp to valid range.
-- Configurable MaxMood is handled correctly or explicitly validated.
-- UI mapping is pure and does not mutate Character.
-- Rest/Sleep Mood Effects apply once.
-- Mood does not silently change availability, Energy Cost or Combat calculations.
-
-### Godot runtime acceptance
-Perform actions that cross at least one Mood boundary in both directions and verify updated display and feedback.
-
-### Completion evidence
-Runtime examples plus complete Mood-boundary test results.
-
-## Session 7 — A Small, Complete Academy Routine
-
-**Player-facing result:** The Player has several distinct activities and meaningful decisions about how to spend one day.
-
-### Scope
-Add a small set of data-authored activities:
-- Meal: suitable academy Location; 20 minutes; restore up to 2 Energy; optional small Mood increase.
-- Lesson: Classroom; 60 minutes; cost 2 Energy; no XP.
-- Practice: Courtyard/training area; 45 minutes; cost 3 Energy; no skill gain.
-- Rest: preserve Session 2 behavior.
-- Treatment: preserve Session 5 behavior.
-- Sleep: preserve Session 4 behavior.
-
-Keep initial values as tuning candidates, not final balance. Do not add inventory requirements for food, XP/skills, shopping, full timetables, NPC schedules or quest chains.
-
-### Automated tests
-- All activity definitions load and validate.
-- Duplicate IDs are rejected within the appropriate source scope.
-- Each Location Action appears only at its authored Location.
-- Meal recovery clamps to MaxEnergy.
-- Lesson/Practice fail cleanly when Energy is insufficient.
-- Successful activities advance time and apply Effects once.
-- Displayed duration estimates and executed duration use consistent stat modifiers.
-- No XP, skill level or inventory items are granted in Version 1.
-- Sequences never push Health/Energy/Mood outside valid bounds.
-
-### Godot runtime acceptance
-Play a day with at least three activity types and a meaningful time/Energy trade-off. Player can choose the order allowed by location and state.
-
-### Completion evidence
-A playable day recording and test results.
-
-## Session 8 — Daily Summary and Day Continuity
-
-**Player-facing result:** The Player can review how the day was spent before continuing to the next morning.
-
-### Scope
-- Record successful completed activities only.
-- Include label, source/context, Location, actual elapsed time and relevant state changes.
-- Rejected choices are not recorded as completed activities.
-- Keep the summary bounded to the current day; no permanent journal or quest tracker.
-- Generate the summary from actual execution results, not by replaying Effects in the UI.
-- Decide and document whether the summary is shown immediately before or after the next-day transition, then keep the flow consistent.
-
-### Automated tests
-- Each successful action is recorded once and in execution order.
-- Rejected actions are not recorded.
-- Total summary duration matches actual clock advancement.
-- Multiple activities in one Location are recorded correctly.
-- New day starts a new summary.
-- NextDay is represented as a day transition, not a normal elapsed duration.
-- Summary matches execution results and does not mutate state.
-- Empty-day summary is valid.
-
-### Godot runtime acceptance
-Perform several activities, sleep, inspect the summary and continue. Verify next day begins with a clean daily record.
-
-### Completion evidence
-Screenshot/recording of a day containing at least three activities plus test output.
-
-## Session 9 — Save and Load the Daily-Life Loop
-
-**Player-facing result:** The Player can close the game and continue the same academy day later.
-
-### Minimum save scope
-- Schema version.
-- Player ID.
-- Health, Energy, Mood and Gold.
-- Current Location ID.
-- Day and minute of day.
-- Current-day summary data.
-- Minimal Location Event evaluation state required to preserve the intended current-day behavior.
-
-Do not persist immutable definitions. Reload JSON content and validate saved IDs against current definitions.
-
-### Save/load behavior
-- Write atomically where practical; do not destroy the last valid save on a failed write.
-- Missing save starts a new game.
-- Empty, malformed, truncated or unsupported save shows a clear failure and does not partially mutate live state.
-- Unknown Player/Location IDs and out-of-range values are rejected according to a documented policy.
-- Loading restores state without reapplying action Effects or duplicating summary entries.
-- Save only at safe Exploration states; Combat save is out of scope.
-
-### Automated tests
-- New game without a save.
-- Save/load initial state and after multiple activities.
-- Save/load after travel, midnight rollover, sleep and low Health/Energy/Mood.
-- Missing, empty, malformed, truncated and unsupported schema files.
-- Unknown IDs and out-of-range values.
-- Failed/interrupted write preserves previous valid save.
-- Repeated save/load cycles preserve identical state.
-- Loading does not replay effects or duplicate daily summary entries.
-
-### Godot runtime acceptance
-Perform activities, travel, save, close/restart, load and verify Location, clock, Health, Energy, Mood, Gold and daily summary.
-
-### Completion evidence
-Reproducible before/after save record and automated test results.
+A short runtime recording or screenshots showing the action list with inline estimates, immediate action execution, updated clock and Character Panel, plus automated test results.
 
 ---
 
-# 5. Dependency Map
+## Session 2 — Energy Economy and Rest
 
-```text
-Session 1: Inline Action Duration Estimates       [merged]
-        |
-Session 2: Energy Economy and Rest                [merged]
-        |
-Session 3: Exploration Action Choice Pipeline     [next]
-        |
-Session 4: Sleep and Next-Day Transition
-        |
-Session 5: Health, Injury and Recovery
-        |
-Session 6: Mood and Daily Wellbeing
-        |
-Session 7: Complete Academy Routine
-        |
-Session 8: Daily Summary and Day Continuity
-        |
-Session 9: Save and Load
-```
+**Player-facing result:** The player can spend Energy on activities, recognize exhaustion and recover through rest.
 
-The first two sessions provide existing behavior. Session 3 corrects data ownership and creates the grouped choice pipeline that later activity additions will use. Sessions 4–9 then build the complete daily-life loop on that foundation.
+### Why this is second
 
-## 6. Definition of Done for Every Session
+Energy already limits actions and 0 Energy already means unconsciousness. This session turns that existing rule into a complete, understandable gameplay loop instead of an isolated validation condition.
 
-- [ ] Reachable from the normal Godot main scene.
-- [ ] Player can complete the described flow without developer-only shortcuts.
-- [ ] New behavior is visible and understandable in the UI.
-- [ ] Existing travel, Location Event and Goblin Combat flows still work.
-- [ ] Gameplay rules are enforced outside the UI.
+### Player flow
+
+1. The player begins with 8/10 Energy.
+2. The player performs an activity that costs Energy.
+3. The Energy display decreases by the configured cost.
+4. When Energy is insufficient, the activity is rejected with a clear reason and no state changes.
+5. The player uses the short-rest Self Action, available from any Location.
+6. Energy increases by the authored recovery amount, up to MaxEnergy.
+7. The player can continue activities, including after recovering from unconsciousness.
+
+### Scope
+
+- Audit and consolidate Energy validation in the existing action execution path.
+- Ensure all normal activities use ActionDefinition.EnergyCost.
+- Ensure an action with a cost greater than current Energy is rejected before any mutation.
+- Preserve the current rule: a living character at 0 Energy is unconscious and cannot perform ordinary actions.
+- Move the existing short-rest action into the global Self Action list so it is available at every Location; do not require an unconscious player to travel back to the Dormitory.
+- Add the authored `canExecuteWhenUnconscious` flag to ActionDefinition. Its default is false; only explicitly configured recovery actions may execute while unconscious.
+- Keep the short-rest action at 30 minutes, 0 Energy cost, +3 Energy and +2 Mood.
+- Display current Energy and maximum Energy consistently.
+- Make the failure message actionable, e.g. “Not enough Energy. Rest before continuing.”
+- Ensure a character who becomes unconscious after an action cannot immediately perform another action.
+
+### Initial tuning
+
+Keep the current authored values as the initial baseline:
+
+- Starting Energy: 8/10.
+- Short rest: 30 minutes, 0 Energy cost, +3 Energy, +2 Mood.
+- Travel: preserve the current configured cost.
+- Other activity costs: preserve existing JSON values initially.
+
+Do not rebalance all costs in this session. First make the rules correct and observable.
+
+### Automated tests
+
+- Cost 0 succeeds when the character can act.
+- Cost equal to current Energy succeeds and reaches 0.
+- Cost greater than current Energy fails without mutation.
+- Negative Energy costs are rejected by content/domain validation.
+- Rest at maximum Energy does not exceed maximum.
+- Rest from 0 Energy restores the character and makes them able to act.
+- The global Self Action is available from every Location, including when the player is unconscious.
+- Ordinary actions and Travel remain blocked while unconscious.
+- A dead character cannot use rest to revive.
+- An action that reduces Energy to 0 applies its configured effects/time once, then the character becomes unconscious.
+- A second action after unconsciousness is rejected.
+- Failure does not change Energy, Health, Mood, Gold or time.
+- Very large recovery values are clamped to MaxEnergy.
+
+### Godot runtime acceptance
+
+- Perform an Energy-consuming activity and observe the decrease.
+- Attempt another activity without enough Energy and observe a rejection.
+- Use the short-rest Self Action from at least two different Locations and observe recovery.
+- Reach 0 Energy through a valid action, verify ordinary actions and Travel are blocked, then use Rest and verify that action becomes available again.
+
+### Session completion evidence
+
+A reproducible scenario showing Energy decrease → insufficient Energy rejection → rest → recovery → action becomes available again.
+
+---
+
+## Session 3 — Sleep and the Next-Day Transition
+
+**Player-facing result:** The player can end the day, sleep and start the next morning with a recovered character.
+
+### Why this is third
+
+Rest handles short-term recovery. Sleep establishes the daily boundary that makes the academy life loop meaningful. It also becomes the foundation for schedules and world progression in later versions.
+
+### Player flow
+
+1. The player returns to the Dormitory.
+2. The player chooses “Sleep until tomorrow”.
+3. The player selects “Sleep until tomorrow”; the action executes immediately.
+4. The day advances to the next morning at 07:30.
+5. Health, Energy and Mood recover according to the authored sleep effects.
+6. The location remains the Dormitory and the Main Panel displays the new day.
+
+### Scope
+
+- Verify and complete the existing NextDay action execution.
+- Use DayClock.SleepUntilNextDay() as the single owner of the calendar transition.
+- Apply the sleep action's configured effects exactly once.
+- Keep the current wake-up time at 07:30 unless a later design decision changes it.
+- Correctly handle sleeping before 07:30, at 07:30, after 07:30 and after midnight.
+- Ensure sleep cannot be performed from an unavailable location unless the action is explicitly authored there.
+- Ensure death cannot be bypassed by sleeping.
+- Refresh all UI from the post-sleep state.
+
+### Initial recovery values
+
+Preserve the current JSON configuration as the first candidate:
+
+- Restore up to 20 Health.
+- Restore up to 10 Energy.
+- Restore up to 10 Mood.
+- Wake at 07:30 on the next day.
+
+The actual restored amount is limited by the character's missing amount and maximum value.
+
+### Calendar rules
+
+- If the player sleeps at or after 07:30, move to the next day at 07:30.
+- If the clock is before 07:30 because the player has passed midnight, set the clock to 07:30 without incrementing the day a second time.
+- Sleeping must not create two day increments.
+- A failed sleep action must not advance the day or apply recovery.
+- The day number must not silently overflow.
+
+### Automated tests
+
+- Sleep from 07:30 advances exactly one day.
+- Sleep from noon advances exactly one day.
+- Sleep from 23:59 advances exactly one day.
+- Sleep at 02:00 after midnight sets 07:30 without a second increment.
+- Sleep at 07:29 follows the documented boundary rule.
+- Sleep restores Health, Energy and Mood up to their maxima.
+- Sleep at full values does not exceed maxima.
+- Sleep does not revive a dead character.
+- Sleep recovery effects are not applied twice.
+- A failed or invalid sleep action changes nothing.
+- The location remains the Dormitory after waking.
+
+### Godot runtime acceptance
+
+Complete one ordinary day, sleep, and verify the day number, 07:30 time, character values and location in the running game.
+
+### Session completion evidence
+
+A before/after state record with day, time, location, Health, Energy and Mood, plus automated boundary test results.
+
+---
+
+## Session 4 — Health, Injury and Recovery
+
+**Player-facing result:** Damage matters beyond the combat screen, and the player has a daily-life way to recover from injury.
+
+### Why this is fourth
+
+Health already represents survival and Combat can reduce it. Without a recovery option outside sleep, a player who survives an encounter may have no meaningful way to manage the injury during the rest of the day. This session closes that gap without adding a medical simulation.
+
+### Player flow
+
+1. The player takes damage during the existing Goblin encounter.
+2. The player returns to Exploration with reduced Health.
+3. The player travels to the academy's infirmary.
+4. The player selects a basic treatment/rest action.
+5. The action consumes its configured time and restores a limited amount of Health.
+6. The Character Panel shows the updated Health.
+
+### Scope
+
+- Add one small Infirmary Location connected to the existing academy location graph.
+- Add one basic treatment action with an authored duration and Health recovery effect.
+- Use the existing Action execution and Effect application path.
+- Make treatment unavailable to a dead character.
+- Do not allow treatment to exceed MaxHealth.
+- Keep treatment's Health recovery in the action result feedback; do not add a separate preview screen.
+- Keep the existing combat death rule unchanged.
+- Keep the feature intentionally small: no doctor NPC, medicine inventory, diagnoses, injuries list or medical minigame.
+
+### Initial tuning candidate
+
+Use a simple fixed treatment action for the first playable implementation, for example:
+
+- Treatment duration: 60 minutes.
+- Energy cost: 0.
+- Health recovery: up to 5 points.
+- No Gold cost in Version 1.
+
+These are prototype tuning values, not final economy decisions. The academy-provided treatment avoids introducing shopping or inventory dependencies before Version 4.
+
+### Automated tests
+
+- Treatment restores the configured amount when injured.
+- Treatment is clamped at MaxHealth.
+- Treatment at full Health does not create extra Health.
+- Dead characters cannot be treated or revived.
+- Invalid location/action references are rejected during content loading.
+- Treatment advances time exactly once.
+- Failed treatment does not advance time or change Health.
+- Treatment works after returning from Combat.
+- Treatment does not alter Energy, Mood or Gold unless explicitly configured.
+
+### Godot runtime acceptance
+
+Take damage in Combat, return to Exploration, travel to the Infirmary, receive treatment and observe Health recovery and time cost.
+
+### Session completion evidence
+
+A complete injury → return → travel → treatment → recovered-state runtime scenario.
+
+---
+
+## Session 5 — Mood and Daily Wellbeing
+
+**Player-facing result:** Daily activities can improve or worsen the character's emotional condition, and the UI communicates that condition clearly.
+
+### Why this is fifth
+
+Health and Energy describe physical survival and capacity. Mood gives daily choices an emotional dimension. The first implementation should be understandable and descriptive rather than introducing hidden penalties.
+
+### Player flow
+
+1. The player sees the current Mood value and its descriptive band.
+2. The player performs activities with authored Mood effects.
+3. Mood changes within the 0–100 range.
+4. The UI updates the band and contextual description.
+5. The player can choose a restorative activity to improve Mood.
+
+### Scope
+
+- Add a Mood presentation mapper or equivalent focused logic so UI labels are not scattered across controllers.
+- Use the four documented bands: Very Low, Low, Steady and Positive.
+- Preserve Mood effects already authored on rest, sleep and social/context actions.
+- Add one simple restorative leisure action in an existing suitable Location if the current content does not provide enough ways to change Mood.
+- Show Mood change in the activity result feedback.
+- Clamp all Mood changes between 0 and MaxMood.
+- Do not let Mood change action success, combat damage, Energy cost or time calculation in this version.
+
+### Initial Mood bands
+
+- 0–24: Very Low.
+- 25–49: Low.
+- 50–74: Steady.
+- 75–100: Positive.
+
+The labels and descriptive copy may be revised after playtesting; the numeric boundaries should be centralized rather than repeated in UI code.
+
+### Automated tests
+
+- Values at 0, 24, 25, 49, 50, 74, 75 and 100 map to the correct band.
+- Negative changes clamp at 0.
+- Positive changes clamp at MaxMood.
+- A character with a MaxMood other than 100 maps correctly if the implementation supports configurable maxima; otherwise validate and document the chosen normalization.
+- Action result feedback shows the applied Mood delta.
+- Mood band changes refresh immediately after an action.
+- Mood does not silently alter action availability or combat calculations.
+- Rest and sleep apply Mood effects exactly once.
+
+### Godot runtime acceptance
+
+Lower Mood through an authored activity or test scenario, use a restorative activity, and observe the value and descriptive band change in the running UI.
+
+### Session completion evidence
+
+A runtime example crossing at least one Mood-band boundary in each direction, with tests for all boundaries.
+
+---
+
+## Session 6 — A Small, Complete Academy Routine
+
+**Player-facing result:** The player has several distinct activities and must choose how to spend a day.
+
+### Why this is sixth
+
+The previous sessions establish understandable costs, Energy, sleep, Health recovery and Mood. This session combines them into actual daily choices. It should feel like a day at an academy, not a test menu for character statistics.
+
+### Player flow
+
+The player can choose a routine such as:
+
+1. Wake up in the Dormitory.
+2. Eat a meal.
+3. Attend a lesson or study in the Classroom.
+4. Practice or train in an appropriate academy area.
+5. Rest when Energy becomes low.
+6. Visit the Infirmary if injured.
+7. Return to the Dormitory and sleep.
+
+The player is free to choose another order where location and character state allow it. This is not a fixed timetable or a quest chain.
+
+### Scope
+
+Add a compact set of authored activities that cover different daily decisions:
+
+| Activity | Suggested location | Primary purpose | State interaction |
+|---|---|---|---|
+| Eat a meal | New Cafeteria Location or an existing suitable academy location | Restore some Energy | Time + Energy recovery |
+| Attend a lesson | Classroom | Spend time on study | Time + Energy cost; no XP in Version 1 |
+| Practice basic techniques | Courtyard or training area | Spend time on physical practice | Time + Energy cost; optional Mood effect |
+| Take a short rest | Dormitory or another explicitly authored resting place | Recover Energy | Existing rest behavior |
+| Receive treatment | Infirmary | Recover Health | Session 4 behavior |
+| Sleep until tomorrow | Dormitory | End the day and recover | Session 3 behavior |
+
+### Content constraints
+
+- Keep activity definitions in the existing academy content JSON where that is the current project convention.
+- Do not add a skill progression reward to lessons or practice. Version 2 owns skills and progression.
+- Do not introduce an inventory requirement for meals. For this first version, treat the meal as an academy-provided activity; no item ownership or shopping loop is needed.
+- Do not add a full timetable, NPC schedule or attendance system.
+- Do not make every activity available at every Location. The current Location's authored choices determine availability.
+- Keep each activity's time, Energy cost and Effects explicit in content.
+
+### Initial tuning candidates
+
+Use short, easy-to-test values rather than attempting final balance:
+
+- Meal: 20 minutes; restore 2 Energy; optional small Mood improvement.
+- Lesson: 60 minutes; spend 2 Energy; no XP.
+- Practice: 45 minutes; spend 3 Energy; no skill gain.
+- Short rest: preserve the current 30-minute / +3 Energy / +2 Mood behavior.
+- Treatment: preserve Session 4 values.
+- Sleep: preserve Session 3 behavior.
+
+These values are starting points for the first playable day. Adjust only after running the same day scenario repeatedly and recording whether the player has meaningful choices.
+
+### Automated tests
+
+- Every activity loads from content with valid IDs, labels, duration, Energy cost and Effects.
+- Duplicate activity/action IDs are rejected according to existing validation rules.
+- Activities are available only at their authored Location.
+- A meal restores Energy without exceeding MaxEnergy.
+- A lesson or practice action fails cleanly when Energy is insufficient.
+- Each successful activity advances time exactly once.
+- Stat modifiers are applied consistently to displayed duration estimates and actual execution.
+- Activities do not grant XP, skill levels or inventory items in Version 1.
+- A sequence of activities cannot produce Health, Energy or Mood outside their valid ranges.
+- Invalid content does not partially replace the already loaded content.
+
+### Godot runtime acceptance
+
+Play a day using at least three different activities, including one restorative activity. The player must be able to choose the order, see costs before confirmation and understand the state changes afterward.
+
+### Session completion evidence
+
+A short playthrough showing at least three distinct activity types and one meaningful trade-off between time and Energy.
+
+---
+
+## Session 7 — Daily Summary and Day Continuity
+
+**Player-facing result:** The player can understand how the day was spent and see the consequences carried into the next morning.
+
+### Why this is seventh
+
+The day loop needs a readable endpoint. A summary gives the player feedback about their choices and makes the transition to the next day feel intentional. It also creates a clean place to verify the day's state before persistence is added.
+
+### Player flow
+
+1. The player chooses to sleep.
+2. Before the next morning begins, the game shows a compact day summary.
+3. The summary reports the day number, activities completed, time spent and relevant state changes.
+4. The player continues to the next morning.
+5. The game returns to the Dormitory with the updated state.
+
+### Scope
+
+- Record only the activity history required for the current day's summary.
+- Include activity label, Location, time spent and resulting relevant state changes.
+- Distinguish successful actions from rejected attempts; rejected actions should not appear as completed activities.
+- Keep the summary bounded to the current day. A long-term journal belongs to a later version.
+- Provide a clear Continue action to enter the next morning.
+- Ensure the summary is generated from actual execution results, not by re-calculating effects in the UI.
+- If a player dies, show the existing defeat/death state; do not invent a new resurrection flow.
+
+### Not in scope
+
+- Permanent diary or journal history.
+- Quest tracking.
+- NPC schedule history.
+- Analytics dashboards.
+- A calendar UI.
+
+### Automated tests
+
+- Each successful activity is recorded once.
+- Rejected actions are not recorded as completed.
+- Summary duration matches the actual clock advancement for the day.
+- Multiple actions in the same location are recorded in execution order.
+- Day rollover starts a new summary record.
+- A NextDay action does not appear as an ordinary duration-based action.
+- Summary values match the state changes reported by the action execution result.
+- Empty-day summary is valid.
+- Summary generation does not mutate character state or clock.
+
+### Godot runtime acceptance
+
+Perform several activities, sleep, inspect the summary, continue and verify that the next day starts with a clean daily record and the expected character state.
+
+### Session completion evidence
+
+A screenshot or recording of the summary after a day containing at least three activities, plus automated test output.
+
+---
+
+## Session 8 — Save and Load the Daily-Life Loop
+
+**Player-facing result:** The player can close the game and continue the same academy day later without losing progress.
+
+### Why this is last
+
+Save/load should persist a coherent gameplay loop, not a collection of temporary fields that change every session. Implementing it after the daily activities and day summary are defined reduces repeated save-format changes.
+
+### Player flow
+
+1. The player performs activities and changes location/time/character state.
+2. The player saves from the System UI.
+3. The game confirms the save.
+4. The player exits and starts the game again.
+5. The game loads the saved state.
+6. The player continues from the saved Location, day, time and character condition.
+
+### Minimum Version 1 save scope
+
+Persist only the state needed to continue the current daily-life loop:
+
+- Save schema version.
+- Player character ID.
+- Health, Energy, Mood and Gold.
+- Current Location ID.
+- Day and minute of day.
+- Any minimal state required to keep the current day's summary consistent.
+- Any existing Location Event evaluation state that must remain consistent for the current day, if the project decides it is part of the save contract.
+
+Do not persist immutable definitions such as character base stats or authored Location content. Reload those from the current game data and validate saved IDs against them.
+
+### Save/load behavior
+
+- Save data is written atomically where practical: write a temporary file, validate the result and replace the previous save only after success.
+- A failed save must not report success.
+- A missing save starts a new game.
+- An invalid or unsupported save must show a clear error and must not partially mutate the live game state.
+- A save with an unknown character or Location ID must be rejected safely.
+- Clamp or reject out-of-range character values according to one documented policy; never silently accept impossible state.
+- Loading must restore the same gameplay state without replaying activity effects.
+- Saving during an action selection does not execute an action; actions execute only after the player selects them.
+- Saving during Combat is out of scope unless the existing game explicitly supports it; Version 1 save points should be limited to safe Exploration states.
+
+### Automated tests
+
+- New game with no save.
+- Save and load the initial state.
+- Save and load after multiple activities.
+- Save and load after travel.
+- Save and load after midnight rollover.
+- Save and load after sleep.
+- Save and load with low Health, low Energy and low Mood.
+- Missing save file.
+- Empty, malformed and truncated save file.
+- Unsupported schema version.
+- Unknown character ID.
+- Unknown Location ID.
+- Out-of-range Health, Energy, Mood, Gold, Day or minute.
+- Interrupted/failed write does not destroy the previous valid save.
+- Loading does not apply recovery or action effects a second time.
+- Repeated save/load cycles preserve the same state.
+- Save/load does not duplicate daily summary entries.
+
+### Godot runtime acceptance
+
+Perform activities, travel to another Location, save, close and restart the game, load, and verify the restored Location, clock, Health, Energy, Mood, Gold and daily summary.
+
+### Session completion evidence
+
+A reproducible save/restart/load scenario with before/after state values and test results.
+
+---
+
+# 5. Session Dependency Map
+
+The sessions are intentionally ordered so every step builds on a playable foundation.
+
+Session 1: Inline action duration estimates
+  → Session 2: Energy economy and rest
+  → Session 3: Sleep and next-day transition
+  → Session 4: Health and recovery
+  → Session 5: Mood and wellbeing
+  → Session 6: Complete academy routine
+  → Session 7: Daily summary and continuity
+  → Session 8: Save and load
+
+Session 4 and Session 5 can be developed independently after Session 3, but both must be complete before Session 6 is considered complete.
+
+# 6. Definition of Done for Every Session
+
+A session is complete only when all applicable checks pass:
+
+- [ ] The feature can be reached from the normal Godot main scene.
+- [ ] The player can complete the described flow without developer-only shortcuts.
+- [ ] The new behavior is visible and understandable in the UI.
+- [ ] Existing gameplay flows still work, especially travel, Location Events and Goblin Combat.
+- [ ] Domain rules are enforced outside the UI.
 - [ ] Failed requests do not partially mutate state.
-- [ ] Automated tests cover normal behavior, invalid inputs, boundaries and important combinations.
-- [ ] `dotnet test RPG.Tests/RPG.Tests.csproj --configuration Release` passes.
-- [ ] Project builds and affected flow is verified in Godot 4.7.2 .NET.
+- [ ] Automated tests cover normal cases, invalid cases, boundaries and important combinations.
+- [ ] dotnet test RPG.Tests/RPG.Tests.csproj --configuration Release passes.
+- [ ] The project builds and the affected flow is verified in Godot 4.7.2 .NET.
 - [ ] Relevant README/design documentation is updated.
-- [ ] Issue/PR contains a concise runtime verification record.
+- [ ] The issue/PR contains a concise runtime verification record.
 
-Code-only output is not session completion.
+A session is not complete when only its service or data model exists. It must have a working player flow.
 
-## 7. Version 1 Final Acceptance Scenario
+# 7. Version 1 Final Acceptance Scenario
 
-1. Start a new game in Dormitory at Day 1, 07:30.
-2. See grouped Personal, Location and Travel choices.
-3. See duration estimates and execute a normal action.
-4. Rest from a normal Energy state and recover the authored amount.
-5. Reach 0 Energy; verify ordinary actions and Travel are unavailable but Rest remains available.
-6. Travel between the academy Locations; confirm choices update from the current Location.
-7. Complete the Courtyard Event through either Sneak or the dedicated Goblin Combat path.
-8. If injured, visit the Infirmary and receive treatment.
-9. Complete a meal, lesson or practice activity and observe Health/Energy/Mood rules.
-10. Sleep in Dormitory and wake at 07:30 on the next day.
-11. Review the daily summary.
-12. Save, close, restart and load.
-13. Verify day, time, Location, Health, Energy, Mood, Gold and summary are preserved.
+The complete Version 1 release must support this end-to-end scenario:
 
-The scenario must be repeatable from a clean save and must not require a random Event to trigger. Use deterministic test seams for automated Event-path verification without changing production probability.
+1. Start a new game in the Dormitory at Day 1, 07:30.
+2. See approximate activity duration beside each choice.
+3. Perform an activity and observe the clock and character state change.
+4. Perform enough activities to make Energy management relevant.
+5. Attempt an activity without sufficient Energy and verify that nothing is spent.
+6. Rest and recover Energy.
+7. Travel to the Courtyard and complete the existing Event/Combat or non-combat path without regressions.
+8. If Health is reduced, travel to the Infirmary and recover.
+9. Perform a lesson, practice or meal activity and observe the relevant state changes.
+10. Observe Mood and its descriptive band.
+11. Sleep in the Dormitory and wake at 07:30 on the next day with the expected recovery.
+12. Review the daily summary.
+13. Save, close the game, restart and load.
+14. Verify that the day, time, Location, Health, Energy, Mood, Gold and daily summary are preserved.
 
-## 8. Explicitly Deferred
+The scenario must be repeatable from a clean save and must not depend on a random Location Event triggering. Where the Goblin Event is probabilistic, use a deterministic test seam or a dedicated test scenario for automated verification; do not weaken the production probability merely to make the test pass.
 
-- NPC population, schedules, dialogue and relationship progression — Version 3.
-- Inventory, equipment, item consumption, shops and crafting — Version 4 or later.
-- NPC/Item/Interactable action discovery and the Nearby group — implement when their gameplay systems are scheduled; Session 3 only establishes the contract.
-- Generic puzzle framework, containers/chests and puzzle progression — not part of Version 1.
-- Skill XP, levels, skill trees and Combat Action unlocks — Version 2.
-- Expanded Combat, multiple enemies and party tactics — Version 5.
-- Tower/dungeon hierarchy — Version 6.
-- Long-term world challenge simulation — Version 7.
-- Long-term stories and branching life outcomes — Version 8.
+# 8. Explicitly Deferred to Later Versions
 
-## 9. Open Tuning Decisions
+The following are intentionally excluded from Version 1:
 
-1. Whether Infirmary treatment at 60 minutes / up to 5 Health feels appropriate.
-2. Whether meal, lesson and practice costs produce meaningful choices across one day.
-3. Whether Mood remains descriptive throughout Version 1.
-4. Whether the summary appears immediately before or after the wake-up transition.
-5. Which Location Event evaluation state must persist in the Version 1 save.
+- Skill XP, skill levels, attributes progression, skill trees and training rewards — Version 2.
+- Persistent NPC population, schedules, relationship values and social progression — Version 3.
+- Inventory, equipment, shops, trade, crafting and item consumption — Version 4 or later.
+- Quest chains and world exploration outside the academy — Version 4.
+- Multiple enemies, party combat, advanced status effects and expanded combat outcomes — Version 5.
+- Tower/Floor/Room hierarchy and dungeon residents — Version 6.
+- Long-term challenge progression, monster outbreaks and world-wide consequences — Version 7.
+- Branching main story, seasonal content and long-term life outcomes — Version 8.
 
-Keep these as explicit tuning decisions. Do not introduce hidden rules to resolve them.
+Do not pull these features into Version 1 just because they appear in the academy setting. Version 1 succeeds when one academy day becomes a coherent, replayable loop.
+
+# 9. Open Decisions Before Implementation
+
+These decisions should be confirmed through the first playable sessions and playtesting, not hidden inside implementation:
+
+1. Whether the initial Infirmary treatment values (60 minutes and up to 5 Health) feel appropriate.
+2. Whether the initial meal, lesson and practice costs create meaningful choices across one day.
+3. Whether Mood should remain descriptive throughout Version 1 or gain one narrowly defined mechanical consequence later.
+4. Whether the daily summary should appear automatically after sleep or be a separate confirmation step.
+5. Whether the current Location Event evaluation state is part of Version 1 save data or should be reset by a documented new-day rule.
+
+Unless the player experience requires a decision earlier, keep the current proposal and test it in the running game before expanding scope.

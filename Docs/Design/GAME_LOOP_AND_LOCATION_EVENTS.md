@@ -83,7 +83,7 @@ An Event owns its Event Choices, but it does not own the general Exploration UI.
 
 The Event query/presentation path is responsible for turning the active Event's authored choices into presentation data. Event resolution remains with the Event/application flow; a non-combat choice may use the normal action execution rules, while a confrontation can enter the dedicated Combat pipeline.
 
-## 5. Responsibility Boundaries
+## 6. Responsibility Boundaries
 
 | Responsibility | Owner |
 |---|---|
@@ -96,7 +96,7 @@ The Event query/presentation path is responsible for turning the active Event's 
 
 No separate Expedition, Run or general-purpose Event System is introduced.
 
-## 6. Automated Test Coverage
+## 7. Automated Test Coverage
 
 `RPG.Tests/LocationEventLoopTests.cs` verifies:
 - Loading the Courtyard Event and its choices from JSON.
@@ -116,7 +116,7 @@ These are automated domain/content tests. GitHub Actions run [#43](https://githu
 
 [Issue #10](https://github.com/TN13007/rpg/issues/10) was closed by the project owner with all five playable-journey acceptance criteria marked complete for the Godot 4.7.2 .NET runtime check. The retrospective [QA record](../QA/PLAYABLE_JOURNEY_TEST_REPORT.md) records the verified scope and its audit limitations. The Issue did not retain Godot Output logs, screenshots/video, exact per-action values or the exact local build revision; therefore the result is owner-confirmed, not independently reproducible from attached evidence.
 
-## 7. Deliberately Not Implemented Yet
+## 8. Deliberately Not Implemented Yet
 
 - Event conditions beyond the player's ability to act and the Location's event pool.
 - Weighted selection, priorities, cooldown variants or multiple events per day.

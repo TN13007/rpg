@@ -406,6 +406,7 @@ This roadmap organizes delivery order. It does not replace the detailed rules in
 - [Game Overview](GAME_OVERVIEW.md) defines the product concept and experience.
 - [Gameplay Loop and Location Events](GAME_LOOP_AND_LOCATION_EVENTS.md) defines the current location/event flow.
 - [World Model Foundation](WORLD_MODEL_FOUNDATION.md) defines provisional domain vocabulary and modeling constraints.
+- [Exploration Action Choice Pipeline](EXPLORATION_ACTION_PIPELINE.md) defines Player/Location/Travel/Event choice sources, contextual Query, Mapper, ViewModel and UI boundaries.
 - [Open Design Questions](OPEN_DESIGN_QUESTIONS.md) tracks decisions that are not yet settled.
 - [Long-Term World and Challenges](LONG_TERM_WORLD_AND_CHALLENGES.md), if/when merged, records the direction for evolving world challenges.
 
