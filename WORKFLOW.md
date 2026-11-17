@@ -113,7 +113,7 @@ Adventurer Academy is a fantasy life-simulation RPG prototype about daily life, 
 - Health = 0 means Dead and blocks all actions. Health > 0 with Energy = 0 means Unconscious. Only actions explicitly configured with `canExecuteWhenUnconscious` may run while unconscious; the flag does not waive Energy cost.
 - Rest currently works while unconscious; Sleep is not configured to do so.
 - Current Exploration choices are assembled by MainController into a flat list. Rest comes from global `selfActions`; Sleep remains a Location Action.
-- The grouped Query → Mapper → Exploration ViewModel pipeline and Player-owned Player Actions are proposed in open PR #23, not implemented on `main`.
+- The grouped Query → Mapper → Exploration ViewModel pipeline and Player-owned Player Actions are accepted design from merged PR #23, but are not yet implemented on `main`.
 - The complete academy routine, daily summary and full Save/Load loop are not implemented yet.
 
 ## 4. Session index and progress
@@ -122,10 +122,10 @@ The nine-Session Version 1 plan is accepted design scope, merged through [PR #23
 
 | Session | Scope | Product status | Learning status |
 |---|---|---|---|
-| [Session 1](https://github.com/TN13007/rpg/blob/docs/version-1-action-choice-replan/Docs/Design/VERSION_1_SESSION_PLAN.md#session-1) | Inline Action Duration Estimates | **Implemented** — PR #21 merged; .NET CI passed; Godot runtime acceptance pending | **Not assessed** — no structured independent evidence recorded |
+| [Session 1](https://github.com/TN13007/rpg/blob/main/Docs/Design/VERSION_1_SESSION_PLAN.md#session-1) | Inline Action Duration Estimates | **Implemented** — PR #21 merged; .NET CI passed; Godot runtime acceptance pending | **Not assessed** — no structured independent evidence recorded |
 | [Session 2](https://github.com/TN13007/rpg/blob/docs/version-1-action-choice-replan/Docs/Design/VERSION_1_SESSION_PLAN.md#session-2) | Energy Economy and Rest | **Implemented** — PR #22 merged; .NET CI passed; Godot runtime acceptance pending | **Not assessed** — no structured independent evidence recorded |
-| [Session 3](https://github.com/TN13007/rpg/blob/docs/version-1-action-choice-replan/Docs/Design/VERSION_1_SESSION_PLAN.md#session-3) | Exploration Action Choice Pipeline | **Proposed** — design/plan in open PR #23; no implementation on main | **Proposed** — learning target requires user approval |
-| [Session 4](https://github.com/TN13007/rpg/blob/docs/version-1-action-choice-replan/Docs/Design/VERSION_1_SESSION_PLAN.md#session-4) | Sleep and Next-Day Transition | **Proposed** — scope in open PR #23 | **Proposed** — learning target requires user approval |
+| [Session 3](https://github.com/TN13007/rpg/blob/docs/version-1-action-choice-replan/Docs/Design/VERSION_1_SESSION_PLAN.md#session-3) | Exploration Action Choice Pipeline | **Planned** — accepted scope; no implementation on main | **Proposed** — learning target requires user approval |
+| [Session 4](https://github.com/TN13007/rpg/blob/docs/version-1-action-choice-replan/Docs/Design/VERSION_1_SESSION_PLAN.md#session-4) | Sleep and Next-Day Transition | **Planned** — accepted scope; not implemented | **Proposed** — learning target requires user approval |
 | [Session 5](https://github.com/TN13007/rpg/blob/docs/version-1-action-choice-replan/Docs/Design/VERSION_1_SESSION_PLAN.md#session-5) | Health, Injury and Recovery | **Proposed** — scope in open PR #23 | **Proposed** — learning target requires user approval |
 | [Session 6](https://github.com/TN13007/rpg/blob/docs/version-1-action-choice-replan/Docs/Design/VERSION_1_SESSION_PLAN.md#session-6) | Mood and Daily Wellbeing | **Proposed** — scope in open PR #23 | **Proposed** — learning target requires user approval |
 | [Session 7](https://github.com/TN13007/rpg/blob/docs/version-1-action-choice-replan/Docs/Design/VERSION_1_SESSION_PLAN.md#session-7) | A Small, Complete Academy Routine | **Proposed** — scope in open PR #23 | **Proposed** — learning target requires user approval |
@@ -160,13 +160,15 @@ Track known disagreements between the documents and official implementation here
 | SYNC-03 | The accepted Version 1 plan targets a grouped Player/Location/Travel/Event choice pipeline; current MainController still assembles a flat list. | [Exploration Pipeline](Docs/Design/EXPLORATION_ACTION_PIPELINE.md) and [Version 1 Session Plan](Docs/Design/VERSION_1_SESSION_PLAN.md) were accepted/merged in PR #23. | **Design accepted; implementation pending Session 3.** |
 | SYNC-04 | Rest and Sleep ownership differ from the proposed Player Action model. | Current main: Rest is root `selfActions`; Sleep is a Dormitory Location Action. Target proposal: Player-owned actions in Session 3. | **Design-to-implementation work is not started.** |
 | SYNC-05 | Sessions 1–2 passed their .NET CI checks, but Godot runtime acceptance remains unrecorded. | [PR #21](https://github.com/TN13007/rpg/pull/21) and [PR #22](https://github.com/TN13007/rpg/pull/22). | **Run the affected journeys in Godot or explicitly defer with a reason.** |
-| SYNC-06 | Issue #15 (extract Location/Event and Combat flow from MainController) may overlap with Session 3's Exploration query/choice pipeline. | [Issue #15](https://github.com/TN13007/rpg/issues/15) and [Exploration Pipeline proposal](https://github.com/TN13007/rpg/blob/docs/version-1-action-choice-replan/Docs/Design/EXPLORATION_ACTION_PIPELINE.md). | **Reconcile ownership and boundaries before Session 3 implementation; keep Issue #15 open.** |
+| SYNC-06 | Issue #15 (extract Location/Event and Combat flow from MainController) may overlap with Session 3's Exploration query/choice pipeline. | [Issue #15](https://github.com/TN13007/rpg/issues/15) and [Exploration Pipeline](Docs/Design/EXPLORATION_ACTION_PIPELINE.md). | **Reconcile ownership and boundaries before Session 3 implementation; keep Issue #15 open.** |
 
 ### Other active work
 
 - [Issue #11 — Decide the long-term gameplay loop](https://github.com/TN13007/rpg/issues/11) remains a separate design question. Do not add speculative progression systems to Version 1 to resolve it.
 - [PR #23 — Version 1 Exploration architecture and Session plan](https://github.com/TN13007/rpg/pull/23) is merged; the accepted design is not yet fully implemented.
 - [PR #24 — QA documentation alignment](https://github.com/TN13007/rpg/pull/24) is merged.
+- [PR #31 — naming-validator hardening](https://github.com/TN13007/rpg/pull/31) is open and requires review of ambiguous/duplicate owner identities before merge.
+- [PR #33 — unified validation and repository workflow](https://github.com/TN13007/rpg/pull/33) is open; it closes Issue #32 when merged.
 
 ## 6. Next Session handoff
 
