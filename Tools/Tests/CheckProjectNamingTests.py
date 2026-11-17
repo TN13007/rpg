@@ -309,6 +309,15 @@ class FullRepositoryAuditTests(unittest.TestCase):
         self.assertEqual(1, directory_count)
         self.assertTrue(is_dotnet_project_name("RPG.Tests"))
 
+    def test_audit_suggests_pascal_case_for_simple_lowercase_names(self):
+        issues, _ = audit_tracked_paths(
+            ["Data/Characters/goblin.json", "Data/Characters/player.json"]
+        )
+
+        self.assertEqual(2, len(issues))
+        self.assertTrue(any("Data/Characters/Goblin.json" in issue for issue in issues))
+        self.assertTrue(any("Data/Characters/Player.json" in issue for issue in issues))
+
     def test_audit_suggests_names_for_godot_asset_and_import_sidecar(self):
         issues, _ = audit_tracked_paths(
             [
