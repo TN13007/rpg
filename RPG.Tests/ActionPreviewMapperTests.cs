@@ -215,9 +215,24 @@ public sealed class ActionPreviewMapperTests
         DayClock clock = new DayClock();
         ActionDefinition action = new ActionDefinition("rest", "Rest", 30);
 
-        Assert.Throws<System.ArgumentNullException>(() => mapper.Map(null, actor, clock));
-        Assert.Throws<System.ArgumentNullException>(() => mapper.Map(action, null, clock));
-        Assert.Throws<System.ArgumentNullException>(() => mapper.Map(action, actor, null));
+        Assert.Throws<System.ArgumentNullException>(MapNullAction);
+        Assert.Throws<System.ArgumentNullException>(MapNullActor);
+        Assert.Throws<System.ArgumentNullException>(MapNullClock);
+    }
+
+    private void MapNullAction()
+    {
+        CreateMapper().Map(null, TestCharacterFactory.CreatePlayer(), new DayClock());
+    }
+
+    private void MapNullActor()
+    {
+        CreateMapper().Map(new ActionDefinition("rest", "Rest", 30), null, new DayClock());
+    }
+
+    private void MapNullClock()
+    {
+        CreateMapper().Map(new ActionDefinition("rest", "Rest", 30), TestCharacterFactory.CreatePlayer(), null);
     }
 
     private ActionPreviewMapper CreateMapper()
