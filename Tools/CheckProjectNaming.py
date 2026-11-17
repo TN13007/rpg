@@ -445,11 +445,19 @@ def main() -> int:
         action="store_true",
         help="Audit every Git-tracked path, including unchanged legacy paths.",
     )
+    parser.add_argument(
+        "--report-only",
+        action="store_true",
+        help="Print audit findings without returning a failure status.",
+    )
     parser.add_argument("--branch", default="", help="Pull request source branch name.")
     parser.add_argument(
         "--check-branch", action="store_true", help="Validate the branch name."
     )
     args = parser.parse_args()
+
+    if args.report_only and not args.audit_all:
+        parser.error("--report-only requires --audit-all.")
 
     issues: list[str] = []
 
@@ -474,6 +482,9 @@ def main() -> int:
             print(f"Project naming audit found {len(issues)} violation(s):")
             for issue in issues:
                 print(f"- {issue}")
+            if args.report_only:
+                print("Audit report only: findings do not fail this run.")
+                return 0
             return 1
 
         print("Full repository path naming audit passed.")
