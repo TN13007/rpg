@@ -14,7 +14,7 @@ It is not the place where game rules are implemented.
    - Subscribe to UI events.
 
 2. **Handle player-facing requests**
-   - Receive selected choices from StoryPanel.
+   - Receive selected choices and action-preview confirmation / cancellation from StoryPanel.
    - Receive combat commands from CombatPanel.
    - Receive sidebar navigation requests.
 
@@ -38,6 +38,7 @@ It is not the place where game rules are implemented.
 
 | Concern | Owner |
 |---|---|
+| Action preview mapping and readable cost / effect presentation | ActionPreviewMapper |
 | Action Energy validation and spending | ActionExecutionService |
 | Applying HP, Energy, Mood, and Gold Effects | ActionEffectExecutor |
 | Calculating action duration | ActivityTimeCalculator |
@@ -51,9 +52,11 @@ It is not the place where game rules are implemented.
 
 ### Normal Action
 
-`UI choice → MainController → ActionExecutionService → DayClock / ActionEffectExecutor → MainController → UI refresh`
+`UI choice → MainController → ActionPreviewMapper → StoryPanel preview → Confirm → MainController → ActionExecutionService → DayClock / ActionEffectExecutor → UI refresh`
 
-ActionExecutionService checks whether the Player is alive and has enough Energy before changing state. It then spends Energy, advances time, and applies the declared Effects.
+ActionPreviewMapper reuses ActivityTimeCalculator for the exact stat-adjusted duration and ActionExecutionService for the current availability check. It maps authored effects into readable presentation text and does not mutate gameplay state. Cancel returns to the current choice list. Confirm sends the original ActionDefinition to ActionExecutionService, which validates again before spending Energy, advancing time and applying effects.
+
+Travel follows the same preview flow, using the shared travel definition for its duration, Agility modifier and Energy cost. The destination is still validated by MainController before execution.
 
 ### Travel
 
