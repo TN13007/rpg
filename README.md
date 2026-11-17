@@ -7,7 +7,7 @@ Adventurer Academy is a fantasy life-simulation RPG prototype about daily life, 
 ## Start here
 
 - [WORKFLOW.md](WORKFLOW.md) — the single source for the current implementation snapshot, Session progress, Learning evidence, blockers and handoff.
-- [Version 1 Session Plan proposal](https://github.com/TN13007/rpg/blob/docs/version-1-action-choice-replan/Docs/Design/VERSION_1_SESSION_PLAN.md) — proposed Session scope and acceptance criteria under review in [PR #23](https://github.com/TN13007/rpg/pull/23). It is not yet the accepted implementation roadmap.
+- [Version 1 Session Plan](Docs/Design/VERSION_1_SESSION_PLAN.md) — the accepted nine-Session product plan. It defines intended scope and acceptance criteria; it does not mean those Sessions are already implemented.
 
 Treat `main` as the implemented baseline. Open or unmerged PRs are proposals.
 
@@ -35,4 +35,4 @@ dotnet test RPG.Tests/RPG.Tests.csproj --configuration Release
 - [Automated Gameplay Tests](Docs/Testing/AUTOMATED_TESTS.md)
 - [Day 1 Playable Scenario](Docs/QA/DAY_1_PLAYABLE_SCENARIO.md)
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for the Issue → Branch → Commit → Test → Pull Request workflow.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the Issue → Branch → Validate → Pull Request workflow. Run the complete automated checks with one command: `python Tools/Validate.py` (see the required base/branch arguments in the guide).
