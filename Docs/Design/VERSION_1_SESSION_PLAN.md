@@ -81,11 +81,11 @@ These bands are descriptive in Version 1. Do not add hidden combat penalties, sk
 
 Every activity must follow the same visible and domain-level sequence:
 
-1. The player sees the activity's description, duration, Energy cost and authored effects.
-2. The player confirms the activity.
+1. The player sees the activity's description and approximate duration beside its choice.
+2. The player selects the activity.
 3. The game validates that the character is alive, conscious and has enough Energy.
-4. If validation fails, no time, Energy, Health, Mood or Gold is changed.
-5. If validation succeeds, the action's costs, time and effects are applied exactly once.
+4. If validation fails, no time, Energy, Health, Mood or Gold is changed and a clear reason is displayed.
+5. If validation succeeds, the action's costs, actual calculated time and effects are applied exactly once.
 6. The Character Panel and Main Panel refresh from the resulting state.
 7. The player receives a clear result message.
 
@@ -416,7 +416,7 @@ The labels and descriptive copy may be revised after playtesting; the numeric bo
 - Negative changes clamp at 0.
 - Positive changes clamp at MaxMood.
 - A character with a MaxMood other than 100 maps correctly if the implementation supports configurable maxima; otherwise validate and document the chosen normalization.
-- Preview and result feedback show the same Mood delta.
+- Action result feedback shows the applied Mood delta.
 - Mood band changes refresh immediately after an action.
 - Mood does not silently alter action availability or combat calculations.
 - Rest and sleep apply Mood effects exactly once.
@@ -496,7 +496,7 @@ These values are starting points for the first playable day. Adjust only after r
 - A meal restores Energy without exceeding MaxEnergy.
 - A lesson or practice action fails cleanly when Energy is insufficient.
 - Each successful activity advances time exactly once.
-- Stat modifiers are applied consistently to preview and execution.
+- Stat modifiers are applied consistently to displayed duration estimates and actual execution.
 - Activities do not grant XP, skill levels or inventory items in Version 1.
 - A sequence of activities cannot produce Health, Energy or Mood outside their valid ranges.
 - Invalid content does not partially replace the already loaded content.
@@ -607,7 +607,7 @@ Do not persist immutable definitions such as character base stats or authored Lo
 - A save with an unknown character or Location ID must be rejected safely.
 - Clamp or reject out-of-range character values according to one documented policy; never silently accept impossible state.
 - Loading must restore the same gameplay state without replaying activity effects.
-- Saving while an action preview is open must not execute that action.
+- Saving during an action selection does not execute an action; actions execute only after the player selects them.
 - Saving during Combat is out of scope unless the existing game explicitly supports it; Version 1 save points should be limited to safe Exploration states.
 
 ### Automated tests
@@ -644,7 +644,7 @@ A reproducible save/restart/load scenario with before/after state values and tes
 
 The sessions are intentionally ordered so every step builds on a playable foundation.
 
-Session 1: Action preview and cost clarity
+Session 1: Inline action duration estimates
   → Session 2: Energy economy and rest
   → Session 3: Sleep and next-day transition
   → Session 4: Health and recovery
