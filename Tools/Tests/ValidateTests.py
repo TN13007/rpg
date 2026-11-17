@@ -16,9 +16,9 @@ from Validate import (
 class CSharpChangeDetectionTests(unittest.TestCase):
     def test_changed_csharp_files_uses_three_dot_diff_and_filters_deleted_files(self):
         output = (
-            "Scripts/CombatService.cs\\0"
-            "RPG.Tests/CombatServiceTests.cs\\0"
-            "Scripts/Old.cs\\0"
+            "Scripts/CombatService.cs\0"
+            "RPG.Tests/CombatServiceTests.cs\0"
+            "Scripts/Old.cs\0"
         )
         with tempfile.TemporaryDirectory() as temporary_directory:
             root = Path(temporary_directory)
