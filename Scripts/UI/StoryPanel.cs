@@ -14,6 +14,7 @@ public partial class StoryPanel : PanelContainer
     private Label _day;
     private RichTextLabel _story;
     private VBoxContainer _choices;
+    private Label _choicesTitle;
     private Label _feedback;
     private Button _returnButton;
     private VBoxContainer _actionPreview;
@@ -30,6 +31,7 @@ public partial class StoryPanel : PanelContainer
         _day = GetNode<Label>("Margin/Content/Header/Day");
         _story = GetNode<RichTextLabel>("Margin/Content/Story");
         _choices = GetNode<VBoxContainer>("Margin/Content/Choices");
+        _choicesTitle = GetNode<Label>("Margin/Content/ChoicesTitle");
         _feedback = GetNode<Label>("Margin/Content/Feedback");
         _returnButton = GetNode<Button>("Margin/Content/Header/ReturnButton");
         _actionPreview = GetNode<VBoxContainer>("Margin/Content/ActionPreview");
@@ -94,6 +96,7 @@ public partial class StoryPanel : PanelContainer
         }
 
         _choices.Visible = false;
+        _choicesTitle.Visible = false;
         _actionPreview.Visible = true;
         _confirmButton.Disabled = !preview.CanConfirm;
     }
@@ -107,6 +110,7 @@ public partial class StoryPanel : PanelContainer
 
         _actionPreview.Visible = false;
         _choices.Visible = true;
+        _choicesTitle.Visible = true;
         _confirmButton.Disabled = false;
     }
 
