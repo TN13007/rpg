@@ -81,8 +81,8 @@ The repository already contains a narrow playable vertical slice. Version 0 is t
 
 ### Known gaps and limits
 
-- Sleep currently advances time but does not recover character values.
-- A complete daily activity and schedule simulation is not implemented.
+- Sleep has authored recovery Effects in academy content; next-day boundary behavior and exactly-once runtime application are verified in Version 1 Session 4.
+- A complete daily activity simulation and grouped Exploration choice pipeline are not implemented.
 - Health, Energy and Mood do not yet form a complete life simulation.
 - Skill progression, levels, a full inventory and equipment loop are not complete.
 - NPCs are not yet implemented as a persistent population with schedules and relationships.
@@ -107,34 +107,38 @@ The repository already contains a narrow playable vertical slice. Version 0 is t
 
 ## Version 1 — A Day at the Academy
 
-**Player-facing promise:** The player can live through a meaningful day at the academy rather than only travel between locations and trigger a Goblin event.
+**Player-facing promise:** The Player can live through a meaningful academy day, understand the choices available in each context, manage Health/Energy/Mood and continue into the next day.
 
 ### Scope
 
-- Establish a usable daily routine: eat, rest, sleep, attend class, practice and perform simple activities.
-- Make activity costs explicit: time, Energy and any other relevant resource.
-- Define the first practical rules for Health, Energy and Mood: what changes them, what recovers them and what happens at important thresholds.
-- Make the clock and time costs legible before the player commits to an action.
-- Add activity feedback so the player can understand what changed and why.
-- Add the minimum persistence needed to continue the day and preserve relevant state.
+- Establish the Exploration Action Choice Pipeline: content Loaders → runtime context → Available Interaction Query → Mapper → grouped ViewModel → UI.
+- Separate Player Actions, Location Actions, derived Travel Choices and Event Choices by source/ownership.
+- Make activity costs explicit: time, Energy and relevant state changes.
+- Establish complete initial rules for Health, Energy and Mood.
+- Add a small set of academy activities and recovery options.
+- Complete sleep/next-day transition, daily summary and minimum save/load.
+
+NPC interactions, item/container interactions and puzzles are designed as future extensions, not implemented in this version. Combat retains its separate Service/Mapper/UI pipeline.
 
 ### Visible gameplay change
 
-The player starts a day, chooses a routine, spends time and Energy, sees Health/Energy/Mood change, and reaches the next morning with a state influenced by their choices.
+The Player starts a day, sees Personal, Location and Travel choices grouped in Exploration, performs activities, handles the Goblin Event/Combat slice, manages wellbeing, sleeps, reviews the day and can load the same state after restarting.
 
 ### Why this comes first
 
-Daily life is the foundation of the academy fantasy. Character growth, relationships, schedules and long-term challenges all need a meaningful passage of time and a reason for the player to choose how to spend it.
+Daily life needs both a meaningful time/resource loop and a reliable way to discover contextually valid choices. Establishing the action-choice pipeline before adding more activities avoids coupling every new action to MainController and StoryPanel.
 
 ### Exit criteria
 
 - A complete day can be played from morning to the next morning.
-- Activities have validated costs and predictable results.
-- Health, Energy and Mood have documented initial rules.
+- Player Actions are loaded from Player data; Location Actions and Travel are sourced from the current Location; Event Choices remain contextual.
+- Query determines choice availability; Mapper produces grouped ViewModels; UI only renders them.
+- Actions have validated costs and predictable results.
+- Health, Energy and Mood have documented rules.
 - State changes are visible and persist at the intended scope.
-- Tests cover insufficient resources, time rollover, recovery, invalid actions and combinations of activities.
+- Tests cover insufficient resources, availability/context, invalid/stale requests, time rollover, recovery, summary and save/load.
 
-**Detailed implementation plan:** [Version 1 — Session-by-Session Implementation Plan](VERSION_1_SESSION_PLAN.md). Version 1 is divided into eight sessions; each session has a player flow, implementation scope, automated tests, Godot runtime acceptance and completion evidence. No session is complete with code-only output.
+**Detailed implementation plan:** [Version 1 — Session-by-Session Implementation Plan](VERSION_1_SESSION_PLAN.md). The revised plan contains nine sessions. Sessions 1 and 2 have merged implementations; Session 3 establishes the grouped Exploration choice pipeline before the remaining daily-life features. Every session requires automated tests and Godot runtime acceptance; code-only output is not completion.
 
 ## Version 2 — Character Development
 

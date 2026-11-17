@@ -1,0 +1,305 @@
+# Exploration Action Choice Pipeline
+
+**Project:** RPG — Adventurer Academy  
+**Status:** Accepted design direction; implementation is incremental through Version 1  
+**Related documents:** [World Model Foundation](WORLD_MODEL_FOUNDATION.md), [UI Architecture](UI_ARCHITECTURE.md), [Version 1 Session Plan](VERSION_1_SESSION_PLAN.md)
+
+## 1. Purpose
+
+The Exploration UI must show the choices that make sense in the player's current context. It must not own the rules for discovering, validating or executing those choices.
+
+The player may choose actions that originate from different parts of the world:
+
+- Player-owned actions, such as Rest.
+- Location-provided actions, such as Inspect the Notice Board.
+- Travel choices derived from the current Location's exits/connections.
+- Interactions supplied by present NPCs, items or world objects.
+- Choices supplied by an active Event.
+
+These sources should feed one presentation pipeline. The StoryPanel renders grouped view data and does not need to know which JSON file or domain object supplied a choice.
+
+Combat remains a separate, specialized pipeline and UI.
+
+## 2. Vocabulary and boundaries
+
+| Concept | Meaning | Example |
+|---|---|---|
+| Action Definition | Authored description of an operation and its common execution data | Rest, Read Notice Board, Open Chest |
+| Action Source | The entity/content scope that supplies an action definition | Player, Location, NPC, Interactable, Event |
+| Action Choice | A concrete option offered now, associated with its source and optional target | Rest now; Talk to Mira; Open chest_01 |
+| Availability | Whether a choice belongs in the current context and whether it can currently execute | Mira is present; Player has enough Energy |
+| Action Request | The identity of the selected choice sent for handling | Source kind + source ID + action ID + target ID |
+| Effect | A requested domain change processed by its owning rules | RestoreEnergy(3), UnlockDoor |
+| ViewModel | Presentation-safe data that the UI can render | Group title and choice label |
+
+Do not confuse the action's source with its UI group. A Player Action may appear under Personal; an NPC interaction may appear under Nearby. The group is a presentation decision, while the source identifies where the choice came from.
+
+A common Action Definition is appropriate for shared fields such as ID, label, description, duration, Energy cost, availability requirements and common effects. Specialized systems still own rules that are unique to Travel, Dialogue, Containers, Puzzles or Combat. Do not force all behavior into a universal action executor.
+
+## 3. Choice sources
+
+### 3.1 Player Actions
+
+Player Actions are authored as part of the Player's character definition in `Data/Characters/player.json`, under `playerActions`.
+
+Examples:
+- Rest: can be used at any Location.
+- Check Condition: can be used anywhere and may be informational/zero-duration.
+- Sleep: owned by the Player, but available only when its context requirements are met (initially Dormitory).
+
+Ownership does not imply universal availability. An action can belong to the Player and still require a bed, an item, a target or a suitable Location.
+
+The Version 1 migration moves the existing Rest and Sleep definitions out of the academy-wide root `selfActions` list and into Player Actions. The current `selfActions` field is transitional and must not become a second permanent source.
+
+### 3.2 Location Actions
+
+Location Actions are authored by a Location in `Data/academy_locations.json`.
+
+Examples:
+- Read the notice board.
+- Study field maps.
+- Look around.
+- Enjoy the scenery.
+- Practice at the training area.
+
+They are offered only while the Player is at the Location that owns them, subject to their availability requirements.
+
+### 3.3 Travel Choices
+
+Travel choices are derived from the current Location's outgoing exits/connections. They are not duplicated as individually authored actions for every destination.
+
+The query resolves each valid destination and produces a choice with:
+- A stable destination reference.
+- A player-facing destination label.
+- The shared travel cost/time configuration.
+- A source/group identity suitable for request routing.
+
+The current prototype uses `Location.Exits`. Keep this model for Version 1. Introduce a separate Location Connection definition only when routes need independent conditions, costs, visibility, map metadata or shared references.
+
+### 3.4 Target Interactions — future extension point
+
+An NPC, Item, Interactable Object or other present target may supply interactions when that target exists in the current context.
+
+Examples:
+- NPC: Talk, Ask, Trade.
+- Chest: Inspect, Open, Search, Take Items.
+- Door: Inspect, Open, Lockpick.
+- Switch: Inspect, Activate.
+- World item: Inspect, Pick Up.
+
+A target interaction is not a Player Action merely because the Player performs it. Its availability depends on the target's presence and state. The action request must retain the target identity so two objects with the same action ID cannot be confused.
+
+NPC definitions, inventory/item data, containers and generic interactables are not Version 1 implementation requirements. Add their loaders, runtime state and rule owners only when a playable feature needs them.
+
+### 3.5 Event Choices
+
+An active Event supplies choices for resolving that specific situation. Event choices are contextual and temporary; they do not become permanent Player or Location Actions.
+
+The current prototype treats an active Event as a focused interaction screen. Preserve that behavior in Version 1: show the active Event's choices and do not mix ordinary Location/Travel choices into the unresolved Event screen. Event resolution returns to Exploration or enters the dedicated Combat flow.
+
+## 4. Exploration choice groups
+
+The ViewModel should support groups rather than one flat list.
+
+Proposed group order when ordinary Exploration is active:
+
+1. **Personal** — Player Actions available in the current context.
+2. **Nearby** — interactions with present NPCs, items and objects (future).
+3. **At This Location** — Location Actions.
+4. **Travel** — destinations reachable from the current Location.
+5. **Current Situation** — Event Choices, when an Event is active.
+
+For Version 1, implement Personal, At This Location and Travel. Event Choices use the same choice presentation contract but remain in their focused Event context. Nearby is a defined future extension point, not a reason to implement NPC/Object systems now.
+
+Empty groups are omitted. The UI may render groups in the order supplied by the ViewModel; it must not infer domain rules from group names.
+
+## 5. Data loading and runtime query
+
+The intended pipeline is:
+
+```text
+JSON content
+   |
+   +--> CharacterDataLoader --> CharacterData (Player Actions)
+   |
+   +--> AcademyContent -------> LocationContent (Location Actions, exits, Events)
+   |
+   +--> future content loaders for NPCs / Items / Interactables
+                                  |
+                                  v
+                         Runtime world state
+                                  |
+                                  v
+                    AvailableInteractionQuery
+                                  |
+                                  v
+                    ActionChoiceMapper
+                                  |
+                                  v
+                    ExplorationViewModel
+                                  |
+                                  v
+                    StoryPanel / Exploration UI
+```
+
+### Loader
+
+A Loader reads and validates its own source data and creates immutable definitions. Examples:
+- `CharacterDataLoader`: `player.json` and `playerActions`.
+- `AcademyContent`: Locations, their actions, exits and Event definitions.
+- Future loaders should be introduced with their respective content features.
+
+A Mapper does not call a Loader and does not read JSON. It consumes already-loaded definitions and query results.
+
+### Available Interaction Query
+
+The Query combines the loaded definitions with current runtime state:
+- Player identity/state and current capabilities.
+- Current Location.
+- Location exits and authored Location Actions.
+- Present targets and their runtime states, when implemented.
+- Active Event and its choices, when present.
+- Relevant contextual requirements such as required Location, required item, target state or player life state.
+
+The Query answers: **Which choices belong in this context, and which are currently executable?**
+
+It does not mutate gameplay state. Availability shown in the UI is advisory. The authoritative handler/service must validate every request again at execution time.
+
+Distinguish:
+- **Not present in context:** omit the choice (for example, an NPC who is not here).
+- **Present but temporarily unavailable:** include it as disabled with a reason when that information is useful to the player (for example, not enough Energy).
+- **Available:** include it as enabled.
+
+### Mapper
+
+The Mapper transforms the query result into presentation-safe data. It formats duration and cost labels, maps choices into groups, and supplies stable identifiers. It does not load content, discover world objects, mutate state or decide gameplay outcomes.
+
+## 6. ViewModel contract
+
+The Exploration view should receive a composed ViewModel similar to:
+
+```text
+ExplorationViewModel
+  LocationTitle
+  RegionLabel
+  Description
+  TimeLabel
+  ActionGroups[]
+    GroupId
+    GroupTitle
+    Choices[]
+      ChoiceId
+      SourceKind
+      SourceId
+      ActionId
+      TargetId (optional)
+      Label
+      Description
+      DurationLabel
+      CostLabel
+      IsEnabled
+      UnavailableReason
+```
+
+This is a conceptual contract, not a requirement to copy these exact property names. Keep it small and add fields only when a real view needs them.
+
+Choice identity must be unambiguous. Action IDs alone are not globally unique: two chests may both define `open`. Preserve source and target identity in the request. Do not route an action using only a display label or a bare action ID when more than one source can provide it.
+
+The UI:
+- Renders the groups and choices it receives.
+- Shows duration/cost/description and any unavailable reason.
+- Emits the selected choice identity.
+- Does not read JSON or runtime domain objects.
+- Does not calculate costs, check puzzle answers, open chests or mutate game state.
+
+## 7. Selection and execution flow
+
+```text
+Player selects a rendered choice
+        |
+        v
+ActionSelectionRequest (source + action + optional target)
+        |
+        v
+MainController / request handler
+        |
+        v
+Resolve the responsible rule owner
+        |
+        +--> Player / Location general action -> ActionExecutionService
+        +--> Travel -> travel/location rule owner
+        +--> Event choice -> Event resolution owner
+        +--> NPC / Object interaction -> future specialized service
+        +--> Combat choice -> CombatService (separate mode)
+        |
+        v
+Validate again -> execute -> update runtime state
+        |
+        v
+Re-run AvailableInteractionQuery
+        |
+        v
+Mapper -> ViewModel -> render updated choices
+```
+
+MainController orchestrates which handler owns the request. It must not implement action requirements, Energy rules, puzzle rules, chest behavior, NPC dialogue or combat damage.
+
+After a successful state change, rebuild the current Exploration ViewModel from current state. This naturally removes choices whose target/state/conditions have changed.
+
+## 8. Relationship to Skills and Combat Actions
+
+Action and Skill are related but different concepts:
+- An **Action** is an operation a character performs: Rest, Talk, Attack, Parry.
+- A **Skill** is a learned capability or proficiency: Swordsmanship, Parry Mastery, Herbalism.
+- A **Combat Action** is an operation selected inside the Combat mode: Attack, Defend, Dodge, later Parry or a weapon technique.
+- A Skill may unlock a Combat Action or modify its effectiveness, cost, duration or result.
+
+The current Combat pipeline remains separate:
+
+```text
+Combat state / character capabilities
+    -> CombatService
+    -> CombatSnapshot / CombatResult
+    -> CombatPresentationMapper
+    -> CombatViewData
+    -> CombatPanel
+```
+
+Do not put Attack, Defend, Dodge or future Parry into the Exploration Player Actions list. Do not build the Skill system as part of the Version 1 Exploration choice pipeline; Skill progression belongs to Version 2.
+
+## 9. Version 1 implementation boundary
+
+Implement now:
+- Player Actions loaded from `player.json`.
+- Location Actions loaded from academy content.
+- Travel choices derived from current Location exits.
+- Event choices rendered through the same choice presentation contract while preserving focused Event behavior.
+- Available Interaction Query for the sources above.
+- Grouped Exploration ViewModel and generic grouped UI rendering.
+- Stable source/action identity in requests.
+- Existing time, Energy, Effect and Event/Combat execution rules preserved.
+
+Defer:
+- NPC presence, schedules and dialogue.
+- Inventory and item-use interactions.
+- Generic Interactable Object and Container systems.
+- Puzzle definitions and PuzzleService.
+- General-purpose action plugin/registry frameworks.
+- Combat Actions and Skill progression inside the Exploration query.
+
+## 10. Acceptance criteria
+
+- Adding a Player Action to `player.json` makes it available according to its authored context requirements without editing StoryPanel.
+- Rest appears in Personal at every Location, including when the Player is unconscious; death still blocks it.
+- Sleep is a Player-owned action but appears only in an allowed context.
+- Adding a Location Action to a Location's JSON makes it appear only at that Location.
+- Travel choices are derived from valid exits and carry the correct destination identity.
+- An active Event presents its own choices through the common view contract without leaking ordinary Travel/Location choices into the focused Event screen.
+- The Mapper does not read files or mutate runtime state.
+- Query does not mutate runtime state.
+- UI does not own gameplay validation or execution.
+- Duplicate action IDs from different sources do not route to the wrong handler/target.
+- Unavailable requests are revalidated and fail without partial state mutation.
+- Successful actions refresh choices from the resulting state.
+- Combat remains on its existing dedicated Service → Mapper → ViewData → UI path.
+- Automated tests cover normal cases, missing/invalid IDs, duplicate source-local IDs, unavailable context, state changes, and important combinations.
