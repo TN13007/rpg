@@ -120,7 +120,7 @@ def _stable_signature(value: Any) -> str:
 
 def collect_id_occurrences(
     value: Any, path: str = "$"
-) -> list[tuple[str, str, str]]:
+) -> list[tuple[str, str, str, str]]:
     """Collect (owner path, owner signature, field name, value) as stable tuples.
 
     Array indexes are intentionally normalized to [*], so moving an entity in an
