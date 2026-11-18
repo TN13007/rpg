@@ -46,7 +46,7 @@ jobs:
             CHANGED="$(git diff --name-only "${BASE_REF}...${HEAD_REF}")"
           fi
 
-          if grep -Eq '(^|/)(Scenes|Resources)/|(^|/)[^/]+\.(tscn|tres)$|^project\.godot$|^Scripts/(Bootstrap|Infrastructure|Presentation)/' <<< "${CHANGED}"; then
+          if grep -Eq '\\.cs$|\\.csproj$|(^|/)(Scenes|Resources)/|(^|/)[^/]+\\.(tscn|tres)$|^project\\.godot$' <<< "\${CHANGED}"; then
             echo "godot=true" >> "${GITHUB_OUTPUT}"
           else
             echo "godot=false" >> "${GITHUB_OUTPUT}"
