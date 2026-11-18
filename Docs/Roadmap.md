@@ -13,7 +13,7 @@ The game is **not** a combat-first dungeon crawler. Combat, towers and dungeons 
 
 The intended experience is built around five connected pillars:
 
-1. **Daily life:** Spend time, manage Health, Energy and Mood, and choose how to live each day.
+1. **Daily life:** Spend time, manage Health, Fatigue and Mood, and choose how to live each day.
 2. **Character development:** Learn, practice, gain capabilities and shape a character build.
 3. **People and relationships:** Meet NPCs, understand their circumstances and develop relationships over time.
 4. **World exploration:** Visit locations, discover opportunities, gather resources and encounter situations with multiple possible resolutions.
@@ -70,7 +70,7 @@ The repository already contains a narrow playable vertical slice. Version 0 is t
 - Location-based travel between Dormitory, Courtyard, Classroom and Guild Hall.
 - Location actions, authored durations and feedback from JSON content.
 - DayClock with day/minute tracking, midnight rollover and a next-morning sleep action.
-- Character definitions loaded from JSON; runtime Health, Energy, Mood, Gold and life state.
+- Character definitions loaded from JSON; runtime Health, Fatigue, Stamina, Mood, Gold and life state.
 - Activity duration calculation with a character-stat modifier.
 - Location Event pools evaluated after successful arrival, at most once per Location per in-game day.
 - A Courtyard Goblin Event with a choice to confront or sneak past.
@@ -83,7 +83,7 @@ The repository already contains a narrow playable vertical slice. Version 0 is t
 
 - Sleep has authored recovery Effects in academy content; next-day boundary behavior and exactly-once runtime application are verified in Version 1 Session 4.
 - A complete daily activity simulation and grouped Exploration choice pipeline are not implemented.
-- Health, Energy and Mood do not yet form a complete life simulation.
+- Health, Fatigue and Mood do not yet form a complete life simulation; the initial Stamina model covers only defensive Combat Actions.
 - Skill progression, levels, a full inventory and equipment loop are not complete.
 - NPCs are not yet implemented as a persistent population with schedules and relationships.
 - Save/load and persistent world history are not established as complete gameplay features.
@@ -107,14 +107,14 @@ The repository already contains a narrow playable vertical slice. Version 0 is t
 
 ## Version 1 — A Day at the Academy
 
-**Player-facing promise:** The Player can live through a meaningful academy day, understand the choices available in each context, manage Health/Energy/Mood and continue into the next day.
+**Player-facing promise:** The Player can live through a meaningful academy day, understand the choices available in each context, manage Health/Fatigue/Stamina/Mood and continue into the next day.
 
 ### Scope
 
 - Establish the Exploration Action Choice Pipeline: content Loaders → runtime context → Available Interaction Query → Mapper → grouped ViewModel → UI.
 - Separate Player Actions, Location Actions, derived Travel Choices and Event Choices by source/ownership.
-- Make activity costs explicit: time, Energy and relevant state changes.
-- Establish complete initial rules for Health, Energy and Mood.
+- Make activity costs explicit: time, activity-based Fatigue and relevant state changes; keep Combat Stamina separate from daily activities.
+- Establish the initial rules for Health, Fatigue, Combat Stamina and Mood.
 - Add a small set of academy activities and recovery options.
 - Complete sleep/next-day transition, daily summary and minimum save/load.
 
@@ -134,7 +134,7 @@ Daily life needs both a meaningful time/resource loop and a reliable way to disc
 - Player Actions are loaded from Player data; Location Actions and Travel are sourced from the current Location; Event Choices remain contextual.
 - Query determines choice availability; Mapper produces grouped ViewModels; UI only renders them.
 - Actions have validated costs and predictable results.
-- Health, Energy and Mood have documented rules.
+- Health, Fatigue, Combat Stamina and Mood have documented initial rules.
 - State changes are visible and persist at the intended scope.
 - Tests cover insufficient resources, availability/context, invalid/stale requests, time rollover, recovery, summary and save/load.
 
