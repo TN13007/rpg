@@ -85,14 +85,15 @@ The query discovers choices for the current context and does not mutate state. I
 ```text
 CombatPanel
   -> CombatFlowController
-  -> CombatService / ActionExecutionService
+  -> Application CombatSessionService
+  -> Domain CombatService + Application ActionExecutionService
   -> CombatResult + CombatSnapshot
   -> CombatPresentationMapper
   -> CombatViewData
   -> CombatPanel
 ```
 
-CombatService owns validation, resolution and combat state mutation. The mapper converts results and events into presentation-safe data. CombatPanel does not calculate damage or spend Stamina.
+CombatService owns validation, resolution and combat state mutation. The mapper converts results and events into presentation-safe data. CombatSessionService owns encounter entry execution and completion-time/Fatigue updates; CombatService owns combat turns and resolution. CombatPanel and CombatFlowController do not calculate damage or mutate combat resources.
 
 ### Content loading
 
