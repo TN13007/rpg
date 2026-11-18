@@ -55,7 +55,6 @@ public sealed class AvailableInteractionQuery
                 travel.Feedback,
                 travel.ActivityMet,
                 travel.Effects,
-                travel.TimeMode,
                 travel.EstimatedDurationMinMinutes,
                 travel.EstimatedDurationMaxMinutes);
             interactions.Add(new AvailableInteraction(

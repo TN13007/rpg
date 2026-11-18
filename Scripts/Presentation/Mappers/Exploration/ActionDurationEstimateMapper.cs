@@ -14,11 +14,6 @@ public sealed class ActionDurationEstimateMapper
         if (action == null) throw new ArgumentNullException(nameof(action));
         if (actor == null) throw new ArgumentNullException(nameof(actor));
 
-        if (action.TimeMode == ActionTimeMode.NextDay)
-        {
-            return "Until next morning";
-        }
-
         if (action.DurationMinutes == 0)
         {
             return "Immediate";
