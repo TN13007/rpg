@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3]
 
-[ext_resource type="Script" path="res://Scripts/UI/CharacterPanel.cs" id="1"]
+[ext_resource type="Script" path="res://Scripts/Presentation/UI/CharacterPanel.cs" id="1"]
 [ext_resource type="Texture2D" path="res://Assets/CharacterPortrait.svg" id="2"]
 
 [node name="CharacterPanel" type="PanelContainer"]

@@ -97,7 +97,9 @@ public partial class MainController : Control
         IReadOnlyList<AvailableInteraction> interactions = _availableInteractionQuery.Query(
             _player,
             _playerActions,
-            location);
+            location,
+            AcademyContent.Get,
+            AcademyContent.Travel);
         List<ActionChoiceViewData> choices = _actionChoiceMapper.Map(interactions, _player);
 
         _gameModeController.ShowExploration();

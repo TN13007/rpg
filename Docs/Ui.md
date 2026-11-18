@@ -154,20 +154,18 @@ MainController orchestrates handlers and refreshes ViewModels. It must not calcu
 
 ### 7. Prototype Reality Check
 
-Currently implemented:
+Currently implemented on `main`:
 - Sidebar and persistent Character Panel.
-- Exploration list of choices rendered by StoryPanel.
-- Flat ActionChoiceViewData with ID, label and duration label.
-- MainController currently combines Location Actions, root academy Self Actions and derived Travel choices.
-- AcademyContent reads Location content and the transitional root `selfActions` list.
-- CharacterDataLoader reads Player identity/base values/stats, but not Player Actions.
-- A dedicated Combat Panel and Combat Service → Mapper → ViewData pipeline for the Goblin encounter.
+- Exploration choices are discovered by `AvailableInteractionQuery` for Player, Location, Travel and Event sources.
+- Rest and Sleep are Player Actions in `Data/Characters/Player.json`; Rest is available at every actionable Location and Sleep is restricted to Dormitory.
+- `ActionChoiceMapper` converts available interactions into grouped `ActionChoiceViewData`; StoryPanel renders those groups.
+- `ActionSelectionRequest` carries source kind, source ID, action ID and optional target ID. MainController validates the current source/context before dispatch.
+- Combat uses a dedicated CombatService → CombatPresentationMapper → CombatViewData → CombatPanel pipeline.
 
-Planned in Version 1:
-- Player Actions authored in `Player.json`.
-- Available Interaction Query for Player, Location, Travel and Event sources.
-- Grouped Exploration ViewModel and grouped StoryPanel rendering.
-- Stable source/action request identity and MainController orchestration without flat-list composition.
+Current transitional boundaries:
+- MainController is still the composition root and retains some Exploration and Combat flow orchestration. Issue #15 tracks the remaining extraction.
+- Content loaders and some content definitions are being separated into Infrastructure and Domain responsibilities as part of the layered-structure refactor.
+- Godot runtime verification must be recorded separately from .NET CI; a passing test suite does not prove scene/resource integration.
 
 Not implemented:
 - NPC population and presence, Inventory/item use, generic Interactable Objects, Containers, Puzzles and Nearby choice group.

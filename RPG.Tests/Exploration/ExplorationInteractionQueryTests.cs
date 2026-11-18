@@ -14,9 +14,9 @@ public sealed class ExplorationInteractionQueryTests
         AvailableInteractionQuery query = new AvailableInteractionQuery();
 
         IReadOnlyList<AvailableInteraction> dormitory = query.Query(
-            player, playerData.PlayerActions, AcademyContent.Get("dormitory"));
+            player, playerData.PlayerActions, AcademyContent.Get("dormitory"), AcademyContent.Get, AcademyContent.Travel);
         IReadOnlyList<AvailableInteraction> courtyard = query.Query(
-            player, playerData.PlayerActions, AcademyContent.Get("courtyard"));
+            player, playerData.PlayerActions, AcademyContent.Get("courtyard"), AcademyContent.Get, AcademyContent.Travel);
 
         Assert.Contains(dormitory, item => item.SourceKind == InteractionSourceKind.Player && item.ActionId == "rest");
         Assert.Contains(dormitory, item => item.SourceKind == InteractionSourceKind.Player && item.ActionId == "sleep");
@@ -31,7 +31,7 @@ public sealed class ExplorationInteractionQueryTests
         Character player = TestCharacterFactory.CreatePlayer();
         CharacterData playerData = LoadPlayerData();
         IReadOnlyList<AvailableInteraction> interactions = new AvailableInteractionQuery().Query(
-            player, playerData.PlayerActions, AcademyContent.Get("courtyard"));
+            player, playerData.PlayerActions, AcademyContent.Get("courtyard"), AcademyContent.Get, AcademyContent.Travel);
 
         Assert.DoesNotContain(interactions, item => item.SourceKind == InteractionSourceKind.Location && item.ActionId == "encounter_goblin");
         Assert.Contains(interactions, item =>
@@ -47,7 +47,7 @@ public sealed class ExplorationInteractionQueryTests
         Character player = TestCharacterFactory.CreatePlayer(fatigue: 45, stamina: 3);
         CharacterData playerData = LoadPlayerData();
 
-        new AvailableInteractionQuery().Query(player, playerData.PlayerActions, AcademyContent.Get("dormitory"));
+        new AvailableInteractionQuery().Query(player, playerData.PlayerActions, AcademyContent.Get("dormitory"), AcademyContent.Get, AcademyContent.Travel);
 
         Assert.Equal(45, player.Fatigue);
         Assert.Equal(3, player.Stamina);
@@ -60,7 +60,7 @@ public sealed class ExplorationInteractionQueryTests
         Character player = TestCharacterFactory.CreatePlayer();
         CharacterData playerData = LoadPlayerData();
         IReadOnlyList<AvailableInteraction> interactions = new AvailableInteractionQuery().Query(
-            player, playerData.PlayerActions, AcademyContent.Get("dormitory"));
+            player, playerData.PlayerActions, AcademyContent.Get("dormitory"), AcademyContent.Get, AcademyContent.Travel);
         ActionChoiceMapper mapper = new ActionChoiceMapper(
             new ActionDurationEstimateMapper(new ActivityTimeCalculator()));
 
