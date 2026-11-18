@@ -296,18 +296,19 @@ public partial class MainController : Control
         return false;
     }
 
-    private List<ActionChoiceViewData> MapActionChoices(IReadOnlyList<ActionDefinition> actions)
+    private List<ActionChoiceViewData> MapActionChoices(IReadOnlyList<ActionDefinition> actions, string groupTitleOverride = null)
     {
         List<ActionChoiceViewData> choices = new List<ActionChoiceViewData>();
 
         foreach (ActionDefinition action in actions)
         {
             string durationLabel = _durationEstimateMapper.Map(action, _player);
-            string groupTitle = action.Id.StartsWith("player:", StringComparison.Ordinal)
-                ? "PERSONAL"
-                : action.Id.StartsWith("travel:", StringComparison.Ordinal)
-                    ? "TRAVEL"
-                    : "AT THIS LOCATION";
+            string groupTitle = groupTitleOverride ?? (
+                action.Id.StartsWith("player:", StringComparison.Ordinal)
+                    ? "PERSONAL"
+                    : action.Id.StartsWith("travel:", StringComparison.Ordinal)
+                        ? "TRAVEL"
+                        : "AT THIS LOCATION");
             choices.Add(new ActionChoiceViewData(action.Id, action.Label, durationLabel, groupTitle));
         }
 
