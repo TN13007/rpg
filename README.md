@@ -35,3 +35,7 @@ This runs the Python validator tests, project naming checks, changed-file C# nam
 - [Testing and Acceptance](Docs/Testing.md) — automated tests, manual Godot checks and Day 1 scenario.
 
 Historical records are retained under `Docs/Archive/` and are not current implementation guidance.
+
+## Working with AI
+
+At the start of each development Session, use the Implementation Brief process in [WORKFLOW.md](WORKFLOW.md). AI should gather and synthesize the relevant repository context; this document index is for navigation, not a checklist of files the learner must read.
