@@ -255,7 +255,7 @@ Sessions 1 and 2 already introduced action duration, costs and execution. Before
 - Query is read-only. It distinguishes choices absent from the current context from contextual choices temporarily disabled by a resource/state condition.
 - Introduce an Exploration Mapper and grouped `ExplorationViewModel` / `ActionGroupViewModel` / `ActionChoiceViewModel` (names may follow repository conventions).
 - Render groups in StoryPanel. Initial groups: Personal, At This Location and Travel. Event uses a focused Current Situation group/view.
-- Keep MainController as orchestrator: gather current context, submit selection request, delegate and refresh. Remove action-source merging and flat-list mapping from MainController.
+- Keep MainController as the Godot composition root: construct dependencies and wire top-level signals. ExplorationFlowController owns Exploration context, request routing and refresh; CombatFlowController owns Combat presentation flow. Keep game rules in Application/Domain services.
 - Preserve the existing ActionExecutionService, ActivityTimeCalculator, Effects, Location Event behavior and Combat pipeline.
 - Document future extension points for Nearby NPC/Object interactions, but do not implement their loaders or services.
 
