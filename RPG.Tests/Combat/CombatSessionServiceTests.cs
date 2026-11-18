@@ -31,7 +31,7 @@ public sealed class CombatSessionServiceTests
             combatActivity);
 
         Assert.True(session.TryStartEncounter(entryAction, out string failureReason));
-        Assert.Null(failureReason);
+        Assert.Empty(failureReason);
 
         CombatResult result = session.ExecuteAction(new CombatActionRequest("attack", enemy.Id));
 
