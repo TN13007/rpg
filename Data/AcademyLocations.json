@@ -41,7 +41,8 @@
       "exits": [
         "dormitory",
         "classroom",
-        "guild_hall"
+        "guild_hall",
+        "infirmary"
       ],
       "actions": [
         {
@@ -156,6 +157,30 @@
           "durationMinutes": 10,
           "effects": [],
           "feedback": "Most requests are reserved for senior students. One training survey is available.",
+          "activityMet": 1.3
+        }
+      ]
+    },
+    {
+      "id": "infirmary",
+      "name": "Academy Infirmary",
+      "region": "EAST WING",
+      "description": "The infirmary is quiet and orderly. Clean beds line the walls, and a faint herbal scent lingers in the air.",
+      "exits": [
+        "courtyard"
+      ],
+      "actions": [
+        {
+          "id": "infirmary_treatment",
+          "label": "Receive treatment",
+          "durationMinutes": 60,
+          "effects": [
+            {
+              "type": "RestoreHealth",
+              "amount": 5
+            }
+          ],
+          "feedback": "You rest while the infirmary staff tend to your wounds.",
           "activityMet": 1.3
         }
       ]
