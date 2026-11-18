@@ -6,10 +6,9 @@ Adventurer Academy is a fantasy life-simulation RPG prototype about daily life, 
 
 ## Start here
 
-- [WORKFLOW.md](WORKFLOW.md) — the single source for the current implementation snapshot, Session progress, Learning evidence, blockers and handoff.
-- [Version 1 Session Plan](Docs/Design/Version1SessionPlan.md) — the accepted nine-Session product plan. It defines intended scope and acceptance criteria; it does not mean those Sessions are already implemented.
-
-Treat `main` as the implemented baseline. Open or unmerged PRs are proposals.
+- [WORKFLOW.md](WORKFLOW.md) — current implementation snapshot, Session progress, Learning evidence, blockers and handoff.
+- [Version 1 Plan](Docs/Version1Plan.md) — detailed product and Learning-first plan for Version 1. It describes intended scope; it does not mean every Session is implemented.
+- [CONTRIBUTING.md](CONTRIBUTING.md) — Issue → Branch → Validate → Pull Request workflow, naming and documentation governance.
 
 ## Run the project
 
@@ -25,16 +24,14 @@ python Tools/Validate.py --base origin/main --head HEAD --branch $branch --check
 
 This runs the Python validator tests, project naming checks, changed-file C# naming checks and the .NET test suite. Godot runtime/UI checks remain manual and must be recorded separately in `WORKFLOW.md`.
 
-## Design and technical references
+## Active design and technical documents
 
-- [Game Overview](Docs/Design/GameOverview.md)
-- [Game Development Roadmap](Docs/Design/GameDevelopmentRoadmap.md)
-- [Gameplay Loop and Location Events](Docs/Design/GameLoopAndLocationEvents.md)
-- [UI Architecture](Docs/Design/UiArchitecture.md)
-- [MainController Responsibilities](Docs/Architecture/MainController.md)
-- [World Model Foundation](Docs/Design/WorldModelFoundation.md)
-- [Open Design Questions](Docs/Design/OpenDesignQuestions.md)
-- [Automated Gameplay Tests](Docs/Testing/AutomatedTests.md)
-- [Day 1 Playable Scenario](Docs/QA/Day1PlayableScenario.md)
+- [Game Design](Docs/GameDesign.md) — product vision and long-term world direction.
+- [Roadmap](Docs/Roadmap.md) — version sequence, player-facing outcomes and exit criteria.
+- [World Model](Docs/World.md) — domain vocabulary, modeling constraints and review findings.
+- [Gameplay](Docs/Gameplay.md) — Location/Event loop and Exploration action-choice pipeline.
+- [UI Architecture](Docs/Ui.md) — main interface and Combat presentation contracts.
+- [Application Architecture](Docs/Architecture.md) — MainController and application responsibility boundaries.
+- [Testing and Acceptance](Docs/Testing.md) — automated tests, manual Godot checks and Day 1 scenario.
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for the Issue → Branch → Validate → Pull Request workflow. Run the complete automated checks with one command: `python Tools/Validate.py` (see the required base/branch arguments in the guide).
+Historical records are retained under `Docs/Archive/` and are not current implementation guidance.

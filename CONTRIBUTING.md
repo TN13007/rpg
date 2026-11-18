@@ -175,7 +175,7 @@ To audit every Git-tracked file and directory, including unchanged legacy paths,
 python Tools/CheckProjectNaming.py --audit-all
 ```
 
-This standalone audit reports violations and safe PascalCase suggestions; it does not rename files. It exits with code 1 while violations remain. Untracked files are intentionally excluded. The initial findings and staged remediation plan are recorded in [Project Naming Audit](Docs/Quality/ProjectNamingAudit.md).
+This standalone audit reports violations and safe PascalCase suggestions; it does not rename files. It exits with code 1 while violations remain. Untracked files are intentionally excluded. The initial findings and staged remediation plan are recorded in [Project Naming Audit](Docs/Archive/ProjectNamingAudit.md).
 
 The validator checks the following scoped rules:
 
