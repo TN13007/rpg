@@ -11,7 +11,7 @@
 **Learning-target approval:** All Learning objectives, Independent practices and Knowledge checks below are AI-drafted proposals. Each is marked **Proposed** and requires explicit user approval before its Session begins. They are not evidence that the learner has already demonstrated the skill.
 
 
-Version 1 turns the current academy prototype into a small, complete daily-life loop. The player can choose what to do, understand the time/resource commitment, manage Health/Energy/Mood, experience the current academy event/combat slice, sleep, review the day and continue after restarting the game.
+Version 1 turns the current academy prototype into a small, complete daily-life loop. The player can choose what to do, understand the time/resource commitment, manage Health/Fatigue/Stamina/Mood, experience the current academy event/combat slice, sleep, review the day and continue after restarting the game.
 
 Version 1 also establishes a modest, reusable Exploration choice pipeline. It must support Player Actions, Location Actions, Travel and Event Choices without making StoryPanel depend on their data source.
 
@@ -21,7 +21,7 @@ At the end of Version 1, the player can:
 3. Perform Player Actions such as Rest and Sleep under explicit context rules.
 4. Perform Location Actions and travel along valid Location exits.
 5. Resolve the existing Event through a non-combat or Combat path.
-6. Spend and recover Energy; understand unconsciousness and death.
+6. Accumulate and recover Fatigue; manage Combat Stamina; understand death.
 7. Recover Health and Mood through a small set of academy activities.
 8. Complete a day, inspect a summary and continue.
 9. Save and load the current daily-life state.
@@ -39,7 +39,8 @@ Current implementation, active PRs, Session progress, learning evidence and docu
 | Indicator | Initial range | Version 1 meaning |
 |---|---:|---|
 | Health | 0–20 for current Player | Physical survival; 0 means dead |
-| Energy | 0–10 for current Player | Capacity to continue activities; 0 while alive means unconscious |
+| Fatigue | 0–100 | Cumulative daily-life exertion; no automatic action lock in Version 1 |
+| Stamina | 0–10 | Short-term resource used by defensive Combat Actions |
 | Mood | 0–100 | Emotional wellbeing; descriptive bands only in Version 1 |
 | Gold | Non-negative integer | Preserve existing reward value; no shop/economy loop in Version 1 |
 
@@ -61,7 +62,7 @@ Mood bands are descriptive only. Do not introduce hidden penalties or action pro
 1. The player sees a choice and its available duration/cost information.
 2. The player selects the choice.
 3. The authoritative handler/service validates current state and context again.
-4. A failed request changes no Health, Energy, Mood, Gold, time, location or target state.
+4. A failed request changes no Health, Fatigue, Stamina, Mood, Gold, time, location or target state.
 5. A successful request applies configured costs, time and Effects once.
 6. Runtime state updates.
 7. Query and Mapper regenerate the current choices.
@@ -124,47 +125,72 @@ Explain why the mapper must not mutate state and why execution recalculates actu
 
 <a id="session-2"></a>
 
-## Session 2 — Energy Economy and Rest
+## Session 2 — Fatigue Accumulation, Rest and Combat Stamina
 
-
-**Player-facing result:** The player spends Energy, becomes unconscious at 0 Energy, and recovers through Rest.
+**Player-facing result:** Daily activities build cumulative Fatigue according to their duration and physical intensity. Rest and Sleep recover Fatigue. Stamina is a separate resource used only by Combat Actions.
 
 ### Learning objective
 
 **Approval status:** Proposed — pending user approval.
 
-
-
-Trace CanExecute, Energy spending, DayClock advancement and ActionEffectExecutor; explain the difference between Dead and Unconscious.
+Trace an activity from its authored MET value through actual duration calculation to Fatigue accumulation; distinguish long-term Fatigue from short-term Combat Stamina.
 
 ### Independent practice
 
 **Approval status:** Proposed — pending user approval.
 
-
-
-Independently add or modify a boundary test for Rest at 0 Energy and Rest when Health is 0; explain why the outcomes differ.
+Independently add or adjust one activity-intensity test, predict Fatigue for a short walk and a longer activity, then compare the results.
 
 ### Knowledge check
 
 **Approval status:** Proposed — pending user approval.
 
+Explain why a five-minute walk must not consume a fixed combat resource, and why reaching 0 Stamina must not make a living character unconscious.
 
+### Scope
 
-Explain why only explicitly permitted actions can run while unconscious and why permission does not bypass Energy cost.
+- Replace the shared Energy resource with Fatigue (0–100) and Stamina (0–10).
+- Fatigue starts at 0, accumulates from activity duration and relative intensity, and is not an action lock or unconsciousness trigger in this initial version.
+- Use the first-pass formula: `max(0, activityMet - 1.0) * actualDurationMinutes / 15`.
+- Store Fatigue with fractional precision. Calculate it after the action's actual duration modifier is applied.
+- Author `activityMet` for current Location Actions and Travel. Use MET as a relative intensity reference, not as a direct physiological prediction.
+- Rest takes 30 minutes, restores 5 Fatigue, restores 3 Stamina and adds 2 Mood.
+- Sleep restores Fatigue to 0 and Stamina to maximum while preserving its authored Health/Mood recovery.
+- Combat uses Stamina: Defend costs 1, Dodge costs 2, Attack has no Stamina cost, and Catch Breath restores 3 Stamina while still allowing the enemy response.
+- Completing the configured Combat duration adds its configured activity Fatigue exactly once.
+- Keep Health = 0 as the only character state that blocks all actions. Do not add Fatigue thresholds or penalties yet.
 
+### Automated tests
 
-### Existing implementation
-- Energy Cost is validated before mutation.
-- Cost equal to current Energy succeeds and can leave the Player unconscious after the current action.
-- Cost greater than current Energy is rejected without mutation.
-- Rest restores up to 3 Energy and changes Mood by +2; it takes 30 minutes and costs no Energy.
-- Rest is allowed while unconscious through `canExecuteWhenUnconscious`; dead characters remain blocked.
-- Ordinary actions and Travel are blocked while unconscious.
-- Failure feedback explains that the player should Rest.
+- Five minutes at 2.8 MET adds approximately 0.6 Fatigue; 30 minutes adds approximately 3.6.
+- Resting-level activity (1.0 MET) and zero-duration actions add no Fatigue.
+- Actual duration modifiers are applied before Fatigue is calculated.
+- Fatigue and Stamina clamp at their minimum and maximum values.
+- Rest and Sleep recover the configured resources exactly once.
+- A living character at 100 Fatigue or 0 Stamina can still perform ordinary non-Combat actions.
+- Combat can start at 0 Stamina; Attack and Catch Breath remain available.
+- Insufficient Stamina for Defend/Dodge rejects only that request without consuming a turn.
+- Catch Breath restores Stamina, consumes the player's turn and resolves the enemy response.
+- Health = 0 still blocks actions and ends Combat on death.
 
-### Transitional data placement
-PR #22 stores Rest in `selfActions` at the root of `AcademyLocations.json`. This works in the current prototype, but does not express Player ownership. Session 3 will move it into `Player.json` and remove the duplicate global Self Action source. Do not reimplement Session 2's Energy rules during that migration.
+### Godot runtime acceptance
+
+- Travel between Locations does not require a fixed resource point and a short walk does not force immediate Rest.
+- Observe Fatigue accumulation for Travel, reading, conversation and Study activities.
+- Rest for 30 minutes and verify Fatigue -5, Stamina +3 and Mood +2, with values clamped.
+- Sleep advances to the next day and restores Fatigue/Stamina and the configured Health/Mood values.
+- Enter Combat with 0 Stamina; Attack and Catch Breath are still usable.
+- Defend and Dodge show their Stamina requirements and become unavailable only when the current Stamina is insufficient.
+- Catch Breath restores Stamina and the enemy still responds.
+- Confirm that high Fatigue does not silently disable Exploration actions.
+
+### Completion evidence
+
+Automated test output plus a Godot recording/screenshots showing short Travel, Fatigue accumulation, Rest/Sleep recovery and Combat at 0 Stamina.
+
+### Migration note
+
+The original Session 2 Energy economy from PR #22 is superseded by Issue #46. Do not preserve the old rule that spending the final Energy point causes unconsciousness.
 
 
 <a id="session-3"></a>
@@ -221,7 +247,7 @@ Sessions 1 and 2 already introduced action duration, costs and execution. Before
 
 ### Scope
 - Add `playerActions` parsing and validation to `CharacterDataLoader` / `CharacterData`.
-- Move Rest from root `selfActions` into Player Actions. Preserve 30 minutes, 0 Energy Cost, +3 Energy, +2 Mood and unconscious permission.
+- Move Rest from root `selfActions` into Player Actions. Preserve 30 minutes, recovery of up to 5 Fatigue and 3 Stamina, and +2 Mood; Fatigue/Stamina do not block actions.
 - Move Sleep's definition into Player Actions as a Player-owned operation; give it a context requirement that initially permits it only in Dormitory. Preserve NextDay and its current authored recovery Effects.
 - Remove root `selfActions` after migration; avoid two competing ownership sources.
 - Introduce a small Action Choice source/request contract that carries source kind, source ID, action ID and optional target/destination ID. Keep identity unambiguous.
@@ -234,17 +260,17 @@ Sessions 1 and 2 already introduced action duration, costs and execution. Before
 - Document future extension points for Nearby NPC/Object interactions, but do not implement their loaders or services.
 
 ### Availability rules
-- Rest is Personal and available at every Location for a living Player, including unconscious.
+- Rest is Personal and available at every Location for a living Player, regardless of Fatigue or Stamina.
 - Sleep is Player-owned but only appears in the Dormitory.
 - Location Actions appear only at their owning Location.
 - Travel appears only for valid exits.
 - Event Choices appear only while their Event is active.
-- Ordinary actions/Travel remain unavailable to an unconscious Player; dead Player cannot execute any gameplay action.
+- Fatigue and Stamina do not block ordinary actions or Travel; a dead Player cannot execute gameplay actions.
 
 ### Automated tests
 - Player Action JSON loads, validates and retains all action fields.
 - Missing/malformed `playerActions`, duplicate IDs and invalid context references are handled safely.
-- Rest comes from PlayerData, is visible at every Location, works at 0 Energy and cannot revive death.
+- Rest comes from PlayerData, is visible at every Location, recovers Fatigue/Stamina and cannot revive death.
 - Sleep comes from PlayerData and is not offered outside its allowed context.
 - Location Actions are only returned for the current Location.
 - Travel choices are derived only from current valid exits and retain destination identity.
@@ -262,13 +288,13 @@ Sessions 1 and 2 already introduced action duration, costs and execution. Before
 - Location-specific choices change when moving between Locations.
 - Travel options reflect each Location's exits.
 - Current Event screen displays Event choices using the shared presentation contract.
-- Select Rest, observe 30 minutes, Energy +3 up to maximum and Mood +2.
-- Reach 0 Energy, confirm Rest remains usable while ordinary actions and Travel are unavailable.
+- Select Rest, observe 30 minutes, Fatigue -5, Stamina +3 and Mood +2, with values clamped.
+- At high Fatigue and 0 Stamina, confirm Rest and ordinary Exploration actions remain usable.
 - Existing Goblin Event and Combat flow still work.
 - UI group labels and choice ordering are readable and no stale choices remain after an action or travel.
 
 ### Session completion evidence
-Automated test output plus a Godot recording/screenshots showing at least two Locations, grouped Personal/Location/Travel choices, Rest at 0 Energy and the Event flow.
+Automated test output plus a Godot recording/screenshots showing at least two Locations, grouped Personal/Location/Travel choices, Rest with high Fatigue and 0 Stamina and the Event flow.
 
 <a id="session-4"></a>
 
@@ -303,7 +329,7 @@ Explain how the implementation prevents double day increments and duplicate reco
 ### Scope
 - Use `DayClock.SleepUntilNextDay()` as the only owner of the calendar transition.
 - Use Player-owned Sleep from Session 3; enforce Dormitory context through availability and authoritative validation.
-- Apply authored Sleep Effects exactly once: restore up to 20 Health, 10 Energy and 10 Mood.
+- Apply authored Sleep Effects exactly once: restore up to 20 Health, Fatigue to 0, Stamina to maximum and 10 Mood.
 - Keep wake-up time at 07:30.
 - Keep the Player in Dormitory and refresh Character Panel and Exploration ViewModel after waking.
 - A dead character cannot sleep to revive.
@@ -320,7 +346,7 @@ Explain how the implementation prevents double day increments and duplicate reco
 - Day counter overflow is handled explicitly.
 
 ### Godot runtime acceptance
-Complete a normal day, sleep and verify day, 07:30 time, Dormitory location, Health, Energy and Mood.
+Complete a normal day, sleep and verify day, 07:30 time, Dormitory location, Health, Fatigue, Stamina and Mood.
 
 ### Completion evidence
 Before/after state record plus calendar-boundary automated test output.
@@ -358,7 +384,7 @@ Explain why restoring Health must not silently revive a dead character unless a 
 ### Scope
 - Add one Infirmary Location connected to the existing Location graph.
 - Add one basic treatment Location Action.
-- Initial tuning candidate: 60 minutes, 0 Energy Cost, restore up to 5 Health, no Gold cost.
+- Initial tuning candidate: 60 minutes, activityMet authored for the activity, restore up to 5 Health, no Gold cost.
 - Reuse common action duration/cost/effect execution where applicable.
 - Death cannot be bypassed by treatment.
 - No doctor NPC, medicine inventory, diagnosis, injury list or medical minigame.
@@ -370,7 +396,7 @@ Explain why restoring Health must not silently revive a dead character unless a 
 - Treatment advances time exactly once.
 - Failed treatment changes nothing.
 - Invalid Location/action references are rejected.
-- Treatment does not alter Energy, Mood or Gold unless explicitly configured.
+- Treatment does not spend Combat Stamina; its actual duration and activityMet determine Fatigue, while Mood and Gold remain unchanged unless explicitly configured.
 
 ### Godot runtime acceptance
 Take damage in Goblin Combat, return to Exploration, travel to Infirmary, receive treatment and observe Health recovery/time cost.
@@ -422,7 +448,7 @@ Explain which Mood behavior is data-driven and which remains descriptive in Vers
 - Configurable MaxMood is handled correctly or explicitly validated.
 - UI mapping is pure and does not mutate Character.
 - Rest/Sleep Mood Effects apply once.
-- Mood does not silently change availability, Energy Cost or Combat calculations.
+- Mood does not silently change availability, Fatigue accumulation or Combat calculations.
 
 ### Godot runtime acceptance
 Perform actions that cross at least one Mood boundary in both directions and verify updated display and feedback.
@@ -462,9 +488,9 @@ Explain why the activity belongs in its current source/service and what would ju
 
 ### Scope
 Add a small set of data-authored activities:
-- Meal: suitable academy Location; 20 minutes; restore up to 2 Energy; optional small Mood increase.
-- Lesson: Classroom; 60 minutes; cost 2 Energy; no XP.
-- Practice: Courtyard/training area; 45 minutes; cost 3 Energy; no skill gain.
+- Meal: suitable academy Location; 20 minutes; authored activityMet; optional small Mood increase.
+- Lesson: Classroom; 60 minutes; authored activityMet; no XP or Combat Stamina cost.
+- Practice: Courtyard/training area; 45 minutes; authored activityMet; no skill gain or Combat Stamina cost.
 - Rest: preserve Session 2 behavior.
 - Treatment: preserve Session 5 behavior.
 - Sleep: preserve Session 4 behavior.
@@ -475,15 +501,15 @@ Keep initial values as tuning candidates, not final balance. Do not add inventor
 - All activity definitions load and validate.
 - Duplicate IDs are rejected within the appropriate source scope.
 - Each Location Action appears only at its authored Location.
-- Meal recovery clamps to MaxEnergy.
-- Lesson/Practice fail cleanly when Energy is insufficient.
+- Meal Fatigue uses actual duration and its authored activityMet; no Stamina recovery is implied.
+- Lesson/Practice do not require Combat Stamina and accumulate Fatigue from actual duration and activityMet.
 - Successful activities advance time and apply Effects once.
 - Displayed duration estimates and executed duration use consistent stat modifiers.
 - No XP, skill level or inventory items are granted in Version 1.
-- Sequences never push Health/Energy/Mood outside valid bounds.
+- Sequences never push Health/Fatigue/Stamina/Mood outside valid bounds.
 
 ### Godot runtime acceptance
-Play a day with at least three activity types and a meaningful time/Energy trade-off. Player can choose the order allowed by location and state.
+Play a day with at least three activity types and a meaningful time/Fatigue trade-off. Player can choose the order allowed by location and state.
 
 ### Completion evidence
 A playable day recording and test results.
@@ -575,7 +601,7 @@ Explain why loading a save must not grant the same reward or recovery Effect aga
 ### Minimum save scope
 - Schema version.
 - Player ID.
-- Health, Energy, Mood and Gold.
+- Health, Fatigue, Stamina, Mood and Gold.
 - Current Location ID.
 - Day and minute of day.
 - Current-day summary data.
@@ -594,7 +620,7 @@ Do not persist immutable definitions. Reload JSON content and validate saved IDs
 ### Automated tests
 - New game without a save.
 - Save/load initial state and after multiple activities.
-- Save/load after travel, midnight rollover, sleep and low Health/Energy/Mood.
+- Save/load after travel, midnight rollover, sleep and low Health/Fatigue/Stamina/Mood.
 - Missing, empty, malformed, truncated and unsupported schema files.
 - Unknown IDs and out-of-range values.
 - Failed/interrupted write preserves previous valid save.
@@ -602,7 +628,7 @@ Do not persist immutable definitions. Reload JSON content and validate saved IDs
 - Loading does not replay effects or duplicate daily summary entries.
 
 ### Godot runtime acceptance
-Perform activities, travel, save, close/restart, load and verify Location, clock, Health, Energy, Mood, Gold and daily summary.
+Perform activities, travel, save, close/restart, load and verify Location, clock, Health, Fatigue, Stamina, Mood, Gold and daily summary.
 
 ### Completion evidence
 Reproducible before/after save record and automated test results.
@@ -614,7 +640,7 @@ Reproducible before/after save record and automated test results.
 ```text
 Session 1: Inline Action Duration Estimates
         |
-Session 2: Energy Economy and Rest
+Session 2: Fatigue Accumulation, Rest and Combat Stamina
         |
 Session 3: Exploration Action Choice Pipeline
         |
@@ -654,16 +680,16 @@ Code-only output is not session completion.
 1. Start a new game in Dormitory at Day 1, 07:30.
 2. See grouped Personal, Location and Travel choices.
 3. See duration estimates and execute a normal action.
-4. Rest from a normal Energy state and recover the authored amount.
-5. Reach 0 Energy; verify ordinary actions and Travel are unavailable but Rest remains available.
+4. Rest from a normal Fatigue/Stamina state and recover the authored amounts.
+5. Reach high Fatigue and 0 Stamina; verify ordinary actions and Travel remain available and Rest still works.
 6. Travel between the academy Locations; confirm choices update from the current Location.
 7. Complete the Courtyard Event through either Sneak or the dedicated Goblin Combat path.
 8. If injured, visit the Infirmary and receive treatment.
-9. Complete a meal, lesson or practice activity and observe Health/Energy/Mood rules.
+9. Complete a meal, lesson or practice activity and observe Health/Fatigue/Stamina/Mood rules.
 10. Sleep in Dormitory and wake at 07:30 on the next day.
 11. Review the daily summary.
 12. Save, close, restart and load.
-13. Verify day, time, Location, Health, Energy, Mood, Gold and summary are preserved.
+13. Verify day, time, Location, Health, Fatigue, Stamina, Mood, Gold and summary are preserved.
 
 The scenario must be repeatable from a clean save and must not require a random Event to trigger. Use deterministic test seams for automated Event-path verification without changing production probability.
 
@@ -682,7 +708,7 @@ The scenario must be repeatable from a clean save and must not require a random 
 ## 9. Open Tuning Decisions
 
 1. Whether Infirmary treatment at 60 minutes / up to 5 Health feels appropriate.
-2. Whether meal, lesson and practice costs produce meaningful choices across one day.
+2. Whether meal, lesson and practice durations and activity intensities create meaningful Fatigue/time trade-offs across one day.
 3. Whether Mood remains descriptive throughout Version 1.
 4. Whether the summary appears immediately before or after the wake-up transition.
 5. Which Location Event evaluation state must persist in the Version 1 save.

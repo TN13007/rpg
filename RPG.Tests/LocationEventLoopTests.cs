@@ -17,7 +17,7 @@ public sealed class LocationEventLoopTests
         Assert.Equal("encounter_goblin", courtyard.Events[0].Choices[0].EncounterActionId);
         Assert.Null(courtyard.Events[0].Choices[1].EncounterActionId);
         Assert.Equal(10, courtyard.Events[0].Choices[1].Action.DurationMinutes);
-        Assert.Equal(1, courtyard.Events[0].Choices[1].Action.EnergyCost);
+        Assert.Equal(2.0, courtyard.Events[0].Choices[1].Action.ActivityMet);
     }
 
     [Fact]
@@ -206,7 +206,7 @@ public sealed class LocationEventLoopTests
     public void TravelToCourtyard_TriggersEvent_AndSneakingAppliesCostAndTime()
     {
         LoadAcademyContent();
-        Character player = TestCharacterFactory.CreatePlayer(energy: 8, agility: 30);
+        Character player = TestCharacterFactory.CreatePlayer(agility: 30);
         DayClock clock = new DayClock();
         ActionExecutionService actionService = CreateActionService();
 
@@ -219,7 +219,8 @@ public sealed class LocationEventLoopTests
 
         Assert.True(travelled, travelReason);
         Assert.Equal(9, travelDuration);
-        Assert.Equal(7, player.Energy);
+        Assert.Equal(1.08, player.Fatigue, 6);
+        Assert.Equal(8, player.Stamina);
 
         LocationContent courtyard = AcademyContent.Get("courtyard");
         LocationEventService eventService = new LocationEventService(new Random(1));
@@ -238,7 +239,8 @@ public sealed class LocationEventLoopTests
 
         Assert.True(sneaked, sneakReason);
         Assert.Equal(10, sneakDuration);
-        Assert.Equal(6, player.Energy);
+        Assert.Equal(1.7466666667, player.Fatigue, 6);
+        Assert.Equal(8, player.Stamina);
         Assert.Equal(469, clock.MinutesOfDay);
         Assert.True(player.CanAct);
     }
@@ -247,7 +249,7 @@ public sealed class LocationEventLoopTests
     public void ConfrontChoice_SpendsInvestigationCostAndStartsCombat()
     {
         LoadAcademyContent();
-        Character player = TestCharacterFactory.CreatePlayer(energy: 8, agility: 30);
+        Character player = TestCharacterFactory.CreatePlayer(agility: 30);
         Character enemy = TestCharacterFactory.CreateEnemy();
         DayClock clock = new DayClock();
         ActionExecutionService actionService = CreateActionService();
@@ -263,7 +265,8 @@ public sealed class LocationEventLoopTests
 
         ActionDefinition encounterAction = FindAction(courtyard, confrontChoice.EncounterActionId);
         Assert.True(actionService.TryExecute(encounterAction, player, clock, out string actionReason, out _), actionReason);
-        Assert.Equal(5, player.Energy);
+        Assert.Equal(1.08, player.Fatigue, 6);
+        Assert.Equal(8, player.Stamina);
 
         CombatService combat = new CombatService(player, enemy);
         Assert.True(combat.TryStartEncounter(out string combatReason), combatReason);
@@ -272,12 +275,12 @@ public sealed class LocationEventLoopTests
     }
 
     [Fact]
-    public void InsufficientEnergyForEventChoice_DoesNotAdvanceTimeOrSpendEnergy()
+    public void HighFatigueAndZeroStamina_DoNotBlockEventChoice()
     {
         LoadAcademyContent();
         LocationEventDefinition locationEvent = AcademyContent.Get("courtyard").Events[0];
         LocationEventChoiceDefinition sneakChoice = FindChoice(locationEvent, "event_goblin_sneak");
-        Character player = TestCharacterFactory.CreatePlayer(energy: 0);
+        Character player = TestCharacterFactory.CreatePlayer(fatigue: 100, stamina: 0);
         DayClock clock = new DayClock();
         ActionExecutionService actionService = CreateActionService();
 
@@ -288,11 +291,12 @@ public sealed class LocationEventLoopTests
             out string reason,
             out int duration);
 
-        Assert.False(result);
-        Assert.NotEmpty(reason);
-        Assert.Equal(0, duration);
-        Assert.Equal(0, player.Energy);
-        Assert.Equal(450, clock.MinutesOfDay);
+        Assert.True(result, reason);
+        Assert.Empty(reason);
+        Assert.Equal(10, duration);
+        Assert.Equal(100, player.Fatigue);
+        Assert.Equal(0, player.Stamina);
+        Assert.Equal(460, clock.MinutesOfDay);
     }
 
     [Fact]

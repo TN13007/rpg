@@ -8,16 +8,17 @@ public sealed class Character
     public int Level => _data.Level;
     public int Health { get; private set; }
     public int MaxHealth => _data.MaxHealth;
-    public int Energy { get; private set; }
-    public int MaxEnergy => _data.MaxEnergy;
+    public double Fatigue { get; private set; }
+    public double MaxFatigue => _data.MaxFatigue;
+    public int Stamina { get; private set; }
+    public int MaxStamina => _data.MaxStamina;
     public int Mood { get; private set; }
     public int MaxMood => _data.MaxMood;
     public int Gold { get; private set; }
     public CharacterStats Stats => _data.Stats;
     public bool IsAlive => Health > 0;
     public bool IsDead => !IsAlive;
-    public bool IsUnconscious => IsAlive && MaxEnergy > 0 && Energy == 0;
-    public bool CanAct => IsAlive && !IsUnconscious;
+    public bool CanAct => IsAlive;
 
     public Character(CharacterData data)
     {
@@ -28,7 +29,8 @@ public sealed class Character
     public void Reset()
     {
         Health = _data.StartingHealth;
-        Energy = _data.StartingEnergy;
+        Fatigue = _data.StartingFatigue;
+        Stamina = _data.StartingStamina;
         Mood = _data.StartingMood;
         Gold = _data.StartingGold;
     }
@@ -39,17 +41,6 @@ public sealed class Character
         int appliedDamage = System.Math.Min(Health, damage);
         Health -= appliedDamage;
         return appliedDamage;
-    }
-
-    public bool SpendEnergy(int amount)
-    {
-        if (amount < 0 || Energy < amount)
-        {
-            return false;
-        }
-
-        Energy -= amount;
-        return true;
     }
 
     public int RestoreHealth(int amount)
@@ -64,10 +55,45 @@ public sealed class Character
         return restored;
     }
 
-    public int RestoreEnergy(int amount)
+    public double AddFatigue(double amount)
     {
-        int restored = System.Math.Min(MaxEnergy - Energy, System.Math.Max(0, amount));
-        Energy += restored;
+        if (double.IsNaN(amount) || double.IsInfinity(amount) || amount <= 0)
+        {
+            return 0;
+        }
+
+        double previous = Fatigue;
+        Fatigue = System.Math.Clamp(Fatigue + amount, 0.0, MaxFatigue);
+        return Fatigue - previous;
+    }
+
+    public double RestoreFatigue(double amount)
+    {
+        if (double.IsNaN(amount) || double.IsInfinity(amount) || amount <= 0)
+        {
+            return 0;
+        }
+
+        double previous = Fatigue;
+        Fatigue = System.Math.Clamp(Fatigue - amount, 0.0, MaxFatigue);
+        return previous - Fatigue;
+    }
+
+    public bool SpendStamina(int amount)
+    {
+        if (amount < 0 || Stamina < amount)
+        {
+            return false;
+        }
+
+        Stamina -= amount;
+        return true;
+    }
+
+    public int RestoreStamina(int amount)
+    {
+        int restored = System.Math.Min(MaxStamina - Stamina, System.Math.Max(0, amount));
+        Stamina += restored;
         return restored;
     }
 

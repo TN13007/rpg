@@ -34,7 +34,8 @@ public enum ActionTimeMode
 public enum ActionEffectType
 {
     RestoreHealth,
-    RestoreEnergy,
+    RestoreFatigue,
+    RestoreStamina,
     ChangeMood,
     AddGold
 }
@@ -67,8 +68,7 @@ public sealed class ActionDefinition
     public string Label { get; }
     public string Feedback { get; }
     public int DurationMinutes { get; }
-    public int EnergyCost { get; }
-    public bool CanExecuteWhenUnconscious { get; }
+    public double ActivityMet { get; }
     public ActivityTimeModifier TimeModifier { get; }
     public ActionTimeMode TimeMode { get; }
     public ActionEffectDefinition[] Effects { get; }
@@ -81,17 +81,19 @@ public sealed class ActionDefinition
         int durationMinutes,
         ActivityTimeModifier timeModifier = null,
         string feedback = "",
-        int energyCost = 0,
+        double activityMet = 1.0,
         ActionEffectDefinition[] effects = null,
         ActionTimeMode timeMode = ActionTimeMode.Duration,
         int? estimatedDurationMinMinutes = null,
-        int? estimatedDurationMaxMinutes = null,
-        bool canExecuteWhenUnconscious = false)
+        int? estimatedDurationMaxMinutes = null)
     {
         if (string.IsNullOrWhiteSpace(id)) throw new ArgumentException("Action ID is required.", nameof(id));
         if (string.IsNullOrWhiteSpace(label)) throw new ArgumentException("Action label is required.", nameof(label));
         if (durationMinutes < 0) throw new ArgumentOutOfRangeException(nameof(durationMinutes));
-        if (energyCost < 0) throw new ArgumentOutOfRangeException(nameof(energyCost));
+        if (double.IsNaN(activityMet) || double.IsInfinity(activityMet) || activityMet < 0 || activityMet > 20)
+        {
+            throw new ArgumentOutOfRangeException(nameof(activityMet));
+        }
         if (!Enum.IsDefined(typeof(ActionTimeMode), timeMode)) throw new ArgumentOutOfRangeException(nameof(timeMode));
         if (estimatedDurationMinMinutes.HasValue != estimatedDurationMaxMinutes.HasValue)
         {
@@ -112,8 +114,7 @@ public sealed class ActionDefinition
         Id = id;
         Label = label;
         DurationMinutes = durationMinutes;
-        EnergyCost = energyCost;
-        CanExecuteWhenUnconscious = canExecuteWhenUnconscious;
+        ActivityMet = activityMet;
         TimeModifier = timeModifier;
         TimeMode = timeMode;
         Effects = effects ?? Array.Empty<ActionEffectDefinition>();
@@ -467,9 +468,9 @@ public static class AcademyContent
     private static ActionDefinition ReadActionDefinition(string id, string label, JsonElement data)
     {
         int durationMinutes = data.GetProperty("durationMinutes").GetInt32();
-        int energyCost = data.TryGetProperty("energyCost", out JsonElement energyCostData)
-            ? energyCostData.GetInt32()
-            : 0;
+        double activityMet = data.TryGetProperty("activityMet", out JsonElement activityMetData)
+            ? activityMetData.GetDouble()
+            : 1.0;
         ActivityTimeModifier modifier = data.TryGetProperty("timeModifier", out JsonElement modifierData)
             ? ReadTimeModifier(modifierData)
             : null;
@@ -488,8 +489,6 @@ public static class AcademyContent
         int? estimatedDurationMaxMinutes = data.TryGetProperty("estimatedDurationMaxMinutes", out JsonElement maxDurationData)
             ? maxDurationData.GetInt32()
             : null;
-        bool canExecuteWhenUnconscious = data.TryGetProperty("canExecuteWhenUnconscious", out JsonElement unconsciousData)
-            && unconsciousData.GetBoolean();
 
         return new ActionDefinition(
             id,
@@ -497,12 +496,11 @@ public static class AcademyContent
             durationMinutes,
             modifier,
             feedback,
-            energyCost,
+            activityMet,
             effects,
             timeMode,
             estimatedDurationMinMinutes,
-            estimatedDurationMaxMinutes,
-            canExecuteWhenUnconscious);
+            estimatedDurationMaxMinutes);
     }
 
     private static ActionEffectDefinition[] ReadEffects(JsonElement data)

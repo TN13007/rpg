@@ -14,61 +14,57 @@ From the repository root:
 dotnet test .\RPG.Tests\RPG.Tests.csproj --configuration Release
 ```
 
-The test project targets .NET 8 and references the Godot project. It tests domain/application logic without launching the game window.
+The test project targets .NET 8 and tests domain/application logic without launching the Godot window.
 
 ### Coverage
 
-The automated suite currently exercises:
+The automated suite exercises:
 
-- Character state combinations and status precedence across Health, Energy and Mood values.
-- Resource boundaries: damage, healing, Energy spending/recovery, Mood changes and Gold addition.
-- Attribute-based activity time calculations.
-- Action definition loading/validation and configured Location/Self Actions.
-- Action execution, failure paths, state mutation and duration/time advancement.
-- DayClock rollover and next-day behavior where covered by the relevant tests.
-- Combat: Attack, Defend, Dodge, victory, reward, enemy response, invalid targets, insufficient Energy, death, unconsciousness and repeated actions after encounter completion.
-- Boundary matrices for Health/Energy combinations and combat resource spending.
+- Character state, Health/death, Fatigue accumulation/recovery, Stamina boundaries, Mood and Gold.
+- Activity Fatigue calculation from relative MET and actual duration, including fractional values and boundary inputs.
+- Action definition loading, authored activity intensity, duration modifiers, effects and time advancement.
+- Rest and Sleep recovery, resource clamping and failure behavior for dead characters.
+- Combat Attack, Defend, Dodge, Catch Breath, enemy response, insufficient Stamina, victory, death and invalid requests.
 
-The exact test count changes as coverage grows. Use current test output and CI runs as evidence; do not preserve a stale hard-coded action or test count in this document.
+Use current test output and CI runs as evidence; do not preserve stale hard-coded test counts in this document.
 
 ### Gameplay rules currently asserted
 
-1. Health = 0 means Dead and takes priority over Unconsciousness.
-2. Health > 0 and Energy = 0 means Unconscious.
-3. A dead character cannot perform actions, including Rest.
-4. An unconscious character cannot perform ordinary actions, Travel or enter Combat.
-5. An unconscious character may perform an Action only when its Action Definition explicitly sets `canExecuteWhenUnconscious = true`.
-6. The currently configured Rest Self Action sets that flag. It takes 30 minutes, costs 0 Energy, restores up to 3 Energy and adds 2 Mood. A living character at 0 Energy can therefore Rest and become able to act again.
-7. The unconscious permission does not waive an Action's Energy cost; an action that still costs Energy is rejected when the character cannot pay it.
-8. A valid action may spend the character's final Energy point. That action completes, then the character becomes unconscious and cannot perform another ordinary action.
-9. Defend or Dodge spending the final Energy point ends the encounter immediately; the enemy does not receive a response turn.
-10. Basic Attack is rejected at Energy = 0 even though its configured Energy cost is zero, because the unconscious state rule still applies.
+1. Health = 0 means Dead and blocks gameplay actions.
+2. Fatigue is a cumulative daily-life exertion meter from 0–100. It does not cause unconsciousness or block actions in this initial version.
+3. Fatigue is added using `max(0, activityMet - 1.0) * actualDurationMinutes / 15`. The calculation uses actual duration after any stat-based time modifier.
+4. A five-minute activity at 2.8 MET adds approximately 0.6 Fatigue; a 30-minute activity at 2.8 MET adds approximately 3.6.
+5. Rest takes 30 minutes, restores 5 Fatigue, restores 3 Stamina and adds 2 Mood.
+6. Sleep restores Fatigue to 0 and Stamina to maximum, and retains its configured Health/Mood recovery and NextDay transition.
+7. Stamina is a separate 0–10 Combat resource. Defend costs 1; Dodge costs 2; Attack has no Stamina cost.
+8. Insufficient Stamina disables/rejects only the requested defensive action. It does not make the character unconscious or end Combat.
+9. Catch Breath restores up to 3 Stamina and the enemy still resolves its response turn.
+10. Completing the configured Combat encounter adds its activity-based Fatigue once. Merely selecting the encounter entry action does not apply the Combat duration's Fatigue.
 
 ### Manual Godot checks
 
-Automated tests do not launch or inspect the Godot UI. Run the main scene in Godot 4.7.2 .NET and manually verify:
+Automated tests do not launch or inspect the rendered Godot UI. Run the main scene in Godot 4.7.2 .NET and manually verify:
 
-- The Character Panel refreshes after Health, Energy, Mood and Gold changes.
-- A normal action or Travel that spends the final Energy point completes, then displays the collapse message; attempting another ordinary action is rejected.
-- At 0 Energy with positive Health, Rest remains available and can be selected from the Exploration UI; verify 30 minutes elapse, Energy increases by up to 3 and Mood increases by 2.
-- At Health = 0, Rest is rejected and does not advance time or change resources.
-- Ordinary actions and Travel remain unavailable while unconscious.
-- Entering a Goblin encounter with exactly 2 Energy consumes the encounter cost and collapses the Player before Combat mode opens.
-- Defend with exactly 1 Energy ends combat immediately without a Goblin attack.
-- Dodge with exactly 2 Energy ends combat immediately without a Goblin attack.
-- The combat result screen displays DEFEAT for unconsciousness and death, and VICTORY only when the enemy is defeated.
-- Returning from a completed encounter returns to the same Location.
-- Sleep from the Dormitory advances to the next morning and applies its configured recovery Effects once. Session 4 owns the full calendar-boundary acceptance.
+- The Character Panel shows Health, Fatigue, Stamina, Mood and Gold and refreshes after changes.
+- A five-minute walk at 2.8 MET adds approximately 0.6 Fatigue; Travel does not spend Stamina.
+- High Fatigue does not block ordinary Location Actions or Travel.
+- Rest takes 30 minutes, reduces Fatigue by 5, restores up to 3 Stamina and adds 2 Mood.
+- Sleep advances to the next morning and restores Fatigue/Stamina plus its configured Health/Mood values exactly once.
+- Combat can start at 0 Stamina. Attack and Catch Breath are available.
+- Defend and Dodge show their Stamina costs and are unavailable only when Stamina is insufficient.
+- Catch Breath restores up to 3 Stamina and the enemy still attacks.
+- Defend/Dodge at the last available Stamina do not end the encounter.
+- Death at Health = 0 still ends Combat and prevents further actions.
+- Returning from a completed encounter returns to the same Location and the 30-minute Combat Fatigue is applied once.
 
 Record the tested branch/commit and attach the relevant Godot Output, screenshots or recording. A code-level unit test is not a substitute for a UI/runtime check.
 
 ### Current limitations and verification boundaries
 
+- Fatigue penalties, exhaustion thresholds, unconsciousness and fatigue-based action blocking are intentionally deferred until the initial accumulation/recovery curve has been playtested.
+- Activity MET values and the conversion scale are initial balancing parameters, not a precise physiological prediction.
+- Combat Stamina currently has only Defend, Dodge and Catch Breath as resource interactions. Future skills/actions may require additional costs and recovery rules.
 - This test project does not launch the Godot scene, inspect rendered controls or validate mouse/input wiring.
-- Rest provides the current short-term recovery path for a living unconscious Player. This does not imply that a larger infirmary, collapse consequence or world-level recovery system exists.
-- PR #21 and PR #22 report passing GitHub Actions .NET tests, but both PR descriptions leave Godot runtime acceptance pending. Verify the current `main` build before recording those runtime checks as complete.
-- A previous owner-marked playable-journey pass is documented in `Docs/Archive/PlayableJourneyTestReport.md`; that record explicitly notes that raw logs/screenshots and per-action measurements were not retained.
-
 
 ## Day 1 — The First Day at Adventurer Academy
 
@@ -79,17 +75,18 @@ Record the tested branch/commit and attach the relevant Godot Output, screenshot
 **Purpose:** A repeatable narrative and gameplay acceptance scenario for Version 1.  
 **Related plan:** [Version 1 Session Plan](Version1Plan.md)  
 **Starting point:** Main scene, Dormitory, Day 1 at 07:30.  
-**Scenario status:** Proposed test content. Existing behavior and planned Version 1 additions are distinguished below.
+**Scenario status:** Proposed test content. Existing behavior and planned Version 1 additions are disting## Day 1 — The First Day at Adventurer Academy
 
-### 1. Scenario intent
+**Interaction contract:** Selecting an action executes it immediately. Duration estimates are informational; there is no Preview / Confirm / Cancel step.
 
-Ari has just started life as a first-year student at Adventurer Academy. The first day introduces the ordinary rhythm of academy life: reading an instruction, moving between locations, managing Energy, meeting a small danger, attending an introductory briefing and ending the day.
+**Verification note:** This is a repeatable acceptance scenario, not evidence that the current branch has passed Godot runtime verification.
 
-The Goblin incident is deliberately small. It tests the existing Location Event and Combat flow without turning the game into a combat-first experience.
+**Purpose:** Validate a complete first-day journey using Fatigue and Combat Stamina.  
+**Related plan:** [Version 1 Session Plan](Version1Plan.md)  
+**Starting point:** Main scene, Dormitory, Day 1 at 07:30.  
+**Scenario status:** Proposed acceptance scenario.
 
-The day must remain completable whether the Courtyard event triggers or not. The event keeps its authored 50% chance; the scenario must not change the live event probability merely to make a test run convenient.
-
-### 2. Initial state
+### 1. Initial state
 
 | Field | Value |
 |---|---:|
@@ -97,244 +94,86 @@ The day must remain completable whether the Courtyard event triggers or not. The
 | Location | `dormitory` |
 | Character | Ari |
 | Health | 20 / 20 |
-| Energy | 8 / 10 |
+| Fatigue | 0.0 / 100 |
+| Stamina | 8 / 10 |
 | Mood | 70 / 100 |
 | Gold | 20 |
 
-Ari's relevant attributes are Agility 30 and Intelligence 25. With the current travel modifier, a 10-minute journey takes 9 minutes. Studying field maps takes 18 minutes from its 20-minute base duration.
+Ari has Agility 30 and Intelligence 25. Travel takes 9 minutes after the Agility modifier; studying field maps takes 18 minutes.
 
-### 3. Narrative and player flow
+### 2. Core journey
 
 #### Scene 1 — A letter on the desk
 
-**Location:** Dormitory  
-**Opening text:**
+Read the letter (`inspect_letter`) in Dormitory. It takes 10 minutes at 1.3 MET, adds approximately 0.2 Fatigue and has no fixed resource cost. Expected clock: 07:40.
 
-> Morning light slips through the curtains. Your room is quiet, and the academy day is about to begin.
->
-> A letter has been left on your desk. It reminds new students to attend the academy's morning briefing and report to the instructor before the day ends.
+#### Scene 2 — Travel to the Courtyard
 
-**Player action:** Read the letter (`inspect_letter`).
+Travel takes 9 actual minutes at 2.8 MET, adds approximately 1.08 Fatigue (cumulative 1.28) and does not spend Stamina. Expected clock: 07:49.
 
-Current authored result:
-- Duration: 10 minutes.
-- Energy cost: 1.
-- Effects: none.
-- Expected clock: 07:40.
-- Expected Energy: 7.
+The Courtyard Goblin Event retains its authored 50% chance and is attempted at most once per Location per day.
 
-The player selects the action and it executes immediately. The duration estimate helps the player understand the time commitment; it does not open a separate preview or confirmation flow.
+#### Event branch A — Confront the Goblin
 
-#### Scene 2 — The courtyard
+The Event delegates to `encounter_goblin`. Entry has zero duration and no fixed resource cost; it does not apply the full Combat Fatigue.
 
-**Travel:** Dormitory → Courtyard.
+For the deterministic reference path, use Attack twice. Ari deals 20 damage per Attack; the Goblin has 40 Health and deals 4 damage in its response between attacks. The second Attack defeats it before another response. Victory grants 25 Gold; Ari ends Combat with 16 Health. The completed 30-minute Encounter at 5 MET adds 8 Fatigue exactly once. Attack does not consume Stamina, so Ari retains 8 Stamina. Expected clock after Combat: 08:19.
 
-Current authored travel result:
-- Duration: 9 minutes for Ari.
-- Energy cost: 1.
-- Expected clock: 07:49.
-- Expected Energy: 6.
+#### Event branch B — Sneak past the Goblin
 
-**Arrival text:**
+Sneak takes 10 minutes at 2.0 MET, adds approximately 0.67 Fatigue (cumulative 1.95), and does not spend Stamina. Expected clock: 07:59.
 
-> Students cross the courtyard beneath old trees. Near the gate, a few students are gathering around the notice board. Mira notices you and gives a quick wave.
->
-> Somewhere beyond the gate, something rustles in the bushes.
+#### Event branch C — No Event
 
-The player may optionally talk to Mira or inspect the notice board. These are existing actions, not required for the core acceptance path.
+If the 50% roll fails, the player remains in Exploration. The failed Event roll changes no time, Fatigue, Stamina, Health, Mood or Gold.
 
-##### Event branch A — Goblin Ambush triggers
+### 3. Return and Rest
 
-The existing `courtyard_goblin_ambush` Event has a 50% chance to trigger on the first eligible arrival at the Courtyard each in-game day.
+Travel from Courtyard to Dormitory takes 9 minutes and adds approximately 1.08 Fatigue. Rest then takes 30 minutes at 1.0 MET, so it adds no activity Fatigue. Its Effects recover up to 5 Fatigue, restore up to 3 Stamina and add 2 Mood, with values clamped.
 
-> A goblin is rummaging through a student's dropped bag near the gate. It has not noticed you yet.
->
-> You have only a moment to decide what to do.
+Expected state after Rest:
 
-The player chooses one of the existing Event choices.
+| Event outcome | Clock | Health | Fatigue | Stamina | Mood | Gold |
+|---|---:|---:|---:|---:|---:|---:|
+| Confronted Goblin (Attack-only path) | 08:58 | 16 | 5.36 | 10 | 72 | 45 |
+| Sneaked past | 08:38 | 20 | 0 | 10 | 72 | 20 |
+| No Event | 08:28 | 20 | 0 | 10 | 72 | 20 |
 
-**A1. Confront the Goblin**
+These values assume no optional actions before Rest. Combat paths using Defend, Dodge or Catch Breath may produce a different Stamina value but must follow the same resource rules.
 
-- The Event delegates to the existing `encounter_goblin` action.
-- Encounter entry costs 2 Energy and no additional action time.
-- Combat uses the existing deterministic rules: Ari's basic attack deals 20 damage; the Goblin has 40 HP and attacks for 4 damage.
-- Two basic attacks defeat the Goblin. The Goblin gets one response between those attacks.
-- Expected result: Ari loses 4 Health, the Goblin is defeated, and Ari receives 25 Gold.
-- Encounter duration: 30 minutes, applied when Combat ends.
-- State after Combat: Health 16/20, Energy 4/10, Mood 70/100, Gold 45.
+### 4. Briefing and optional activities
 
-**A2. Sneak past the Goblin**
+Travel to the Practical Classroom and talk to the instructor. The 20-minute conversation at 1.5 MET adds approximately 0.67 Fatigue. Studying field maps takes 18 minutes for Ari and accumulates Fatigue using its authored activity intensity.
 
-- Duration: 10 minutes.
-- Energy cost: 1.
-- Effects: none.
-- Expected result: Ari avoids damage and receives no reward.
-- State after the choice: Health 20/20, Energy 5/10, Mood 70/100, Gold 20.
-- The Event resolves and the player remains at the Courtyard.
+Optional future activities (Cafeteria, Lesson, Practice and Infirmary treatment) must define `activityMet`; daily activities do not spend Combat Stamina. Their tuning values belong to the Session that introduces them.
 
-##### Event branch B — No Event triggers
+### 5. Sleep and next day
 
-If the 50% roll fails, no Event is shown. The failed attempt is not rerolled by revisiting the Courtyard on the same day.
+Sleep from the Dormitory using `NextDay`. Wake at Day 2, 07:30; restore Fatigue to 0 and Stamina to 10; restore up to 20 Health and apply the configured +10 Mood. Apply recovery exactly once through Action Effects.
 
-The player remains in Exploration and can continue with normal location actions. No time, Energy, Health, Mood or Gold is changed by the failed Event roll.
+| Event outcome | Day / time | Health | Fatigue | Stamina | Mood | Gold |
+|---|---|---:|---:|---:|---:|---:|
+| Confronted Goblin | Day 2, 07:30 | 20 | 0 | 10 | 82 | 45 |
+| Sneaked past | Day 2, 07:30 | 20 | 0 | 10 | 82 | 20 |
+| No Event | Day 2, 07:30 | 20 | 0 | 10 | 82 | 20 |
 
-#### Scene 3 — A short rest
+### 6. Required acceptance coverage
 
-**Travel:** Courtyard → Dormitory.
+- Valid actions apply actual duration, activity-based Fatigue and configured Effects exactly once.
+- A rejected action request does not change resources, time or Location.
+- Ari's Travel takes 9 minutes and adds approximately 1.08 Fatigue.
+- Confront entry does not prematurely apply Combat duration Fatigue.
+- Completing the 30-minute Combat adds 8 Fatigue exactly once, on victory or defeat.
+- Sneak takes 10 minutes and adds approximately 0.67 Fatigue without spending Stamina.
+- Rest recovers up to 5 Fatigue, 3 Stamina and 2 Mood.
+- Sleep advances one day to 07:30 and restores Fatigue/Stamina plus configured Health/Mood Effects exactly once.
+- The Event's 0, 0.5 and 1 probability cases are tested deterministically; production chance remains 50%.
+- Save/Load acceptance is added when that feature is implemented; this scenario does not imply persistence is already shipped.
 
-The player returns to the Dormitory to recover before continuing the day.
+### 7. Verification boundary
 
-**Player action:** Take a short rest (`rest`).
+Run the three Event paths in Godot 4.7.2 .NET. Capture opening state, Travel/Fatigue changes, Event outcome, Combat or Sneak result, Rest, Sleep and next-day state. Automated tests do not validate rendered UI, input wiring or scene lifecycle.
 
-Current authored result:
-- Duration: 30 minutes.
-- Energy cost: 0.
-- Effects: +3 Energy and +2 Mood, clamped to their maximums.
+### 8. Out of scope
 
-Expected states after the rest:
-
-| Event outcome | Clock | Health | Energy | Mood | Gold |
-|---|---:|---:|---:|---:|---:|
-| Confronted Goblin | 08:58 | 16 | 6 | 72 | 45 |
-| Sneaked past | 08:38 | 20 | 7 | 72 | 20 |
-| No Event | 08:28 | 20 | 8 | 72 | 20 |
-
-The player can inspect the updated Character Panel and confirm that the action changed only its configured values.
-
-#### Scene 4 — The instructor's briefing
-
-**Travel:** Dormitory → Courtyard → Classroom.
-
-Ari reaches the Practical Classroom.
-
-**Opening text:**
-
-> Field maps cover the walls. Training equipment is arranged neatly beside the instructor's desk.
->
-> The instructor looks up from a stack of papers.
->
-> "There you are. Your first lesson is simple: learn the academy grounds, understand your limits, and never mistake confidence for preparation."
-
-**Player action:** Talk to the instructor (`talk_instructor`).
-
-Current authored result:
-- Duration: 20 minutes.
-- Energy cost: 1.
-- Effects: none.
-- Feedback: the instructor asks Ari to report to the Guild Hall for a first assignment.
-
-The player may also study the field maps (`inspect_maps`), which currently costs 2 Energy and takes 18 minutes for Ari. This is optional; it is not part of the core path because the scenario must preserve enough Energy to return and sleep.
-
-#### Scene 5 — Return before night
-
-**Travel:** Classroom → Courtyard → Dormitory.
-
-Ari returns to the Dormitory. The day is complete; the instructor's words give the player a clear reason to visit the Guild Hall on a later day.
-
-**Closing text:**
-
-> The academy grows quieter as students return to their rooms.
->
-> Your first day was not quite what you expected. You have learned where to go, met the instructor, and discovered that even the academy grounds can hold a real danger.
->
-> Tomorrow, the Guild Hall will be waiting. For now, you have earned some rest.
-
-#### Scene 6 — Sleep and continue
-
-**Player action:** Sleep until tomorrow (`sleep`).
-
-Current authored result:
-- Time mode: `NextDay`.
-- Wake-up time: 07:30.
-- Effects: restore up to 20 Health, 10 Energy and 10 Mood.
-- Effects are applied once by the existing action execution path.
-
-Expected Day 2 state:
-
-| Event outcome | Day / time | Health | Energy | Mood | Gold |
-|---|---:|---:|---:|---:|---:|
-| Confronted Goblin | Day 2, 07:30 | 20 | 10 | 82 | 45 |
-| Sneaked past | Day 2, 07:30 | 20 | 10 | 82 | 20 |
-| No Event | Day 2, 07:30 | 20 | 10 | 82 | 20 |
-
-This is the handoff state for Day 2. Day 2 must load this state; it must not create a new Ari or reset the character to the Day 1 starting values.
-
-### 4. Optional Version 1 activity content
-
-These activities enrich the day after their respective Version 1 sessions are implemented. They are not part of the existing baseline and must not be treated as already playable.
-
-| Activity | Target location | Initial proposed data | Planned session |
-|---|---|---|---|
-| Eat breakfast | New Cafeteria | 20 minutes, 0 Energy cost, +2 Energy | Session 6 |
-| Attend introductory lesson | Classroom | 60 minutes, 2 Energy cost, no XP | Session 6 |
-| Basic practice | Courtyard | 45 minutes, 3 Energy cost, no skill gain | Session 6 |
-| Basic treatment | New Infirmary | 60 minutes, 0 Energy cost, restore up to 5 Health | Session 4 |
-
-These are tuning candidates, not immutable balance values. Add only the location connections and actions needed for these concrete activities. Do not add inventory, shop, NPC schedules, XP or skill progression to support them.
-
-The story text can be expanded when these activities are added, but the core Day 1 route must remain completable without choosing every optional activity.
-
-### 5. Acceptance paths
-
-The scenario has three valid core paths:
-
-1. **Combat path:** the Courtyard Event triggers and the player confronts the Goblin.
-2. **Stealth path:** the Courtyard Event triggers and the player sneaks past.
-3. **Quiet path:** the Courtyard Event roll fails and the player continues without an encounter.
-
-All three paths must reach Day 2 at 07:30 and preserve their distinct Gold / prior Health history until sleep recovery is applied.
-
-#### Required automated coverage
-
-- Starting state loads with the exact Day 1 values.
-- Selecting a valid action executes it immediately and applies duration, Energy cost and configured Effects exactly once.
-- A rejected action request changes no character state, time or location.
-- Travel duration for Ari is 9 minutes and costs 1 Energy.
-- The Event is attempted at most once per Courtyard per day.
-- Event chance 0, 0.5 and 1 behave correctly; tests use an injected seeded `Random` for repeatability.
-- Confronting starts the existing Goblin Combat and applies the 30-minute encounter duration once.
-- The Goblin's first response deals 4 damage; the second player attack defeats it before another enemy response.
-- Victory grants exactly 25 Gold.
-- Sneaking spends exactly 1 Energy and 10 minutes, without damage or Gold.
-- A failed Event roll does not mutate player state.
-- Rest restores 3 Energy and 2 Mood without exceeding their maxima.
-- Sleep advances to Day 2 at 07:30 and applies recovery exactly once.
-- Save / Load preserves the selected branch's resulting Day 2 state without replaying actions or rewards.
-- Rejected action requests are not reported as successful actions.
-
-#### Godot runtime acceptance
-
-Run each of the three paths from a fresh game start. Capture:
-- Day 1 opening state.
-- Inline duration estimate, immediate action selection and resulting clock/resource feedback.
-- Courtyard Event or failed-roll Exploration.
-- Combat or Stealth result where applicable.
-- Rest result.
-- Instructor interaction.
-- Sleep transition.
-- Day 2 state after a fresh application restart and Load.
-
-The Event service uses a random source in the live game. If the event does not trigger, restart the fresh scenario and try again; do not alter the production 50% chance just to force a QA run. Automated tests must cover all outcomes deterministically.
-
-### 6. Known implementation gaps to resolve during Version 1
-
-1. **Grouped Exploration choices:** MainController still combines Location Actions, global Self Actions and Travel into a flat list. Session 3 proposes the contextual Query → Mapper → grouped ViewModel pipeline; this target is not implemented on `main`.
-2. **Player-owned actions:** Rest remains in root `selfActions` in `AcademyLocations.json`, and Sleep remains a Dormitory Location Action. Session 3 proposes moving both to Player-owned data and enforcing the Sleep context rule.
-3. **Daily activities:** Cafeteria, Infirmary, meal, lesson and practice are not present in the current academy content.
-4. **Daily summary:** the current flow does not yet provide the complete activity history and daily summary described by Version 1.
-5. **Save / Load:** the current prototype does not persist the complete daily-life state or the Event evaluation state.
-6. **Runtime verification:** PR #21 and PR #22 record passing .NET CI but pending Godot runtime acceptance. Run affected flows in Godot 4.7.2 .NET and retain reproducible evidence before marking those runtime checks complete.
-
-**Unconsciousness rule already implemented:** A living Player at 0 Energy may use Rest because that action explicitly sets `canExecuteWhenUnconscious: true`. Rest costs 0 Energy, takes 30 minutes, restores up to 3 Energy and adds 2 Mood. Health = 0 still means Dead and blocks Rest. Ordinary actions and Travel remain unavailable while unconscious. Sleep is not currently configured to execute while unconscious.
-
-**Sleep behavior:** Sleep is currently authored at the Dormitory with `NextDay` and configured Health, Energy and Mood Effects. The action execution path advances the clock and applies those Effects. Session 4 must verify calendar boundaries and exactly-once behavior in runtime; do not add a second recovery implementation.
-
-### 7. Out of scope
-
-- New story / quest framework.
-- NPC schedules or relationship progression.
-- XP, levels or skill progression.
-- Inventory, shops or crafting.
-- Dungeon / Tower content.
-- Persistent world simulation or autonomous NPC behavior.
-- New combat mechanics beyond the existing Goblin encounter.
+New quests, NPC schedules/relationships, inventory, shops, crafting, XP/skills, dungeons and expanded Combat mechanics remain outside this first-day acceptance scenario.

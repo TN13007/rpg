@@ -71,25 +71,47 @@ layout_mode = 2
 show_percentage = false
 value = 100.0
 
-[node name="EnergyHeader" type="HBoxContainer" parent="Margin/Content"]
+[node name="FatigueHeader" type="HBoxContainer" parent="Margin/Content"]
 layout_mode = 2
 
-[node name="EnergyTitle" type="Label" parent="Margin/Content/EnergyHeader"]
+[node name="FatigueTitle" type="Label" parent="Margin/Content/FatigueHeader"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 11
-text = "ENERGY"
+text = "FATIGUE"
 
-[node name="EnergyValue" type="Label" parent="Margin/Content/EnergyHeader"]
+[node name="FatigueValue" type="Label" parent="Margin/Content/FatigueHeader"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "0.0 / 100"
+
+[node name="FatigueBar" type="ProgressBar" parent="Margin/Content"]
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+max_value = 100.0
+show_percentage = false
+value = 0.0
+
+[node name="StaminaHeader" type="HBoxContainer" parent="Margin/Content"]
+layout_mode = 2
+
+[node name="StaminaTitle" type="Label" parent="Margin/Content/StaminaHeader"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
+text = "STAMINA"
+
+[node name="StaminaValue" type="Label" parent="Margin/Content/StaminaHeader"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 11
 text = "8 / 10"
 
-[node name="EnergyBar" type="ProgressBar" parent="Margin/Content"]
+[node name="StaminaBar" type="ProgressBar" parent="Margin/Content"]
 custom_minimum_size = Vector2(0, 8)
 layout_mode = 2
+max_value = 10.0
 show_percentage = false
-value = 80.0
+value = 8.0
 
 [node name="MoodHeader" type="HBoxContainer" parent="Margin/Content"]
 layout_mode = 2

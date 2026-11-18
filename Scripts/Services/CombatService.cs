@@ -3,9 +3,12 @@ using System.Collections.Generic;
 
 public sealed class CombatService : ICombatService
 {
-    private const int PlayerAttackDamage = 20;
-    private const int EnemyAttackDamage = 4;
-    private const int VictoryReward = 25;
+    private const int _playerAttackDamage = 20;
+    private const int _enemyAttackDamage = 4;
+    private const int _victoryReward = 25;
+    private const int _defendStaminaCost = 1;
+    private const int _dodgeStaminaCost = 2;
+    private const int _catchBreathRecovery = 3;
 
     private readonly Character _player;
     private readonly Character _enemy;
@@ -16,7 +19,7 @@ public sealed class CombatService : ICombatService
 
     public bool IsVictory { get; private set; }
     public bool IsEncounterOver => _encounterOver;
-    public int RewardGold => IsVictory ? VictoryReward : 0;
+    public int RewardGold => IsVictory ? _victoryReward : 0;
 
     public CombatService(Character player, Character enemy)
     {
@@ -31,14 +34,6 @@ public sealed class CombatService : ICombatService
             _encounterOver = true;
             IsVictory = false;
             failureReason = "You cannot enter combat while your character is dead.";
-            return false;
-        }
-
-        if (_player.IsUnconscious)
-        {
-            _encounterOver = true;
-            IsVictory = false;
-            failureReason = "You cannot enter combat while your character is unconscious.";
             return false;
         }
 
@@ -63,9 +58,10 @@ public sealed class CombatService : ICombatService
         CombatActionOption[] actions = canAct
             ? new[]
             {
-                new CombatActionOption("attack", "Attack", "No cost", "Deal 20 damage to the enemy.", targetId: _enemy.Id),
-                new CombatActionOption("defend", "Defend", "1 Energy", "Reduce the next enemy hit to 1 damage.", _player.Energy >= 1, "Not enough Energy."),
-                new CombatActionOption("dodge", "Dodge", "2 Energy", "Avoid the next enemy attack.", _player.Energy >= 2, "Not enough Energy.")
+                new CombatActionOption("attack", "Attack", "No Stamina cost", "Deal 20 damage to the enemy.", targetId: _enemy.Id),
+                new CombatActionOption("defend", "Defend", _defendStaminaCost + " Stamina", "Reduce the next enemy hit to 1 damage.", _player.Stamina >= _defendStaminaCost, "Not enough Stamina."),
+                new CombatActionOption("dodge", "Dodge", _dodgeStaminaCost + " Stamina", "Avoid the next enemy attack.", _player.Stamina >= _dodgeStaminaCost, "Not enough Stamina."),
+                new CombatActionOption("catch_breath", "Catch Breath", "Recover " + _catchBreathRecovery + " Stamina", "Recover your composure; the enemy still gets its turn.", _player.Stamina < _player.MaxStamina, "Stamina is already full.")
             }
             : Array.Empty<CombatActionOption>();
 
@@ -96,13 +92,6 @@ public sealed class CombatService : ICombatService
             return Failure("Your character is dead and cannot act.");
         }
 
-        if (_player.IsUnconscious)
-        {
-            _encounterOver = true;
-            IsVictory = false;
-            return Failure("Your character is unconscious and cannot act.");
-        }
-
         if (!_enemy.IsAlive)
         {
             _encounterOver = true;
@@ -120,14 +109,14 @@ public sealed class CombatService : ICombatService
             }
 
             events.Add(new CombatEvent(CombatEventType.PlayerAction, _round, detail: "You attack the enemy with a basic strike."));
-            int damage = _enemy.TakeDamage(PlayerAttackDamage);
+            int damage = _enemy.TakeDamage(_playerAttackDamage);
             events.Add(new CombatEvent(CombatEventType.Damage, _round, targetName: _enemy.Name, amount: damage));
         }
         else if (request.ActionId == "defend")
         {
-            if (!_player.SpendEnergy(1))
+            if (!_player.SpendStamina(_defendStaminaCost))
             {
-                return Failure("Not enough Energy to defend.");
+                return Failure("Not enough Stamina to defend.");
             }
 
             _defending = true;
@@ -135,27 +124,30 @@ public sealed class CombatService : ICombatService
         }
         else if (request.ActionId == "dodge")
         {
-            if (!_player.SpendEnergy(2))
+            if (!_player.SpendStamina(_dodgeStaminaCost))
             {
-                return Failure("Not enough Energy to dodge.");
+                return Failure("Not enough Stamina to dodge.");
             }
 
             _dodging = true;
             events.Add(new CombatEvent(CombatEventType.PlayerAction, _round, detail: "You prepare to evade the next attack."));
         }
+        else if (request.ActionId == "catch_breath")
+        {
+            if (_player.Stamina >= _player.MaxStamina)
+            {
+                return Failure("Your Stamina is already full.");
+            }
+
+            int restored = _player.RestoreStamina(_catchBreathRecovery);
+            events.Add(new CombatEvent(
+                CombatEventType.PlayerAction,
+                _round,
+                detail: "You catch your breath and recover " + restored + " Stamina."));
+        }
         else
         {
             return Failure("That action is not available.");
-        }
-
-        if (!_player.CanAct)
-        {
-            _encounterOver = true;
-            IsVictory = false;
-            _defending = false;
-            _dodging = false;
-            events.Add(new CombatEvent(CombatEventType.StatusChanged, _round, detail: "You collapse from exhaustion. The encounter is over."));
-            return Success(events);
         }
 
         if (!_enemy.IsAlive)
@@ -187,7 +179,7 @@ public sealed class CombatService : ICombatService
         }
         else
         {
-            int damage = _defending ? 1 : EnemyAttackDamage;
+            int damage = _defending ? 1 : _enemyAttackDamage;
             int appliedDamage = _player.TakeDamage(damage);
             events.Add(new CombatEvent(CombatEventType.Damage, _round, targetName: _player.Name, amount: appliedDamage));
         }
@@ -200,7 +192,7 @@ public sealed class CombatService : ICombatService
     {
         _encounterOver = true;
         IsVictory = true;
-        _player.AddGold(VictoryReward);
+        _player.AddGold(_victoryReward);
         events.Add(new CombatEvent(CombatEventType.StatusChanged, _round, detail: "The enemy falls. You win the encounter."));
         events.Add(new CombatEvent(CombatEventType.StatusChanged, _round, detail: "REWARD · You receive 25 G."));
     }

@@ -7,8 +7,10 @@ public sealed class CharacterViewModel
     public int Level { get; }
     public int Health { get; }
     public int MaxHealth { get; }
-    public int Energy { get; }
-    public int MaxEnergy { get; }
+    public double Fatigue { get; }
+    public double MaxFatigue { get; }
+    public int Stamina { get; }
+    public int MaxStamina { get; }
     public int Mood { get; }
     public int MaxMood { get; }
     public int Gold { get; }
@@ -26,8 +28,10 @@ public sealed class CharacterViewModel
         Level = character.Level;
         Health = character.Health;
         MaxHealth = character.MaxHealth;
-        Energy = character.Energy;
-        MaxEnergy = character.MaxEnergy;
+        Fatigue = character.Fatigue;
+        MaxFatigue = character.MaxFatigue;
+        Stamina = character.Stamina;
+        MaxStamina = character.MaxStamina;
         Mood = character.Mood;
         MaxMood = character.MaxMood;
         Gold = character.Gold;

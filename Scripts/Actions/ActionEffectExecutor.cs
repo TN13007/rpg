@@ -22,8 +22,12 @@ public sealed class ActionEffectExecutor
                     target.RestoreHealth(effect.Amount);
                     break;
 
-                case ActionEffectType.RestoreEnergy:
-                    target.RestoreEnergy(effect.Amount);
+                case ActionEffectType.RestoreFatigue:
+                    target.RestoreFatigue(effect.Amount);
+                    break;
+
+                case ActionEffectType.RestoreStamina:
+                    target.RestoreStamina(effect.Amount);
                     break;
 
                 case ActionEffectType.ChangeMood:
