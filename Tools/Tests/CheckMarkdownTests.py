@@ -41,12 +41,18 @@ class MarkdownValidationTests(unittest.TestCase):
         (self.root / "Docs" / "Guide.md").write_text(
             "# Guide\n\n[Section](#section)\n\n## Section\n", encoding="utf-8"
         )
-        self.tracked = {"README.md", "Docs/Guide.md"}
+        (self.root / "Assets").mkdir()
+        (self.root / "Assets" / "icon.svg").write_text("<svg />", encoding="utf-8")
+        self.tracked = {"README.md", "Docs/Guide.md", "Assets/icon.svg"}
 
     def tearDown(self):
         self.temporary_directory.cleanup()
 
     def test_valid_relative_file_and_heading_links_pass(self):
+        self.assertEqual([], validate(self.root, self.tracked))
+
+    def test_tracked_non_markdown_target_passes(self):
+        (self.root / "README.md").write_text("[Icon](Assets/icon.svg)", encoding="utf-8")
         self.assertEqual([], validate(self.root, self.tracked))
 
     def test_missing_file_fails(self):
