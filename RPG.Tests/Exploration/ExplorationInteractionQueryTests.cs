@@ -5,6 +5,7 @@ using Xunit;
 
 public sealed class ExplorationInteractionQueryTests
 {
+    private readonly AcademyContent _academy = new AcademyContent();
     [Fact]
     public void Query_OffersRestEverywhereAndSleepOnlyInDormitory()
     {
@@ -14,9 +15,9 @@ public sealed class ExplorationInteractionQueryTests
         AvailableInteractionQuery query = new AvailableInteractionQuery();
 
         IReadOnlyList<AvailableInteraction> dormitory = query.Query(
-            player, playerData.PlayerActions, AcademyContent.Get("dormitory"), AcademyContent.Get, AcademyContent.Travel);
+            player, playerData.PlayerActions, _academy.Get("dormitory"), _academy.Get, _academy.Travel);
         IReadOnlyList<AvailableInteraction> courtyard = query.Query(
-            player, playerData.PlayerActions, AcademyContent.Get("courtyard"), AcademyContent.Get, AcademyContent.Travel);
+            player, playerData.PlayerActions, _academy.Get("courtyard"), _academy.Get, _academy.Travel);
 
         Assert.Contains(dormitory, item => item.SourceKind == InteractionSourceKind.Player && item.ActionId == "rest");
         Assert.Contains(dormitory, item => item.SourceKind == InteractionSourceKind.Player && item.ActionId == "sleep");
@@ -31,7 +32,7 @@ public sealed class ExplorationInteractionQueryTests
         Character player = TestCharacterFactory.CreatePlayer();
         CharacterData playerData = LoadPlayerData();
         IReadOnlyList<AvailableInteraction> interactions = new AvailableInteractionQuery().Query(
-            player, playerData.PlayerActions, AcademyContent.Get("courtyard"), AcademyContent.Get, AcademyContent.Travel);
+            player, playerData.PlayerActions, _academy.Get("courtyard"), _academy.Get, _academy.Travel);
 
         Assert.DoesNotContain(interactions, item => item.SourceKind == InteractionSourceKind.Location && item.ActionId == "encounter_goblin");
         Assert.Contains(interactions, item =>
@@ -47,7 +48,7 @@ public sealed class ExplorationInteractionQueryTests
         Character player = TestCharacterFactory.CreatePlayer(fatigue: 45, stamina: 3);
         CharacterData playerData = LoadPlayerData();
 
-        new AvailableInteractionQuery().Query(player, playerData.PlayerActions, AcademyContent.Get("dormitory"), AcademyContent.Get, AcademyContent.Travel);
+        new AvailableInteractionQuery().Query(player, playerData.PlayerActions, _academy.Get("dormitory"), _academy.Get, _academy.Travel);
 
         Assert.Equal(45, player.Fatigue);
         Assert.Equal(3, player.Stamina);
@@ -60,7 +61,7 @@ public sealed class ExplorationInteractionQueryTests
         Character player = TestCharacterFactory.CreatePlayer();
         CharacterData playerData = LoadPlayerData();
         IReadOnlyList<AvailableInteraction> interactions = new AvailableInteractionQuery().Query(
-            player, playerData.PlayerActions, AcademyContent.Get("dormitory"), AcademyContent.Get, AcademyContent.Travel);
+            player, playerData.PlayerActions, _academy.Get("dormitory"), _academy.Get, _academy.Travel);
         ActionChoiceMapper mapper = new ActionChoiceMapper(
             new ActionDurationEstimateMapper(new ActivityTimeCalculator()));
 
@@ -81,7 +82,7 @@ public sealed class ExplorationInteractionQueryTests
     {
         LoadContent();
         Character player = TestCharacterFactory.CreatePlayer();
-        LocationEventDefinition locationEvent = AcademyContent.Get("courtyard").Events[0];
+        LocationEventDefinition locationEvent = _academy.Get("courtyard").Events[0];
         IReadOnlyList<AvailableInteraction> interactions =
             new AvailableInteractionQuery().Query(locationEvent);
         List<ActionChoiceViewData> choices = new ActionChoiceMapper(
@@ -111,9 +112,9 @@ public sealed class ExplorationInteractionQueryTests
         Assert.False(ActionSelectionRequest.TryParse("travel:courtyard", out _));
     }
 
-    private static void LoadContent()
+    private void LoadContent()
     {
-        AcademyContent.LoadJson(File.ReadAllText(
+        _academy.LoadJson(File.ReadAllText(
             Path.Combine(AppContext.BaseDirectory, "Data", "AcademyLocations.json")));
     }
 
