@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Text.Json;
 using Godot;
 
@@ -56,6 +57,35 @@ public sealed class CharacterStats
     }
 }
 
+public sealed class PlayerActionDefinition
+{
+    public ActionDefinition Action { get; }
+    public string[] AvailableLocationIds { get; }
+
+    public PlayerActionDefinition(ActionDefinition action, string[] availableLocationIds = null)
+    {
+        Action = action ?? throw new ArgumentNullException(nameof(action));
+        AvailableLocationIds = availableLocationIds ?? Array.Empty<string>();
+        foreach (string locationId in AvailableLocationIds)
+        {
+            if (string.IsNullOrWhiteSpace(locationId))
+            {
+                throw new ArgumentException("Player action location IDs cannot be empty.", nameof(availableLocationIds));
+            }
+        }
+    }
+
+    public bool IsAvailableAt(string locationId)
+    {
+        if (AvailableLocationIds.Length == 0) return true;
+        foreach (string availableLocationId in AvailableLocationIds)
+        {
+            if (string.Equals(availableLocationId, locationId, StringComparison.Ordinal)) return true;
+        }
+        return false;
+    }
+}
+
 public sealed class CharacterData
 {
     public string Id { get; }
@@ -72,6 +102,7 @@ public sealed class CharacterData
     public int StartingMood { get; }
     public int StartingGold { get; }
     public CharacterStats Stats { get; }
+    public PlayerActionDefinition[] PlayerActions { get; }
 
     public CharacterData(
         string id,
@@ -87,7 +118,8 @@ public sealed class CharacterData
         int startingStamina,
         int startingMood,
         int startingGold,
-        CharacterStats stats = null)
+        CharacterStats stats = null,
+        PlayerActionDefinition[] playerActions = null)
     {
         if (string.IsNullOrWhiteSpace(id))
         {
@@ -144,6 +176,15 @@ public sealed class CharacterData
         StartingMood = startingMood;
         StartingGold = startingGold;
         Stats = stats ?? new CharacterStats(0, 0, 0, 0, 0);
+        PlayerActions = playerActions ?? Array.Empty<PlayerActionDefinition>();
+        HashSet<string> actionIds = new HashSet<string>(StringComparer.Ordinal);
+        foreach (PlayerActionDefinition playerAction in PlayerActions)
+        {
+            if (playerAction == null || !actionIds.Add(playerAction.Action.Id))
+            {
+                throw new ArgumentException("Player actions must be non-null and have unique IDs.", nameof(playerActions));
+            }
+        }
     }
 }
 
@@ -163,6 +204,12 @@ public static class CharacterDataLoader
 
         string json = FileAccess.GetFileAsString(path);
 
+        return LoadJson(json, path);
+    }
+
+    public static CharacterData LoadJson(string json, string source = "Player.json")
+    {
+        if (string.IsNullOrWhiteSpace(json)) throw new ArgumentException("Character data JSON is required.", nameof(json));
         try
         {
             using JsonDocument document = JsonDocument.Parse(json);
@@ -182,12 +229,49 @@ public static class CharacterDataLoader
                 data.GetProperty("startingStamina").GetInt32(),
                 data.GetProperty("startingMood").GetInt32(),
                 data.GetProperty("startingGold").GetInt32(),
-                ReadStats(data));
+                ReadStats(data),
+                ReadPlayerActions(data));
         }
         catch (JsonException exception)
         {
-            throw new InvalidOperationException("Invalid character data JSON: " + path, exception);
+            throw new InvalidOperationException("Invalid character data JSON: " + source, exception);
         }
+    }
+
+    private static PlayerActionDefinition[] ReadPlayerActions(JsonElement data)
+    {
+        if (!data.TryGetProperty("playerActions", out JsonElement actionsData)) return Array.Empty<PlayerActionDefinition>();
+        if (actionsData.ValueKind != JsonValueKind.Array) throw new InvalidOperationException("Player actions must be an array.");
+
+        List<PlayerActionDefinition> actions = new List<PlayerActionDefinition>();
+        HashSet<string> actionIds = new HashSet<string>(StringComparer.Ordinal);
+        foreach (JsonElement item in actionsData.EnumerateArray())
+        {
+            string id = item.GetProperty("id").GetString();
+            string label = item.GetProperty("label").GetString();
+            if (string.IsNullOrWhiteSpace(id) || string.IsNullOrWhiteSpace(label))
+                throw new InvalidOperationException("Player action IDs and labels are required.");
+            if (!actionIds.Add(id)) throw new InvalidOperationException("Duplicate player action ID: " + id);
+
+            string[] availableLocationIds = Array.Empty<string>();
+            if (item.TryGetProperty("availableLocationIds", out JsonElement locationsData))
+            {
+                if (locationsData.ValueKind != JsonValueKind.Array) throw new InvalidOperationException("Player action availableLocationIds must be an array.");
+                List<string> locationIds = new List<string>();
+                foreach (JsonElement locationData in locationsData.EnumerateArray())
+                {
+                    string locationId = locationData.GetString();
+                    if (string.IsNullOrWhiteSpace(locationId)) throw new InvalidOperationException("Player action location IDs cannot be empty.");
+                    locationIds.Add(locationId);
+                }
+                availableLocationIds = locationIds.ToArray();
+            }
+
+            actions.Add(new PlayerActionDefinition(
+                AcademyContent.ReadActionDefinition(id, label, item),
+                availableLocationIds));
+        }
+        return actions.ToArray();
     }
 
     private static CharacterStats ReadStats(JsonElement data)
