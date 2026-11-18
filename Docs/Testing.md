@@ -2,7 +2,7 @@
 
 **Purpose:** One place for automated test instructions, manual runtime verification and the repeatable Day 1 gameplay acceptance scenario.
 
-Automated .NET tests validate domain/application behavior without launching a scene. CI also builds the Debug C# assembly, imports the project and launches the main scene plus the Combat preview in Godot 4.7.2 .NET headless mode, catching script/resource startup errors. Repository validation checks local Markdown links, resolvable heading anchors, navigation reachability, changed-path naming and C# style. Manual acceptance scenarios still validate rendered UI, input wiring and the full player journey. A recorded pass must state what evidence exists and what remains unverified.
+Automated .NET tests validate domain/application behavior without launching a scene. CI also builds the Debug C# assembly, imports the project and launches the main scene plus the Combat preview in Godot 4.7.2 .NET headless mode for a bounded smoke check, catching script/resource startup errors. Each scene check has a 60-second timeout; superseded PR runs are canceled to avoid duplicate work. Repository validation checks local Markdown links, resolvable heading anchors, navigation reachability, changed-path naming and C# style. Manual acceptance scenarios still validate rendered UI, input wiring and the full player journey. A recorded pass must state what evidence exists and what remains unverified.
 
 ## Automated Gameplay Tests
 
