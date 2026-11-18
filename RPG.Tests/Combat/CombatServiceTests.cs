@@ -18,6 +18,31 @@ public sealed class CombatServiceTests
     }
 
     [Fact]
+    public void CustomActionDefinitionControlsAttackDamage()
+    {
+        Character player = TestCharacterFactory.CreatePlayer();
+        Character enemy = TestCharacterFactory.CreateEnemy();
+        CombatActionDefinition customAttack = new CombatActionDefinition(
+            "training_strike",
+            "Training Strike",
+            "No Stamina cost",
+            "Deal 7 damage.",
+            CombatActionBehavior.Attack,
+            0,
+            7,
+            0,
+            "",
+            "You perform a training strike.");
+        CombatService combat = new CombatService(player, enemy, new[] { customAttack });
+        Assert.True(combat.TryStartEncounter(out string reason));
+
+        CombatResult result = combat.ExecuteAction(new CombatActionRequest("training_strike", enemy.Id));
+
+        Assert.True(result.Success);
+        Assert.Equal(33, enemy.Health);
+    }
+
+    [Fact]
     public void AttackAtZeroStaminaRemainsAvailable()
     {
         CombatService combat = TestCharacterFactory.CreateCombat(
