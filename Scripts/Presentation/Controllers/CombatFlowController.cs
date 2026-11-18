@@ -13,6 +13,7 @@ public sealed class CombatFlowController
     private readonly ActivityTimeCalculator _activityTimeCalculator;
     private readonly ActivityFatigueCalculator _activityFatigueCalculator;
     private readonly ActionExecutionService _actionExecutionService;
+    private readonly ActionDefinition _combatEncounterAction;
 
     private int _combatStartDay;
     private int _combatStartMinutes;
@@ -29,7 +30,8 @@ public sealed class CombatFlowController
         DayClock dayClock,
         ActivityTimeCalculator activityTimeCalculator,
         ActivityFatigueCalculator activityFatigueCalculator,
-        ActionExecutionService actionExecutionService)
+        ActionExecutionService actionExecutionService,
+        ActionDefinition combatEncounterAction)
     {
         _storyPanel = storyPanel ?? throw new ArgumentNullException(nameof(storyPanel));
         _combatPanel = combatPanel ?? throw new ArgumentNullException(nameof(combatPanel));
@@ -42,6 +44,7 @@ public sealed class CombatFlowController
         _activityTimeCalculator = activityTimeCalculator ?? throw new ArgumentNullException(nameof(activityTimeCalculator));
         _activityFatigueCalculator = activityFatigueCalculator ?? throw new ArgumentNullException(nameof(activityFatigueCalculator));
         _actionExecutionService = actionExecutionService ?? throw new ArgumentNullException(nameof(actionExecutionService));
+        _combatEncounterAction = combatEncounterAction ?? throw new ArgumentNullException(nameof(combatEncounterAction));
     }
 
     public bool StartGoblinEncounter(ActionDefinition action)
@@ -107,10 +110,10 @@ public sealed class CombatFlowController
             return;
         }
 
-        int encounterDuration = _activityTimeCalculator.Calculate(AcademyContent.CombatEncounter, _player);
+        int encounterDuration = _activityTimeCalculator.Calculate(_combatEncounterAction, _player);
         _dayClock.AdvanceMinutes(encounterDuration);
         double encounterFatigue = _activityFatigueCalculator.Calculate(
-            AcademyContent.CombatEncounter,
+            _combatEncounterAction,
             encounterDuration);
         _player.AddFatigue(encounterFatigue);
         _characterPanel.SetCharacter(new CharacterViewModel(_player));
