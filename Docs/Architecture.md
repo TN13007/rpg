@@ -1,12 +1,16 @@
-# MainController Responsibilities
+# Application Architecture
 
-## Purpose
+**Purpose:** Application-level orchestration boundaries and MainController responsibilities.
+
+## MainController Responsibilities
+
+### Purpose
 
 `MainController` is the application's composition root and orchestrator. It connects Godot UI input to application use cases and coordinates high-level transitions between Exploration and Combat.
 
 It is not the place where gameplay rules, availability discovery or presentation mapping are implemented.
 
-## Responsibilities
+### Responsibilities
 
 1. **Initialize and connect dependencies**
    - Load the required character and world content through their loaders.
@@ -34,7 +38,7 @@ It is not the place where gameplay rules, availability discovery or presentation
    - Update CharacterPanel from CharacterViewModel.
    - Pass Combat results through CombatPresentationMapper to CombatPanel.
 
-## Responsibilities that do not belong here
+### Responsibilities that do not belong here
 
 | Concern | Owner |
 |---|---|
@@ -51,7 +55,7 @@ It is not the place where gameplay rules, availability discovery or presentation
 | Exploration/Combat visibility | GameModeController |
 | Rendering UI and clock feedback | StoryPanel, CombatPanel, CharacterPanel |
 
-## Target Exploration request flow
+### Target Exploration request flow
 
 ```text
 Loaders
@@ -69,7 +73,7 @@ Runtime state + context
   -> render refreshed ExplorationViewModel
 ```
 
-### Current prototype behavior
+#### Current prototype behavior
 
 The current implementation is transitional:
 - AcademyContent loads root `selfActions` from `AcademyLocations.json`.
@@ -79,17 +83,17 @@ The current implementation is transitional:
 
 This is the behavior Session 3 replaces. Rest moves to PlayerData in `Player.json`; the new query composes Player, Location and Travel choices; the Mapper creates grouped ViewModels; StoryPanel only renders those ViewModels.
 
-### Event context
+#### Event context
 
 The current Event flow is focused. MainController supplies the active Event context, the query/presentation path renders its choices, and a selected choice is routed to the Event resolution owner. Do not add normal Location/Travel choices to an unresolved Event view in Version 1.
 
-### Combat
+#### Combat
 
 `UI request → MainController → CombatService → CombatResult/Snapshot → CombatPresentationMapper → CombatPanel`
 
 CombatService owns validation, resolution and state mutation. MainController only starts/ends the mode and refreshes the persistent Player presentation.
 
-## Design boundary
+### Design boundary
 
 MainController may decide **which use case/handler should receive a request** and **what high-level flow follows**. It must not decide **which world objects are present**, **whether a chest is unlocked**, **how a puzzle is solved**, **how Energy is spent**, **how an Effect mutates a Character**, or **how Combat damage is calculated**.
 

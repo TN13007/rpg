@@ -1,15 +1,87 @@
-# Day 1 — The First Day at Adventurer Academy
+# Testing and Acceptance
+
+**Purpose:** One place for automated test instructions, manual runtime verification and the repeatable Day 1 gameplay acceptance scenario.
+
+Automated tests validate domain/application behavior without launching Godot. Manual acceptance scenarios validate the actual Godot scene, UI wiring and player journey. A recorded pass must state what evidence exists and what remains unverified.
+
+## Automated Gameplay Tests
+
+### Run
+
+From the repository root:
+
+```powershell
+dotnet test .\RPG.Tests\RPG.Tests.csproj --configuration Release
+```
+
+The test project targets .NET 8 and references the Godot project. It tests domain/application logic without launching the game window.
+
+### Coverage
+
+The automated suite currently exercises:
+
+- Character state combinations and status precedence across Health, Energy and Mood values.
+- Resource boundaries: damage, healing, Energy spending/recovery, Mood changes and Gold addition.
+- Attribute-based activity time calculations.
+- Action definition loading/validation and configured Location/Self Actions.
+- Action execution, failure paths, state mutation and duration/time advancement.
+- DayClock rollover and next-day behavior where covered by the relevant tests.
+- Combat: Attack, Defend, Dodge, victory, reward, enemy response, invalid targets, insufficient Energy, death, unconsciousness and repeated actions after encounter completion.
+- Boundary matrices for Health/Energy combinations and combat resource spending.
+
+The exact test count changes as coverage grows. Use current test output and CI runs as evidence; do not preserve a stale hard-coded action or test count in this document.
+
+### Gameplay rules currently asserted
+
+1. Health = 0 means Dead and takes priority over Unconsciousness.
+2. Health > 0 and Energy = 0 means Unconscious.
+3. A dead character cannot perform actions, including Rest.
+4. An unconscious character cannot perform ordinary actions, Travel or enter Combat.
+5. An unconscious character may perform an Action only when its Action Definition explicitly sets `canExecuteWhenUnconscious = true`.
+6. The currently configured Rest Self Action sets that flag. It takes 30 minutes, costs 0 Energy, restores up to 3 Energy and adds 2 Mood. A living character at 0 Energy can therefore Rest and become able to act again.
+7. The unconscious permission does not waive an Action's Energy cost; an action that still costs Energy is rejected when the character cannot pay it.
+8. A valid action may spend the character's final Energy point. That action completes, then the character becomes unconscious and cannot perform another ordinary action.
+9. Defend or Dodge spending the final Energy point ends the encounter immediately; the enemy does not receive a response turn.
+10. Basic Attack is rejected at Energy = 0 even though its configured Energy cost is zero, because the unconscious state rule still applies.
+
+### Manual Godot checks
+
+Automated tests do not launch or inspect the Godot UI. Run the main scene in Godot 4.7.2 .NET and manually verify:
+
+- The Character Panel refreshes after Health, Energy, Mood and Gold changes.
+- A normal action or Travel that spends the final Energy point completes, then displays the collapse message; attempting another ordinary action is rejected.
+- At 0 Energy with positive Health, Rest remains available and can be selected from the Exploration UI; verify 30 minutes elapse, Energy increases by up to 3 and Mood increases by 2.
+- At Health = 0, Rest is rejected and does not advance time or change resources.
+- Ordinary actions and Travel remain unavailable while unconscious.
+- Entering a Goblin encounter with exactly 2 Energy consumes the encounter cost and collapses the Player before Combat mode opens.
+- Defend with exactly 1 Energy ends combat immediately without a Goblin attack.
+- Dodge with exactly 2 Energy ends combat immediately without a Goblin attack.
+- The combat result screen displays DEFEAT for unconsciousness and death, and VICTORY only when the enemy is defeated.
+- Returning from a completed encounter returns to the same Location.
+- Sleep from the Dormitory advances to the next morning and applies its configured recovery Effects once. Session 4 owns the full calendar-boundary acceptance.
+
+Record the tested branch/commit and attach the relevant Godot Output, screenshots or recording. A code-level unit test is not a substitute for a UI/runtime check.
+
+### Current limitations and verification boundaries
+
+- This test project does not launch the Godot scene, inspect rendered controls or validate mouse/input wiring.
+- Rest provides the current short-term recovery path for a living unconscious Player. This does not imply that a larger infirmary, collapse consequence or world-level recovery system exists.
+- PR #21 and PR #22 report passing GitHub Actions .NET tests, but both PR descriptions leave Godot runtime acceptance pending. Verify the current `main` build before recording those runtime checks as complete.
+- A previous owner-marked playable-journey pass is documented in `Docs/Archive/PlayableJourneyTestReport.md`; that record explicitly notes that raw logs/screenshots and per-action measurements were not retained.
+
+
+## Day 1 — The First Day at Adventurer Academy
 
 **Interaction contract:** Selecting an action executes it immediately. A duration estimate is informational; there is no Preview / Confirm / Cancel step.
 
 **Verification note:** This document defines an acceptance scenario. It is not evidence that the current `main` build has completed Godot runtime acceptance.
 
 **Purpose:** A repeatable narrative and gameplay acceptance scenario for Version 1.  
-**Related plan:** [Version 1 Session Plan](../Design/Version1SessionPlan.md)  
+**Related plan:** [Version 1 Session Plan](Version1Plan.md)  
 **Starting point:** Main scene, Dormitory, Day 1 at 07:30.  
 **Scenario status:** Proposed test content. Existing behavior and planned Version 1 additions are distinguished below.
 
-## 1. Scenario intent
+### 1. Scenario intent
 
 Ari has just started life as a first-year student at Adventurer Academy. The first day introduces the ordinary rhythm of academy life: reading an instruction, moving between locations, managing Energy, meeting a small danger, attending an introductory briefing and ending the day.
 
@@ -17,7 +89,7 @@ The Goblin incident is deliberately small. It tests the existing Location Event 
 
 The day must remain completable whether the Courtyard event triggers or not. The event keeps its authored 50% chance; the scenario must not change the live event probability merely to make a test run convenient.
 
-## 2. Initial state
+### 2. Initial state
 
 | Field | Value |
 |---|---:|
@@ -31,9 +103,9 @@ The day must remain completable whether the Courtyard event triggers or not. The
 
 Ari's relevant attributes are Agility 30 and Intelligence 25. With the current travel modifier, a 10-minute journey takes 9 minutes. Studying field maps takes 18 minutes from its 20-minute base duration.
 
-## 3. Narrative and player flow
+### 3. Narrative and player flow
 
-### Scene 1 — A letter on the desk
+#### Scene 1 — A letter on the desk
 
 **Location:** Dormitory  
 **Opening text:**
@@ -53,7 +125,7 @@ Current authored result:
 
 The player selects the action and it executes immediately. The duration estimate helps the player understand the time commitment; it does not open a separate preview or confirmation flow.
 
-### Scene 2 — The courtyard
+#### Scene 2 — The courtyard
 
 **Travel:** Dormitory → Courtyard.
 
@@ -71,7 +143,7 @@ Current authored travel result:
 
 The player may optionally talk to Mira or inspect the notice board. These are existing actions, not required for the core acceptance path.
 
-#### Event branch A — Goblin Ambush triggers
+##### Event branch A — Goblin Ambush triggers
 
 The existing `courtyard_goblin_ambush` Event has a 50% chance to trigger on the first eligible arrival at the Courtyard each in-game day.
 
@@ -100,13 +172,13 @@ The player chooses one of the existing Event choices.
 - State after the choice: Health 20/20, Energy 5/10, Mood 70/100, Gold 20.
 - The Event resolves and the player remains at the Courtyard.
 
-#### Event branch B — No Event triggers
+##### Event branch B — No Event triggers
 
 If the 50% roll fails, no Event is shown. The failed attempt is not rerolled by revisiting the Courtyard on the same day.
 
 The player remains in Exploration and can continue with normal location actions. No time, Energy, Health, Mood or Gold is changed by the failed Event roll.
 
-### Scene 3 — A short rest
+#### Scene 3 — A short rest
 
 **Travel:** Courtyard → Dormitory.
 
@@ -129,7 +201,7 @@ Expected states after the rest:
 
 The player can inspect the updated Character Panel and confirm that the action changed only its configured values.
 
-### Scene 4 — The instructor's briefing
+#### Scene 4 — The instructor's briefing
 
 **Travel:** Dormitory → Courtyard → Classroom.
 
@@ -153,7 +225,7 @@ Current authored result:
 
 The player may also study the field maps (`inspect_maps`), which currently costs 2 Energy and takes 18 minutes for Ari. This is optional; it is not part of the core path because the scenario must preserve enough Energy to return and sleep.
 
-### Scene 5 — Return before night
+#### Scene 5 — Return before night
 
 **Travel:** Classroom → Courtyard → Dormitory.
 
@@ -167,7 +239,7 @@ Ari returns to the Dormitory. The day is complete; the instructor's words give t
 >
 > Tomorrow, the Guild Hall will be waiting. For now, you have earned some rest.
 
-### Scene 6 — Sleep and continue
+#### Scene 6 — Sleep and continue
 
 **Player action:** Sleep until tomorrow (`sleep`).
 
@@ -187,7 +259,7 @@ Expected Day 2 state:
 
 This is the handoff state for Day 2. Day 2 must load this state; it must not create a new Ari or reset the character to the Day 1 starting values.
 
-## 4. Optional Version 1 activity content
+### 4. Optional Version 1 activity content
 
 These activities enrich the day after their respective Version 1 sessions are implemented. They are not part of the existing baseline and must not be treated as already playable.
 
@@ -202,7 +274,7 @@ These are tuning candidates, not immutable balance values. Add only the location
 
 The story text can be expanded when these activities are added, but the core Day 1 route must remain completable without choosing every optional activity.
 
-## 5. Acceptance paths
+### 5. Acceptance paths
 
 The scenario has three valid core paths:
 
@@ -212,7 +284,7 @@ The scenario has three valid core paths:
 
 All three paths must reach Day 2 at 07:30 and preserve their distinct Gold / prior Health history until sleep recovery is applied.
 
-### Required automated coverage
+#### Required automated coverage
 
 - Starting state loads with the exact Day 1 values.
 - Selecting a valid action executes it immediately and applies duration, Energy cost and configured Effects exactly once.
@@ -230,7 +302,7 @@ All three paths must reach Day 2 at 07:30 and preserve their distinct Gold / pri
 - Save / Load preserves the selected branch's resulting Day 2 state without replaying actions or rewards.
 - Rejected action requests are not reported as successful actions.
 
-### Godot runtime acceptance
+#### Godot runtime acceptance
 
 Run each of the three paths from a fresh game start. Capture:
 - Day 1 opening state.
@@ -244,7 +316,7 @@ Run each of the three paths from a fresh game start. Capture:
 
 The Event service uses a random source in the live game. If the event does not trigger, restart the fresh scenario and try again; do not alter the production 50% chance just to force a QA run. Automated tests must cover all outcomes deterministically.
 
-## 6. Known implementation gaps to resolve during Version 1
+### 6. Known implementation gaps to resolve during Version 1
 
 1. **Grouped Exploration choices:** MainController still combines Location Actions, global Self Actions and Travel into a flat list. Session 3 proposes the contextual Query → Mapper → grouped ViewModel pipeline; this target is not implemented on `main`.
 2. **Player-owned actions:** Rest remains in root `selfActions` in `AcademyLocations.json`, and Sleep remains a Dormitory Location Action. Session 3 proposes moving both to Player-owned data and enforcing the Sleep context rule.
@@ -257,7 +329,7 @@ The Event service uses a random source in the live game. If the event does not t
 
 **Sleep behavior:** Sleep is currently authored at the Dormitory with `NextDay` and configured Health, Energy and Mood Effects. The action execution path advances the clock and applies those Effects. Session 4 must verify calendar boundaries and exactly-once behavior in runtime; do not add a second recovery implementation.
 
-## 7. Out of scope
+### 7. Out of scope
 
 - New story / quest framework.
 - NPC schedules or relationship progression.

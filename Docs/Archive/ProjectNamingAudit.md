@@ -1,3 +1,5 @@
+> Archived 2026-11-18. This is historical naming-audit evidence. Current naming rules are in [CONTRIBUTING.md](../../CONTRIBUTING.md), and enforcement is performed by CI.
+
 # Project Naming Audit
 
 ## 1. Audit snapshot

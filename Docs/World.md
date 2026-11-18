@@ -1,4 +1,10 @@
-# World Model Foundation — Conceptual Design
+# World Model
+
+**Purpose:** Canonical conceptual vocabulary and modeling constraints for the game world.
+
+The model remains provisional where sections explicitly say so. Review findings below distinguish implemented prototype behavior from concepts that are not yet represented in code. This is not a finalized database schema or a mandate to build generalized systems.
+
+## World Model Foundation
 
 **Project:** RPG — Adventurer Academy / Fantasy Life Simulation  
 **Engine:** Godot 4.7.2 .NET / C#  
@@ -7,7 +13,7 @@
 
 > This document records the current modeling direction so the world and gameplay can be designed incrementally. Names, relationships and examples below are provisional until reviewed. Do not treat this ERD as a finalized database schema or assume these systems already exist in code.
 
-## 1. Design Goal
+### 1. Design Goal
 
 Model a reusable game world that can support academy life, towns, wilderness, ruins, dungeons, varied characters, creatures, activities and encounters.
 
@@ -15,7 +21,7 @@ The architecture must not be organized around one location type (such as Dungeon
 
 The immediate task is **domain modeling**, not adding systems or writing code. We will validate each concept against concrete gameplay scenarios before committing to implementation.
 
-## 2. Normalize the Vocabulary
+### 2. Normalize the Vocabulary
 
 Do not place these terms in one flat list. They describe different levels of the game.
 
@@ -31,13 +37,13 @@ A Domain is a taxonomy. An Activity is a useful grouping or player-facing task. 
 
 Not every Activity needs its own class or runtime object. Not every Action belongs to exactly one Domain. For example, Eat can be used at the academy, in a town, or while camping in the wilderness.
 
-### Example: daily life
+#### Example: daily life
 
 “Daily Life” is not necessarily a separate system. It is a domain containing activities such as eating, sleeping, personal care and relaxation.
 
 An activity such as **Eat breakfast** may involve selecting food, consuming it and applying effects. The same Eat action can be reused in other contexts. The location or context may change available options and consequences, but should not duplicate the action definition without a real rules difference.
 
-## 3. Initial Gameplay Inventory
+### 3. Initial Gameplay Inventory
 
 This inventory is a coverage checklist, not a commitment to implement every item.
 
@@ -53,9 +59,9 @@ This inventory is a coverage checklist, not a commitment to implement every item
 
 Some words can appear in multiple domains because domains classify player experience rather than own unique actions. For example, Cook may be part of daily life or crafting; its context and rules determine which use applies.
 
-## 4. Object Inventory and Terminology
+### 4. Object Inventory and Terminology
 
-### 4.1 Characters and roles
+#### 4.1 Characters and roles
 
 | Concept | Proposed meaning |
 |---|---|
@@ -70,7 +76,7 @@ Some words can appear in multiple domains because domains classify player experi
 
 Non-living world objects are modeled separately where needed. An object such as a door, chest, trap or altar may expose interaction rules, but it does not need to inherit from Character or Actor. Use an Interactable capability only where an object genuinely supports player interaction.
 
-### 4.2 World and places
+#### 4.2 World and places
 
 | Concept | Proposed meaning |
 |---|---|
@@ -85,7 +91,7 @@ Containment and navigation are different ideas. A child Location is part of its 
 
 An object such as a Mirror or Bed is not a Location. Interacting with it can change the Interaction Context while the player remains in the same Location.
 
-### 4.3 Objects and possessions
+#### 4.3 Objects and possessions
 
 | Concept | Proposed meaning |
 |---|---|
@@ -98,7 +104,7 @@ An object such as a Mirror or Bed is not a Location. Interacting with it can cha
 
 Equipment and Resource may be item categories or capabilities rather than independent inheritance branches. Decide after examining their shared fields and behavior.
 
-### 4.4 Situations, information and progression
+#### 4.4 Situations, information and progression
 
 | Concept | Proposed meaning |
 |---|---|
@@ -114,7 +120,7 @@ Equipment and Resource may be item categories or capabilities rather than indepe
 
 Encounter and Event are not synonyms. A trap activation may be an event; being caught in a trap that requires a response may create an encounter. A conversation can be an ordinary interaction or a more structured situation depending on its rules.
 
-## 5. Effects, State and Events
+### 5. Effects, State and Events
 
 These concepts are related but are not interchangeable:
 
@@ -157,7 +163,7 @@ Do not create a separate state system for every activity. First identify the own
 
 These are candidate categories. Exact state fields and whether some belong together remain open.
 
-## 6. Conceptual ERD (Provisional)
+### 6. Conceptual ERD (Provisional)
 
 This diagram illustrates candidate entities and relationships only. It is not a normalized physical database schema. In particular, polymorphic references, state storage, action targets and effect payloads need further design before implementation.
 
@@ -306,7 +312,7 @@ erDiagram
     }
 ```
 
-### ERD caveats to resolve
+#### ERD caveats to resolve
 
 1. `LOCATION_PRESENCE`: characters and non-living objects may need different typed relations; avoid an unvalidated generic entity reference in the final schema.
 2. `ACTION_DEFINITION.owner_kind / owner_ref`: the provider of an Action is distinct from its Performer. A Location, Object or Character may provide an Action; the Player may still be the Performer.
@@ -316,7 +322,7 @@ erDiagram
 6. `KNOWLEDGE` / `CLUE`: distinguish raw evidence, discovered facts, and what the player-character actually knows.
 7. `ENCOUNTER`: specialized encounter types may own their own state and rules; do not force all behavior into one generic table.
 
-## 7. Modeling Rules
+### 7. Modeling Rules
 
 - A gameplay category does not automatically imply a software System.
 - An Activity is not necessarily an executable Action.
@@ -336,7 +342,7 @@ erDiagram
 - Add a dedicated System only when there is a distinct responsibility and rules that justify it.
 - Validate the model against multiple locations, actor types and gameplay situations before implementation.
 
-## 8. Incremental Modeling Plan
+### 8. Incremental Modeling Plan
 
 We will review and revise one area at a time. Each step should produce a decision record, updated diagrams and a list of unresolved questions.
 
@@ -351,7 +357,7 @@ We will review and revise one area at a time. Each step should produce a decisio
 | 7 | Relationships and knowledge | Recruit NPC, learn monster weakness, gather evidence | Information and social state are modeled independently |
 | 8 | Quest and progression | Multi-step investigation and academy assignment | Objectives can react to events and state changes |
 
-### Working method
+#### Working method
 
 For each step:
 
@@ -362,9 +368,9 @@ For each step:
 5. Check whether the existing code already covers the concept.
 6. Decide whether code changes are needed; do not implement speculatively.
 
-## 9. Current Decisions vs. Open Questions
+### 9. Current Decisions vs. Open Questions
 
-### Current direction
+#### Current direction
 
 - The game supports multiple kinds of places and activities, not only dungeons and combat.
 - Location-based navigation is the current prototype direction; free-roam movement is not required.
@@ -374,7 +380,7 @@ For each step:
 - Combat has specialized rules and presentation.
 - Content definitions and executable rules remain separated.
 
-### Open questions
+#### Open questions
 
 - Which non-living objects need interaction capabilities, and how should those be represented without a universal Actor base?
 - Are Activity and Action both runtime concepts, or is Activity only a grouping/presentation concept?
@@ -386,18 +392,18 @@ For each step:
 - How should source/target references be represented when supporting polymorphic NPC and Interactable definitions beyond the initial Version 1 request contract?
 - What consistency/atomicity guarantees are required when an Action produces multiple Effects and one fails?
 
-## 10. Implementation Status
+### 10. Implementation Status
 
 This document is a design proposal. It does not claim that the listed entities, relationships, gameplay domains or systems are implemented.
 
 The current prototype still has its existing Academy/Goblin vertical slice and Energy-based character model. The proposed broader world model and any future Fatigue/AP redesign must be treated as design work until separately implemented and tested.
 
 
-## 11. Exploration Action Sources and Choice Presentation
+### 11. Exploration Action Sources and Choice Presentation
 
 The following direction is accepted for the Version 1 Exploration pipeline and should be applied incrementally. It does not mean NPC, Item, Interactable or Puzzle systems already exist.
 
-### Action source vs. performer vs. target
+#### Action source vs. performer vs. target
 
 An Action is performed by a Character, but its definition may be supplied by a different source. A Player Action is supplied by the Player's character data; a Location Action is supplied by the current Location; an NPC or object may later supply interactions. A target identifies the specific entity the operation acts upon. Do not treat these identities as interchangeable.
 
@@ -408,7 +414,7 @@ A concrete choice request should preserve enough identity to route unambiguously
 
 Action IDs are not assumed globally unique. Two different chests may both define an `open` action without sharing the same choice identity.
 
-### Loader, Query, Mapper and View
+#### Loader, Query, Mapper and View
 
 The data-to-UI boundary is:
 
@@ -427,14 +433,37 @@ Definitions + current Runtime State / Context
 - ViewModel describes what the UI needs to display.
 - View renders supplied groups and emits a selection request. It does not own gameplay rules.
 
-### Version 1 choice sources
+#### Version 1 choice sources
 
 Version 1 implements Player Actions, Location Actions, Travel choices derived from Location exits, and Event Choices. Their intended presentation groups are Personal, At This Location, Travel and Current Situation. The active Event remains a focused context; ordinary Location and Travel choices do not leak into an unresolved Event screen.
 
-### Future extension points
+#### Future extension points
 
 Present NPCs, Items and Interactable Objects may later provide choices in a Nearby group. Containers can expose Inspect/Open/Search/Take actions; doors and switches can expose their own interactions; Puzzles can expose Examine/Activate/Solve choices. Each feature still needs its own data definitions, runtime state and responsible rule owner. The generic UI pipeline only discovers, groups and renders those choices; it does not implement their gameplay behavior.
 
 Combat remains a specialized pipeline. Skills represent learned capabilities; Combat Actions are operations available during combat and may be unlocked or modified by Skills. Do not mix Combat Actions into the Exploration Player Actions list.
 
-See [Exploration Action Choice Pipeline](ExplorationActionPipeline.md) for the implementation contract.
+See [Exploration Action Choice Pipeline](Gameplay.md) for the implementation contract.
+
+## Review Findings: NPC, Object and Location
+
+The design review in the archived [World Model Review](Archive/WorldModelReview.md) validated the provisional foundation against three concrete scenarios. Its conclusions are summarized here; the archived report retains the full scenario analysis.
+
+### Current prototype boundaries
+
+- **NPC interaction:** Talking to Mira is currently a Location Action. Mira is not yet represented as a Character record with Location Presence or an explicit target reference.
+- **Object interaction:** Reading a letter or inspecting a notice board is currently a simple Location Action. The prototype has no separate Object definition or Object Presence record for these props.
+- **Location activity and travel:** Location owns its Exits, Actions and Events. ActionExecutionService handles configured action costs, time and effects; LocationEventService evaluates destination events after successful travel. Travel still uses generated choice IDs and controller routing rather than a general typed target/effect contract.
+- **Interaction Context:** The current one-step actions do not need a persistent selected-object/NPC context. A separate context becomes justified when a multi-step interaction keeps the player inside a focused object or NPC view.
+
+### Accepted modeling decisions
+
+- Keep the current simple Location Actions for immediate, stateless interactions.
+- Model an NPC as a Character with contextual Location Presence when an actual NPC feature requires it; do not create a separate NPC class hierarchy for one interaction.
+- Introduce an Object definition only when the object needs independent identity, presence, state, ownership or reusable interactions.
+- Do not introduce a universal Interactable system, general Actor hierarchy, Location Connection model or typed travel target before a concrete gameplay requirement needs it.
+- Keep Activity as a useful grouping and Action as the concrete operation; Event is not automatically an Encounter or Combat.
+
+### Conclusion and unresolved boundaries
+
+The review found no contradiction that requires redesigning the current foundation. The model remains provisional, and general NPC/Object presence, persistent interaction context, typed travel targets and saveable world/object state remain future requirements rather than implemented capabilities. Add them incrementally when a playable scenario requires them.

@@ -1,3 +1,5 @@
+> Archived 2026-11-18. The active Combat presentation contract is consolidated in [Ui.md](../Ui.md).
+
 # Combat Panel — Design & Implementation Contract
 
 **Status:** Integrated playable Goblin encounter slice; broader combat system remains prototype-level  

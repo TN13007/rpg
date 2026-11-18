@@ -1,10 +1,144 @@
-# Exploration Action Choice Pipeline
+# Gameplay
+
+**Purpose:** Canonical description of the current Location/Event loop and the accepted Exploration action-choice pipeline.
+
+The Location/Event section describes behavior recorded as implemented on `main`. The action-choice pipeline records the accepted design direction and its incremental implementation boundary. Do not treat future extension points as implemented systems.
+
+## Location Loop and Events
+
+**Status:** Implemented on `main` through PR #9. The rules below define the current vertical slice; they are not a final random-world simulation specification.
+
+### 1. Core Gameplay Loop
+
+The game uses a location-based loop. It does not require an Expedition, Run or continuous dungeon session abstraction.
+
+```text
+Player is at a Location
+        |
+        v
+Choose an available Action or travel
+        |
+        v
+If travel succeeds, update CurrentLocation
+        |
+        v
+Evaluate the destination's Location Events
+        |
+        +---- No event ----> Show Location Exploration
+        |
+        +---- Event -------> Show Event choices
+                                  |
+                     +------------+------------+
+                     |                         |
+                  Combat                   Other action
+                     |                         |
+              Dedicated Combat UI       ActionExecutionService
+                     |                         |
+              CombatService resolves    Apply effects and time
+                     |                         |
+                     +------------+------------+
+                                  |
+                                  v
+                       Return to same Location
+                                  |
+                                  v
+                         Continue the day
+```
+
+An Event is an optional situation introduced during exploration. It does not automatically start an Encounter or Combat. The player must choose a resolution.
+
+### 2. Location Event Ownership
+
+- A `Location` declares the Event Definitions that may occur there.
+- An Event Definition is reusable content: identity, title, description, chance and available choices.
+- A runtime occurrence exists only when the selection process chooses that definition. The current prototype presents it immediately and keeps the active choice context in `MainController`.
+- Event content is stored in `Data/AcademyLocations.json`; C# owns selection, validation and execution rules.
+- An Event is not the same as an Encounter. The Goblin event offers a confrontation choice that starts the existing Combat encounter. Sneaking resolves through the normal Action execution path.
+
+### 3. Prototype Event Selection Rules
+
+1. Evaluate events only after a successful travel action changes the player's current Location.
+2. The player must be able to act. If the player is dead or unconscious, the event evaluation is skipped and does not consume the daily attempt.
+3. A Location's event pool is evaluated at most once per in-game day.
+4. If the Location has no events, no attempt is recorded.
+5. Evaluate event definitions in their authored JSON order. The first event whose chance succeeds is selected; at most one event is shown for that Location on that day.
+6. A chance is a value from 0 through 1. Zero never triggers; one always triggers.
+7. If all event rolls fail, revisiting the same Location on that day does not reroll. The Location can be evaluated again on the next in-game day.
+8. Event-attempt state is runtime-only in this prototype. It resets when the game process restarts because save/load is not implemented.
+
+The once-per-location-per-day rule is a deliberately small prototype policy to prevent repeated travel from farming the same event. It is not a decision that every future Location or Event must use this cadence.
+
+### 4. Event Choice Resolution
+
+An Event owns its available choices. A choice contains an Action Definition for presentation and normal action costs/time/effects. It may also reference an existing Location Action through `encounterActionId`.
+
+- A choice with `encounterActionId` delegates to the referenced Location Action, then starts the existing Encounter/Combat flow.
+- A choice without `encounterActionId` executes its own Action Definition through `ActionExecutionService`.
+- The Event Choice ID must match its Action ID so the UI's emitted choice identifier always resolves to exactly one authored choice.
+- A choice that cannot currently execute is rejected without spending resources or time; the Event remains available for another choice.
+- Successful non-combat resolution returns to Exploration at the same Location.
+- Successful Combat resolution uses the dedicated Combat UI and `CombatService`. The existing victory reward, defeat/death rules and encounter duration remain authoritative.
+
+The first event is `courtyard_goblin_ambush`:
+- **Confront the goblin:** references the Courtyard's existing `encounter_goblin` action and enters Combat.
+- **Sneak past the goblin:** spends 1 Energy and 10 minutes, then returns to Courtyard Exploration.
+
+### 5. Choice Presentation Boundary
+
+An Event owns its Event Choices, but it does not own the general Exploration UI. Event Choices use the common Action Choice presentation contract described in [Exploration Action Choice Pipeline](Gameplay.md). For Version 1, an active Event is a focused context: show its situation choices and do not mix ordinary Location or Travel choices into the unresolved Event screen.
+
+The Event query/presentation path is responsible for turning the active Event's authored choices into presentation data. Event resolution remains with the Event/application flow; a non-combat choice may use the normal action execution rules, while a confrontation can enter the dedicated Combat pipeline.
+
+### 6. Responsibility Boundaries
+
+| Responsibility | Owner |
+|---|---|
+| Event and choice definitions, content validation | `AcademyContent` and `LocationEventDefinition` |
+| Daily event-pool attempt and random selection | `LocationEventService` |
+| Travel, active event context, choice routing and mode transitions | `MainController` (application orchestrator) |
+| Action cost, time and effect execution | `ActionExecutionService` |
+| Combat validation, turns, enemy response and victory reward | `CombatService` |
+| Exploration and Combat rendering | Existing UI panels |
+
+No separate Expedition, Run or general-purpose Event System is introduced.
+
+### 7. Automated Test Coverage
+
+`RPG.Tests/LocationEventLoopTests.cs` verifies:
+- Loading the Courtyard Event and its choices from JSON.
+- Guaranteed and impossible event chances.
+- Once-per-location-per-day behavior, next-day reset and independent locations.
+- Skipping event evaluation when the character cannot act.
+- Authored event order and one selected event per evaluation.
+- Invalid event probabilities and choice definitions.
+- Travel followed by event selection and successful Stealth resolution.
+- Confrontation linking to the existing encounter action and starting Combat.
+- Failed action execution not consuming Energy or advancing time.
+- Content validation for duplicate Event IDs and unknown encounter-action references.
+
+These are automated domain/content tests. GitHub Actions run [#43](https://github.com/TN13007/rpg/actions/runs/43769290553) for commit `f5f018dfe31adb4d600ea4efff95f6987e45250c` completed with 64 passed and 0 failed. This result covers automated .NET tests, not the Godot UI.
+
+#### Runtime verification record
+
+[Issue #10](https://github.com/TN13007/rpg/issues/10) was closed by the project owner with all five playable-journey acceptance criteria marked complete for the Godot 4.7.2 .NET runtime check. The retrospective [QA record](Archive/PlayableJourneyTestReport.md) records the verified scope and its audit limitations. The Issue did not retain Godot Output logs, screenshots/video, exact per-action values or the exact local build revision; therefore the result is owner-confirmed, not independently reproducible from attached evidence.
+
+### 8. Deliberately Not Implemented Yet
+
+- Event conditions beyond the player's ability to act and the Location's event pool.
+- Weighted selection, priorities, cooldown variants or multiple events per day.
+- Persistent Event history, save/load or world-state consequences across restarts.
+- Dialogue, social, stealth checks, investigation and other specialized resolution modes.
+- A general Encounter framework for every Event.
+- Multiple Event pools and authored events at every Location.
+
+
+## Exploration Action Choice Pipeline
 
 **Project:** RPG — Adventurer Academy  
 **Status:** Accepted design direction; implementation is incremental through Version 1  
-**Related documents:** [World Model Foundation](WorldModelFoundation.md), [UI Architecture](UiArchitecture.md), [Version 1 Session Plan](Version1SessionPlan.md)
+**Related documents:** [World Model Foundation](World.md), [UI Architecture](Ui.md), [Version 1 Session Plan](Version1Plan.md)
 
-## 1. Purpose
+### 1. Purpose
 
 The Exploration UI must show the choices that make sense in the player's current context. It must not own the rules for discovering, validating or executing those choices.
 
@@ -20,7 +154,7 @@ These sources should feed one presentation pipeline. The StoryPanel renders grou
 
 Combat remains a separate, specialized pipeline and UI.
 
-## 2. Vocabulary and boundaries
+### 2. Vocabulary and boundaries
 
 | Concept | Meaning | Example |
 |---|---|---|
@@ -36,9 +170,9 @@ Do not confuse the action's source with its UI group. A Player Action may appear
 
 A common Action Definition is appropriate for shared fields such as ID, label, description, duration, Energy cost, availability requirements and common effects. Specialized systems still own rules that are unique to Travel, Dialogue, Containers, Puzzles or Combat. Do not force all behavior into a universal action executor.
 
-## 3. Choice sources
+### 3. Choice sources
 
-### 3.1 Player Actions
+#### 3.1 Player Actions
 
 Player Actions are authored as part of the Player's character definition in `Data/Characters/Player.json`, under `playerActions`.
 
@@ -51,7 +185,7 @@ Ownership does not imply universal availability. An action can belong to the Pla
 
 The Version 1 migration moves the existing Rest and Sleep definitions out of the academy-wide root `selfActions` list and into Player Actions. The current `selfActions` field is transitional and must not become a second permanent source.
 
-### 3.2 Location Actions
+#### 3.2 Location Actions
 
 Location Actions are authored by a Location in `Data/AcademyLocations.json`.
 
@@ -64,7 +198,7 @@ Examples:
 
 They are offered only while the Player is at the Location that owns them, subject to their availability requirements.
 
-### 3.3 Travel Choices
+#### 3.3 Travel Choices
 
 Travel choices are derived from the current Location's outgoing exits/connections. They are not duplicated as individually authored actions for every destination.
 
@@ -76,7 +210,7 @@ The query resolves each valid destination and produces a choice with:
 
 The current prototype uses `Location.Exits`. Keep this model for Version 1. Introduce a separate Location Connection definition only when routes need independent conditions, costs, visibility, map metadata or shared references.
 
-### 3.4 Target Interactions — future extension point
+#### 3.4 Target Interactions — future extension point
 
 An NPC, Item, Interactable Object or other present target may supply interactions when that target exists in the current context.
 
@@ -91,13 +225,13 @@ A target interaction is not a Player Action merely because the Player performs i
 
 NPC definitions, inventory/item data, containers and generic interactables are not Version 1 implementation requirements. Add their loaders, runtime state and rule owners only when a playable feature needs them.
 
-### 3.5 Event Choices
+#### 3.5 Event Choices
 
 An active Event supplies choices for resolving that specific situation. Event choices are contextual and temporary; they do not become permanent Player or Location Actions.
 
 The current prototype treats an active Event as a focused interaction screen. Preserve that behavior in Version 1: show the active Event's choices and do not mix ordinary Location/Travel choices into the unresolved Event screen. Event resolution returns to Exploration or enters the dedicated Combat flow.
 
-## 4. Exploration choice groups
+### 4. Exploration choice groups
 
 The ViewModel should support groups rather than one flat list.
 
@@ -113,7 +247,7 @@ For Version 1, implement Personal, At This Location and Travel. Event Choices us
 
 Empty groups are omitted. The UI may render groups in the order supplied by the ViewModel; it must not infer domain rules from group names.
 
-## 5. Data loading and runtime query
+### 5. Data loading and runtime query
 
 The intended pipeline is:
 
@@ -142,7 +276,7 @@ JSON content
                     StoryPanel / Exploration UI
 ```
 
-### Loader
+#### Loader
 
 A Loader reads and validates its own source data and creates immutable definitions. Examples:
 - `CharacterDataLoader`: `Player.json` and `playerActions`.
@@ -151,7 +285,7 @@ A Loader reads and validates its own source data and creates immutable definitio
 
 A Mapper does not call a Loader and does not read JSON. It consumes already-loaded definitions and query results.
 
-### Available Interaction Query
+#### Available Interaction Query
 
 The Query combines the loaded definitions with current runtime state:
 - Player identity/state and current capabilities.
@@ -170,11 +304,11 @@ Distinguish:
 - **Present but temporarily unavailable:** include it as disabled with a reason when that information is useful to the player (for example, not enough Energy).
 - **Available:** include it as enabled.
 
-### Mapper
+#### Mapper
 
 The Mapper transforms the query result into presentation-safe data. It formats duration and cost labels, maps choices into groups, and supplies stable identifiers. It does not load content, discover world objects, mutate state or decide gameplay outcomes.
 
-## 6. ViewModel contract
+### 6. ViewModel contract
 
 The Exploration view should receive a composed ViewModel similar to:
 
@@ -212,7 +346,7 @@ The UI:
 - Does not read JSON or runtime domain objects.
 - Does not calculate costs, check puzzle answers, open chests or mutate game state.
 
-## 7. Selection and execution flow
+### 7. Selection and execution flow
 
 ```text
 Player selects a rendered choice
@@ -246,7 +380,7 @@ MainController orchestrates which handler owns the request. It must not implemen
 
 After a successful state change, rebuild the current Exploration ViewModel from current state. This naturally removes choices whose target/state/conditions have changed.
 
-## 8. Relationship to Skills and Combat Actions
+### 8. Relationship to Skills and Combat Actions
 
 Action and Skill are related but different concepts:
 - An **Action** is an operation a character performs: Rest, Talk, Attack, Parry.
@@ -267,7 +401,7 @@ Combat state / character capabilities
 
 Do not put Attack, Defend, Dodge or future Parry into the Exploration Player Actions list. Do not build the Skill system as part of the Version 1 Exploration choice pipeline; Skill progression belongs to Version 2.
 
-## 9. Version 1 implementation boundary
+### 9. Version 1 implementation boundary
 
 Implement now:
 - Player Actions loaded from `Player.json`.
@@ -287,7 +421,7 @@ Defer:
 - General-purpose action plugin/registry frameworks.
 - Combat Actions and Skill progression inside the Exploration query.
 
-## 10. Acceptance criteria
+### 10. Acceptance criteria
 
 - Adding a Player Action to `Player.json` makes it available according to its authored context requirements without editing StoryPanel.
 - Rest appears in Personal at every Location, including when the Player is unconscious; death still blocks it.
@@ -303,3 +437,4 @@ Defer:
 - Successful actions refresh choices from the resulting state.
 - Combat remains on its existing dedicated Service → Mapper → ViewData → UI path.
 - Automated tests cover normal cases, missing/invalid IDs, duplicate source-local IDs, unavailable context, state changes, and important combinations.
+

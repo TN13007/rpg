@@ -1,7 +1,7 @@
 # Version 1 — Session-by-Session Implementation Plan
 
-**Parent roadmap:** [Game Development Roadmap](GameDevelopmentRoadmap.md)  
-**Architecture contract:** [Exploration Action Choice Pipeline](ExplorationActionPipeline.md)  
+**Parent roadmap:** [Game Development Roadmap](Roadmap.md)  
+**Architecture contract:** [Exploration Action Choice Pipeline](Gameplay.md)  
 **Version:** 1 — A Day at the Academy  
 **Engine:** Godot 4.7.2 .NET / C#  
 **Delivery rule:** Every session ends with a runnable feature in the Godot main scene.
@@ -30,7 +30,7 @@ Version 1 is not a character-progression, social-simulation, inventory or world-
 
 ## 2. Status Ownership
 
-Current implementation, active PRs, Session progress, learning evidence and documentation mismatches are tracked only in [WORKFLOW.md](../../WORKFLOW.md). This plan defines intended behavior, Session scope and acceptance criteria; it is not a second progress dashboard.
+Current implementation, active PRs, Session progress, learning evidence and documentation mismatches are tracked only in [WORKFLOW.md](../WORKFLOW.md). This plan defines intended behavior, Session scope and acceptance criteria; it is not a second progress dashboard.
 
 ## 3. Shared Player Rules
 

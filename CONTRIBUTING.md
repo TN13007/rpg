@@ -175,7 +175,7 @@ To audit every Git-tracked file and directory, including unchanged legacy paths,
 python Tools/CheckProjectNaming.py --audit-all
 ```
 
-This standalone audit reports violations and safe PascalCase suggestions; it does not rename files. It exits with code 1 while violations remain. Untracked files are intentionally excluded. The initial findings and staged remediation plan are recorded in [Project Naming Audit](Docs/Quality/ProjectNamingAudit.md).
+This standalone audit reports violations and safe PascalCase suggestions; it does not rename files. It exits with code 1 while violations remain. Untracked files are intentionally excluded. The initial findings and staged remediation plan are recorded in [Project Naming Audit](Docs/Archive/ProjectNamingAudit.md).
 
 The validator checks the following scoped rules:
 
@@ -229,7 +229,7 @@ Use namespaces only where they provide a useful boundary. Keep namespaces to two
 - A C# file should match its main type, and should generally contain one core type: `CombatService.cs`.
 - Name test methods in `PascalCase`; do not use underscores to divide test-name segments.
 - Use `PascalCase` for Godot scene files, custom node names and resource files: `CombatPanel.tscn`.
-- Use `PascalCase` for JSON data filenames, assets and Markdown document filenames: `AcademyLocations.json`, `CharacterPortrait.svg`, `MainController.md`.
+- Use `PascalCase` for JSON data filenames, assets and Markdown document filenames: `AcademyLocations.json`, `CharacterPortrait.svg`, `ExampleService.md`.
 - Keep the conventional repository entry files `README.md` and `CONTRIBUTING.md`, plus platform/tool-managed names such as `.github` and `.editorconfig`, unchanged.
 
 ### JSON and game content
