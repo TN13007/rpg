@@ -105,7 +105,7 @@ public partial class MainController : Control
             location.Name,
             location.Region,
             location.Description,
-            MapActionChoices(choices),
+            choices,
             _dayClock.GetDisplayText());
         _storyPanel.ShowLocationButton(false);
     }
