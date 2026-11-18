@@ -139,7 +139,7 @@ def active_document_orphans(root: Path, tracked_files: set[str]) -> list[str]:
             continue
         targets: set[str] = set()
         for _, target in markdown_links(source.read_text(encoding="utf-8")):
-            destination, _, error = resolve_local_target(source, target, tracked_files)
+            destination, _, error = resolve_local_target(root, source, target, tracked_files)
             if not error and destination:
                 try:
                     resolved = destination.relative_to(root).as_posix()
