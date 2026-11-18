@@ -63,6 +63,39 @@ public sealed class CombatActionContentTests
     }
 
     [Fact]
+    public void CharacterCatalogRejectsDuplicateCharacterIds()
+    {
+        CharacterData character = new CharacterData(
+            "same_id", "First", "Test", 1,
+            10, 100, 10, 100,
+            10, 0, 10, 50, 0);
+        CharacterData duplicate = new CharacterData(
+            "same_id", "Second", "Test", 1,
+            10, 100, 10, 100,
+            10, 0, 10, 50, 0);
+
+        Assert.Throws<InvalidOperationException>(
+            () => new CharacterCatalog(new[] { character, duplicate }));
+    }
+
+    [Fact]
+    public void GameContentCatalogRejectsUnknownCharacterActionReferences()
+    {
+        AcademyContent academy = new AcademyContent();
+        academy.LoadJson("{\"locations\":[{\"id\":\"test_location\",\"name\":\"Test\",\"region\":\"Test\",\"description\":\"Test\",\"exits\":[],\"actions\":[]}]}");
+        CharacterData character = new CharacterData(
+            "test_character", "Test", "Test", 1,
+            10, 100, 10, 100,
+            10, 0, 10, 50, 0,
+            combatActionIds: new[] { "unknown_action" });
+        CharacterCatalog characters = new CharacterCatalog(new[] { character });
+        CombatActionCatalog actions = new CombatActionCatalog(TestCharacterFactory.CreateCombatActions());
+
+        Assert.Throws<KeyNotFoundException>(
+            () => new GameContentCatalog(academy, characters, actions));
+    }
+
+    [Fact]
     public void CharacterDataRejectsDuplicateCombatActionReferences()
     {
         Assert.Throws<ArgumentException>(() => new CharacterData(
