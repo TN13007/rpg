@@ -396,7 +396,7 @@ For each step:
 
 This document is a design proposal. It does not claim that the listed entities, relationships, gameplay domains or systems are implemented.
 
-The current prototype has its Academy/Goblin vertical slice and uses Health, Fatigue, Combat Stamina, Mood and Gold. Fatigue and Combat Stamina follow the initial rules in [Version 1 Plan](Version1Plan.md#session-2) and [Testing](Testing.md). The broader world model, additional needs and persistent NPC/object state remain design proposals until separately scoped, implemented and tested.
+The current prototype has its Academy/Goblin vertical slice and uses Health, Fatigue, Combat Stamina, Mood and Gold. Fatigue and Combat Stamina follow the initial rules in [Version 1 Plan](Version1Plan.md) and [Testing](Testing.md). The broader world model, additional needs and persistent NPC/object state remain design proposals until separately scoped, implemented and tested.
 
 
 ### 11. Exploration Action Sources and Choice Presentation
