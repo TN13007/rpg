@@ -2,7 +2,7 @@
 
 **Purpose:** One place for automated test instructions, manual runtime verification and the repeatable Day 1 gameplay acceptance scenario.
 
-Automated tests validate domain/application behavior without launching Godot. Manual acceptance scenarios validate the actual Godot scene, UI wiring and player journey. A recorded pass must state what evidence exists and what remains unverified.
+Automated tests validate domain/application behavior without launching Godot. Repository validation also checks local Markdown links, resolvable heading anchors and navigation reachability for active documents under `Docs/`. External HTTP(S) links are not fetched. Archived documents are excluded from orphan detection, but their local links are still checked. Manual acceptance scenarios validate the actual Godot scene, UI wiring and player journey. A recorded pass must state what evidence exists and what remains unverified.
 
 ## Automated Gameplay Tests
 

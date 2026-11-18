@@ -128,8 +128,9 @@ def main() -> int:
                 args.branch,
             ],
         ]
+        commands.insert(1, [sys.executable, "Tools/CheckMarkdown.py"])
         if args.check_branch:
-            commands[1].append("--check-branch")
+            commands[2].append("--check-branch")
 
         changed_files = changed_csharp_files(args.base, args.head)
         format_commands = build_csharp_format_commands(changed_files)
