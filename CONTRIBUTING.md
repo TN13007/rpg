@@ -264,3 +264,55 @@ Examples:
 - Issue: `[Task] Add location action pipeline`
 
 A single Issue can be implemented by several commits or, when delivery must be separated, by several explicitly linked PRs. Do not create one commit or PR per file.
+
+## 10. Documentation governance
+
+Documentation exists to preserve durable project knowledge, not to record every work session. Keep the smallest set of canonical documents that lets a contributor understand and change the project without duplicating the same rule in several places.
+
+### 10.1 Source-of-truth ownership
+
+Use one authoritative home for each kind of information:
+
+- `README.md`: project entry point, quick start and links to active documentation.
+- `WORKFLOW.md`: changing project status, Session handoff, blockers and Learning evidence.
+- `CONTRIBUTING.md`: stable collaboration, Git and documentation rules.
+- A domain design/technical document: accepted rules, contracts and rationale for that domain.
+- GitHub Issue: one problem, requirement or unresolved design decision, with scope and acceptance criteria.
+- GitHub PR: proposed implementation, changed files, review discussion and verification evidence.
+
+If the same rule appears in multiple places, choose its canonical owner and replace the other copies with a short link. A Session Brief is a temporary working view; it does not override any of these sources.
+
+### 10.2 Create and update documents
+
+Before creating a Markdown file:
+1. Search the existing documents and Issues for the topic.
+2. Prefer adding or correcting a section in the existing canonical domain document.
+3. Create a new file only when it has a distinct domain, audience, lifecycle or independently maintained contract that cannot reasonably live in an existing document.
+4. Explain in the PR description why the existing document cannot own the content, what the new file owns and which active document will link to it.
+
+Do not create a permanent document for an individual Session, meeting, temporary implementation plan, status update or list of open questions. Put work scope and acceptance criteria in Issues; put implementation and verification evidence in PRs; put current handoff in `WORKFLOW.md`.
+
+An unresolved design question belongs in a GitHub Issue using the Design task template. When resolved, update the canonical design document with the accepted decision and close the Issue with a link to that section. The Issue discussion is decision history, not a second specification.
+
+### 10.3 Document ownership and lifecycle
+
+Every active document must have one clearly stated purpose and one canonical location. The repository maintainer is accountable for keeping it current; do not add a redundant per-file `Owner: @handle` line unless multiple contributors genuinely need explicit ownership assignment.
+
+Use this lifecycle:
+
+- **Draft:** incomplete proposal; must not be treated as accepted behavior.
+- **Active:** current, maintained source of truth and linked from the README or an active parent document.
+- **Deprecated:** superseded or no longer authoritative; add a notice linking to its replacement and stop using it for new work.
+- **Archived:** retained for historical context under `Docs/Archive/`; not linked as current guidance.
+
+Move a document to Deprecated when its content has been absorbed, superseded or invalidated. Archive it only after the replacement is available and incoming links have been updated. Age alone (for example, three months without edits) is not sufficient reason to archive a still-valid specification. When archiving documents, maintain `Docs/Archive/README.md` as the historical index.
+
+### 10.4 Review and automation
+
+Every documentation PR must check:
+- Internal Markdown links and heading anchors affected by the change.
+- Whether the document is linked from the README or an active parent document.
+- Whether the change creates duplicate, contradictory or stale guidance.
+- Whether the implementation and tests still agree with the documented behavior.
+
+The repository should automate internal-link validation and detect orphaned active documents in CI. Until those checks are present, reviewers must perform these checks manually. Do not add a style/lint tool merely for cosmetic consistency; automate checks that prevent broken navigation or conflicting sources of truth.
