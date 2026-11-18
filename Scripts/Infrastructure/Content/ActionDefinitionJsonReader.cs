@@ -4,7 +4,7 @@ using System.Text.Json;
 
 public static class ActionDefinitionJsonReader
 {
-public static ActionDefinition ReadActionDefinition(string id, string label, JsonElement data)
+    public static ActionDefinition ReadActionDefinition(string id, string label, JsonElement data)
     {
         int durationMinutes = data.GetProperty("durationMinutes").GetInt32();
         double activityMet = data.TryGetProperty("activityMet", out JsonElement activityMetData)
@@ -42,7 +42,7 @@ public static ActionDefinition ReadActionDefinition(string id, string label, Jso
             estimatedDurationMaxMinutes);
     }
 
-private static ActionEffectDefinition[] ReadEffects(JsonElement data)
+    private static ActionEffectDefinition[] ReadEffects(JsonElement data)
     {
         if (data.ValueKind != JsonValueKind.Array)
         {
@@ -68,7 +68,7 @@ private static ActionEffectDefinition[] ReadEffects(JsonElement data)
         return effects.ToArray();
     }
 
-private static ActionTimeMode ReadTimeMode(JsonElement data)
+    private static ActionTimeMode ReadTimeMode(JsonElement data)
     {
         string modeName = data.GetString();
 
@@ -81,7 +81,7 @@ private static ActionTimeMode ReadTimeMode(JsonElement data)
         return mode;
     }
 
-private static ActivityTimeModifier ReadTimeModifier(JsonElement data)
+    private static ActivityTimeModifier ReadTimeModifier(JsonElement data)
     {
         string statName = ReadString(data, "stat");
 
@@ -95,7 +95,7 @@ private static ActivityTimeModifier ReadTimeModifier(JsonElement data)
         return new ActivityTimeModifier(stat, maxReduction);
     }
 
-private static string ReadString(JsonElement data, string propertyName)
+    private static string ReadString(JsonElement data, string propertyName)
     {
         string value = data.GetProperty(propertyName).GetString();
 
