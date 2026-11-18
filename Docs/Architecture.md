@@ -117,7 +117,7 @@ A content definition is not the same thing as mutable runtime state. JSON parsin
 
 ## 5. Current implementation and remaining extraction
 
-The repository now has explicit layer directories and the Exploration contracts, query and mapper are separated. `MainController` remains the Godot composition root and currently retains some Exploration and Combat orchestration. Issue [#15](https://github.com/TN13007/rpg/issues/15) tracks extracting those remaining flows into focused coordinators without changing gameplay behavior.
+The repository now has explicit layer directories and the Exploration contracts, query and mapper are separated. `MainController` is the Godot composition root; `ExplorationFlowController` and `CombatFlowController` own their respective presentation flows. The controllers coordinate UI and call Application/Domain services; they do not own authoritative gameplay rules. Issue [#15](https://github.com/TN13007/rpg/issues/15) tracks the remaining verification and cleanup.
 
 Do not interpret the folder map as proof that every dependency is already ideal. New code must follow the boundaries above; legacy coupling is removed when a focused change provides a testable improvement.
 
