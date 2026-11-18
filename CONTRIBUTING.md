@@ -8,9 +8,24 @@ This repository uses an Issue → Branch → Commit + Tests → Pull Request →
 
 Before changing code or design:
 1. Search existing Issues and design documents.
-2. Read the relevant README and design/spec files.
-3. Create or select an Issue with a clear goal, scope, and acceptance criteria.
-4. Keep one Issue focused on one reviewable outcome.
+2. Read the relevant README, specification and design documents.
+3. Create or select an Issue using the appropriate template.
+4. Define one problem or requirement and one independently verifiable outcome.
+5. Record dependencies and related Issues when the work is not independent.
+
+An Issue is the unit of planning. It is **not** a list of files to edit and should not prescribe implementation details before the problem is understood.
+
+A good Issue answers:
+- **Context / Problem:** What is wrong, missing or needed? What happens today?
+- **Goal / Expected outcome:** What should be true after the work is complete?
+- **Scope:** What is included, and what is explicitly out of scope?
+- **Acceptance criteria:** What observable conditions prove the Issue is complete?
+- **Verification:** How will each important criterion be checked?
+- **References / Dependencies:** Which specifications, code areas or other Issues are relevant?
+
+Keep one Issue focused on one coherent outcome. Split work when the outcomes can be implemented, verified and delivered independently. Keep related Issues linked when they contribute to a larger initiative; do not create separate Issues merely because a solution touches multiple files.
+
+For bugs, include reliable reproduction steps and actual versus expected behavior. For design work, state the decision to be made and the gameplay scenarios or constraints that will validate it. A design Issue should produce a documented decision; implementation should be tracked separately when it is a distinct deliverable.
 
 Do not create a new system or abstraction merely because it seems reusable. Validate the need against concrete gameplay scenarios first.
 
@@ -34,15 +49,46 @@ Examples:
 
 Do not commit unrelated work to the same branch.
 
-## 3. Implement in small commits
+## 3. Make focused commits
 
-- Keep each commit focused on one logical change.
-- Prefer explicit code and clear responsibility boundaries.
-- Keep gameplay rules in their owning domain/service, not in UI components.
-- Keep content definitions separate from executable rules.
-- Update tests in the same task as the implementation.
+A commit is **one coherent, atomic logical change — not one file**.
 
-Suggested commit prefixes: `feat:`, `fix:`, `test:`, `refactor:`, `docs:`, `chore:`.
+A good commit:
+- Has one clear intent that can be explained in one sentence.
+- Includes every related implementation, test, configuration, data and documentation change needed for that logical change to remain coherent.
+- Excludes unrelated changes, even when those files were edited during the same work session.
+- Leaves the codebase in a coherent state; do not intentionally commit a broken intermediate state that a later commit is expected to repair.
+- Can be understood and verified from its diff and commit message.
+
+Group files by the behavior or maintenance outcome they jointly implement. For example, renaming a JSON file, updating its loader, changing the test fixture path and updating the project copy configuration belong in the same logical commit when they are all required for that rename. Do not create one commit per file.
+
+One Issue may require multiple commits when implementation has several meaningful steps. Keep each commit focused on one logical step; do not split a single indivisible change into artificial per-file commits. Separate unrelated outcomes into separate commits or PRs.
+
+Use Conventional Commits:
+
+```text
+<type>(<optional-scope>): <imperative summary>
+```
+
+Allowed types:
+- `feat`: add a capability or user-visible behavior.
+- `fix`: correct behavior that does not meet its requirements.
+- `refactor`: restructure code without intentionally changing behavior.
+- `test`: add or change tests without changing production behavior.
+- `docs`: change documentation.
+- `chore`: maintenance, tooling, configuration or repository tasks.
+
+Examples:
+- `feat(actions): add action duration preview`
+- `fix(energy): prevent negative values`
+- `refactor(combat): extract encounter rules`
+- `test(actions): cover unconscious Rest`
+- `docs(workflow): clarify commit granularity`
+- `chore(ci): enforce repository naming audit`
+
+Write a concise imperative summary, use lowercase type and scope, and omit the trailing period. Add a commit body when the reason, trade-off or implementation detail is not clear from the summary. Use `!` and a `BREAKING CHANGE:` footer only when a change intentionally breaks an existing contract.
+
+Prefer creating commits locally so related files can be staged together (use interactive staging when needed). Avoid a history made of one-file commits, vague messages such as `update files`, or temporary fix-up commits in the final PR history.
 
 ## 4. Test before opening a Pull Request
 
@@ -56,25 +102,46 @@ For documentation-only changes, review links, terminology, consistency with exis
 
 ## 5. Open a Pull Request
 
-- Target `main`.
-- Use the Pull Request template.
-- Link the Issue using `Closes #<number>` when the PR fully resolves it.
-- Explain what changed, why, and which responsibilities own the behavior.
-- Record tests actually run and any checks not performed.
-- Keep PRs small enough to review.
+A PR is **one reviewable solution to a clearly defined problem or requirement**. It is the unit of review and integration.
 
-Draft PRs are appropriate when implementation or verification is incomplete.
+A good PR:
+- Delivers one coherent outcome linked to an Issue.
+- May contain multiple commits and multiple files; file count does not define PR scope.
+- Explains the problem, expected behavior, proposed solution and important implementation decisions.
+- Lists the meaningful changes and explicitly names important non-goals or known limitations.
+- Provides evidence for the tests and manual checks that were actually performed.
+- Is small and focused enough for a reviewer to understand the complete change without unrelated context.
+
+Use a title consistent with Conventional Commits:
+
+```text
+<type>(<optional-scope>): <outcome>
+```
+
+Examples: `fix(energy): prevent negative Energy`, `feat(summary): add daily activity summary`, `docs(workflow): define commit and PR standards`.
+
+In the PR description:
+- Use `Closes #<number>` only when this PR fully satisfies that Issue's acceptance criteria.
+- Use `Part of #<number>` when the PR contributes to an Issue but does not complete it.
+- Use `Related to #<number>` for context that does not represent completion.
+- Do not mark an Issue complete merely because its implementation has been started or its PR has been opened.
+- Explain any risks, compatibility concerns, migration steps and checks that remain unperformed.
+
+Split work into separate PRs when it produces independent outcomes that can be reviewed and merged independently. Keep changes together when multiple files or commits are required to deliver one coherent outcome. For dependent PRs, state the dependency and merge order explicitly; target the appropriate parent branch until the dependency is merged, then retarget to `main`.
+
+Use the Pull Request template. Open a Draft PR when the implementation or required verification is incomplete. Before requesting review, inspect the full diff yourself and remove accidental, generated or unrelated changes.
 
 ## 6. Review and merge
 
 Before merge:
-- All required automated checks must pass.
-- Review the diff for scope creep, duplicated rules and hard-coded content assumptions.
-- Confirm documentation and tests match the implementation.
-- Resolve review feedback.
-- Do not merge a PR that still has unresolved runtime verification required by its acceptance criteria.
+- All required automated checks must pass, including the full repository naming audit.
+- Review the diff for scope creep, duplicated rules, unnecessary abstractions and hard-coded content assumptions.
+- Confirm tests, documentation and the implementation describe the same behavior.
+- Resolve review feedback or record an explicit decision for any deferred comment.
+- Complete the required Godot runtime verification when scenes, node paths, UI, input or gameplay runtime are affected.
+- Do not claim that a check passed unless it was actually run and its result was observed.
 
-Merge only after the PR is ready and the repository owner approves it.
+Merge only after the PR is review-ready and the repository owner approves it. A passing CI is necessary evidence, but it does not replace design review or manual runtime verification when those are required.
 
 ## 7. One-command validation
 
@@ -178,10 +245,22 @@ Use `snake_case` consistently for IDs of Characters, Locations, Actions, Events,
 
 ### Git names
 
-Google's C# guide does not define Git naming. This repository uses:
+This repository uses the following Git conventions:
 
-- Branch: `<type>/issue-<number>-<short-description>`, with a `kebab-case` description. Allowed types: `feat`, `fix`, `docs`, `test`, `refactor`, `chore`.
-- Commit: Conventional Commit prefixes in lowercase, such as `feat:`, `fix:`, `test:`, `refactor:`, `docs:` and `chore:`.
+- **Branch:** `<type>/issue-<number>-<short-description>`; the description is `kebab-case`. Allowed types: `feat`, `fix`, `docs`, `test`, `refactor`, `chore`.
+- **Commit:** `<type>(<optional-scope>): <imperative-summary>`, using the Conventional Commit types defined in Section 3.
+- **Pull Request title:** use the same type/scope pattern and describe the outcome delivered by the PR.
+- **Issue title:** use the prefix supplied by its template: `[Bug]`, `[Task]` or `[Design]`.
 
-Examples: `feat/issue-26-location-action-pipeline`, `docs/issue-28-naming-conventions`, `feat: add location action pipeline`.
+The three work items have different responsibilities:
+- **Issue = one problem or requirement with verifiable acceptance criteria.**
+- **Commit = one coherent logical change, which may include multiple related files.**
+- **Pull Request = one reviewable solution, which may contain multiple commits and files.**
 
+Examples:
+- Branch: `feat/issue-26-location-action-pipeline`
+- Commit: `feat(actions): add location action pipeline`
+- PR: `feat(actions): add location action pipeline`
+- Issue: `[Task] Add location action pipeline`
+
+A single Issue can be implemented by several commits or, when delivery must be separated, by several explicitly linked PRs. Do not create one commit or PR per file.
