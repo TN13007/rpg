@@ -2,7 +2,7 @@
 
 **Repository:** [TN13007/rpg](https://github.com/TN13007/rpg)  
 **Engine:** Godot 4.7.2 .NET / C#  
-**Last reviewed:** 2026-11-18  
+**Last reviewed:** 2026-11-19  
 **Official implementation baseline:** latest `main` — consult the current branch head rather than a copied commit hash.
 
 > Start here at the beginning and end of every Session. This is the single project-status and handoff tracker. Do not create separate project-state, decision, learning or per-session tracking files.
@@ -147,7 +147,7 @@ The nine-Session Version 1 plan is accepted design scope, merged through [PR #23
 | [Session 1](https://github.com/TN13007/rpg/blob/main/Docs/Version1Plan.md#session-1) | Inline Action Duration Estimates | **Implemented** — PR #21 merged; .NET CI passed; Godot runtime acceptance pending | **Not assessed** — no structured independent evidence recorded |
 | [Session 2](https://github.com/TN13007/rpg/blob/main/Docs/Version1Plan.md#session-2) | Fatigue Accumulation, Rest and Combat Stamina | **Implemented** — [PR #47 merged](https://github.com/TN13007/rpg/pull/47); [CI #142](https://github.com/TN13007/rpg/actions/runs/44315667902) passed on the final feature-branch head before merge. Godot evidence needs reconciliation because the PR checklist is checked while its verification note still says pending. | **Not assessed** — independent evidence is still required |
 | [Session 3](https://github.com/TN13007/rpg/blob/main/Docs/Version1Plan.md#session-3) | Exploration Action Choice Pipeline | **Implemented** — [PR #57 merged](https://github.com/TN13007/rpg/pull/57); 84/84 .NET tests passed. PR #58 CI also passes Godot 4.7.2 headless import, main-scene and Combat-preview smoke checks. Full interactive player-journey verification remains separate. | **Not assessed** — independent pipeline-tracing practice remains outstanding |
-| [Session 4](https://github.com/TN13007/rpg/blob/main/Docs/Version1Plan.md#session-4) | Sleep and Next-Day Transition | **Planned** — accepted scope; not implemented | **Proposed** — learning target requires user approval |
+| [Session 4](https://github.com/TN13007/rpg/blob/main/Docs/Version1Plan.md#session-4) | Sleep and Next-Day Transition | **In progress** — [PR #65 open](https://github.com/TN13007/rpg/pull/65); automated CI running, Godot runtime acceptance pending | **Not assessed** — independent test-writing practice and knowledge check remain outstanding |
 | [Session 5](https://github.com/TN13007/rpg/blob/main/Docs/Version1Plan.md#session-5) | Health, Injury and Recovery | **Planned** — accepted scope; not implemented | **Proposed** — learning target requires user approval |
 | [Session 6](https://github.com/TN13007/rpg/blob/main/Docs/Version1Plan.md#session-6) | Mood and Daily Wellbeing | **Planned** — accepted scope; not implemented | **Proposed** — learning target requires user approval |
 | [Session 7](https://github.com/TN13007/rpg/blob/main/Docs/Version1Plan.md#session-7) | A Small, Complete Academy Routine | **Planned** — accepted scope; not implemented | **Proposed** — learning target requires user approval |
@@ -184,20 +184,23 @@ Track known disagreements between the documents and official implementation here
 | SYNC-05 | Godot runtime evidence for earlier Sessions is incomplete or ambiguous. Session 1 runtime acceptance is not recorded. PR #47's checklist is checked, but its closing verification note still says runtime verification is pending. | [PR #21](https://github.com/TN13007/rpg/pull/21), [PR #22](https://github.com/TN13007/rpg/pull/22) and [PR #47](https://github.com/TN13007/rpg/pull/47). | **Historical evidence is ambiguous; do not block Session 3. Re-run only when the relevant journey is next touched, and record observed results.** |
 | SYNC-06 | MainController retained too much Exploration and Combat flow orchestration after Session 3. | [Issue #15](https://github.com/TN13007/rpg/issues/15) and [Architecture](Docs/Architecture.md). | **Resolved — PR #58 merged; user confirmed the interactive Godot journey runs well.** |
 | SYNC-07 | The accepted Fatigue/Stamina resource model previously differed from `main` while PR #47 was open. | [Issue #46](https://github.com/TN13007/rpg/issues/46), [PR #47](https://github.com/TN13007/rpg/pull/47), [Version 1 Plan](Docs/Version1Plan.md) and [Testing](Docs/Testing.md). | **Resolved — PR #47 merged and Issue #46 closed. Runtime evidence reconciliation is tracked in SYNC-05.** |
+| SYNC-08 | Sleep still uses a special NextDay transition in `main`, while Session 4 has approved fixed eight-hour elapsed-time behavior. | [Issue #62](https://github.com/TN13007/rpg/issues/62) and [PR #65](https://github.com/TN13007/rpg/pull/65). | **In progress — PR #65 proposes GameClock and normal 480-minute Sleep execution; do not treat it as shipped until merged.** |
 
 ### Other active work
 
 - [Issue #11 — Decide the long-term gameplay loop](https://github.com/TN13007/rpg/issues/11) remains a separate long-term design question and does not block Version 1 implementation.
-- [PR #57 — Exploration Action Choice Pipeline](https://github.com/TN13007/rpg/pull/57) is merged; Session 3 Product Outcome is implemented.
+- [PR #65 — Sleep and the eight-hour clock transition](https://github.com/TN13007/rpg/pull/65) is open for Session 4 review. Its code is a proposal until merged; CI and manual Godot runtime acceptance must be checked.
+- [Issue #61 — Generalize Academy location content](https://github.com/TN13007/rpg/issues/61) remains deferred; do not implement it as part of Session 4.
+- [PR #64 — AI repository navigation guidance](https://github.com/TN13007/rpg/pull/64) is merged; root `AGENTS.md` is now part of `main`.
+- [PR #60 — ID-based content catalog and data-driven Combat Actions](https://github.com/TN13007/rpg/pull/60) is merged; Issue #59 is complete.
 - [PR #58 — Explicit layered architecture](https://github.com/TN13007/rpg/pull/58) is merged; the user confirmed the interactive Godot journey runs well.
-- [Issue #15 — Establish explicit layers and extract MainController flows](https://github.com/TN13007/rpg/issues/15) is complete; its architecture and controller-boundary changes are in `main`.
-- [Issue #59 — Establish ID-based content catalog and data-driven Combat Actions](https://github.com/TN13007/rpg/issues/59) is in progress on branch `feat/issue-59-content-catalog-combat-actions`. The current branch is a proposal until reviewed and merged.
+- [PR #57 — Exploration Action Choice Pipeline](https://github.com/TN13007/rpg/pull/57) is merged; Session 3 Product Outcome is implemented.
 - [PR #47 — Fatigue and Combat Stamina](https://github.com/TN13007/rpg/pull/47) is merged; the resource model is part of official `main`.
 
 ## 6. Next Session handoff
 
-1. Complete Issue #15's layered-structure and controller-boundary refactor before starting the next Version 1 feature.
-2. Keep Session 3 Learning Outcome marked **Not assessed** until the user independently traces the Player Action pipeline and completes the agreed small practice. Merged code and passing CI are not learning evidence.
-3. PR #58 CI now imports the project and launches the main scene and Combat preview in Godot 4.7.2 .NET headless mode. This confirms startup/resource loading, not full interactive UI acceptance. Earlier Session 1–2 runtime evidence remains historically incomplete/ambiguous; record any later manual journey separately.
-4. After Issue #15 is merged and its verification is complete, resume Session 4 — Sleep and Next-Day Transition using the existing Implementation Brief process.
+1. Review [PR #65](https://github.com/TN13007/rpg/pull/65): inspect the clock/action/test changes and wait for automated CI to complete.
+2. Run the Godot 4.7.2 .NET interactive journey after CI passes. Verify Sleep advances exactly 480 minutes, the date changes only across midnight, the Player remains in Dormitory, recovery is applied once, and both panels refresh.
+3. Do not merge PR #65 until the user has reviewed the implementation and runtime result.
+4. Keep Session 4 Learning marked **Not assessed** until the user independently writes or extends a clock boundary test and explains the responsibility split. Passing CI is not learning evidence.
 5. Record Product verification, Learning evidence and remaining blockers in this file only.
