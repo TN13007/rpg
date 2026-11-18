@@ -71,8 +71,8 @@ Data/*.json
   -> Exploration ViewData
   -> StoryPanel
   -> ActionSelectionRequest
-  -> Bootstrap / application dispatch
-  -> ActionExecutionService or owning flow
+  -> Presentation ExplorationFlowController
+  -> Application ActionExecutionService or owning Domain flow
   -> Domain state changes
   -> query + map again
   -> refreshed StoryPanel
@@ -84,8 +84,8 @@ The query discovers choices for the current context and does not mutate state. I
 
 ```text
 CombatPanel
-  -> CombatActionRequest
-  -> CombatService
+  -> CombatFlowController
+  -> CombatService / ActionExecutionService
   -> CombatResult + CombatSnapshot
   -> CombatPresentationMapper
   -> CombatViewData
@@ -117,7 +117,7 @@ A content definition is not the same thing as mutable runtime state. JSON parsin
 
 ## 5. Current implementation and remaining extraction
 
-The repository now has explicit layer directories and the Exploration contracts, query and mapper are separated. `MainController` is the Godot composition root; `ExplorationFlowController` and `CombatFlowController` own their respective presentation flows. The controllers coordinate UI and call Application/Domain services; they do not own authoritative gameplay rules. Issue [#15](https://github.com/TN13007/rpg/issues/15) tracks the remaining verification and cleanup.
+The repository now has explicit layer directories and the Exploration contracts, query and mapper are separated. `MainController` is the Godot composition root; `ExplorationFlowController` and `CombatFlowController` own their respective presentation flows. The controllers coordinate UI and call Application/Domain services; they do not own authoritative gameplay rules. Issue [#15](https://github.com/TN13007/rpg/issues/15) tracks final verification and integration.
 
 Do not interpret the folder map as proof that every dependency is already ideal. New code must follow the boundaries above; legacy coupling is removed when a focused change provides a testable improvement.
 
