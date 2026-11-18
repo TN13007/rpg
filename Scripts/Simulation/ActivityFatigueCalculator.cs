@@ -2,8 +2,8 @@ using System;
 
 public sealed class ActivityFatigueCalculator
 {
-    private const double RestingMet = 1.0;
-    private const double MinutesPerFatigueUnit = 15.0;
+    private const double _restingMet = 1.0;
+    private const double _minutesPerFatigueUnit = 15.0;
 
     public double Calculate(double activityMet, int actualDurationMinutes)
     {
@@ -17,8 +17,8 @@ public sealed class ActivityFatigueCalculator
             throw new ArgumentOutOfRangeException(nameof(actualDurationMinutes));
         }
 
-        double relativeIntensity = Math.Max(0, activityMet - RestingMet);
-        return relativeIntensity * actualDurationMinutes / MinutesPerFatigueUnit;
+        double relativeIntensity = Math.Max(0, activityMet - _restingMet);
+        return relativeIntensity * actualDurationMinutes / _minutesPerFatigueUnit;
     }
 
     public double Calculate(ActionDefinition action, int actualDurationMinutes)
