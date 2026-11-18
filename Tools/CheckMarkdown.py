@@ -80,7 +80,7 @@ def markdown_links(markdown: str):
             yield line_number, match.group(1).strip("<>")
 
 
-def resolve_local_target(source: Path, target: str, tracked: set[str]):
+def resolve_local_target(root: Path, source: Path, target: str, tracked: set[str]):
     """Resolve a local Markdown target; return (path, fragment, error)."""
     parsed = urlsplit(target)
     if parsed.scheme or parsed.netloc:
@@ -90,7 +90,7 @@ def resolve_local_target(source: Path, target: str, tracked: set[str]):
     if raw_path:
         candidate = (source.parent / raw_path).resolve()
         try:
-            relative = candidate.relative_to(ROOT.resolve()).as_posix()
+            relative = candidate.relative_to(root.resolve()).as_posix()
         except ValueError:
             return None, fragment, "target escapes the repository"
         if relative not in tracked:
@@ -109,7 +109,7 @@ def validate_markdown(root: Path, tracked_files: set[str]) -> list[str]:
             continue
         markdown = source.read_text(encoding="utf-8")
         for line_number, target in markdown_links(markdown):
-            destination, fragment, error = resolve_local_target(source, target, tracked_files)
+            destination, fragment, error = resolve_local_target(root, source, target, tracked_files)
             if error:
                 issues.append(f"{relative}:{line_number}: {target}: {error}")
                 continue
