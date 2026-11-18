@@ -17,7 +17,8 @@ public sealed class PlayerActionDataTests
         Assert.True(rest.IsAvailableAt("courtyard"));
         Assert.True(sleep.IsAvailableAt("dormitory"));
         Assert.False(sleep.IsAvailableAt("courtyard"));
-        Assert.Equal(ActionTimeMode.NextDay, sleep.Action.TimeMode);
+        Assert.Equal(480, sleep.Action.DurationMinutes);
+        Assert.Equal("Sleep for 8 hours", sleep.Action.Label);
     }
 
     [Fact]
