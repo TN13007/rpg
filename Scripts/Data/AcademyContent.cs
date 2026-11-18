@@ -200,6 +200,11 @@ public static class AcademyContent
             ActionDefinition loadedCombatEncounter = root.TryGetProperty("combatEncounter", out JsonElement combatData)
                 ? ReadActionDefinition("combat_encounter", "Combat Encounter", combatData)
                 : new ActionDefinition("combat_encounter", "Combat Encounter", 30);
+            if (root.TryGetProperty("selfActions", out _))
+            {
+                throw new InvalidOperationException("Self actions must be defined in Player.json as playerActions.");
+            }
+
             JsonElement locations = root.GetProperty("locations");
 
             foreach (JsonElement locationData in locations.EnumerateArray())
