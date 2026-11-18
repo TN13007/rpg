@@ -168,7 +168,8 @@ Track known disagreements between the documents and official implementation here
 - [PR #23 — Version 1 Exploration architecture and Session plan](https://github.com/TN13007/rpg/pull/23) is merged; the accepted design is not yet fully implemented.
 - [PR #24 — QA documentation alignment](https://github.com/TN13007/rpg/pull/24) is merged.
 - [PR #31 — naming-validator hardening](https://github.com/TN13007/rpg/pull/31) is merged; Issue #30 is closed.
-- [PR #33 — unified validation and repository workflow](https://github.com/TN13007/rpg/pull/33) is merged; Issue #32 is closed.\n- [Issue #46 — Separate daily Fatigue from Combat Stamina](https://github.com/TN13007/rpg/issues/46) is open; proposed work must be reviewed through its PR.
+- [PR #33 — unified validation and repository workflow](https://github.com/TN13007/rpg/pull/33) is merged; Issue #32 is closed.
+- [Issue #46 — Separate daily Fatigue from Combat Stamina](https://github.com/TN13007/rpg/issues/46) is open; proposed work must be reviewed through its PR.
 
 ## 6. Next Session handoff
 

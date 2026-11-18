@@ -39,7 +39,8 @@ Current implementation, active PRs, Session progress, learning evidence and docu
 | Indicator | Initial range | Version 1 meaning |
 |---|---:|---|
 | Health | 0–20 for current Player | Physical survival; 0 means dead |
-| Fatigue | 0–100 | Cumulative daily-life exertion; no automatic action lock in Version 1 |\n| Stamina | 0–10 | Short-term resource used by defensive Combat Actions |
+| Fatigue | 0–100 | Cumulative daily-life exertion; no automatic action lock in Version 1 |
+| Stamina | 0–10 | Short-term resource used by defensive Combat Actions |
 | Mood | 0–100 | Emotional wellbeing; descriptive bands only in Version 1 |
 | Gold | Non-negative integer | Preserve existing reward value; no shop/economy loop in Version 1 |
 
