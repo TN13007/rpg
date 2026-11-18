@@ -18,5 +18,57 @@
     "intelligence": 25,
     "endurance": 20,
     "wisdom": 20
-  }
+  },
+  "playerActions": [
+    {
+      "id": "rest",
+      "label": "Take a short rest",
+      "durationMinutes": 30,
+      "effects": [
+        {
+          "type": "RestoreFatigue",
+          "amount": 5
+        },
+        {
+          "type": "RestoreStamina",
+          "amount": 3
+        },
+        {
+          "type": "ChangeMood",
+          "amount": 2
+        }
+      ],
+      "feedback": "You pause, catch your breath and let the fatigue ease.",
+      "activityMet": 1
+    },
+    {
+      "id": "sleep",
+      "label": "Sleep until tomorrow",
+      "durationMinutes": 0,
+      "timeMode": "NextDay",
+      "effects": [
+        {
+          "type": "RestoreHealth",
+          "amount": 20
+        },
+        {
+          "type": "ChangeMood",
+          "amount": 10
+        },
+        {
+          "type": "RestoreFatigue",
+          "amount": 100
+        },
+        {
+          "type": "RestoreStamina",
+          "amount": 10
+        }
+      ],
+      "feedback": "You wake up after a night's rest. Another day at the academy begins.",
+      "activityMet": 1,
+      "availableLocationIds": [
+        "dormitory"
+      ]
+    }
+  ]
 }
