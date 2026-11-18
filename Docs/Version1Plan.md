@@ -351,6 +351,8 @@ Complete a normal day, return to the Dormitory and Sleep. Verify the clock advan
 ### Completion evidence
 
 Automated GameClock boundary/overflow tests, Sleep execution/recovery tests, and a Godot 4.7.2 .NET runtime record.
+<a id="session-5"></a>
+
 ## Session 5 — Health, Injury and Recovery
 
 **Player-facing result:** Combat damage has a meaningful daily-life consequence and the Player can recover at the academy Infirmary.
