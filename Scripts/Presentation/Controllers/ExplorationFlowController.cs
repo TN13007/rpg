@@ -11,7 +11,7 @@ public sealed class ExplorationFlowController
     private readonly List<LocationContent> _locations;
     private readonly Func<string, LocationContent> _getLocation;
     private readonly ActionDefinition _travelAction;
-    private readonly DayClock _dayClock;
+    private readonly GameClock _gameClock;
     private readonly ActionExecutionService _actionExecutionService;
     private readonly AvailableInteractionQuery _availableInteractionQuery;
     private readonly ActionChoiceMapper _actionChoiceMapper;
@@ -30,7 +30,7 @@ public sealed class ExplorationFlowController
         IEnumerable<LocationContent> locations,
         Func<string, LocationContent> getLocation,
         ActionDefinition travelAction,
-        DayClock dayClock,
+        GameClock gameClock,
         ActionExecutionService actionExecutionService,
         AvailableInteractionQuery availableInteractionQuery,
         ActionChoiceMapper actionChoiceMapper,
@@ -45,7 +45,7 @@ public sealed class ExplorationFlowController
         _locations = new List<LocationContent>(locations ?? throw new ArgumentNullException(nameof(locations)));
         _getLocation = getLocation ?? throw new ArgumentNullException(nameof(getLocation));
         _travelAction = travelAction ?? throw new ArgumentNullException(nameof(travelAction));
-        _dayClock = dayClock ?? throw new ArgumentNullException(nameof(dayClock));
+        _gameClock = gameClock ?? throw new ArgumentNullException(nameof(gameClock));
         _actionExecutionService = actionExecutionService ?? throw new ArgumentNullException(nameof(actionExecutionService));
         _availableInteractionQuery = availableInteractionQuery ?? throw new ArgumentNullException(nameof(availableInteractionQuery));
         _actionChoiceMapper = actionChoiceMapper ?? throw new ArgumentNullException(nameof(actionChoiceMapper));
@@ -78,7 +78,7 @@ public sealed class ExplorationFlowController
             location.Region,
             location.Description,
             choices,
-            _dayClock.GetDisplayText());
+            _gameClock.GetDisplayText());
         _storyPanel.ShowLocationButton(false);
     }
 
@@ -101,7 +101,7 @@ public sealed class ExplorationFlowController
             "ADVENTURER RECORD",
             description,
             Array.Empty<ActionChoiceViewData>(),
-            _dayClock.GetDisplayText());
+            _gameClock.GetDisplayText());
         _storyPanel.ShowLocationButton(true);
     }
 
@@ -270,13 +270,13 @@ public sealed class ExplorationFlowController
 
     private bool ExecuteAction(ActionDefinition action)
     {
-        int startDay = _dayClock.Day;
-        int startMinutes = _dayClock.MinutesOfDay;
+        int startDay = _gameClock.Day;
+        int startMinutes = _gameClock.MinutesOfDay;
 
         if (!_actionExecutionService.TryExecute(
             action,
             _player,
-            _dayClock,
+            _gameClock,
             out string failureReason,
             out _))
         {
@@ -289,16 +289,16 @@ public sealed class ExplorationFlowController
         _storyPanel.ShowTimeAdvanceFeedback(
             startDay,
             startMinutes,
-            _dayClock.Day,
-            _dayClock.MinutesOfDay);
+            _gameClock.Day,
+            _gameClock.MinutesOfDay);
         _storyPanel.ShowFeedback(action.Feedback);
         return true;
     }
 
     private void TravelTo(string destinationId)
     {
-        int startDay = _dayClock.Day;
-        int startMinutes = _dayClock.MinutesOfDay;
+        int startDay = _gameClock.Day;
+        int startMinutes = _gameClock.MinutesOfDay;
         LocationContent current = _getLocation(_currentLocationId);
         if (Array.IndexOf(current.Exits, destinationId) < 0)
         {
@@ -309,7 +309,7 @@ public sealed class ExplorationFlowController
         if (!_actionExecutionService.TryExecute(
             _travelAction,
             _player,
-            _dayClock,
+            _gameClock,
             out string failureReason,
             out _))
         {
@@ -324,8 +324,8 @@ public sealed class ExplorationFlowController
         _storyPanel.ShowTimeAdvanceFeedback(
             startDay,
             startMinutes,
-            _dayClock.Day,
-            _dayClock.MinutesOfDay);
+            _gameClock.Day,
+            _gameClock.MinutesOfDay);
         _storyPanel.ShowFeedback("You arrive at " + _getLocation(destinationId).Name + ".");
         TryTriggerLocationEvent();
     }
@@ -336,7 +336,7 @@ public sealed class ExplorationFlowController
 
         if (!_locationEventService.TryTrigger(
             location,
-            _dayClock.Day,
+            _gameClock.Day,
             _player.CanAct,
             out LocationEventDefinition triggeredEvent))
         {
@@ -358,7 +358,7 @@ public sealed class ExplorationFlowController
             locationEvent.Region,
             locationEvent.Description,
             choices,
-            _dayClock.GetDisplayText());
+            _gameClock.GetDisplayText());
         _storyPanel.ShowLocationButton(false);
     }
 

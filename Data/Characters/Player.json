@@ -40,16 +40,15 @@
     },
     {
       "id": "sleep",
-      "label": "Sleep until tomorrow",
-      "durationMinutes": 0,
-      "timeMode": "NextDay",
+      "label": "Sleep for 8 hours",
+      "durationMinutes": 480,
       "effects": [
         { "type": "RestoreHealth", "amount": 20 },
         { "type": "ChangeMood", "amount": 10 },
         { "type": "RestoreFatigue", "amount": 100 },
         { "type": "RestoreStamina", "amount": 10 }
       ],
-      "feedback": "You wake up after a night's rest. Another day at the academy begins.",
+      "feedback": "You sleep for eight hours and wake feeling restored.",
       "activityMet": 1,
       "availableLocationIds": ["dormitory"]
     }

@@ -1,11 +1,5 @@
 using System;
 
-public enum ActionTimeMode
-{
-    Duration,
-    NextDay
-}
-
 public enum ActionEffectType
 {
     RestoreHealth,
@@ -45,7 +39,6 @@ public sealed class ActionDefinition
     public int DurationMinutes { get; }
     public double ActivityMet { get; }
     public ActivityTimeModifier TimeModifier { get; }
-    public ActionTimeMode TimeMode { get; }
     public ActionEffectDefinition[] Effects { get; }
     public int? EstimatedDurationMinMinutes { get; }
     public int? EstimatedDurationMaxMinutes { get; }
@@ -58,7 +51,6 @@ public sealed class ActionDefinition
         string feedback = "",
         double activityMet = 1.0,
         ActionEffectDefinition[] effects = null,
-        ActionTimeMode timeMode = ActionTimeMode.Duration,
         int? estimatedDurationMinMinutes = null,
         int? estimatedDurationMaxMinutes = null)
     {
@@ -69,7 +61,6 @@ public sealed class ActionDefinition
         {
             throw new ArgumentOutOfRangeException(nameof(activityMet));
         }
-        if (!Enum.IsDefined(typeof(ActionTimeMode), timeMode)) throw new ArgumentOutOfRangeException(nameof(timeMode));
         if (estimatedDurationMinMinutes.HasValue != estimatedDurationMaxMinutes.HasValue)
         {
             throw new ArgumentException("Both estimated duration bounds must be provided together.");
@@ -80,18 +71,12 @@ public sealed class ActionDefinition
         {
             throw new ArgumentOutOfRangeException(nameof(estimatedDurationMinMinutes));
         }
-        if (timeMode == ActionTimeMode.NextDay &&
-            (estimatedDurationMinMinutes.HasValue || estimatedDurationMaxMinutes.HasValue))
-        {
-            throw new ArgumentException("NextDay actions cannot define a duration estimate.");
-        }
 
         Id = id;
         Label = label;
         DurationMinutes = durationMinutes;
         ActivityMet = activityMet;
         TimeModifier = timeModifier;
-        TimeMode = timeMode;
         Effects = effects ?? Array.Empty<ActionEffectDefinition>();
         Feedback = feedback ?? string.Empty;
         EstimatedDurationMinMinutes = estimatedDurationMinMinutes;

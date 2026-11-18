@@ -1,14 +1,13 @@
 using System;
 
-public sealed class DayClock
+public sealed class GameClock
 {
     private const int _minutesPerDay = 24 * 60;
-    private const int _wakeUpMinutes = 7 * 60 + 30;
 
     public int Day { get; private set; }
     public int MinutesOfDay { get; private set; }
 
-    public DayClock(int startingDay = 1, int startingHour = 7, int startingMinute = 30)
+    public GameClock(int startingDay = 1, int startingHour = 7, int startingMinute = 30)
     {
         if (startingDay < 1)
         {
@@ -38,19 +37,11 @@ public sealed class DayClock
 
         long totalMinutes = (long)MinutesOfDay + amount;
         int elapsedDays = (int)(totalMinutes / _minutesPerDay);
+        int nextDay = checked(Day + elapsedDays);
+        int nextMinutesOfDay = (int)(totalMinutes % _minutesPerDay);
 
-        Day = checked(Day + elapsedDays);
-        MinutesOfDay = (int)(totalMinutes % _minutesPerDay);
-    }
-
-    public void SleepUntilNextDay()
-    {
-        if (MinutesOfDay >= _wakeUpMinutes)
-        {
-            Day = checked(Day + 1);
-        }
-
-        MinutesOfDay = _wakeUpMinutes;
+        Day = nextDay;
+        MinutesOfDay = nextMinutesOfDay;
     }
 
     public string GetTimeOfDay()
