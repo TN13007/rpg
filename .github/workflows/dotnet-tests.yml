@@ -52,6 +52,9 @@ jobs:
           chmod +x "${GODOT_BIN}"
           echo "GODOT_BIN=${GODOT_BIN}" >> "${GITHUB_ENV}"
 
+      - name: Build Debug C# assembly for Godot runtime
+        run: dotnet build RPG.csproj --configuration Debug
+
       - name: Run Godot 4.7.2 .NET scene smoke tests
         shell: bash
         run: |
