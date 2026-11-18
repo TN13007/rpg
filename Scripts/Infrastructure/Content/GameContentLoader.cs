@@ -11,7 +11,8 @@ public static class GameContentLoader
         }
 
         string normalizedRoot = dataRoot.TrimEnd('/');
-        AcademyContent.Load(normalizedRoot + "/AcademyLocations.json");
+        AcademyContent academy = new AcademyContent();
+        academy.Load(normalizedRoot + "/AcademyLocations.json");
 
         CharacterData player = CharacterDataLoader.Load(normalizedRoot + "/Characters/Player.json");
         CharacterData goblin = CharacterDataLoader.Load(normalizedRoot + "/Characters/Goblin.json");
@@ -26,6 +27,6 @@ public static class GameContentLoader
         CombatActionCatalog combatActions = new CombatActionCatalog(
             CombatActionJsonReader.Read(combatActionsJson));
 
-        return new GameContentCatalog(player, goblin, combatActions);
+        return new GameContentCatalog(academy, player, goblin, combatActions);
     }
 }
