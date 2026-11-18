@@ -97,14 +97,31 @@ CombatService owns combat turn validation, resolution, enemy response and combat
 
 ### Content loading
 
+The composition root calls one entry point. Specialized readers still parse each schema; they are implementation details behind that entry point, not competing places for the game to initialize content.
+
 ```text
 Data/*.json
-  -> Infrastructure Content Loader / JSON Reader
-  -> Domain definitions
-  -> runtime objects and application queries
+  -> GameContentLoader
+      -> schema-specific JSON readers
+      -> Domain definitions
+      -> ID/reference validation
+  -> GameContentCatalog
+  -> runtime objects and Application services
+  -> Presentation
 ```
 
-A content definition is not the same thing as mutable runtime state. JSON parsing belongs to Infrastructure; validated game concepts belong to Domain.
+Content follows four distinct concepts:
+
+1. **Definition:** immutable authored data such as a Combat Action's label, supported behavior and parameters.
+2. **ID reference:** another definition stores a stable ID instead of copying the referenced data. For example, CharacterData stores `combatActionIds`.
+3. **Catalog:** owns loaded definitions, indexes them by ID and rejects duplicate definitions or unresolved references before gameplay begins.
+4. **Runtime:** Character and CombatService use resolved definitions while mutable Health, Stamina and encounter state remain runtime state.
+
+Infrastructure owns JSON parsing, file access, catalog construction and cross-reference validation. Domain owns the meaning and constraints of definitions and the gameplay behavior that executes them. Presentation maps the resulting snapshots to UI; it does not parse content or decide gameplay rules.
+
+A data definition can select only behavior already supported by code. Adding another action that uses an existing `CombatActionBehavior` can be content-only; introducing a genuinely new behavior requires a Domain implementation and tests. Combat AI, skill progression and arbitrary executable scripts in JSON are not part of this content pipeline.
+
+The current pilot uses `Data/Combat/CombatActions.json` as the shared definition source and `Player.json` as an ID-reference list. `GameContentLoader` is the single composition entry point, while `CombatActionJsonReader`, `CharacterDataLoader` and `AcademyContent` remain focused schema-specific readers. `GameContentCatalog` owns the loaded Academy data and Combat Action catalog; it does not rely on process-wide static Academy state.
 
 ## 4. File organization rules
 
