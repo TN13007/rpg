@@ -41,19 +41,22 @@ public partial class MainController : Control
         LocationEventService locationEventService = new LocationEventService();
 
         _gameModeController = new GameModeController(storyPanel, combatPanel);
+        CombatSessionService combatSessionService = new CombatSessionService(
+            player,
+            combatService,
+            dayClock,
+            activityTimeCalculator,
+            activityFatigueCalculator,
+            actionExecutionService,
+            AcademyContent.CombatEncounter);
         _combatController = new CombatFlowController(
             storyPanel,
             combatPanel,
             characterPanel,
             _gameModeController,
             player,
-            combatService,
-            combatPresentationMapper,
-            dayClock,
-            activityTimeCalculator,
-            activityFatigueCalculator,
-            actionExecutionService,
-            AcademyContent.CombatEncounter);
+            combatSessionService,
+            combatPresentationMapper);
         _explorationController = new ExplorationFlowController(
             storyPanel,
             characterPanel,
