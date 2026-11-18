@@ -77,6 +77,27 @@ public sealed class ExplorationInteractionQueryTests
     }
 
     [Fact]
+    public void EventChoices_UseSharedSelectionContractAndKeepEncounterTarget()
+    {
+        LoadContent();
+        Character player = TestCharacterFactory.CreatePlayer();
+        LocationEventDefinition locationEvent = AcademyContent.Get("courtyard").Events[0];
+        IReadOnlyList<AvailableInteraction> interactions =
+            new AvailableInteractionQuery().Query(locationEvent);
+        List<ActionChoiceViewData> choices = new ActionChoiceMapper(
+            new ActionDurationEstimateMapper(new ActivityTimeCalculator())).Map(interactions, player);
+
+        Assert.Equal(2, choices.Count);
+        Assert.All(choices, choice => Assert.Equal("CURRENT SITUATION", choice.GroupTitle));
+        Assert.Contains(choices, choice =>
+            ActionSelectionRequest.TryParse(choice.Id, out ActionSelectionRequest request) &&
+            request.SourceKind == InteractionSourceKind.Event &&
+            request.SourceId == locationEvent.Id &&
+            request.ActionId == "event_goblin_attack" &&
+            request.TargetId == "encounter_goblin");
+    }
+
+    [Fact]
     public void SelectionRequest_RoundTripsAndRejectsMalformedValues()
     {
         ActionSelectionRequest request = new ActionSelectionRequest(
