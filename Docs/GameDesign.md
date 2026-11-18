@@ -50,7 +50,7 @@ Combat is planned as **turn-based**.
 
 Combat has a dedicated presentation mode rather than reusing the normal Exploration presentation. The player should be able to understand the current encounter, distinguish actions from outcomes, read enemy reactions and make an informed next decision.
 
-The current main scene contains one playable, deterministic Goblin encounter: the player enters Combat from the Academy Courtyard, chooses Attack / Defend / Dodge, resolves the Goblin's response, receives 25 G on victory and returns to the same location. This is a narrow vertical slice, not the final combat system. See [Combat Panel Review](Ui.md) and [Playable Journey Sprint](Archive/SprintPlayableJourney.md).
+The current main scene contains one playable, deterministic Goblin encounter: the player enters Combat from the Academy Courtyard, chooses Attack / Defend / Dodge, resolves the Goblin's response, receives 25 G on victory and returns to the same location. This is a narrow vertical slice, not the final combat system. See [UI Architecture and Combat Panel Contract](Ui.md) and [Playable Journey Sprint](Archive/SprintPlayableJourney.md).
 
 ### 5. Player State
 

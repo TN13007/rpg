@@ -67,7 +67,7 @@ Record the tested branch/commit and attach the relevant Godot Output, screenshot
 - This test project does not launch the Godot scene, inspect rendered controls or validate mouse/input wiring.
 - Rest provides the current short-term recovery path for a living unconscious Player. This does not imply that a larger infirmary, collapse consequence or world-level recovery system exists.
 - PR #21 and PR #22 report passing GitHub Actions .NET tests, but both PR descriptions leave Godot runtime acceptance pending. Verify the current `main` build before recording those runtime checks as complete.
-- A previous owner-marked playable-journey pass is documented in `Docs/QA/PlayableJourneyTestReport.md`; that record explicitly notes that raw logs/screenshots and per-action measurements were not retained.
+- A previous owner-marked playable-journey pass is documented in `Docs/Archive/PlayableJourneyTestReport.md`; that record explicitly notes that raw logs/screenshots and per-action measurements were not retained.
 
 
 ## Day 1 — The First Day at Adventurer Academy
@@ -77,7 +77,7 @@ Record the tested branch/commit and attach the relevant Godot Output, screenshot
 **Verification note:** This document defines an acceptance scenario. It is not evidence that the current `main` build has completed Godot runtime acceptance.
 
 **Purpose:** A repeatable narrative and gameplay acceptance scenario for Version 1.  
-**Related plan:** [Version 1 Session Plan](../Design/Version1SessionPlan.md)  
+**Related plan:** [Version 1 Session Plan](Version1Plan.md)  
 **Starting point:** Main scene, Dormitory, Day 1 at 07:30.  
 **Scenario status:** Proposed test content. Existing behavior and planned Version 1 additions are distinguished below.
 

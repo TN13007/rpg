@@ -596,7 +596,7 @@ This is compatible with the responsibility boundaries in World Model Foundation.
 
 ### 6. Conclusion
 
-The existing `WorldModelFoundation.md` remains a suitable provisional foundation. The three scenarios reveal implementation gaps, but no contradiction requiring an immediate redesign.
+The world-model foundation in this document remains a suitable provisional foundation. The three scenarios reveal implementation gaps, but no contradiction requiring an immediate redesign.
 
 The smallest correct next step is to preserve the existing concepts and add explicit NPC/Object presence and target ownership only when a gameplay feature needs them. No implementation change is required by this review.
 
