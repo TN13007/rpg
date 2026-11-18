@@ -19,8 +19,8 @@ public partial class MainController : Control
         CharacterPanel characterPanel = GetNode<CharacterPanel>("SafeArea/Layout/CharacterPanel");
 
         GameContentCatalog content = GameContentLoader.Load("res://Data");
-        CharacterData playerData = content.Player;
-        CharacterData goblinData = content.Goblin;
+        CharacterData playerData = content.GetCharacter("player-ari");
+        CharacterData goblinData = content.GetCharacter("goblin-a");
         Character player = new Character(playerData);
         Character goblin = new Character(goblinData);
 
@@ -35,7 +35,7 @@ public partial class MainController : Control
             new ActionDurationEstimateMapper(activityTimeCalculator);
         AvailableInteractionQuery availableInteractionQuery = new AvailableInteractionQuery();
         ActionChoiceMapper actionChoiceMapper = new ActionChoiceMapper(durationEstimateMapper);
-        CombatService combatService = new CombatService(player, goblin, content.GetPlayerCombatActions());
+        CombatService combatService = new CombatService(player, goblin, content.GetCombatActionsForCharacter(playerData.Id));
         CombatPresentationMapper combatPresentationMapper = new CombatPresentationMapper();
         LocationEventService locationEventService = new LocationEventService();
 
