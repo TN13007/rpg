@@ -2,8 +2,8 @@ using System;
 
 public sealed class DayClock
 {
-    private const int MinutesPerDay = 24 * 60;
-    private const int WakeUpMinutes = 7 * 60 + 30;
+    private const int _minutesPerDay = 24 * 60;
+    private const int _wakeUpMinutes = 7 * 60 + 30;
 
     public int Day { get; private set; }
     public int MinutesOfDay { get; private set; }
@@ -37,20 +37,20 @@ public sealed class DayClock
         }
 
         long totalMinutes = (long)MinutesOfDay + amount;
-        int elapsedDays = (int)(totalMinutes / MinutesPerDay);
+        int elapsedDays = (int)(totalMinutes / _minutesPerDay);
 
         Day = checked(Day + elapsedDays);
-        MinutesOfDay = (int)(totalMinutes % MinutesPerDay);
+        MinutesOfDay = (int)(totalMinutes % _minutesPerDay);
     }
 
     public void SleepUntilNextDay()
     {
-        if (MinutesOfDay >= WakeUpMinutes)
+        if (MinutesOfDay >= _wakeUpMinutes)
         {
             Day = checked(Day + 1);
         }
 
-        MinutesOfDay = WakeUpMinutes;
+        MinutesOfDay = _wakeUpMinutes;
     }
 
     public string GetTimeOfDay()
