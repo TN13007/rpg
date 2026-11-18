@@ -36,7 +36,21 @@ public sealed class CombatActionDefinition
         if (string.IsNullOrWhiteSpace(id)) throw new ArgumentException("Combat action ID is required.", nameof(id));
         if (string.IsNullOrWhiteSpace(label)) throw new ArgumentException("Combat action label is required.", nameof(label));
         if (!Enum.IsDefined(typeof(CombatActionBehavior), behavior)) throw new ArgumentOutOfRangeException(nameof(behavior));
-        if (staminaCost < 0 || damage < 0 || recoveryAmount < 0) throw new ArgumentOutOfRangeException(nameof(staminaCost));
+        if (staminaCost < 0 || damage < 0 || recoveryAmount < 0)
+            throw new ArgumentOutOfRangeException(nameof(staminaCost), "Combat action values cannot be negative.");
+
+        switch (behavior)
+        {
+            case CombatActionBehavior.Attack when damage < 1:
+                throw new ArgumentOutOfRangeException(nameof(damage), "Attack damage must be positive.");
+            case CombatActionBehavior.Defend:
+            case CombatActionBehavior.Dodge:
+                if (staminaCost < 1)
+                    throw new ArgumentOutOfRangeException(nameof(staminaCost), "Defend and Dodge must cost Stamina.");
+                break;
+            case CombatActionBehavior.RecoverStamina when recoveryAmount < 1:
+                throw new ArgumentOutOfRangeException(nameof(recoveryAmount), "Stamina recovery must be positive.");
+        }
 
         Id = id;
         Label = label;
