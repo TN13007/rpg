@@ -1,7 +1,9 @@
+> Archived 2026-11-18. Its review findings are incorporated into [World.md](../World.md).
+
 # World Model Review — NPC, Object and Location
 
 **Related issue:** [#12 — Review NPC, Object and Location](https://github.com/TN13007/rpg/issues/12)  
-**Reference documents:** [World Model Foundation](WorldModelFoundation.md), [Game Overview](GameOverview.md), [UI Architecture](UiArchitecture.md), [Gameplay Loop and Location Events](GameLoopAndLocationEvents.md)  
+**Reference documents:** [World Model Foundation](../World.md), [Game Overview](../GameDesign.md), [UI Architecture](../Ui.md), [Gameplay Loop and Location Events](../Gameplay.md)  
 **Scope:** Design review only. This document records what the current prototype actually models and what remains conceptual.
 
 ## 1. Summary

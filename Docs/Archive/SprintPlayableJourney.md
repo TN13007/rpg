@@ -1,3 +1,5 @@
+> Archived 2026-11-18. This sprint-level record overlaps the current gameplay contract and acceptance scenario in [Gameplay.md](../Gameplay.md) and [Testing.md](../Testing.md). Retained for historical context; unchecked historical checklist items are not current acceptance criteria.
+
 # Sprint — Playable Academy Day and Location Event Loop
 
 **Goal:** Deliver a text-first academy day with location travel, timed activities, sleep and a Location-owned Event that can resolve through Combat or a non-combat Action. Player and enemy are represented by domain Character objects. The project owner recorded the playable-journey runtime check as complete in Issue #10; see the verification record below.
@@ -124,7 +126,7 @@ These values are prototype rules, not final balance. Sleep currently changes tim
 
 [Issue #10](https://github.com/TN13007/rpg/issues/10) was closed with all five of its playable-journey acceptance criteria marked complete by the project owner. Its scope covered the main scene, travel among the prototype Locations, Event appearance/non-appearance, Confront and Sneak, Combat actions/outcomes, character UI and resource/time behavior.
 
-The [QA verification record](../QA/PlayableJourneyTestReport.md) documents this owner-reported result. The Issue did not retain raw Godot Output logs, screenshots/video, exact before/after values or the exact local build revision.
+The [QA verification record](PlayableJourneyTestReport.md) documents this owner-reported result. The Issue did not retain raw Godot Output logs, screenshots/video, exact before/after values or the exact local build revision.
 
 The checklist above is broader than Issue #10. Its unchecked items remain unverified in the repository record; do not treat Issue #10 closure as proof that every Sprint acceptance criterion has been individually tested.
 
