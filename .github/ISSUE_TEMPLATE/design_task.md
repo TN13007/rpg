@@ -1,34 +1,45 @@
 ---
 name: Design task
-about: Resolve a gameplay or architecture question before implementation
+about: Resolve a gameplay, product or architecture decision before implementation
 title: "[Design] "
 labels: []
 assignees: []
 ---
 
-## Tài liệu cần đọc trước
-Liệt kê README/spec/design docs liên quan.
+## Context and references
+List the existing README, specifications, design documents, code or Issues that must be read first.
 
-## Vấn đề cần quyết định
-Mô tả câu hỏi hoặc mâu thuẫn cần giải quyết.
+## Decision to make
+State one clear question or conflict. Explain why the decision is needed now.
 
-## Tình huống gameplay dùng để kiểm chứng
+## Gameplay / usage scenarios
+List concrete situations that can validate the decision.
 1.
 2.
 3.
 
-## Các phương án đang cân nhắc
-Nêu ưu / nhược điểm nếu đã biết. Không cần tạo phương án giả định.
+## Constraints
+Technical, gameplay, scope, performance or compatibility constraints.
+
+## Options
+Describe realistic alternatives and their trade-offs. Do not invent alternatives when there is no meaningful choice.
+
+## Proposed direction
+Optional. State a preferred option and why; keep assumptions separate from confirmed requirements.
 
 ## Deliverables
-- [ ] Quyết định được ghi vào tài liệu sở hữu nội dung.
-- [ ] ERD / flow / ví dụ được cập nhật nếu thực sự cần.
-- [ ] Câu hỏi chưa giải quyết vẫn được ghi rõ.
+- [ ] A clear decision and its rationale are recorded in the document that owns the topic.
+- [ ] Relevant flow, data contract or examples are updated when necessary.
+- [ ] Unresolved questions and assumptions remain explicit.
+- [ ] A separate implementation Issue is created when implementation is a distinct deliverable.
 
 ## Acceptance criteria
-- [ ] Không mâu thuẫn với quyết định đã chốt.
-- [ ] Không tạo abstraction hoặc system khi chưa có nhu cầu gameplay.
-- [ ] Phân biệt rõ quyết định, giả định và câu hỏi còn mở.
+- [ ] The decision answers the stated question.
+- [ ] Concrete scenarios support the decision.
+- [ ] It does not contradict accepted project decisions without explicitly resolving the conflict.
+- [ ] It does not introduce abstractions or systems without a validated need.
 
-## Ngoài phạm vi
-Ghi rõ những gì Issue này không yêu cầu triển khai.
+## Out of scope
+State what this Issue does not decide or implement.
+
+## Related Issues

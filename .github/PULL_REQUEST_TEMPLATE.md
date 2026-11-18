@@ -1,28 +1,46 @@
 ## Summary
-Mô tả thay đổi và lý do.
+Describe the outcome this PR delivers. / Mô tả kết quả mà PR mang lại.
+
+## Problem
+What is wrong, missing or needed? Include current and expected behavior. / Vấn đề hiện tại là gì, hành vi mong đợi ra sao?
+
+## Proposed solution
+Explain the approach and important implementation decisions. / Giải thích cách giải quyết và quyết định triển khai quan trọng.
+
+## Scope and non-goals
+- [ ] All changed files contribute to the same outcome.
+- [ ] No unrelated cleanup, feature or architecture change is included.
+- [ ] Important non-goals and known limitations are stated.
 
 ## Related issue
-Closes #
+- Use `Closes #<number>` only when this PR completes the Issue.
+- Use `Part of #<number>` when this PR is one part of a larger Issue.
+- Use `Related to #<number>` for context only.
 
-## Scope
-- [ ] Chỉ thay đổi trong phạm vi Issue.
-- [ ] Không tự ý mở rộng architecture hoặc thêm system ngoài yêu cầu.
-- [ ] Đã kiểm tra tài liệu hiện có trước khi thay đổi.
+Issue link(s):
 
-## Implementation
-Mô tả trách nhiệm chính, luồng dữ liệu và các file quan trọng.
+## Implementation notes
+Describe the main responsibilities, data flow, compatibility impact and migration steps when relevant. / Nêu trách nhiệm chính, luồng dữ liệu, ảnh hưởng tương thích và migration nếu có.
 
 ## Tests and verification
-- [ ] Đã thêm / cập nhật automated tests cùng với code.
-- [ ] Đã kiểm tra normal cases.
-- [ ] Đã kiểm tra edge cases và tổ hợp edge cases phù hợp.
-- [ ] Đã chạy `dotnet test RPG.Tests/RPG.Tests.csproj --configuration Release`.
-- [ ] Đã build / chạy main scene trong Godot nếu thay đổi ảnh hưởng runtime hoặc UI.
-- [ ] Nếu chưa thể kiểm tra mục nào, ghi rõ lý do và phần còn rủi ro.
+Record actual commands and results. Do not check an item unless it was run.
 
-## Documentation
-- [ ] Đã cập nhật README / design docs liên quan.
-- [ ] Không có tài liệu bị lỗi thời do thay đổi này.
+- [ ] Python validator tests passed (when relevant).
+- [ ] Complete repository validation passed.
+- [ ] Full repository naming audit passed.
+- [ ] .NET tests passed.
+- [ ] Godot 4.7.2 .NET runtime / affected journey verified when scenes, node paths, UI, input or gameplay are affected.
+- [ ] Documentation links and rendered Markdown checked when documentation changes.
+- [ ] Untested items and reasons are explicitly listed.
+
+Commands and results:
+- 
+
+## Risks and limitations
+List known risks, edge cases, compatibility concerns and deferred work. Write `None known` only after assessing them.
+
+## Reviewer focus
+Call out the files, decisions or edge cases that deserve special attention.
 
 ## Learning record
 - [ ] If this PR belongs to a Learning-first Session, update the relevant entry in [WORKFLOW.md](../WORKFLOW.md).
@@ -31,6 +49,3 @@ Mô tả trách nhiệm chính, luồng dữ liệu và các file quan trọng.
 - Session (if applicable):
 - Learner evidence (only if checked):
 - Remaining practice (if any):
-
-## Reviewer notes
-Nêu điểm cần reviewer tập trung kiểm tra.
