@@ -143,14 +143,14 @@ Avoid duplication unless repetition materially improves usability.
 
 ### 6. Mode Ownership and Transitions
 
-MainController owns high-level Main Panel mode transitions:
-- Entering a Location presents Exploration.
-- Selecting an Event choice preserves the focused Event context until resolved.
-- Starting an encounter switches to Combat.
-- Ending Combat returns to the same Location's Exploration presentation.
-- Character Panel remains persistent.
+MainController is the Godot composition root. It wires UI signals to the focused flow controllers and does not own feature-level transitions.
 
-MainController orchestrates handlers and refreshes ViewModels. It must not calculate action costs, decide object state, resolve puzzles or implement combat rules.
+- ExplorationFlowController presents Locations, preserves active Event context and dispatches selected Exploration choices.
+- CombatFlowController starts encounters, handles Combat requests and returns to Exploration.
+- GameModeController switches the visible Main Panel mode.
+- Character Panel remains persistent across both modes.
+
+The flow controllers coordinate Presentation and call Application/Domain services. They must not duplicate action costs, mutate state outside the owning service or implement combat rules.
 
 ### 7. Prototype Reality Check
 
@@ -159,7 +159,7 @@ Currently implemented on `main`:
 - Exploration choices are discovered by `AvailableInteractionQuery` for Player, Location, Travel and Event sources.
 - Rest and Sleep are Player Actions in `Data/Characters/Player.json`; Rest is available at every actionable Location and Sleep is restricted to Dormitory.
 - `ActionChoiceMapper` converts available interactions into grouped `ActionChoiceViewData`; StoryPanel renders those groups.
-- `ActionSelectionRequest` carries source kind, source ID, action ID and optional target ID. MainController validates the current source/context before dispatch.
+- `ActionSelectionRequest` carries source kind, source ID, action ID and optional target ID. ExplorationFlowController validates the current source/context before dispatch.
 - Combat uses a dedicated CombatService → CombatPresentationMapper → CombatViewData → CombatPanel pipeline.
 
 Current transitional boundaries:
