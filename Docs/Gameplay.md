@@ -77,7 +77,7 @@ An Event owns its available choices. A choice contains an Action Definition for 
 - The Event Choice ID must match its Action ID so the UI's emitted choice identifier always resolves to exactly one authored choice.
 - A choice that cannot currently execute is rejected without spending resources or time; the Event remains available for another choice.
 - Successful non-combat resolution returns to Exploration at the same Location.
-- Successful Combat resolution uses the dedicated Combat UI and `CombatService`. The existing victory reward, defeat/death rules and encounter duration remain authoritative.
+- Successful Combat resolution uses the dedicated Combat UI and `CombatService`. `CombatSessionService` coordinates encounter entry and applies the configured completion duration/Fatigue. The existing victory reward and defeat/death rules remain authoritative.
 
 The first event is `courtyard_goblin_ambush`:
 - **Confront the goblin:** references the Courtyard's existing `encounter_goblin` action and enters Combat.
