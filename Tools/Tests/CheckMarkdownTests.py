@@ -19,6 +19,9 @@ class HeadingAnchorTests(unittest.TestCase):
     def test_github_style_slug_removes_punctuation_and_formats_spaces(self):
         self.assertEqual("session-3-exploration-pipeline", heading_slug("Session 3: Exploration Pipeline"))
 
+    def test_heading_slug_preserves_underscores(self):
+        self.assertEqual("api_reference_v2", heading_slug("API_Reference_v2"))
+
     def test_duplicate_headings_receive_numeric_suffixes(self):
         anchors = heading_anchors("# Setup\n\n## Setup\n\n## Setup")
         self.assertEqual({"setup", "setup-1", "setup-2"}, anchors)
@@ -90,6 +93,10 @@ class MarkdownValidationTests(unittest.TestCase):
         )
         tracked = self.tracked | {"Docs/Reference.md", "Docs/Child.md"}
         self.assertEqual([], active_document_orphans(self.root, tracked))
+
+    def test_inline_code_examples_are_not_treated_as_links(self):
+        source = "Use `[Fake](Docs/Missing.md)` but [Guide](Docs/Guide.md)."
+        self.assertEqual([(1, "Docs/Guide.md")], list(markdown_links(source)))
 
     def test_code_examples_are_not_treated_as_links(self):
         source = "[Guide](Docs/Guide.md)\n\n```md\n[Fake](Docs/Missing.md)\n```"
