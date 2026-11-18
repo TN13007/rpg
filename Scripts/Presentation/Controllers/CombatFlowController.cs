@@ -7,17 +7,8 @@ public sealed class CombatFlowController
     private readonly CharacterPanel _characterPanel;
     private readonly GameModeController _gameModeController;
     private readonly Character _player;
-    private readonly CombatService _combatService;
+    private readonly CombatSessionService _combatSession;
     private readonly CombatPresentationMapper _combatMapper;
-    private readonly DayClock _dayClock;
-    private readonly ActivityTimeCalculator _activityTimeCalculator;
-    private readonly ActivityFatigueCalculator _activityFatigueCalculator;
-    private readonly ActionExecutionService _actionExecutionService;
-    private readonly ActionDefinition _combatEncounterAction;
-
-    private int _combatStartDay;
-    private int _combatStartMinutes;
-    private bool _hasCombatTimeFeedback;
 
     public CombatFlowController(
         StoryPanel storyPanel,
@@ -25,62 +16,27 @@ public sealed class CombatFlowController
         CharacterPanel characterPanel,
         GameModeController gameModeController,
         Character player,
-        CombatService combatService,
-        CombatPresentationMapper combatMapper,
-        DayClock dayClock,
-        ActivityTimeCalculator activityTimeCalculator,
-        ActivityFatigueCalculator activityFatigueCalculator,
-        ActionExecutionService actionExecutionService,
-        ActionDefinition combatEncounterAction)
+        CombatSessionService combatSession,
+        CombatPresentationMapper combatMapper)
     {
         _storyPanel = storyPanel ?? throw new ArgumentNullException(nameof(storyPanel));
         _combatPanel = combatPanel ?? throw new ArgumentNullException(nameof(combatPanel));
         _characterPanel = characterPanel ?? throw new ArgumentNullException(nameof(characterPanel));
         _gameModeController = gameModeController ?? throw new ArgumentNullException(nameof(gameModeController));
         _player = player ?? throw new ArgumentNullException(nameof(player));
-        _combatService = combatService ?? throw new ArgumentNullException(nameof(combatService));
+        _combatSession = combatSession ?? throw new ArgumentNullException(nameof(combatSession));
         _combatMapper = combatMapper ?? throw new ArgumentNullException(nameof(combatMapper));
-        _dayClock = dayClock ?? throw new ArgumentNullException(nameof(dayClock));
-        _activityTimeCalculator = activityTimeCalculator ?? throw new ArgumentNullException(nameof(activityTimeCalculator));
-        _activityFatigueCalculator = activityFatigueCalculator ?? throw new ArgumentNullException(nameof(activityFatigueCalculator));
-        _actionExecutionService = actionExecutionService ?? throw new ArgumentNullException(nameof(actionExecutionService));
-        _combatEncounterAction = combatEncounterAction ?? throw new ArgumentNullException(nameof(combatEncounterAction));
     }
 
     public bool StartGoblinEncounter(ActionDefinition action)
     {
-        if (!_actionExecutionService.CanExecute(action, _player, out string failureReason))
-        {
-            _storyPanel.ShowFeedback(failureReason);
-            return false;
-        }
-
-        int startDay = _dayClock.Day;
-        int startMinutes = _dayClock.MinutesOfDay;
-
-        if (!_actionExecutionService.TryExecute(
-            action,
-            _player,
-            _dayClock,
-            out failureReason,
-            out _))
+        if (!_combatSession.TryStartEncounter(action, out string failureReason))
         {
             _storyPanel.ShowFeedback(failureReason);
             return false;
         }
 
         _characterPanel.SetCharacter(new CharacterViewModel(_player));
-
-        if (!_combatService.TryStartEncounter(out failureReason))
-        {
-            _storyPanel.ShowFeedback(failureReason);
-            return false;
-        }
-
-        _characterPanel.SetCharacter(new CharacterViewModel(_player));
-        _combatStartDay = startDay;
-        _combatStartMinutes = startMinutes;
-        _hasCombatTimeFeedback = true;
         _gameModeController.ShowCombat();
         _combatPanel.BeginEncounter("Goblin Ambush");
         _combatPanel.AppendMessage(new CombatMessage(
@@ -90,34 +46,33 @@ public sealed class CombatFlowController
             CombatMessageCategory.Environment,
             "SYSTEM",
             "A goblin jumps out from the bushes and blocks your way."));
-        _combatPanel.ApplyViewData(_combatMapper.Map(_combatService.GetSnapshot()));
+        _combatPanel.ApplyViewData(_combatMapper.Map(_combatSession.GetSnapshot()));
         return true;
     }
 
     public void HandleCombatAction(CombatActionRequest request)
     {
-        if (_combatService.IsEncounterOver)
+        if (_combatSession.IsEncounterOver)
         {
             return;
         }
 
-        CombatResult result = _combatService.ExecuteAction(request);
+        CombatResult result = _combatSession.ExecuteAction(request);
+        if (result == null)
+        {
+            return;
+        }
+
         _combatPanel.ApplyViewData(_combatMapper.Map(result));
         _characterPanel.SetCharacter(new CharacterViewModel(_player));
 
-        if (!_combatService.IsEncounterOver)
+        if (!_combatSession.IsEncounterOver)
         {
             return;
         }
 
-        int encounterDuration = _activityTimeCalculator.Calculate(_combatEncounterAction, _player);
-        _dayClock.AdvanceMinutes(encounterDuration);
-        double encounterFatigue = _activityFatigueCalculator.Calculate(
-            _combatEncounterAction,
-            encounterDuration);
-        _player.AddFatigue(encounterFatigue);
         _characterPanel.SetCharacter(new CharacterViewModel(_player));
-        _combatPanel.ShowEncounterComplete(_combatService.IsVictory ? "VICTORY" : "DEFEAT");
+        _combatPanel.ShowEncounterComplete(_combatSession.IsVictory ? "VICTORY" : "DEFEAT");
     }
 
     public void ReturnToExploration(Action showLocation)
@@ -131,14 +86,17 @@ public sealed class CombatFlowController
         _characterPanel.SetCharacter(new CharacterViewModel(_player));
         showLocation();
 
-        if (_hasCombatTimeFeedback)
+        if (_combatSession.TryConsumeTimeAdvance(
+            out int startDay,
+            out int startMinutes,
+            out int endDay,
+            out int endMinutes))
         {
             _storyPanel.ShowTimeAdvanceFeedback(
-                _combatStartDay,
-                _combatStartMinutes,
-                _dayClock.Day,
-                _dayClock.MinutesOfDay);
-            _hasCombatTimeFeedback = false;
+                startDay,
+                startMinutes,
+                endDay,
+                endMinutes);
         }
     }
 }
