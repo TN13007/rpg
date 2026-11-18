@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 
 internal static class TestCharacterFactory
 {
@@ -33,19 +34,8 @@ internal static class TestCharacterFactory
 
     public static CombatActionDefinition[] CreateCombatActions()
     {
-        return new[]
-        {
-            new CombatActionDefinition("attack", "Attack", "No Stamina cost", "Deal 20 damage to the enemy.",
-                CombatActionBehavior.Attack, 0, 20, 0, "", "You attack the enemy with a basic strike."),
-            new CombatActionDefinition("defend", "Defend", "1 Stamina", "Reduce the next enemy hit to 1 damage.",
-                CombatActionBehavior.Defend, 1, 0, 0, "Not enough Stamina.", "You take a guarded stance."),
-            new CombatActionDefinition("dodge", "Dodge", "2 Stamina", "Avoid the next enemy attack.",
-                CombatActionBehavior.Dodge, 2, 0, 0, "Not enough Stamina.", "You prepare to evade the next attack."),
-            new CombatActionDefinition("catch_breath", "Catch Breath", "Recover 3 Stamina",
-                "Recover your composure; the enemy still gets its turn.",
-                CombatActionBehavior.RecoverStamina, 0, 0, 3, "Stamina is already full.",
-                "You catch your breath and recover {amount} Stamina.")
-        };
+        string path = Path.Combine(AppContext.BaseDirectory, "Data", "Combat", "CombatActions.json");
+        return CombatActionJsonReader.Read(File.ReadAllText(path));
     }
 
     public static CombatService CreateCombat(
