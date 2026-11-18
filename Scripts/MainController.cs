@@ -14,6 +14,7 @@ public partial class MainController : Control
     private CombatPanel _combatPanel;
     private CharacterPanel _characterPanel;
     private Character _player;
+    private PlayerActionDefinition[] _playerActions = Array.Empty<PlayerActionDefinition>();
     private Character _goblin;
     private CombatService _combatService;
     private CombatPresentationMapper _combatMapper;
@@ -41,6 +42,8 @@ public partial class MainController : Control
         AcademyContent.Load("res://Data/AcademyLocations.json");
 
         CharacterData playerData = CharacterDataLoader.Load("res://Data/Characters/Player.json");
+        _playerActions = playerData.PlayerActions;
+        ValidatePlayerActions(_playerActions);
         CharacterData goblinData = CharacterDataLoader.Load("res://Data/Characters/Goblin.json");
 
         _player = new Character(playerData);
@@ -96,9 +99,25 @@ public partial class MainController : Control
             }
         }
 
-        foreach (ActionDefinition action in AcademyContent.SelfActions)
+        if (_player.CanAct)
         {
-            choices.Add(action);
+            foreach (PlayerActionDefinition playerAction in _playerActions)
+            {
+                if (playerAction.IsAvailableAt(location.Id))
+                {
+                    choices.Add(new ActionDefinition(
+                        "player:" + playerAction.Action.Id,
+                        playerAction.Action.Label,
+                        playerAction.Action.DurationMinutes,
+                        playerAction.Action.TimeModifier,
+                        playerAction.Action.Feedback,
+                        playerAction.Action.ActivityMet,
+                        playerAction.Action.Effects,
+                        playerAction.Action.TimeMode,
+                        playerAction.Action.EstimatedDurationMinMinutes,
+                        playerAction.Action.EstimatedDurationMaxMinutes));
+                }
+            }
         }
 
         foreach (string exitId in location.Exits)
@@ -173,12 +192,14 @@ public partial class MainController : Control
             return;
         }
 
+        if (choiceId.StartsWith("player:", StringComparison.Ordinal))
+        {
+            ExecutePlayerAction(choiceId.Substring("player:".Length));
+            return;
+        }
+
         LocationContent location = AcademyContent.Get(_currentLocationId);
         ActionDefinition selectedAction = FindChoice(location.Actions, choiceId);
-        if (selectedAction == null)
-        {
-            selectedAction = FindChoice(AcademyContent.SelfActions, choiceId);
-        }
 
         if (selectedAction == null)
         {
@@ -187,6 +208,56 @@ public partial class MainController : Control
         }
 
         ExecuteAction(selectedAction);
+    }
+
+    private void ExecutePlayerAction(string actionId)
+    {
+        if (!_player.CanAct)
+        {
+            _storyPanel.ShowFeedback("You cannot perform actions while incapacitated.");
+            return;
+        }
+
+        foreach (PlayerActionDefinition playerAction in _playerActions)
+        {
+            if (playerAction.Action.Id != actionId) continue;
+            if (!playerAction.IsAvailableAt(_currentLocationId))
+            {
+                _storyPanel.ShowFeedback("That personal action is not available here.");
+                return;
+            }
+
+            ExecuteAction(playerAction.Action);
+            return;
+        }
+
+        _storyPanel.ShowFeedback("That personal action is no longer available.");
+    }
+
+    private void ValidatePlayerActions(PlayerActionDefinition[] playerActions)
+    {
+        HashSet<string> actionIds = new HashSet<string>(StringComparer.Ordinal);
+        foreach (LocationContent location in AcademyContent.All)
+        {
+            foreach (ActionDefinition action in location.Actions) actionIds.Add(action.Id);
+        }
+
+        foreach (PlayerActionDefinition playerAction in playerActions)
+        {
+            if (!actionIds.Add(playerAction.Action.Id))
+                throw new InvalidOperationException("Player action ID conflicts with another action: " + playerAction.Action.Id);
+
+            foreach (string locationId in playerAction.AvailableLocationIds)
+            {
+                bool locationExists = false;
+                foreach (LocationContent location in AcademyContent.All)
+                {
+                    if (location.Id == locationId) { locationExists = true; break; }
+                }
+                if (!locationExists)
+                    throw new InvalidOperationException("Player action '" + playerAction.Action.Id + "' references unknown location '" + locationId + "'.");
+            }
+        }
     }
 
     private bool IsEventEncounterAction(LocationContent location, string actionId)
