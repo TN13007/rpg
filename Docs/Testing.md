@@ -2,7 +2,7 @@
 
 **Purpose:** One place for automated test instructions, manual runtime verification and the repeatable Day 1 gameplay acceptance scenario.
 
-Automated tests validate domain/application behavior without launching Godot. Repository validation also checks local Markdown links, resolvable heading anchors and navigation reachability for active documents under `Docs/`. External HTTP(S) links are not fetched. Archived documents are excluded from orphan detection, but their local links are still checked. Manual acceptance scenarios validate the actual Godot scene, UI wiring and player journey. A recorded pass must state what evidence exists and what remains unverified.
+Automated .NET tests validate domain/application behavior without launching a scene. CI also imports the project and launches the main scene plus the Combat preview in Godot 4.7.2 .NET headless mode, catching script/resource startup errors. Repository validation checks local Markdown links, resolvable heading anchors, navigation reachability, changed-path naming and C# style. Manual acceptance scenarios still validate rendered UI, input wiring and the full player journey. A recorded pass must state what evidence exists and what remains unverified.
 
 ## Automated Gameplay Tests
 
@@ -26,7 +26,7 @@ The automated suite exercises:
 - Rest and Sleep recovery, resource clamping and failure behavior for dead characters.
 - Combat Attack, Defend, Dodge, Catch Breath, enemy response, insufficient Stamina, victory, death and invalid requests.
 
-Use current test output and CI runs as evidence; do not preserve stale hard-coded test counts in this document.
+Use current test output and CI runs as evidence; do not preserve stale hard-coded test counts in this document. The CI Godot smoke checks are startup/resource checks, not full gameplay acceptance.
 
 ### Gameplay rules currently asserted
 
@@ -64,7 +64,7 @@ Record the tested branch/commit and attach the relevant Godot Output, screenshot
 - Fatigue penalties, exhaustion thresholds, unconsciousness and fatigue-based action blocking are intentionally deferred until the initial accumulation/recovery curve has been playtested.
 - Activity MET values and the conversion scale are initial balancing parameters, not a precise physiological prediction.
 - Combat Stamina currently has only Defend, Dodge and Catch Breath as resource interactions. Future skills/actions may require additional costs and recovery rules.
-- This test project does not launch the Godot scene, inspect rendered controls or validate mouse/input wiring.
+- The .NET test project does not launch Godot. CI headless smoke checks load the main scene and Combat preview but do not inspect rendered controls, validate mouse/input wiring or complete the full player journey.
 
 ## Day 1 — The First Day at Adventurer Academy
 
