@@ -217,8 +217,93 @@ public sealed class ActionExecutionTests
             }
         }
 
-        Assert.Equal(8, actionCount);
+        Assert.Equal(9, actionCount);
         Assert.Equal(2, LoadPlayerData().PlayerActions.Length);
+    }
+
+    [Fact]
+    public void InfirmaryTreatmentRestoresConfiguredHealthAndAppliesItsCostsOnce()
+    {
+        LoadAcademyContent();
+        LocationContent infirmary = _academy.Get("infirmary");
+        ActionDefinition treatment = FindAction("infirmary_treatment");
+
+        Assert.Contains("infirmary", _academy.Get("courtyard").Exits);
+        Assert.Contains("courtyard", infirmary.Exits);
+        Assert.Equal(60, treatment.DurationMinutes);
+        Assert.Equal(1.3, treatment.ActivityMet, 6);
+        ActionEffectDefinition effect = Assert.Single(treatment.Effects);
+        Assert.Equal(ActionEffectType.RestoreHealth, effect.Type);
+        Assert.Equal(5, effect.Amount);
+
+        Character actor = TestCharacterFactory.CreatePlayer(
+            health: 12, fatigue: 10, stamina: 3, mood: 40, gold: 7);
+        GameClock clock = new GameClock(1, 8, 0);
+
+        bool success = _service.TryExecute(
+            treatment, actor, clock, out string reason, out int duration);
+
+        Assert.True(success, reason);
+        Assert.Equal(60, duration);
+        Assert.Equal(17, actor.Health);
+        Assert.Equal(11.2, actor.Fatigue, 6);
+        Assert.Equal(3, actor.Stamina);
+        Assert.Equal(40, actor.Mood);
+        Assert.Equal(7, actor.Gold);
+        Assert.Equal(1, clock.Day);
+        Assert.Equal(540, clock.MinutesOfDay);
+    }
+
+    [Fact]
+    public void InfirmaryTreatmentAtFullHealthDoesNotExceedMaximum()
+    {
+        LoadAcademyContent();
+        Character actor = TestCharacterFactory.CreatePlayer(
+            health: 20, fatigue: 10, stamina: 3, mood: 40, gold: 7);
+        GameClock clock = new GameClock(1, 10, 0);
+
+        bool success = _service.TryExecute(
+            FindAction("infirmary_treatment"),
+            actor,
+            clock,
+            out string reason,
+            out int duration);
+
+        Assert.True(success, reason);
+        Assert.Equal(60, duration);
+        Assert.Equal(20, actor.Health);
+        Assert.Equal(11.2, actor.Fatigue, 6);
+        Assert.Equal(3, actor.Stamina);
+        Assert.Equal(40, actor.Mood);
+        Assert.Equal(7, actor.Gold);
+        Assert.Equal(660, clock.MinutesOfDay);
+    }
+
+    [Fact]
+    public void DeadActorCannotReceiveInfirmaryTreatmentOrChangeAnyState()
+    {
+        LoadAcademyContent();
+        Character actor = TestCharacterFactory.CreatePlayer(
+            health: 0, fatigue: 35, stamina: 2, mood: 45, gold: 9);
+        GameClock clock = new GameClock(2, 9, 30);
+
+        bool success = _service.TryExecute(
+            FindAction("infirmary_treatment"),
+            actor,
+            clock,
+            out string reason,
+            out int duration);
+
+        Assert.False(success);
+        Assert.Contains("dead", reason);
+        Assert.Equal(0, duration);
+        Assert.Equal(0, actor.Health);
+        Assert.Equal(35, actor.Fatigue);
+        Assert.Equal(2, actor.Stamina);
+        Assert.Equal(45, actor.Mood);
+        Assert.Equal(9, actor.Gold);
+        Assert.Equal(2, clock.Day);
+        Assert.Equal(570, clock.MinutesOfDay);
     }
 
     private ActionDefinition FindAction(string actionId)

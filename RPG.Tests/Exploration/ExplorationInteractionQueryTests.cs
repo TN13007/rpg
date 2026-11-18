@@ -42,6 +42,27 @@ public sealed class ExplorationInteractionQueryTests
     }
 
     [Fact]
+    public void Query_OffersInfirmaryTreatmentAndReturnTravel()
+    {
+        LoadContent();
+        Character player = TestCharacterFactory.CreatePlayer();
+        CharacterData playerData = LoadPlayerData();
+        LocationContent infirmary = _academy.Get("infirmary");
+
+        IReadOnlyList<AvailableInteraction> interactions = new AvailableInteractionQuery().Query(
+            player, playerData.PlayerActions, infirmary, _academy.Get, _academy.Travel);
+
+        Assert.Contains(interactions, item =>
+            item.SourceKind == InteractionSourceKind.Location &&
+            item.SourceId == "infirmary" &&
+            item.ActionId == "infirmary_treatment");
+        Assert.Contains(interactions, item =>
+            item.SourceKind == InteractionSourceKind.Travel &&
+            item.SourceId == "infirmary" &&
+            item.TargetId == "courtyard");
+    }
+
+    [Fact]
     public void Query_DoesNotMutatePlayerState()
     {
         LoadContent();
