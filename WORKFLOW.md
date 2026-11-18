@@ -119,20 +119,21 @@ Adventurer Academy is a fantasy life-simulation RPG prototype about daily life, 
 ### Implemented capabilities
 
 - Godot 4.7.2 .NET / C# project and main scene.
-- Player Health, Energy, Mood, Gold and alive/unconscious state.
+- Player Health, Fatigue, Stamina, Mood and Gold. Health = 0 means Dead; Fatigue and Stamina do not create an unconscious state.
 - DayClock with day/minute tracking, midnight rollover and NextDay transition.
 - Location travel among Dormitory, Courtyard, Practical Classroom and Guild Hall.
 - Location Actions, travel duration calculation and inline duration estimates.
 - Location Events, including the Courtyard Goblin Ambush with Confront and Sneak choices.
 - Dedicated Combat flow with Attack, Defend and Dodge.
-- Rest is currently a global Self Action in root `selfActions` in `Data/AcademyLocations.json`. It takes 30 minutes, costs 0 Energy, restores up to 3 Energy and adds 2 Mood. It explicitly permits execution while unconscious.
-- Sleep is currently a Dormitory Location Action. It uses `NextDay` and has configured Health, Energy and Mood recovery Effects.
+- Rest is currently a global Self Action in root `selfActions` in `Data/AcademyLocations.json`. It takes 30 minutes, restores up to 5 Fatigue and 3 Stamina, and adds 2 Mood.
+- Sleep is currently a Dormitory Location Action. It uses `NextDay` and restores Fatigue to 0 and Stamina to maximum, alongside its configured Health and Mood recovery Effects.
 
 ### Current behavior boundaries
 
 - Selecting an Exploration action executes immediately; the duration estimate is informational. There is no Preview / Confirm / Cancel screen.
-- Health = 0 means Dead and blocks all actions. Health > 0 with Energy = 0 means Unconscious. Only actions explicitly configured with `canExecuteWhenUnconscious` may run while unconscious; the flag does not waive Energy cost.
-- Rest currently works while unconscious; Sleep is not configured to do so.
+- Health = 0 means Dead and blocks gameplay actions. There is no Unconscious state in the current resource model.
+- Fatigue (0–100) represents cumulative daily-life exertion. It does not cause unconsciousness or block actions in this initial version.
+- Stamina (0–10) is reserved for defensive Combat Actions: Defend costs 1, Dodge costs 2, Attack is free, and Catch Breath restores up to 3 while the enemy still responds. Insufficient Stamina does not end Combat.
 - Current Exploration choices are assembled by MainController into a flat list. Rest comes from global `selfActions`; Sleep remains a Location Action.
 - The grouped Query → Mapper → Exploration ViewModel pipeline and Player-owned Player Actions are accepted design from merged PR #23, but are not yet implemented on `main`.
 - The complete academy routine, daily summary and full Save/Load loop are not implemented yet.
@@ -144,7 +145,7 @@ The nine-Session Version 1 plan is accepted design scope, merged through [PR #23
 | Session | Scope | Product status | Learning status |
 |---|---|---|---|
 | [Session 1](https://github.com/TN13007/rpg/blob/main/Docs/Version1Plan.md#session-1) | Inline Action Duration Estimates | **Implemented** — PR #21 merged; .NET CI passed; Godot runtime acceptance pending | **Not assessed** — no structured independent evidence recorded |
-| [Session 2](https://github.com/TN13007/rpg/blob/main/Docs/Version1Plan.md#session-2) | Fatigue Accumulation, Rest and Combat Stamina | **In PR #47** — implementation exists on the feature branch; CI #125 passed on the pre-sync head; Godot runtime retest pending. Main still uses the legacy Energy model until merge. | **Not assessed** — independent evidence is still required |
+| [Session 2](https://github.com/TN13007/rpg/blob/main/Docs/Version1Plan.md#session-2) | Fatigue Accumulation, Rest and Combat Stamina | **Implemented** — [PR #47 merged](https://github.com/TN13007/rpg/pull/47); [CI #142](https://github.com/TN13007/rpg/actions/runs/44315667902) passed on the final feature-branch head before merge. Godot evidence needs reconciliation because the PR checklist is checked while its verification note still says pending. | **Not assessed** — independent evidence is still required |
 | [Session 3](https://github.com/TN13007/rpg/blob/main/Docs/Version1Plan.md#session-3) | Exploration Action Choice Pipeline | **Planned** — accepted scope; no implementation on main | **Proposed** — learning target requires user approval |
 | [Session 4](https://github.com/TN13007/rpg/blob/main/Docs/Version1Plan.md#session-4) | Sleep and Next-Day Transition | **Planned** — accepted scope; not implemented | **Proposed** — learning target requires user approval |
 | [Session 5](https://github.com/TN13007/rpg/blob/main/Docs/Version1Plan.md#session-5) | Health, Injury and Recovery | **Planned** — accepted scope; not implemented | **Proposed** — learning target requires user approval |
@@ -180,24 +181,23 @@ Track known disagreements between the documents and official implementation here
 | SYNC-02 | Automated-test documentation previously misstated the unconscious-state rule. | `ActionExecutionService`, `AcademyLocations.json` and `RPG.Tests/ActionExecutionTests.cs` confirm the explicit Rest exception; [Automated Tests](Docs/Testing.md) was corrected in merged PR #24. | **Resolved — PR #24 merged.** |
 | SYNC-03 | The accepted Version 1 plan targets a grouped Player/Location/Travel/Event choice pipeline; current MainController still assembles a flat list. | [Exploration Pipeline](Docs/Gameplay.md) and [Version 1 Session Plan](Docs/Version1Plan.md) were accepted/merged in PR #23. | **Design accepted; implementation pending Session 3.** |
 | SYNC-04 | Rest and Sleep ownership differ from the proposed Player Action model. | Current main: Rest is root `selfActions`; Sleep is a Dormitory Location Action. Target proposal: Player-owned actions in Session 3. | **Design-to-implementation work is not started.** |
-| SYNC-05 | Sessions 1–2 passed their .NET CI checks, but Godot runtime acceptance remains unrecorded. | [PR #21](https://github.com/TN13007/rpg/pull/21) and [PR #22](https://github.com/TN13007/rpg/pull/22). | **Run the affected journeys in Godot or explicitly defer with a reason.** |
-| SYNC-06 | Issue #15 (extract Location/Event and Combat flow from MainController) may overlap with Session 3's Exploration query/choice pipeline. | [Issue #15](https://github.com/TN13007/rpg/issues/15) and [Exploration Pipeline](Docs/Gameplay.md). | **Reconcile ownership and boundaries before Session 3 implementation; keep Issue #15 open.** |
-| SYNC-07 | Session 2's accepted resource model has changed, but official `main` still contains Energy while PR #47 proposes Fatigue/Stamina. | [Issue #46](https://github.com/TN13007/rpg/issues/46), [PR #47](https://github.com/TN13007/rpg/pull/47), [Version 1 Plan](Docs/Version1Plan.md) and [Testing](Docs/Testing.md). | **Pending — PR #47 must pass post-sync CI, Godot runtime acceptance and review before the model is considered implemented.** |
+| SYNC-05 | Godot runtime evidence for earlier Sessions is incomplete or ambiguous. Session 1 runtime acceptance is not recorded. PR #47's checklist is checked, but its closing verification note still says runtime verification is pending. | [PR #21](https://github.com/TN13007/rpg/pull/21), [PR #22](https://github.com/TN13007/rpg/pull/22) and [PR #47](https://github.com/TN13007/rpg/pull/47). | **Historical evidence is ambiguous; do not block Session 3. Re-run only when the relevant journey is next touched, and record observed results.** |
+| SYNC-06 | Issue #15 proposes extracting Location/Event and Combat flow from MainController, which overlaps with Session 3's Exploration pipeline. | [Issue #15](https://github.com/TN13007/rpg/issues/15), [Gameplay](Docs/Gameplay.md) and [Architecture](Docs/Architecture.md). | **Deferred — not a Session 3 blocker. Re-scope only after Session 3 establishes the actual remaining controller responsibilities.** |
+| SYNC-07 | The accepted Fatigue/Stamina resource model previously differed from `main` while PR #47 was open. | [Issue #46](https://github.com/TN13007/rpg/issues/46), [PR #47](https://github.com/TN13007/rpg/pull/47), [Version 1 Plan](Docs/Version1Plan.md) and [Testing](Docs/Testing.md). | **Resolved — PR #47 merged and Issue #46 closed. Runtime evidence reconciliation is tracked in SYNC-05.** |
 
 ### Other active work
 
-- [Issue #11 — Decide the long-term gameplay loop](https://github.com/TN13007/rpg/issues/11) remains a separate design question. Do not add speculative progression systems to Version 1 to resolve it.
+- [Issue #11 — Decide the long-term gameplay loop](https://github.com/TN13007/rpg/issues/11) remains a separate long-term design question. Its current context and deliverables point to [Game Design](Docs/GameDesign.md) and [Roadmap](Docs/Roadmap.md); it does not block Version 1 implementation.
 - [PR #23 — Version 1 Exploration architecture and Session plan](https://github.com/TN13007/rpg/pull/23) is merged; the accepted design is not yet fully implemented.
 - [PR #24 — QA documentation alignment](https://github.com/TN13007/rpg/pull/24) is merged.
 - [PR #31 — naming-validator hardening](https://github.com/TN13007/rpg/pull/31) is merged; Issue #30 is closed.
 - [PR #33 — unified validation and repository workflow](https://github.com/TN13007/rpg/pull/33) is merged; Issue #32 is closed.
-- [Issue #46 — Separate daily Fatigue from Combat Stamina](https://github.com/TN13007/rpg/issues/46) is in progress through [PR #47](https://github.com/TN13007/rpg/pull/47), currently Draft; Godot runtime verification remains pending.
+- [Issue #46 — Separate daily Fatigue from Combat Stamina](https://github.com/TN13007/rpg/issues/46) is completed through [PR #47](https://github.com/TN13007/rpg/pull/47), now merged. The resource model is part of official `main`.
 
 ## 6. Next Session handoff
 
-1. Finish reviewing PR #47 after synchronization with main; run the full repository validation and record the resulting CI commit.
-2. Run the affected Fatigue/Stamina journeys in Godot 4.7.2 .NET, especially Travel, Rest, Sleep, Combat at 0 Stamina and exactly-once Combat Fatigue.
-3. Perform independent Learning checks for Sessions 1–2 before claiming mastery.
-4. Before Session 3, reconcile Issue #15 with the accepted Exploration/MainController boundaries and replace its stale Energy-specific acceptance details where needed.
-5. Approve or revise the Session 3 Learning objective, independent practice and knowledge check before using them.
-6. Record Product verification, Learning evidence and remaining blockers in this file only.
+1. Start Session 3 — Exploration Action Choice Pipeline. Use the merged `main` baseline and the existing Implementation Brief process; the documentation reconciliation is complete.
+2. Approve or revise the Session 3 Learning objective, independent practice and knowledge check at Session start.
+3. Do not pull Issue #15's controller extraction into Session 3 by default. After the pipeline is implemented, inspect the remaining `MainController` responsibilities and decide whether a separate refactor still provides value.
+4. Godot runtime evidence for Sessions 1–2 is historically incomplete/ambiguous. Do not claim it passed based only on CI; re-run the affected journey when relevant and record exactly what was observed.
+5. Record Product verification, Learning evidence and remaining blockers in this file only.

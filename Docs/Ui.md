@@ -124,7 +124,8 @@ The right-side Character Panel remains visible across Main Panel modes.
 
 Initial persistent indicators:
 - **Health:** survival; zero means death.
-- **Energy:** action capacity; zero while alive means unconsciousness.
+- **Fatigue:** daily-life exertion, accumulated from activity duration and intensity; it does not block actions in the initial version.
+- **Combat Stamina:** short-term resource for defensive Combat Actions; zero does not cause unconsciousness or end Combat.
 - **Mood:** emotional state.
 - **Gold:** reward currency.
 
@@ -206,7 +207,7 @@ Exploration communicates a place and its available interactions. Combat communic
 | Message Log | Ordered history of actions, reactions, results and observations | Append new messages |
 | Action Selection | Current actions, target, cost, description and availability | Replace the full action list |
 
-The Character Panel remains outside Combat Panel and persistently displays Health, Energy, Mood and Gold. It remains visible during Combat.
+The Character Panel remains outside Combat Panel and persistently displays Health, Fatigue, Stamina, Mood and Gold. It remains visible during Combat.
 
 ### 3. Architecture and Data Flow
 
@@ -363,9 +364,9 @@ Implemented in the main playable slice:
 - Bounded log and conditional auto-scroll.
 - Keyboard focus enabled for action buttons.
 - Main Screen integration with mutually exclusive Exploration and Combat modes.
-- Deterministic CombatService for Attack, Defend and Dodge, including validation, enemy response, HP / Energy mutation and victory / defeat.
+- Deterministic CombatService for Attack, Defend and Dodge, including validation, enemy response, Health / Stamina mutation and victory / defeat.
 - Victory reward of 25 G is applied to the Player Character through CombatService. Player and Goblin are Character domain objects created from CharacterData.
-- Persistent Character Panel showing Health, Energy, Mood and Gold.
+- Persistent Character Panel showing Health, Fatigue, Stamina, Mood and Gold.
 - Return from Combat to the same Exploration location.
 
 Not implemented:

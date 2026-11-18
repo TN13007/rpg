@@ -140,7 +140,7 @@ Action
               └── Publish Events when useful or required
 ```
 
-An Effect can be rejected or produce no State change. For example, `RestoreHealth(20)` may be valid but have no practical change when the character is already at maximum health. Conversely, an informational Action such as reading a letter may have no Effect at all. An Event is also optional: resting may update Energy without needing a `PlayerRested` event unless another feature needs to react to it.
+An Effect can be rejected or produce no State change. For example, `RestoreHealth(20)` may be valid but have no practical change when the character is already at maximum health. Conversely, an informational Action such as reading a letter may have no Effect at all. An Event is also optional: resting may restore Fatigue and Combat Stamina without needing a `PlayerRested` event unless another feature needs to react to it.
 
 State remains the source of truth for current conditions and Action availability. Events may trigger notifications, quest reactions or other follow-up processing, but UI availability should be derived from current State and applicable rules rather than treating an Event as the current truth.
 
@@ -154,7 +154,7 @@ Examples:
 
 Do not create a separate state system for every activity. First identify the owner of each state:
 
-- Character state: health, fatigue/energy, mood, needs, attributes, skills.
+- Character state: health, Fatigue, Combat Stamina, mood, other needs, attributes and skills.
 - Location state: discovered, blocked, damaged, resources remaining, local conditions.
 - Item state: quantity, durability, ownership, equipped status.
 - Relationship state: trust, affinity, hostility or other agreed dimensions.
@@ -396,7 +396,7 @@ For each step:
 
 This document is a design proposal. It does not claim that the listed entities, relationships, gameplay domains or systems are implemented.
 
-The current prototype still has its existing Academy/Goblin vertical slice and Energy-based character model. The proposed broader world model and any future Fatigue/AP redesign must be treated as design work until separately implemented and tested.
+The current prototype has its Academy/Goblin vertical slice and uses Health, Fatigue, Combat Stamina, Mood and Gold. Fatigue and Combat Stamina follow the initial rules in [Version 1 Plan](Version1Plan.md) and [Testing](Testing.md). The broader world model, additional needs and persistent NPC/object state remain design proposals until separately scoped, implemented and tested.
 
 
 ### 11. Exploration Action Sources and Choice Presentation

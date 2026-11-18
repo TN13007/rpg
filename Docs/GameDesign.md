@@ -27,7 +27,7 @@ The intended experience combines:
 - **Exploration:** Visit locations, discover people and objects, and choose contextual interactions.
 - **Adventure and combat:** Enter dangerous encounters as an occasional but meaningful part of the wider life simulation.
 
-The exact schedule model, time costs, progression formulas and activity economy have not been finalized. Do not assume they are implemented.
+The initial Version 1 rules for Fatigue and Combat Stamina are specified in [Version 1 Plan](Version1Plan.md) and [Testing](Testing.md). Broader schedule simulation, progression formulas and long-term activity balancing remain open; do not assume they are implemented.
 
 ### 3. World Navigation and Interaction
 
@@ -54,15 +54,16 @@ The current main scene contains one playable, deterministic Goblin encounter: th
 
 ### 5. Player State
 
-Three persistent character indicators are currently intended to remain visible:
+The current prototype exposes four core character indicators; the exact UI presentation is defined in [UI Architecture](Ui.md):
 
-| Indicator | Intended meaning |
+| Indicator | Current initial meaning |
 |---|---|
 | Health | Survival; reaching zero means the character dies. |
-| Energy | Limits available actions and contributes to challenge and progression. |
+| Fatigue | Daily-life exertion from activity intensity and actual duration. Initial range is 0–100; it does not automatically block actions or cause unconsciousness. |
+| Combat Stamina | Short-term Combat resource, initially 0–10, used by defensive actions such as Defend and Dodge. It is not spent by ordinary daily activities. |
 | Mood | Represents the character's emotional state. |
 
-These are current design intentions, not a complete simulation specification. Their numerical ranges, recovery rules, thresholds and exact effects are undecided.
+These are initial Version 1 rules, not a complete life-simulation specification. Long-term tuning and broader wellbeing mechanics remain open.
 
 ### 6. Presentation Direction
 
@@ -87,7 +88,7 @@ In particular, do not assume that the project already has:
 - Complete location navigation or interaction systems.
 - A working relationship or diary system.
 - A generalized combat system or advanced enemy AI.
-- A complete Health, Energy and Mood simulation.
+- A complete daily-life and wellbeing simulation beyond the initial Fatigue and Combat Stamina rules.
 - A finished life-simulation game or complete activity navigation.
 
 ### 8. Review Guidance
