@@ -5,9 +5,9 @@ The codebase is organized **layer-first, then by feature**. Start from the layer
 | Layer | Responsibility | Start here |
 |---|---|---|
 | `Bootstrap/` | Godot entry point and dependency composition | `MainController.cs` |
-| `Domain/` | Game state, definitions, rules and calculations | `Characters/Character.cs`, `Combat/CombatService.cs`, `Time/DayClock.cs` |
+| `Domain/` | Game state, definitions, rules and calculations | `Characters/Character.cs`, `Combat/CombatService.cs`, `Time/GameClock.cs` |
 | `Application/` | Use-case execution and read-only context queries | `Actions/ActionExecutionService.cs`, `Combat/CombatSessionService.cs`, `Exploration/AvailableInteractionQuery.cs` |
-| `Presentation/` | UI, flow coordination, ViewData and mappers | `Controllers/ExplorationFlowController.cs`, `Controllers/CombatFlowController.cs` |
+| `Presentation/` | UI, flow coordination, ViewData, mappers and display formatters | `Controllers/ExplorationFlowController.cs`, `Controllers/CombatFlowController.cs`, `Formatters/GameClockDisplayFormatter.cs` |
 | `Infrastructure/` | JSON/content loading and engine/platform integration | `Content/AcademyContent.cs`, `Content/CharacterDataLoader.cs` |
 
 ## Follow a feature

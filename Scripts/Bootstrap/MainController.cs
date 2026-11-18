@@ -24,7 +24,7 @@ public partial class MainController : Control
         Character player = new Character(playerData);
         Character goblin = new Character(goblinData);
 
-        DayClock dayClock = new DayClock();
+        GameClock gameClock = new GameClock();
         ActivityTimeCalculator activityTimeCalculator = new ActivityTimeCalculator();
         ActivityFatigueCalculator activityFatigueCalculator = new ActivityFatigueCalculator();
         ActionExecutionService actionExecutionService = new ActionExecutionService(
@@ -43,7 +43,7 @@ public partial class MainController : Control
         CombatSessionService combatSessionService = new CombatSessionService(
             player,
             combatService,
-            dayClock,
+            gameClock,
             activityTimeCalculator,
             activityFatigueCalculator,
             actionExecutionService,
@@ -65,7 +65,7 @@ public partial class MainController : Control
             content.Locations,
             content.GetLocation,
             content.Travel,
-            dayClock,
+            gameClock,
             actionExecutionService,
             availableInteractionQuery,
             actionChoiceMapper,

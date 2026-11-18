@@ -8,7 +8,7 @@ public sealed class CombatSessionServiceTests
         Character player = TestCharacterFactory.CreatePlayer();
         Character enemy = TestCharacterFactory.CreateEnemy(20);
         CombatService combatService = new CombatService(player, enemy, TestCharacterFactory.CreateCombatActions());
-        DayClock dayClock = new DayClock();
+        GameClock gameClock = new GameClock();
         ActivityTimeCalculator timeCalculator = new ActivityTimeCalculator();
         ActivityFatigueCalculator fatigueCalculator = new ActivityFatigueCalculator();
         ActionExecutionService actionExecutionService = new ActionExecutionService(
@@ -24,7 +24,7 @@ public sealed class CombatSessionServiceTests
         CombatSessionService session = new CombatSessionService(
             player,
             combatService,
-            dayClock,
+            gameClock,
             timeCalculator,
             fatigueCalculator,
             actionExecutionService,
@@ -38,7 +38,7 @@ public sealed class CombatSessionServiceTests
         Assert.NotNull(result);
         Assert.True(result.Success);
         Assert.True(session.IsEncounterOver);
-        Assert.Equal(480, dayClock.MinutesOfDay);
+        Assert.Equal(480, gameClock.MinutesOfDay);
         Assert.Equal(3.6, player.Fatigue, 2);
 
         Assert.Null(session.ExecuteAction(new CombatActionRequest("attack", enemy.Id)));

@@ -55,18 +55,14 @@ public sealed class ActionDurationEstimateMapperTests
     }
 
     [Fact]
-    public void Map_LabelsNextDayActions()
+    public void Map_FormatsEightHourSleepDuration()
     {
         Character actor = TestCharacterFactory.CreatePlayer();
-        ActionDefinition action = new ActionDefinition(
-            "sleep",
-            "Sleep",
-            0,
-            timeMode: ActionTimeMode.NextDay);
+        ActionDefinition action = new ActionDefinition("sleep", "Sleep", 480);
 
         string result = _mapper.Map(action, actor);
 
-        Assert.Equal("Until next morning", result);
+        Assert.Equal("8:00", result);
     }
 
     [Fact]
@@ -108,12 +104,6 @@ public sealed class ActionDurationEstimateMapperTests
         Assert.Throws<ArgumentOutOfRangeException>(CreateActionWithReversedEstimate);
     }
 
-    [Fact]
-    public void ActionDefinition_RejectsEstimateBoundsForNextDay()
-    {
-        Assert.Throws<ArgumentException>(CreateNextDayActionWithEstimate);
-    }
-
     private void MapNullAction()
     {
         _mapper.Map(null, TestCharacterFactory.CreatePlayer());
@@ -143,11 +133,4 @@ public sealed class ActionDurationEstimateMapperTests
             estimatedDurationMaxMinutes: 10);
     }
 
-    private void CreateNextDayActionWithEstimate()
-    {
-        new ActionDefinition("sleep", "Sleep", 0,
-            timeMode: ActionTimeMode.NextDay,
-            estimatedDurationMinMinutes: 10,
-            estimatedDurationMaxMinutes: 20);
-    }
 }

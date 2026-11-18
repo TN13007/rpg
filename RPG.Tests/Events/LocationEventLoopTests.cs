@@ -208,7 +208,7 @@ public sealed class LocationEventLoopTests
     {
         LoadAcademyContent();
         Character player = TestCharacterFactory.CreatePlayer(agility: 30);
-        DayClock clock = new DayClock();
+        GameClock clock = new GameClock();
         ActionExecutionService actionService = CreateActionService();
 
         bool travelled = actionService.TryExecute(
@@ -252,7 +252,7 @@ public sealed class LocationEventLoopTests
         LoadAcademyContent();
         Character player = TestCharacterFactory.CreatePlayer(agility: 30);
         Character enemy = TestCharacterFactory.CreateEnemy();
-        DayClock clock = new DayClock();
+        GameClock clock = new GameClock();
         ActionExecutionService actionService = CreateActionService();
 
         Assert.True(actionService.TryExecute(_academy.Travel, player, clock, out string travelReason, out _), travelReason);
@@ -282,7 +282,7 @@ public sealed class LocationEventLoopTests
         LocationEventDefinition locationEvent = _academy.Get("courtyard").Events[0];
         LocationEventChoiceDefinition sneakChoice = FindChoice(locationEvent, "event_goblin_sneak");
         Character player = TestCharacterFactory.CreatePlayer(fatigue: 100, stamina: 0);
-        DayClock clock = new DayClock();
+        GameClock clock = new GameClock();
         ActionExecutionService actionService = CreateActionService();
 
         bool result = actionService.TryExecute(

@@ -95,12 +95,12 @@ public partial class StoryPanel : PanelContainer
         int elapsedMinutes = _clockEndTotalMinutes - _clockStartTotalMinutes;
         if (elapsedMinutes <= 0)
         {
-            _day.Text = FormatClockDisplay(endDay, endMinutes);
+            _day.Text = GameClockDisplayFormatter.Format(endDay, endMinutes);
             return;
         }
 
         _isClockAnimating = true;
-        _day.Text = FormatClockDisplay(startDay, startMinutes);
+        _day.Text = GameClockDisplayFormatter.Format(startDay, startMinutes);
         _timeFeedback.Text = "+" + FormatElapsedTime(elapsedMinutes);
         _timeFeedback.Modulate = Colors.White;
         _timeFeedback.Visible = true;
@@ -136,12 +136,12 @@ public partial class StoryPanel : PanelContainer
             + Mathf.RoundToInt((_clockEndTotalMinutes - _clockStartTotalMinutes) * progress);
         int day = totalMinutes / 1440;
         int minutesOfDay = totalMinutes % 1440;
-        _day.Text = FormatClockDisplay(day, minutesOfDay);
+        _day.Text = GameClockDisplayFormatter.Format(day, minutesOfDay);
     }
 
     private void FinishClockAnimation()
     {
-        _day.Text = FormatClockDisplay(
+        _day.Text = GameClockDisplayFormatter.Format(
             _clockEndTotalMinutes / 1440,
             _clockEndTotalMinutes % 1440);
         _isClockAnimating = false;
@@ -168,31 +168,6 @@ public partial class StoryPanel : PanelContainer
         _timeFeedback.Visible = false;
         _timeFeedback.Text = string.Empty;
         _timeFeedback.Modulate = Colors.White;
-    }
-
-    private string FormatClockDisplay(int day, int minutesOfDay)
-    {
-        int hour = minutesOfDay / 60;
-        int minute = minutesOfDay % 60;
-        string timeOfDay = "NIGHT";
-
-        if (minutesOfDay < 12 * 60)
-        {
-            timeOfDay = "MORNING";
-        }
-        else if (minutesOfDay < 17 * 60)
-        {
-            timeOfDay = "AFTERNOON";
-        }
-        else if (minutesOfDay < 21 * 60)
-        {
-            timeOfDay = "EVENING";
-        }
-
-        return "DAY " + day.ToString("00")
-            + "  ·  " + timeOfDay
-            + "  ·  " + hour.ToString("00")
-            + ":" + minute.ToString("00");
     }
 
     private string FormatElapsedTime(int totalMinutes)

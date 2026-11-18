@@ -12,7 +12,7 @@ public sealed class ActionExecutionTests
     public void ActivityAddsFatigueFromMetAndCalculatedDuration()
     {
         Character actor = TestCharacterFactory.CreatePlayer(agility: 30);
-        DayClock clock = new DayClock();
+        GameClock clock = new GameClock();
         ActionDefinition walk = new ActionDefinition(
             "walk", "Walk", 10,
             new ActivityTimeModifier(CharacterStat.Agility, 0.5),
@@ -41,7 +41,7 @@ public sealed class ActionExecutionTests
     public void DeadActorCannotPerformActionOrAdvanceTime()
     {
         Character actor = TestCharacterFactory.CreatePlayer(health: 0, fatigue: 50);
-        DayClock clock = new DayClock();
+        GameClock clock = new GameClock();
         ActionDefinition action = new ActionDefinition("read", "Read", 10);
 
         bool success = _service.TryExecute(action, actor, clock, out string reason, out int duration);
@@ -58,7 +58,7 @@ public sealed class ActionExecutionTests
     {
         LoadAcademyContent();
         Character actor = TestCharacterFactory.CreatePlayer(fatigue: 20, stamina: 1, mood: 40, gold: 7);
-        DayClock clock = new DayClock();
+        GameClock clock = new GameClock();
 
         bool success = _service.TryExecute(FindAction("rest"), actor, clock, out string reason, out int duration);
 
@@ -76,7 +76,7 @@ public sealed class ActionExecutionTests
     {
         LoadAcademyContent();
         Character actor = TestCharacterFactory.CreatePlayer(fatigue: 0, stamina: 10);
-        DayClock clock = new DayClock();
+        GameClock clock = new GameClock();
 
         Assert.True(_service.TryExecute(FindAction("rest"), actor, clock, out string reason, out _), reason);
         Assert.Equal(0, actor.Fatigue);
@@ -89,24 +89,53 @@ public sealed class ActionExecutionTests
         Assert.Equal(10, actor.Stamina);
     }
 
-    [Fact]
-    public void SleepAdvancesOneDayAndPreservesHealthAndMoodRecovery()
+    [Theory]
+    [InlineData(22, 0, 2, 360)]
+    [InlineData(2, 0, 1, 600)]
+    [InlineData(23, 0, 2, 420)]
+    [InlineData(7, 29, 1, 929)]
+    public void SleepAdvancesEightHoursAndAppliesRecovery(
+        int startingHour,
+        int startingMinute,
+        int expectedDay,
+        int expectedMinutesOfDay)
     {
         LoadAcademyContent();
         Character actor = TestCharacterFactory.CreatePlayer(
             health: 5, fatigue: 55, stamina: 2, mood: 50);
-        DayClock clock = new DayClock(1, 22, 0);
+        GameClock clock = new GameClock(1, startingHour, startingMinute);
 
         bool success = _service.TryExecute(FindAction("sleep"), actor, clock, out string reason, out int duration);
 
         Assert.True(success, reason);
-        Assert.Equal(0, duration);
-        Assert.Equal(2, clock.Day);
-        Assert.Equal(450, clock.MinutesOfDay);
+        Assert.Equal(480, duration);
+        Assert.Equal(expectedDay, clock.Day);
+        Assert.Equal(expectedMinutesOfDay, clock.MinutesOfDay);
         Assert.Equal(20, actor.Health);
         Assert.Equal(0, actor.Fatigue);
         Assert.Equal(10, actor.Stamina);
         Assert.Equal(60, actor.Mood);
+    }
+
+    [Fact]
+    public void DeadActorCannotSleepToRestoreResourcesOrAdvanceTime()
+    {
+        Character actor = TestCharacterFactory.CreatePlayer(
+            health: 0, fatigue: 55, stamina: 2, mood: 50);
+        GameClock clock = new GameClock(1, 22, 0);
+
+        bool success = _service.TryExecute(
+            FindAction("sleep"), actor, clock, out string reason, out int duration);
+
+        Assert.False(success);
+        Assert.Contains("dead", reason);
+        Assert.Equal(0, duration);
+        Assert.Equal(1, clock.Day);
+        Assert.Equal(1320, clock.MinutesOfDay);
+        Assert.Equal(0, actor.Health);
+        Assert.Equal(55, actor.Fatigue);
+        Assert.Equal(2, actor.Stamina);
+        Assert.Equal(50, actor.Mood);
     }
 
     [Fact]
@@ -148,7 +177,7 @@ public sealed class ActionExecutionTests
     {
         LoadAcademyContent();
         Character actor = TestCharacterFactory.CreatePlayer(agility: 30);
-        DayClock clock = new DayClock();
+        GameClock clock = new GameClock();
 
         bool success = _service.TryExecute(
             _academy.Travel, actor, clock, out string reason, out int duration);

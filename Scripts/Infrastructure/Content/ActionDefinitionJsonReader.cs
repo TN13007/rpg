@@ -16,9 +16,6 @@ public static class ActionDefinitionJsonReader
         ActionEffectDefinition[] effects = data.TryGetProperty("effects", out JsonElement effectsData)
             ? ReadEffects(effectsData)
             : Array.Empty<ActionEffectDefinition>();
-        ActionTimeMode timeMode = data.TryGetProperty("timeMode", out JsonElement timeModeData)
-            ? ReadTimeMode(timeModeData)
-            : ActionTimeMode.Duration;
         string feedback = data.TryGetProperty("feedback", out JsonElement feedbackData)
             ? feedbackData.GetString()
             : string.Empty;
@@ -37,7 +34,6 @@ public static class ActionDefinitionJsonReader
             feedback,
             activityMet,
             effects,
-            timeMode,
             estimatedDurationMinMinutes,
             estimatedDurationMaxMinutes);
     }
@@ -66,19 +62,6 @@ public static class ActionDefinitionJsonReader
         }
 
         return effects.ToArray();
-    }
-
-    private static ActionTimeMode ReadTimeMode(JsonElement data)
-    {
-        string modeName = data.GetString();
-
-        if (!Enum.TryParse(modeName, true, out ActionTimeMode mode) ||
-            !Enum.IsDefined(typeof(ActionTimeMode), mode))
-        {
-            throw new InvalidOperationException("Unknown action time mode: " + modeName);
-        }
-
-        return mode;
     }
 
     private static ActivityTimeModifier ReadTimeModifier(JsonElement data)

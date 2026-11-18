@@ -4,7 +4,7 @@ public sealed class CombatSessionService
 {
     private readonly Character _player;
     private readonly CombatService _combatService;
-    private readonly DayClock _dayClock;
+    private readonly GameClock _gameClock;
     private readonly ActivityTimeCalculator _activityTimeCalculator;
     private readonly ActivityFatigueCalculator _activityFatigueCalculator;
     private readonly ActionExecutionService _actionExecutionService;
@@ -22,7 +22,7 @@ public sealed class CombatSessionService
     public CombatSessionService(
         Character player,
         CombatService combatService,
-        DayClock dayClock,
+        GameClock gameClock,
         ActivityTimeCalculator activityTimeCalculator,
         ActivityFatigueCalculator activityFatigueCalculator,
         ActionExecutionService actionExecutionService,
@@ -30,7 +30,7 @@ public sealed class CombatSessionService
     {
         _player = player ?? throw new ArgumentNullException(nameof(player));
         _combatService = combatService ?? throw new ArgumentNullException(nameof(combatService));
-        _dayClock = dayClock ?? throw new ArgumentNullException(nameof(dayClock));
+        _gameClock = gameClock ?? throw new ArgumentNullException(nameof(gameClock));
         _activityTimeCalculator = activityTimeCalculator ?? throw new ArgumentNullException(nameof(activityTimeCalculator));
         _activityFatigueCalculator = activityFatigueCalculator ?? throw new ArgumentNullException(nameof(activityFatigueCalculator));
         _actionExecutionService = actionExecutionService ?? throw new ArgumentNullException(nameof(actionExecutionService));
@@ -50,13 +50,13 @@ public sealed class CombatSessionService
             return false;
         }
 
-        int startDay = _dayClock.Day;
-        int startMinutes = _dayClock.MinutesOfDay;
+        int startDay = _gameClock.Day;
+        int startMinutes = _gameClock.MinutesOfDay;
 
         if (!_actionExecutionService.TryExecute(
             entryAction,
             _player,
-            _dayClock,
+            _gameClock,
             out failureReason,
             out _))
         {
@@ -115,8 +115,8 @@ public sealed class CombatSessionService
 
         startDay = _combatStartDay;
         startMinutes = _combatStartMinutes;
-        endDay = _dayClock.Day;
-        endMinutes = _dayClock.MinutesOfDay;
+        endDay = _gameClock.Day;
+        endMinutes = _gameClock.MinutesOfDay;
         _hasCombatTimeFeedback = false;
         return true;
     }
@@ -124,7 +124,7 @@ public sealed class CombatSessionService
     private void CompleteEncounter()
     {
         int encounterDuration = _activityTimeCalculator.Calculate(_combatEncounterAction, _player);
-        _dayClock.AdvanceMinutes(encounterDuration);
+        _gameClock.AdvanceMinutes(encounterDuration);
         double encounterFatigue = _activityFatigueCalculator.Calculate(
             _combatEncounterAction,
             encounterDuration);

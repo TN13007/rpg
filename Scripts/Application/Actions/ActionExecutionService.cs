@@ -41,13 +41,13 @@ public sealed class ActionExecutionService
     public bool TryExecute(
         ActionDefinition action,
         Character actor,
-        DayClock dayClock,
+        GameClock gameClock,
         out string failureReason,
         out int actualDuration)
     {
-        if (dayClock == null)
+        if (gameClock == null)
         {
-            throw new ArgumentNullException(nameof(dayClock));
+            throw new ArgumentNullException(nameof(gameClock));
         }
 
         if (!CanExecute(action, actor, out failureReason))
@@ -56,18 +56,8 @@ public sealed class ActionExecutionService
             return false;
         }
 
-        actualDuration = action.TimeMode == ActionTimeMode.Duration
-            ? _timeCalculator.Calculate(action, actor)
-            : 0;
-
-        if (action.TimeMode == ActionTimeMode.NextDay)
-        {
-            dayClock.SleepUntilNextDay();
-        }
-        else
-        {
-            dayClock.AdvanceMinutes(actualDuration);
-        }
+        actualDuration = _timeCalculator.Calculate(action, actor);
+        gameClock.AdvanceMinutes(actualDuration);
 
         actor.AddFatigue(_fatigueCalculator.Calculate(action, actualDuration));
         _effectExecutor.Apply(action, actor);

@@ -22,6 +22,7 @@ Scripts/
 │   └── Exploration/
 ├── Presentation/    # UI, view data, mappers and presentation controllers
 │   ├── Controllers/
+│   ├── Formatters/
 │   ├── Mappers/
 │   ├── Previews/
 │   ├── UI/
@@ -43,7 +44,7 @@ Other project areas:
 | Bootstrap | Discover Godot nodes, construct dependencies, connect top-level events and start the game | Feature rules or detailed UI behavior |
 | Domain | Character/runtime state, action definitions, combat/event rules, time and activity calculations | Godot UI, JSON parsing, Presentation types |
 | Application | Use-case coordination, request validation at the application boundary, read-only context queries and execution orchestration | Rendering, file access or duplicated domain rules |
-| Presentation | Godot UI controls, ViewModels, presentation mapping and screen/flow coordination | JSON loading, authoritative game rules or direct state mutation outside the owning use case |
+| Presentation | Godot UI controls, ViewModels, presentation mapping, display formatting and screen/flow coordination | JSON loading, authoritative game rules or direct state mutation outside the owning use case |
 | Infrastructure | Read/validate external content and adapt Godot/platform APIs | Gameplay decisions or presentation formatting |
 
 ### Dependency direction
