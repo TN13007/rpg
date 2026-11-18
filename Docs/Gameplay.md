@@ -93,12 +93,12 @@ The Event query/presentation path is responsible for turning the active Event's 
 
 | Responsibility | Owner |
 |---|---|
-| Event and choice definitions, content validation | `AcademyContent` and `LocationEventDefinition` |
+| Event and choice definitions, content validation | `AcademyContent` (Infrastructure) and `LocationEventDefinition` (Domain) |
 | Daily event-pool attempt and random selection | `LocationEventService` |
 | Travel, active event context and choice routing | `ExplorationFlowController` (Presentation flow coordinator) |
 | Exploration/Combat mode visibility | `GameModeController`; flow transitions are coordinated by the corresponding flow controller |
 | Action cost, time and effect execution | `ActionExecutionService` |
-| Combat validation, turns, enemy response and victory reward | `CombatService` |
+| Combat encounter entry, completion time and activity Fatigue | `CombatSessionService` (Application) |\n| Combat validation, turns, enemy response and victory reward | `CombatService` (Domain) |
 | Exploration and Combat rendering | Existing UI panels |
 
 No separate Expedition, Run or general-purpose Event System is introduced.
@@ -339,7 +339,7 @@ Resolve the responsible rule owner
         +--> Travel -> travel/location rule owner
         +--> Event choice -> Event resolution owner
         +--> NPC / Object interaction -> future specialized service
-        +--> Combat choice -> CombatService (separate mode)
+        +--> Combat choice -> CombatFlowController -> CombatSessionService -> CombatService
         |
         v
 Validate again -> execute -> update runtime state
