@@ -3,12 +3,13 @@ using Xunit;
 
 public sealed class LocationEventLoopTests
 {
+    private readonly AcademyContent _academy = new AcademyContent();
     [Fact]
     public void AcademyContent_LoadsCourtyardEventAndItsChoices()
     {
         LoadAcademyContent();
 
-        LocationContent courtyard = AcademyContent.Get("courtyard");
+        LocationContent courtyard = _academy.Get("courtyard");
 
         Assert.Single(courtyard.Events);
         Assert.Equal("courtyard_goblin_ambush", courtyard.Events[0].Id);
@@ -211,7 +212,7 @@ public sealed class LocationEventLoopTests
         ActionExecutionService actionService = CreateActionService();
 
         bool travelled = actionService.TryExecute(
-            AcademyContent.Travel,
+            _academy.Travel,
             player,
             clock,
             out string travelReason,
@@ -222,7 +223,7 @@ public sealed class LocationEventLoopTests
         Assert.Equal(1.08, player.Fatigue, 6);
         Assert.Equal(8, player.Stamina);
 
-        LocationContent courtyard = AcademyContent.Get("courtyard");
+        LocationContent courtyard = _academy.Get("courtyard");
         LocationEventService eventService = new LocationEventService(new Random(1));
         bool triggered = eventService.TryTrigger(courtyard, clock.Day, player.CanAct, out LocationEventDefinition locationEvent);
 
@@ -254,9 +255,9 @@ public sealed class LocationEventLoopTests
         DayClock clock = new DayClock();
         ActionExecutionService actionService = CreateActionService();
 
-        Assert.True(actionService.TryExecute(AcademyContent.Travel, player, clock, out string travelReason, out _), travelReason);
+        Assert.True(actionService.TryExecute(_academy.Travel, player, clock, out string travelReason, out _), travelReason);
 
-        LocationContent courtyard = AcademyContent.Get("courtyard");
+        LocationContent courtyard = _academy.Get("courtyard");
         LocationEventService eventService = new LocationEventService(new Random(1));
         Assert.True(eventService.TryTrigger(courtyard, clock.Day, player.CanAct, out LocationEventDefinition locationEvent));
 
@@ -268,7 +269,7 @@ public sealed class LocationEventLoopTests
         Assert.Equal(1.08, player.Fatigue, 6);
         Assert.Equal(8, player.Stamina);
 
-        CombatService combat = new CombatService(player, enemy);
+        CombatService combat = new CombatService(player, enemy, TestCharacterFactory.CreateCombatActions());
         Assert.True(combat.TryStartEncounter(out string combatReason), combatReason);
         Assert.Equal(40, enemy.Health);
         Assert.True(player.CanAct);
@@ -278,7 +279,7 @@ public sealed class LocationEventLoopTests
     public void HighFatigueAndZeroStamina_DoNotBlockEventChoice()
     {
         LoadAcademyContent();
-        LocationEventDefinition locationEvent = AcademyContent.Get("courtyard").Events[0];
+        LocationEventDefinition locationEvent = _academy.Get("courtyard").Events[0];
         LocationEventChoiceDefinition sneakChoice = FindChoice(locationEvent, "event_goblin_sneak");
         Character player = TestCharacterFactory.CreatePlayer(fatigue: 100, stamina: 0);
         DayClock clock = new DayClock();
@@ -305,7 +306,7 @@ public sealed class LocationEventLoopTests
         string json = CreateContentJson(
             "[{ \"id\": \"event\", \"title\": \"Event\", \"region\": \"REGION\", \"description\": \"Description\", \"chance\": 1, \"choices\": [{ \"id\": \"choice\", \"label\": \"Choice\", \"durationMinutes\": 0, \"encounterActionId\": \"missing\" }] }]");
 
-        Assert.Throws<InvalidOperationException>(() => AcademyContent.LoadJson(json));
+        Assert.Throws<InvalidOperationException>(() => _academy.LoadJson(json));
     }
 
     [Fact]
@@ -317,7 +318,7 @@ public sealed class LocationEventLoopTests
             + "]";
         string json = CreateContentJson(eventJson);
 
-        Assert.Throws<InvalidOperationException>(() => AcademyContent.LoadJson(json));
+        Assert.Throws<InvalidOperationException>(() => _academy.LoadJson(json));
     }
 
     private static ActionExecutionService CreateActionService()
@@ -380,9 +381,9 @@ public sealed class LocationEventLoopTests
             + "}";
     }
 
-    private static void LoadAcademyContent()
+    private void LoadAcademyContent()
     {
         string path = System.IO.Path.Combine(System.AppContext.BaseDirectory, "Data", "AcademyLocations.json");
-        AcademyContent.LoadJson(System.IO.File.ReadAllText(path));
+        _academy.LoadJson(System.IO.File.ReadAllText(path));
     }
 }

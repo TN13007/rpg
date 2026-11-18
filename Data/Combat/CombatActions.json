@@ -1,0 +1,43 @@
+{
+  "actions": [
+    {
+      "id": "attack",
+      "label": "Attack",
+      "costLabel": "No Stamina cost",
+      "description": "Deal 20 damage to the enemy.",
+      "behavior": "Attack",
+      "damage": 20,
+      "actionDetail": "You attack the enemy with a basic strike."
+    },
+    {
+      "id": "defend",
+      "label": "Defend",
+      "costLabel": "1 Stamina",
+      "description": "Reduce the next enemy hit to 1 damage.",
+      "behavior": "Defend",
+      "staminaCost": 1,
+      "unavailableReason": "Not enough Stamina.",
+      "actionDetail": "You take a guarded stance."
+    },
+    {
+      "id": "dodge",
+      "label": "Dodge",
+      "costLabel": "2 Stamina",
+      "description": "Avoid the next enemy attack.",
+      "behavior": "Dodge",
+      "staminaCost": 2,
+      "unavailableReason": "Not enough Stamina.",
+      "actionDetail": "You prepare to evade the next attack."
+    },
+    {
+      "id": "catch_breath",
+      "label": "Catch Breath",
+      "costLabel": "Recover 3 Stamina",
+      "description": "Recover your composure; the enemy still gets its turn.",
+      "behavior": "RecoverStamina",
+      "recoveryAmount": 3,
+      "unavailableReason": "Stamina is already full.",
+      "actionDetail": "You catch your breath and recover {amount} Stamina."
+    }
+  ]
+}

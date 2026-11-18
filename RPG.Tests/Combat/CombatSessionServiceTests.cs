@@ -7,7 +7,7 @@ public sealed class CombatSessionServiceTests
     {
         Character player = TestCharacterFactory.CreatePlayer();
         Character enemy = TestCharacterFactory.CreateEnemy(20);
-        CombatService combatService = new CombatService(player, enemy);
+        CombatService combatService = new CombatService(player, enemy, TestCharacterFactory.CreateCombatActions());
         DayClock dayClock = new DayClock();
         ActivityTimeCalculator timeCalculator = new ActivityTimeCalculator();
         ActivityFatigueCalculator fatigueCalculator = new ActivityFatigueCalculator();

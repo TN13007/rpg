@@ -18,10 +18,9 @@ public partial class MainController : Control
         CombatPanel combatPanel = GetNode<CombatPanel>("SafeArea/Layout/CombatPanel");
         CharacterPanel characterPanel = GetNode<CharacterPanel>("SafeArea/Layout/CharacterPanel");
 
-        AcademyContent.Load("res://Data/AcademyLocations.json");
-
-        CharacterData playerData = CharacterDataLoader.Load("res://Data/Characters/Player.json");
-        CharacterData goblinData = CharacterDataLoader.Load("res://Data/Characters/Goblin.json");
+        GameContentCatalog content = GameContentLoader.Load("res://Data");
+        CharacterData playerData = content.GetCharacter("player-ari");
+        CharacterData goblinData = content.GetCharacter("goblin-a");
         Character player = new Character(playerData);
         Character goblin = new Character(goblinData);
 
@@ -36,7 +35,7 @@ public partial class MainController : Control
             new ActionDurationEstimateMapper(activityTimeCalculator);
         AvailableInteractionQuery availableInteractionQuery = new AvailableInteractionQuery();
         ActionChoiceMapper actionChoiceMapper = new ActionChoiceMapper(durationEstimateMapper);
-        CombatService combatService = new CombatService(player, goblin);
+        CombatService combatService = new CombatService(player, goblin, content.GetCombatActionsForCharacter(playerData.Id));
         CombatPresentationMapper combatPresentationMapper = new CombatPresentationMapper();
         LocationEventService locationEventService = new LocationEventService();
 
@@ -48,7 +47,7 @@ public partial class MainController : Control
             activityTimeCalculator,
             activityFatigueCalculator,
             actionExecutionService,
-            AcademyContent.CombatEncounter);
+            content.CombatEncounter);
         _combatController = new CombatFlowController(
             storyPanel,
             combatPanel,
@@ -63,9 +62,9 @@ public partial class MainController : Control
             _gameModeController,
             player,
             playerData.PlayerActions,
-            AcademyContent.All,
-            AcademyContent.Get,
-            AcademyContent.Travel,
+            content.Locations,
+            content.GetLocation,
+            content.Travel,
             dayClock,
             actionExecutionService,
             availableInteractionQuery,
@@ -85,11 +84,7 @@ public partial class MainController : Control
 
     private void OpenTab(string tab)
     {
-        if (_gameModeController.IsCombatMode)
-        {
-            return;
-        }
-
+        if (_gameModeController.IsCombatMode) return;
         _explorationController.ShowPage(tab);
     }
 

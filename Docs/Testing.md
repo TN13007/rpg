@@ -24,7 +24,7 @@ The automated suite exercises:
 - Activity Fatigue calculation from relative MET and actual duration, including fractional values and boundary inputs.
 - Action definition loading, authored activity intensity, duration modifiers, effects and time advancement.
 - Rest and Sleep recovery, resource clamping and failure behavior for dead characters.
-- Combat Attack, Defend, Dodge, Catch Breath, enemy response, insufficient Stamina, victory, death and invalid requests.
+- Combat Action JSON parsing, ID catalog lookup, duplicate/unknown reference rejection, data-driven Attack damage, Defend, Dodge, Catch Breath, enemy response, insufficient Stamina, victory, death and invalid requests.
 
 Use current test output and CI runs as evidence; do not preserve stale hard-coded test counts in this document. The CI Godot smoke checks are startup/resource checks, not full gameplay acceptance.
 
@@ -51,6 +51,7 @@ Automated tests do not launch or inspect the rendered Godot UI. Run the main sce
 - Rest takes 30 minutes, reduces Fatigue by 5, restores up to 3 Stamina and adds 2 Mood.
 - Sleep advances to the next morning and restores Fatigue/Stamina plus its configured Health/Mood values exactly once.
 - Combat can start at 0 Stamina. Attack and Catch Breath are available.
+- The four player Combat Actions are loaded from `Data/Combat/CombatActions.json` and resolved from `Player.json` IDs; their labels, descriptions, costs and supported behavior parameters match the authored definitions.
 - Defend and Dodge show their Stamina costs and are unavailable only when Stamina is insufficient.
 - Catch Breath restores up to 3 Stamina and the enemy still attacks.
 - Defend/Dodge at the last available Stamina do not end the encounter.

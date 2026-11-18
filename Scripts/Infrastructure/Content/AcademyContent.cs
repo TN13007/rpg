@@ -3,16 +3,16 @@ using System.Collections.Generic;
 using System.Text.Json;
 using Godot;
 
-public static class AcademyContent
+public sealed class AcademyContent
 {
-    private static Dictionary<string, LocationContent> _locations =
+    private Dictionary<string, LocationContent> _locations =
         new Dictionary<string, LocationContent>(StringComparer.Ordinal);
 
-    public static IEnumerable<LocationContent> All => _locations.Values;
-    public static ActionDefinition Travel { get; private set; } = new ActionDefinition("travel", "Travel", 10);
-    public static ActionDefinition CombatEncounter { get; private set; } = new ActionDefinition("combat_encounter", "Combat Encounter", 30);
+    public IEnumerable<LocationContent> All => _locations.Values;
+    public ActionDefinition Travel { get; private set; } = new ActionDefinition("travel", "Travel", 10);
+    public ActionDefinition CombatEncounter { get; private set; } = new ActionDefinition("combat_encounter", "Combat Encounter", 30);
 
-    public static void Load(string path)
+    public void Load(string path)
     {
         if (string.IsNullOrWhiteSpace(path))
         {
@@ -28,7 +28,7 @@ public static class AcademyContent
         LoadJson(json);
     }
 
-    public static void LoadJson(string json)
+    public void LoadJson(string json)
     {
         if (string.IsNullOrWhiteSpace(json))
         {
@@ -96,7 +96,7 @@ public static class AcademyContent
         }
     }
 
-    public static LocationContent Get(string id)
+    public LocationContent Get(string id)
     {
         if (string.IsNullOrWhiteSpace(id))
         {

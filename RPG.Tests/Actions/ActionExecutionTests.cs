@@ -4,6 +4,7 @@ using Xunit;
 
 public sealed class ActionExecutionTests
 {
+    private readonly AcademyContent _academy = new AcademyContent();
     private readonly ActionExecutionService _service =
         new ActionExecutionService(new ActivityTimeCalculator(), new ActionEffectExecutor());
 
@@ -150,10 +151,10 @@ public sealed class ActionExecutionTests
         DayClock clock = new DayClock();
 
         bool success = _service.TryExecute(
-            AcademyContent.Travel, actor, clock, out string reason, out int duration);
+            _academy.Travel, actor, clock, out string reason, out int duration);
 
         Assert.True(success, reason);
-        Assert.Equal(2.8, AcademyContent.Travel.ActivityMet, 6);
+        Assert.Equal(2.8, _academy.Travel.ActivityMet, 6);
         Assert.Equal(9, duration);
         Assert.Equal(1.08, actor.Fatigue, 6);
         Assert.Equal(8, actor.Stamina);
@@ -165,10 +166,10 @@ public sealed class ActionExecutionTests
     {
         LoadAcademyContent();
 
-        Assert.Equal(30, AcademyContent.CombatEncounter.DurationMinutes);
-        Assert.Equal(5.0, AcademyContent.CombatEncounter.ActivityMet, 6);
+        Assert.Equal(30, _academy.CombatEncounter.DurationMinutes);
+        Assert.Equal(5.0, _academy.CombatEncounter.ActivityMet, 6);
         Assert.Equal(8.0, new ActivityFatigueCalculator().Calculate(
-            AcademyContent.CombatEncounter, AcademyContent.CombatEncounter.DurationMinutes), 6);
+            _academy.CombatEncounter, _academy.CombatEncounter.DurationMinutes), 6);
     }
 
     [Fact]
@@ -177,7 +178,7 @@ public sealed class ActionExecutionTests
         LoadAcademyContent();
         int actionCount = 0;
 
-        foreach (LocationContent location in AcademyContent.All)
+        foreach (LocationContent location in _academy.All)
         {
             foreach (ActionDefinition action in location.Actions)
             {
@@ -191,9 +192,9 @@ public sealed class ActionExecutionTests
         Assert.Equal(2, LoadPlayerData().PlayerActions.Length);
     }
 
-    private static ActionDefinition FindAction(string actionId)
+    private ActionDefinition FindAction(string actionId)
     {
-        foreach (LocationContent location in AcademyContent.All)
+        foreach (LocationContent location in _academy.All)
         {
             foreach (ActionDefinition action in location.Actions)
             {
@@ -221,9 +222,9 @@ public sealed class ActionExecutionTests
         return CharacterDataLoader.LoadJson(File.ReadAllText(path));
     }
 
-    private static void LoadAcademyContent()
+    private void LoadAcademyContent()
     {
         string path = Path.Combine(AppContext.BaseDirectory, "Data", "AcademyLocations.json");
-        AcademyContent.LoadJson(File.ReadAllText(path));
+        _academy.LoadJson(File.ReadAllText(path));
     }
 }

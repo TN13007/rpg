@@ -7,19 +7,9 @@ public static class CharacterDataLoader
 {
     public static CharacterData Load(string path)
     {
-        if (string.IsNullOrWhiteSpace(path))
-        {
-            throw new ArgumentException("Character data path is required.", nameof(path));
-        }
-
-        if (!FileAccess.FileExists(path))
-        {
-            throw new InvalidOperationException("Character data file was not found: " + path);
-        }
-
-        string json = FileAccess.GetFileAsString(path);
-
-        return LoadJson(json, path);
+        if (string.IsNullOrWhiteSpace(path)) throw new ArgumentException("Character data path is required.", nameof(path));
+        if (!FileAccess.FileExists(path)) throw new InvalidOperationException("Character data file was not found: " + path);
+        return LoadJson(FileAccess.GetFileAsString(path), path);
     }
 
     public static CharacterData LoadJson(string json, string source = "Player.json")
@@ -29,7 +19,6 @@ public static class CharacterDataLoader
         {
             using JsonDocument document = JsonDocument.Parse(json);
             JsonElement data = document.RootElement;
-
             return new CharacterData(
                 data.GetProperty("id").GetString(),
                 data.GetProperty("name").GetString(),
@@ -45,7 +34,8 @@ public static class CharacterDataLoader
                 data.GetProperty("startingMood").GetInt32(),
                 data.GetProperty("startingGold").GetInt32(),
                 ReadStats(data),
-                ReadPlayerActions(data));
+                ReadPlayerActions(data),
+                ReadOptionalStringArray(data, "combatActionIds"));
         }
         catch (JsonException exception)
         {
@@ -68,19 +58,9 @@ public static class CharacterDataLoader
                 throw new InvalidOperationException("Player action IDs and labels are required.");
             if (!actionIds.Add(id)) throw new InvalidOperationException("Duplicate player action ID: " + id);
 
-            string[] availableLocationIds = Array.Empty<string>();
-            if (item.TryGetProperty("availableLocationIds", out JsonElement locationsData))
-            {
-                if (locationsData.ValueKind != JsonValueKind.Array) throw new InvalidOperationException("Player action availableLocationIds must be an array.");
-                List<string> locationIds = new List<string>();
-                foreach (JsonElement locationData in locationsData.EnumerateArray())
-                {
-                    string locationId = locationData.GetString();
-                    if (string.IsNullOrWhiteSpace(locationId)) throw new InvalidOperationException("Player action location IDs cannot be empty.");
-                    locationIds.Add(locationId);
-                }
-                availableLocationIds = locationIds.ToArray();
-            }
+            string[] availableLocationIds = item.TryGetProperty("availableLocationIds", out JsonElement locationsData)
+                ? ReadStringArray(locationsData, "availableLocationIds")
+                : Array.Empty<string>();
 
             actions.Add(new PlayerActionDefinition(
                 ActionDefinitionJsonReader.ReadActionDefinition(id, label, item),
@@ -89,13 +69,34 @@ public static class CharacterDataLoader
         return actions.ToArray();
     }
 
+    private static string[] ReadOptionalStringArray(JsonElement data, string propertyName)
+    {
+        if (!data.TryGetProperty(propertyName, out JsonElement valuesData)) return Array.Empty<string>();
+        return ReadStringArray(valuesData, propertyName);
+    }
+
+    private static string[] ReadStringArray(JsonElement data, string propertyName)
+    {
+        if (data.ValueKind != JsonValueKind.Array)
+            throw new InvalidOperationException(propertyName + " must be an array.");
+
+        List<string> values = new List<string>();
+        HashSet<string> uniqueValues = new HashSet<string>(StringComparer.Ordinal);
+        foreach (JsonElement item in data.EnumerateArray())
+        {
+            string value = item.GetString();
+            if (string.IsNullOrWhiteSpace(value))
+                throw new InvalidOperationException(propertyName + " cannot contain empty IDs.");
+            if (!uniqueValues.Add(value))
+                throw new InvalidOperationException(propertyName + " cannot contain duplicate IDs: " + value);
+            values.Add(value);
+        }
+        return values.ToArray();
+    }
+
     private static CharacterStats ReadStats(JsonElement data)
     {
-        if (!data.TryGetProperty("stats", out JsonElement stats))
-        {
-            return new CharacterStats(0, 0, 0, 0, 0);
-        }
-
+        if (!data.TryGetProperty("stats", out JsonElement stats)) return new CharacterStats(0, 0, 0, 0, 0);
         return new CharacterStats(
             stats.GetProperty("strength").GetInt32(),
             stats.GetProperty("agility").GetInt32(),

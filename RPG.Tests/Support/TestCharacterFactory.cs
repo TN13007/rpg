@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 
 internal static class TestCharacterFactory
 {
@@ -31,6 +32,12 @@ internal static class TestCharacterFactory
         return new Character(data);
     }
 
+    public static CombatActionDefinition[] CreateCombatActions()
+    {
+        string path = Path.Combine(AppContext.BaseDirectory, "Data", "Combat", "CombatActions.json");
+        return CombatActionJsonReader.Read(File.ReadAllText(path));
+    }
+
     public static CombatService CreateCombat(
         out Character player,
         out Character enemy,
@@ -40,6 +47,6 @@ internal static class TestCharacterFactory
     {
         player = CreatePlayer(health: playerHealth, stamina: playerStamina);
         enemy = CreateEnemy(enemyHealth);
-        return new CombatService(player, enemy);
+        return new CombatService(player, enemy, CreateCombatActions());
     }
 }
