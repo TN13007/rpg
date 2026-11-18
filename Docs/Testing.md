@@ -24,6 +24,7 @@ The automated suite exercises:
 - Activity Fatigue calculation from relative MET and actual duration, including fractional values and boundary inputs.
 - Action definition loading, authored activity intensity, duration modifiers, effects and elapsed-time advancement.
 - Rest and Sleep recovery, resource clamping and failure behavior for dead characters.
+- GameClock display formatting in Presentation, separate from elapsed-time and calendar calculations in Domain.
 - Combat Action JSON parsing, ID catalog lookup, duplicate/unknown reference rejection, data-driven Attack damage, Defend, Dodge, Catch Breath, enemy response, insufficient Stamina, victory, death and invalid requests.
 
 Use current test output and CI runs as evidence; do not preserve stale hard-coded test counts in this document. The CI Godot smoke checks are startup/resource checks, not full gameplay acceptance.

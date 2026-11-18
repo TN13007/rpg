@@ -78,7 +78,7 @@ public sealed class ExplorationFlowController
             location.Region,
             location.Description,
             choices,
-            _gameClock.GetDisplayText());
+            GameClockDisplayFormatter.Format(_gameClock));
         _storyPanel.ShowLocationButton(false);
     }
 
@@ -101,7 +101,7 @@ public sealed class ExplorationFlowController
             "ADVENTURER RECORD",
             description,
             Array.Empty<ActionChoiceViewData>(),
-            _gameClock.GetDisplayText());
+            GameClockDisplayFormatter.Format(_gameClock));
         _storyPanel.ShowLocationButton(true);
     }
 
@@ -358,7 +358,7 @@ public sealed class ExplorationFlowController
             locationEvent.Region,
             locationEvent.Description,
             choices,
-            _gameClock.GetDisplayText());
+            GameClockDisplayFormatter.Format(_gameClock));
         _storyPanel.ShowLocationButton(false);
     }
 

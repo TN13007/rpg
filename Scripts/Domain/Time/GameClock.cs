@@ -44,30 +44,4 @@ public sealed class GameClock
         MinutesOfDay = nextMinutesOfDay;
     }
 
-    public string GetTimeOfDay()
-    {
-        if (MinutesOfDay < 12 * 60)
-        {
-            return "MORNING";
-        }
-
-        if (MinutesOfDay < 17 * 60)
-        {
-            return "AFTERNOON";
-        }
-
-        if (MinutesOfDay < 21 * 60)
-        {
-            return "EVENING";
-        }
-
-        return "NIGHT";
-    }
-
-    public string GetDisplayText()
-    {
-        int hour = MinutesOfDay / 60;
-        int minute = MinutesOfDay % 60;
-        return "DAY " + Day.ToString("00") + "  ·  " + GetTimeOfDay() + "  ·  " + hour.ToString("00") + ":" + minute.ToString("00");
-    }
 }
