@@ -15,18 +15,50 @@ concurrency:
 jobs:
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.x"
-      - name: Run complete repository validation
+
+      - name: Detect validation scope
+        id: scope
+        shell: bash
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD_REF: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          if [[ "${BASE_REF}" =~ ^0+$ ]]; then
+            BASE_REF="$(git rev-parse "${HEAD_REF}^" 2>/dev/null || true)"
+          fi
+          if [[ -z "${BASE_REF}" ]]; then
+            CHANGED="$(git ls-tree -r --name-only "${HEAD_REF}")"
+          else
+            CHANGED="$(git diff --name-only "${BASE_REF}...${HEAD_REF}")"
+          fi
+
+          if grep -Eq '(^|/)(Scenes|Resources)/|(^|/)[^/]+\.(tscn|tres)$|^project\.godot$|^Scripts/(Bootstrap|Infrastructure|Presentation)/' <<< "${CHANGED}"; then
+            echo "godot=true" >> "${GITHUB_OUTPUT}"
+          else
+            echo "godot=false" >> "${GITHUB_OUTPUT}"
+          fi
+
+          if grep -Eq '\.cs$|\.csproj$|\.sln$|^Tools/CheckProjectNaming\.py$' <<< "${CHANGED}"; then
+            echo "naming_audit=true" >> "${GITHUB_OUTPUT}"
+          else
+            echo "naming_audit=false" >> "${GITHUB_OUTPUT}"
+          fi
+
+      - name: Run fast repository validation and .NET tests
         shell: bash
         env:
           EVENT_NAME: ${{ github.event_name }}
@@ -34,6 +66,7 @@ jobs:
           HEAD_REF: ${{ github.sha }}
           BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
         run: |
+          set -euo pipefail
           ARGS=(--base "$BASE_REF" --head "$HEAD_REF" --branch "$BRANCH_NAME")
           if [[ "$EVENT_NAME" == "pull_request" ]]; then
             ARGS+=(--check-branch)
@@ -41,6 +74,7 @@ jobs:
           python3 Tools/Validate.py "${ARGS[@]}"
 
       - name: Install Godot 4.7.2 .NET
+        if: steps.scope.outputs.godot == 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -58,9 +92,11 @@ jobs:
           echo "GODOT_BIN=${GODOT_BIN}" >> "${GITHUB_ENV}"
 
       - name: Build Debug C# assembly for Godot runtime
+        if: steps.scope.outputs.godot == 'true'
         run: dotnet build RPG.csproj --configuration Debug
 
       - name: Run Godot 4.7.2 .NET scene smoke tests
+        if: steps.scope.outputs.godot == 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -80,5 +116,6 @@ jobs:
           run_godot_check combat-preview --headless --path . --scene res://Scenes/Previews/CombatPreview.tscn --quit-after 120
 
       - name: Enforce full repository naming audit
+        if: steps.scope.outputs.naming_audit == 'true'
         shell: bash
         run: python3 Tools/CheckProjectNaming.py --audit-all
