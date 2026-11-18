@@ -145,7 +145,15 @@ public partial class MainController : Control
     {
         if (_activeLocationEvent != null)
         {
-            HandleLocationEventChoice(choiceId);
+            if (!ActionSelectionRequest.TryParse(choiceId, out ActionSelectionRequest eventRequest) ||
+                eventRequest.SourceKind != InteractionSourceKind.Event ||
+                eventRequest.SourceId != _activeLocationEvent.Id)
+            {
+                _storyPanel.ShowFeedback("That event choice is invalid or outdated.");
+                return;
+            }
+
+            HandleLocationEventChoice(eventRequest.ActionId, eventRequest.TargetId);
             return;
         }
 
@@ -252,25 +260,6 @@ public partial class MainController : Control
                     throw new InvalidOperationException("Player action '" + playerAction.Action.Id + "' references unknown location '" + locationId + "'.");
             }
         }
-    }
-
-    private List<ActionChoiceViewData> MapActionChoices(IReadOnlyList<ActionDefinition> actions, string groupTitleOverride = null)
-    {
-        List<ActionChoiceViewData> choices = new List<ActionChoiceViewData>();
-
-        foreach (ActionDefinition action in actions)
-        {
-            string durationLabel = _durationEstimateMapper.Map(action, _player);
-            string groupTitle = groupTitleOverride ?? (
-                action.Id.StartsWith("player:", StringComparison.Ordinal)
-                    ? "PERSONAL"
-                    : action.Id.StartsWith("travel:", StringComparison.Ordinal)
-                        ? "TRAVEL"
-                        : "AT THIS LOCATION");
-            choices.Add(new ActionChoiceViewData(action.Id, action.Label, durationLabel, groupTitle));
-        }
-
-        return choices;
     }
 
     private ActionDefinition FindChoice(ActionDefinition[] choices, string choiceId)
@@ -463,24 +452,20 @@ public partial class MainController : Control
 
     private void ShowLocationEvent(LocationEventDefinition locationEvent)
     {
-        List<ActionDefinition> choices = new List<ActionDefinition>();
-
-        foreach (LocationEventChoiceDefinition choice in locationEvent.Choices)
-        {
-            choices.Add(choice.Action);
-        }
+        IReadOnlyList<AvailableInteraction> interactions = _availableInteractionQuery.Query(locationEvent);
+        List<ActionChoiceViewData> choices = _actionChoiceMapper.Map(interactions, _player);
 
         _gameModeController.ShowExploration();
         _storyPanel.ShowContent(
             locationEvent.Title,
             locationEvent.Region,
             locationEvent.Description,
-            MapActionChoices(choices, "CURRENT SITUATION"),
+            choices,
             _dayClock.GetDisplayText());
         _storyPanel.ShowLocationButton(false);
     }
 
-    private void HandleLocationEventChoice(string choiceId)
+    private void HandleLocationEventChoice(string choiceId, string targetId)
     {
         LocationEventChoiceDefinition selectedChoice = null;
 
@@ -493,9 +478,9 @@ public partial class MainController : Control
             }
         }
 
-        if (selectedChoice == null)
+        if (selectedChoice == null || (selectedChoice.EncounterActionId ?? string.Empty) != (targetId ?? string.Empty))
         {
-            _storyPanel.ShowFeedback("That event choice is not available.");
+            _storyPanel.ShowFeedback("That event choice is not available or has changed.");
             return;
         }
 
