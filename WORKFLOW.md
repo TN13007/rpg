@@ -182,15 +182,16 @@ Track known disagreements between the documents and official implementation here
 | SYNC-03 | The accepted Player/Location/Travel/Event choice pipeline differed from the implementation. | [PR #57](https://github.com/TN13007/rpg/pull/57), [Exploration Pipeline](Docs/Gameplay.md) and [Version 1 Session Plan](Docs/Version1Plan.md). | **Resolved — PR #57 merged; .NET tests and PR #58 Godot headless scene smoke checks pass. Full interactive journey remains unverified.** |
 | SYNC-04 | Rest and Sleep ownership differed from the Player Action model. | `Data/Characters/Player.json` and PR #57. | **Resolved — both are Player Actions; Sleep retains its Dormitory restriction.** |
 | SYNC-05 | Godot runtime evidence for earlier Sessions is incomplete or ambiguous. Session 1 runtime acceptance is not recorded. PR #47's checklist is checked, but its closing verification note still says runtime verification is pending. | [PR #21](https://github.com/TN13007/rpg/pull/21), [PR #22](https://github.com/TN13007/rpg/pull/22) and [PR #47](https://github.com/TN13007/rpg/pull/47). | **Historical evidence is ambiguous; do not block Session 3. Re-run only when the relevant journey is next touched, and record observed results.** |
-| SYNC-06 | MainController retained too much Exploration and Combat flow orchestration after Session 3. | [Issue #15](https://github.com/TN13007/rpg/issues/15) and [Architecture](Docs/Architecture.md). | **In progress — flow controllers and layer boundaries are implemented in PR #58; .NET, formatting, naming and Godot headless smoke checks pass. Awaiting PR integration and separate interactive journey review.** |
+| SYNC-06 | MainController retained too much Exploration and Combat flow orchestration after Session 3. | [Issue #15](https://github.com/TN13007/rpg/issues/15) and [Architecture](Docs/Architecture.md). | **Resolved — PR #58 merged; user confirmed the interactive Godot journey runs well.** |
 | SYNC-07 | The accepted Fatigue/Stamina resource model previously differed from `main` while PR #47 was open. | [Issue #46](https://github.com/TN13007/rpg/issues/46), [PR #47](https://github.com/TN13007/rpg/pull/47), [Version 1 Plan](Docs/Version1Plan.md) and [Testing](Docs/Testing.md). | **Resolved — PR #47 merged and Issue #46 closed. Runtime evidence reconciliation is tracked in SYNC-05.** |
 
 ### Other active work
 
 - [Issue #11 — Decide the long-term gameplay loop](https://github.com/TN13007/rpg/issues/11) remains a separate long-term design question and does not block Version 1 implementation.
 - [PR #57 — Exploration Action Choice Pipeline](https://github.com/TN13007/rpg/pull/57) is merged; Session 3 Product Outcome is implemented.
-- [PR #58 — Explicit layered architecture](https://github.com/TN13007/rpg/pull/58) is in progress as part of Issue #15.
-- [Issue #15 — Establish explicit layers and extract MainController flows](https://github.com/TN13007/rpg/issues/15) tracks the architecture and controller-boundary refactor.
+- [PR #58 — Explicit layered architecture](https://github.com/TN13007/rpg/pull/58) is merged; the user confirmed the interactive Godot journey runs well.
+- [Issue #15 — Establish explicit layers and extract MainController flows](https://github.com/TN13007/rpg/issues/15) is complete; its architecture and controller-boundary changes are in `main`.
+- [Issue #59 — Establish ID-based content catalog and data-driven Combat Actions](https://github.com/TN13007/rpg/issues/59) is in progress on branch `feat/issue-59-content-catalog-combat-actions`. The current branch is a proposal until reviewed and merged.
 - [PR #47 — Fatigue and Combat Stamina](https://github.com/TN13007/rpg/pull/47) is merged; the resource model is part of official `main`.
 
 ## 6. Next Session handoff
