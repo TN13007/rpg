@@ -93,7 +93,7 @@ CombatPanel
   -> CombatPanel
 ```
 
-CombatService owns validation, resolution and combat state mutation. The mapper converts results and events into presentation-safe data. CombatSessionService owns encounter entry execution and completion-time/Fatigue updates; CombatService owns combat turns and resolution. CombatPanel and CombatFlowController do not calculate damage or mutate combat resources.
+CombatService owns combat turn validation, resolution, enemy response and combat state. CombatSessionService coordinates encounter entry through ActionExecutionService and applies configured encounter duration/Fatigue on completion. The mapper converts results and events into presentation-safe data. CombatPanel and CombatFlowController do not calculate damage or mutate combat resources.
 
 ### Content loading
 
