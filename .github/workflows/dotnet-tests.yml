@@ -35,6 +35,6 @@ jobs:
           fi
           python3 Tools/Validate.py "${ARGS[@]}"
 
-      - name: Report full repository naming audit (non-blocking)
+      - name: Enforce full repository naming audit
         shell: bash
-        run: python3 Tools/CheckProjectNaming.py --audit-all --report-only
+        run: python3 Tools/CheckProjectNaming.py --audit-all

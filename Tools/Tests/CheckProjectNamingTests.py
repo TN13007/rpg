@@ -1,6 +1,8 @@
 import subprocess
 import sys
 import unittest
+from contextlib import redirect_stdout
+from io import StringIO
 from pathlib import Path
 from unittest.mock import patch
 
@@ -14,6 +16,7 @@ from CheckProjectNaming import (  # noqa: E402
     is_dotnet_project_name,
     is_pascal_case,
     is_snake_case,
+    main,
     path_naming_issues,
     validate_branch_name,
     validate_json_document,
@@ -353,6 +356,41 @@ class FullRepositoryAuditTests(unittest.TestCase):
 
         self.assertEqual([], issues)
         self.assertEqual(0, directory_count)
+
+
+class FullRepositoryAuditCliTests(unittest.TestCase):
+    def test_audit_returns_failure_when_tracked_path_violates_naming(self):
+        output = StringIO()
+        with (
+            patch("sys.argv", ["CheckProjectNaming.py", "--audit-all"]),
+            patch(
+                "CheckProjectNaming.tracked_paths",
+                return_value=["Data/bad_file.json"],
+            ),
+            redirect_stdout(output),
+        ):
+            result = main()
+
+        self.assertEqual(1, result)
+        self.assertIn("Project naming audit found 1 violation(s)", output.getvalue())
+
+    def test_audit_passes_when_all_tracked_paths_follow_naming(self):
+        output = StringIO()
+        with (
+            patch("sys.argv", ["CheckProjectNaming.py", "--audit-all"]),
+            patch(
+                "CheckProjectNaming.tracked_paths",
+                return_value=[
+                    "Data/AcademyLocations.json",
+                    "Data/Characters/Player.json",
+                ],
+            ),
+            redirect_stdout(output),
+        ):
+            result = main()
+
+        self.assertEqual(0, result)
+        self.assertIn("Full repository path naming audit passed.", output.getvalue())
 
 
 if __name__ == "__main__":

@@ -73,14 +73,18 @@ The path changes are not isolated filesystem operations. The following reference
 
 The initial reference review is a starting point, not a claim that every runtime reference has already been mapped. Each rename PR must search the full repository for the old path and verify that no references remain.
 
-## 4. Recommended remediation sequence
+## 4. Remediation status
 
-1. **Documentation paths (15 files).** Rename in small groups by folder. Update all Markdown links in the same PR and run a repository-wide stale-link check.
-2. **Game data paths (3 files).** Rename the three JSON files and update the loader paths in `MainController.cs`. Run the complete .NET test suite and play the affected data-loading journey in Godot.
-3. **Asset paths (4 files).** Rename each SVG with its matching `.import` sidecar. Search all scene, resource and script references first, then reopen the affected scenes in Godot and verify asset loading.
-4. **Enforce the rule.** Once the audit reports zero path violations, remove the informational-only behavior from the CI audit step and make full repository path auditing a required check.
+The initial findings have now been remediated on `main`:
 
-Each remediation PR should link to Issue #34, preserve content IDs and gameplay behavior, include a before/after reference search, and record the relevant automated and Godot runtime checks.
+1. **Documentation paths — complete.** PR [#37](https://github.com/TN13007/rpg/pull/37) renamed the 15 Markdown documents and updated their references.
+2. **Game data paths — complete.** PR [#39](https://github.com/TN13007/rpg/pull/39) renamed the three JSON files, updated runtime/test/project references, and preserved JSON content.
+3. **Godot asset paths — complete.** PR [#41](https://github.com/TN13007/rpg/pull/41) renamed both SVG files and their import sidecars, updated scene references, and preserved import settings and UIDs.
+4. **CI enforcement — implemented in [Issue #42](https://github.com/TN13007/rpg/issues/42).** The audit is now intended to run as a blocking workflow step rather than report-only.
+
+The cleanup was verified in [GitHub Actions Run #115](https://github.com/TN13007/rpg/actions/runs/44198070161): 123 tracked files and 26 directories were checked, with zero path naming violations. That run occurred before blocking enforcement was enabled; the PR for Issue #42 must provide the separate CI evidence for the required gate.
+
+The original baseline findings below are retained as historical audit evidence.
 
 ## 5. How to run the audit
 
@@ -92,8 +96,26 @@ python Tools/CheckProjectNaming.py --audit-all
 
 The command checks every Git-tracked path, including unchanged legacy paths. It prints each violation and a suggested path when the conversion is unambiguous. It exits with code 1 while violations remain.
 
-CI currently runs the same scan in informational mode so the findings stay visible without blocking unrelated work:
+GitHub Actions now runs the full audit as a required, blocking step:
 
 ```bash
-python3 Tools/CheckProjectNaming.py --audit-all --report-only
+python3 Tools/CheckProjectNaming.py --audit-all
 ```
+
+The command exits with code 1 when any tracked path violates the naming convention. A detected violation therefore fails the workflow. The `--report-only` option remains available for deliberate diagnostic use, but CI does not use it.
+
+
+## 6. Post-cleanup enforcement
+
+The post-cleanup snapshot on `main` was recorded by [GitHub Actions Run #115](https://github.com/TN13007/rpg/actions/runs/44198070161):
+
+| Item | Result |
+|---|---:|
+| Tracked files inspected | 123 |
+| Tracked directories inspected | 26 |
+| Non-conforming directories | 0 |
+| Non-conforming file paths | 0 |
+
+The workflow step is named **Enforce full repository naming audit** and runs without `--report-only`. This makes the full path audit a blocking CI check. Future tracked files and directories must satisfy the same naming rules, subject to the documented entry-file and platform-managed-tree exceptions.
+
+The enforcement change is tracked by [Issue #42](https://github.com/TN13007/rpg/issues/42). Its Pull Request must pass the complete repository validation and the blocking audit before the issue can be closed.
