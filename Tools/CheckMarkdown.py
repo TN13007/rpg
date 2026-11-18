@@ -54,7 +54,7 @@ def heading_slug(text: str) -> str:
     text = re.sub(r"\x60([^\x60]+)\x60", r"\1", text)
     text = re.sub(r"!?\[([^\]]+)\]\([^)]*\)", r"\1", text)
     text = re.sub(r"<[^>]+>", "", text)
-    text = text.replace("*", "").replace("_", "")
+    text = text.replace("*", "")
     text = unicodedata.normalize("NFKC", text).lower()
     text = re.sub(r"[^\w\- ]", "", text, flags=re.UNICODE)
     return re.sub(r"[\s]+", "-", text).strip("-")
@@ -76,6 +76,7 @@ def heading_anchors(markdown: str) -> set[str]:
 
 def markdown_links(markdown: str):
     for line_number, line in enumerate(strip_code_blocks(markdown), start=1):
+        line = re.sub(r"(?<!`)`+[^`]*`+", "", line)
         for match in LINK_PATTERN.finditer(line):
             yield line_number, match.group(1).strip("<>")
 
