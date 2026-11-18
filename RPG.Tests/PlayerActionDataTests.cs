@@ -37,7 +37,7 @@ public sealed class PlayerActionDataTests
         string duplicate = json.Replace(
             "\"playerActions\": [",
             "\"playerActions\": [ { \"id\": \"rest\", \"label\": \"Duplicate\", \"durationMinutes\": 1 },");
-        Assert.Throws<ArgumentException>(() => CharacterDataLoader.LoadJson(duplicate));
+        Assert.Throws<InvalidOperationException>(() => CharacterDataLoader.LoadJson(duplicate));
     }
 
     private static CharacterData LoadPlayerData()
