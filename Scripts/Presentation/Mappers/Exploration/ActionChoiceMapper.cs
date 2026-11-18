@@ -27,19 +27,21 @@ public sealed class ActionChoiceMapper
             foreach (AvailableInteraction interaction in interactions)
             {
                 if (interaction.SourceKind != sourceKind) continue;
+
                 ActionSelectionRequest request = new ActionSelectionRequest(
-                interaction.SourceKind,
-                interaction.SourceId,
-                interaction.ActionId,
-                interaction.TargetId);
-            string groupTitle = interaction.SourceKind switch
-            {
-                InteractionSourceKind.Player => "PERSONAL",
-                InteractionSourceKind.Location => "AT THIS LOCATION",
-                InteractionSourceKind.Travel => "TRAVEL",
-                InteractionSourceKind.Event => "CURRENT SITUATION",
-                _ => throw new ArgumentOutOfRangeException()
-            };
+                    interaction.SourceKind,
+                    interaction.SourceId,
+                    interaction.ActionId,
+                    interaction.TargetId);
+                string groupTitle = interaction.SourceKind switch
+                {
+                    InteractionSourceKind.Player => "PERSONAL",
+                    InteractionSourceKind.Location => "AT THIS LOCATION",
+                    InteractionSourceKind.Travel => "TRAVEL",
+                    InteractionSourceKind.Event => "CURRENT SITUATION",
+                    _ => throw new ArgumentOutOfRangeException()
+                };
+
                 choices.Add(new ActionChoiceViewData(
                     request.Encode(),
                     interaction.Action.Label,
@@ -47,6 +49,7 @@ public sealed class ActionChoiceMapper
                     groupTitle));
             }
         }
+
         return choices;
     }
 }
