@@ -5,8 +5,7 @@ public sealed class GameContentCatalog
 {
     private readonly AcademyContent _academy;
 
-    public CharacterData Player { get; }
-    public CharacterData Goblin { get; }
+    public CharacterCatalog Characters { get; }
     public CombatActionCatalog CombatActions { get; }
 
     public IEnumerable<LocationContent> Locations => _academy.All;
@@ -15,18 +14,18 @@ public sealed class GameContentCatalog
 
     public GameContentCatalog(
         AcademyContent academy,
-        CharacterData player,
-        CharacterData goblin,
+        CharacterCatalog characters,
         CombatActionCatalog combatActions)
     {
         _academy = academy ?? throw new ArgumentNullException(nameof(academy));
-        Player = player ?? throw new ArgumentNullException(nameof(player));
-        Goblin = goblin ?? throw new ArgumentNullException(nameof(goblin));
+        Characters = characters ?? throw new ArgumentNullException(nameof(characters));
         CombatActions = combatActions ?? throw new ArgumentNullException(nameof(combatActions));
 
-        // Resolve references during loading so invalid content fails before gameplay starts.
-        CombatActions.Resolve(Player.CombatActionIds);
-        CombatActions.Resolve(Goblin.CombatActionIds);
+        // Resolve every character reference during loading, before gameplay starts.
+        foreach (CharacterData character in Characters.All)
+        {
+            CombatActions.Resolve(character.CombatActionIds);
+        }
     }
 
     public LocationContent GetLocation(string id)
@@ -34,8 +33,14 @@ public sealed class GameContentCatalog
         return _academy.Get(id);
     }
 
-    public CombatActionDefinition[] GetPlayerCombatActions()
+    public CharacterData GetCharacter(string id)
     {
-        return CombatActions.Resolve(Player.CombatActionIds);
+        return Characters.Get(id);
+    }
+
+    public CombatActionDefinition[] GetCombatActionsForCharacter(string characterId)
+    {
+        CharacterData character = Characters.Get(characterId);
+        return CombatActions.Resolve(character.CombatActionIds);
     }
 }
