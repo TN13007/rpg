@@ -38,7 +38,8 @@ StoryPanel
 ```text
 CombatPanel
   -> Presentation/Controllers/CombatFlowController
-  -> Domain/Combat/CombatService
+  -> Application/Actions/ActionExecutionService (encounter entry)
+  -> Domain/Combat/CombatService (turns and resolution)
   -> Presentation/Mappers/Combat/CombatPresentationMapper
   -> Presentation/ViewModels/Combat/CombatPresentation
   -> CombatPanel
