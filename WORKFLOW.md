@@ -211,7 +211,7 @@ Track known disagreements between the documents and official implementation here
 
 ### Next — Session 6
 
-- Session 6 scope is Mood and Daily Wellbeing, as defined in [Version1Plan.md](Docs/Version1Plan.md#session-6). Begin with a fresh Context Check against latest `main` and the relevant open Issues; do not assume its detailed implementation design from the Session 5 work.
+- Session 6 scope is Mood and Daily Wellbeing, as defined in [Version1Plan.md](Docs/Version1Plan.md#session-6-mood-and-daily-wellbeing). Begin with a fresh Context Check against latest `main` and the relevant open Issues; do not assume its detailed implementation design from the Session 5 work.
 - Session 5 Product and manual runtime acceptance are complete. Session 4 Sleep runtime acceptance remains outstanding in Issue #62.
 - Session 5 Learning remains unassessed; do not carry it forward as completed merely because PR #67 and CI passed.
 
