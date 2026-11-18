@@ -123,10 +123,11 @@ Adventurer Academy is a fantasy life-simulation RPG prototype about daily life, 
 - DayClock with day/minute tracking, midnight rollover and NextDay transition.
 - Location travel among Dormitory, Courtyard, Practical Classroom and Guild Hall.
 - Location Actions, travel duration calculation and inline duration estimates.
+- Rest and Sleep are Player Actions in `Data/Characters/Player.json`. Rest is available at every actionable Location; Sleep is restricted to Dormitory.
+- Exploration choices flow through AvailableInteractionQuery → ActionChoiceMapper → grouped ActionChoiceViewData → StoryPanel. Requests preserve source kind, source ID, action ID and optional target ID.
 - Location Events, including the Courtyard Goblin Ambush with Confront and Sneak choices.
-- Dedicated Combat flow with Attack, Defend and Dodge.
-- Rest is currently a global Self Action in root `selfActions` in `Data/AcademyLocations.json`. It takes 30 minutes, restores up to 5 Fatigue and 3 Stamina, and adds 2 Mood.
-- Sleep is currently a Dormitory Location Action. It uses `NextDay` and restores Fatigue to 0 and Stamina to maximum, alongside its configured Health and Mood recovery Effects.
+- Dedicated Combat flow with Attack, Defend, Dodge and Catch Breath.
+- Combat presentation follows CombatService → CombatPresentationMapper → CombatViewData → CombatPanel.
 
 ### Current behavior boundaries
 
@@ -134,8 +135,7 @@ Adventurer Academy is a fantasy life-simulation RPG prototype about daily life, 
 - Health = 0 means Dead and blocks gameplay actions. There is no Unconscious state in the current resource model.
 - Fatigue (0–100) represents cumulative daily-life exertion. It does not cause unconsciousness or block actions in this initial version.
 - Stamina (0–10) is reserved for defensive Combat Actions: Defend costs 1, Dodge costs 2, Attack is free, and Catch Breath restores up to 3 while the enemy still responds. Insufficient Stamina does not end Combat.
-- Current Exploration choices are assembled by MainController into a flat list. Rest comes from global `selfActions`; Sleep remains a Location Action.
-- The grouped Query → Mapper → Exploration ViewModel pipeline and Player-owned Player Actions are accepted design from merged PR #23, but are not yet implemented on `main`.
+- MainController is the Godot composition root. ExplorationFlowController and CombatFlowController own their respective presentation flows; gameplay rules remain in Application/Domain services.
 - The complete academy routine, daily summary and full Save/Load loop are not implemented yet.
 
 ## 4. Session index and progress
@@ -179,25 +179,24 @@ Track known disagreements between the documents and official implementation here
 |---|---|---|---|
 | SYNC-01 | Day 1 scenario previously expected Preview / Confirm / Cancel, although Session 1 executes choices immediately. | PR #21 defines immediate execution; [Day 1 QA](Docs/Testing.md) was corrected in merged PR #24. | **Resolved — PR #24 merged.** |
 | SYNC-02 | Automated-test documentation previously misstated the unconscious-state rule. | `ActionExecutionService`, `AcademyLocations.json` and `RPG.Tests/ActionExecutionTests.cs` confirm the explicit Rest exception; [Automated Tests](Docs/Testing.md) was corrected in merged PR #24. | **Resolved — PR #24 merged.** |
-| SYNC-03 | The accepted Version 1 plan targets a grouped Player/Location/Travel/Event choice pipeline. | [PR #57](https://github.com/TN13007/rpg/pull/57), [Exploration Pipeline](Docs/Gameplay.md) and [Version 1 Session Plan](Docs/Version1Plan.md). | **Resolved — PR #57 merged; CI passed. Godot runtime verification remains unconfirmed.** |
-| SYNC-04 | Rest and Sleep ownership differed from the proposed Player Action model. | `Data/Characters/Player.json` and PR #57. | **Resolved — both are Player Actions; Sleep retains its Dormitory restriction.** |
+| SYNC-03 | The accepted Player/Location/Travel/Event choice pipeline differed from the implementation. | [PR #57](https://github.com/TN13007/rpg/pull/57), [Exploration Pipeline](Docs/Gameplay.md) and [Version 1 Session Plan](Docs/Version1Plan.md). | **Resolved — PR #57 merged; CI passed. Godot runtime verification remains unconfirmed.** |
+| SYNC-04 | Rest and Sleep ownership differed from the Player Action model. | `Data/Characters/Player.json` and PR #57. | **Resolved — both are Player Actions; Sleep retains its Dormitory restriction.** |
 | SYNC-05 | Godot runtime evidence for earlier Sessions is incomplete or ambiguous. Session 1 runtime acceptance is not recorded. PR #47's checklist is checked, but its closing verification note still says runtime verification is pending. | [PR #21](https://github.com/TN13007/rpg/pull/21), [PR #22](https://github.com/TN13007/rpg/pull/22) and [PR #47](https://github.com/TN13007/rpg/pull/47). | **Historical evidence is ambiguous; do not block Session 3. Re-run only when the relevant journey is next touched, and record observed results.** |
-| SYNC-06 | MainController still owns some Exploration and Combat flow orchestration after Session 3. | [Issue #15](https://github.com/TN13007/rpg/issues/15) and [Architecture](Docs/Architecture.md). | **In progress — Session 3 is merged; remaining responsibilities are now being extracted.** |
+| SYNC-06 | MainController retained too much Exploration and Combat flow orchestration after Session 3. | [Issue #15](https://github.com/TN13007/rpg/issues/15) and [Architecture](Docs/Architecture.md). | **In progress — flow controllers have been extracted; structural validation and runtime verification remain.** |
 | SYNC-07 | The accepted Fatigue/Stamina resource model previously differed from `main` while PR #47 was open. | [Issue #46](https://github.com/TN13007/rpg/issues/46), [PR #47](https://github.com/TN13007/rpg/pull/47), [Version 1 Plan](Docs/Version1Plan.md) and [Testing](Docs/Testing.md). | **Resolved — PR #47 merged and Issue #46 closed. Runtime evidence reconciliation is tracked in SYNC-05.** |
 
 ### Other active work
 
-- [Issue #11 — Decide the long-term gameplay loop](https://github.com/TN13007/rpg/issues/11) remains a separate long-term design question. Its current context and deliverables point to [Game Design](Docs/GameDesign.md) and [Roadmap](Docs/Roadmap.md); it does not block Version 1 implementation.
+- [Issue #11 — Decide the long-term gameplay loop](https://github.com/TN13007/rpg/issues/11) remains a separate long-term design question and does not block Version 1 implementation.
 - [PR #57 — Exploration Action Choice Pipeline](https://github.com/TN13007/rpg/pull/57) is merged; Session 3 Product Outcome is implemented.
-- [PR #24 — QA documentation alignment](https://github.com/TN13007/rpg/pull/24) is merged.
-- [PR #31 — naming-validator hardening](https://github.com/TN13007/rpg/pull/31) is merged; Issue #30 is closed.
-- [PR #33 — unified validation and repository workflow](https://github.com/TN13007/rpg/pull/33) is merged; Issue #32 is closed.
-- [Issue #46 — Separate daily Fatigue from Combat Stamina](https://github.com/TN13007/rpg/issues/46) is completed through [PR #47](https://github.com/TN13007/rpg/pull/47), now merged. The resource model is part of official `main`.
+- [PR #58 — Explicit layered architecture](https://github.com/TN13007/rpg/pull/58) is in progress as part of Issue #15.
+- [Issue #15 — Establish explicit layers and extract MainController flows](https://github.com/TN13007/rpg/issues/15) tracks the architecture and controller-boundary refactor.
+- [PR #47 — Fatigue and Combat Stamina](https://github.com/TN13007/rpg/pull/47) is merged; the resource model is part of official `main`.
 
 ## 6. Next Session handoff
 
-1. Start Session 3 — Exploration Action Choice Pipeline. Use the merged `main` baseline and the existing Implementation Brief process; the documentation reconciliation is complete.
-2. Approve or revise the Session 3 Learning objective, independent practice and knowledge check at Session start.
-3. Do not pull Issue #15's controller extraction into Session 3 by default. After the pipeline is implemented, inspect the remaining `MainController` responsibilities and decide whether a separate refactor still provides value.
-4. Godot runtime evidence for Sessions 1–2 is historically incomplete/ambiguous. Do not claim it passed based only on CI; re-run the affected journey when relevant and record exactly what was observed.
+1. Complete Issue #15's layered-structure and controller-boundary refactor before starting the next Version 1 feature.
+2. Keep Session 3 Learning Outcome marked **Not assessed** until the user independently traces the Player Action pipeline and completes the agreed small practice. Merged code and passing CI are not learning evidence.
+3. Godot runtime evidence for earlier Sessions and PR #57 remains incomplete/ambiguous. Do not claim it passed based only on CI; run the main scene and relevant Exploration/Combat journeys when a Godot 4.7.2 .NET runtime is available.
+4. After Issue #15 is merged and its verification is complete, resume Session 4 — Sleep and Next-Day Transition using the existing Implementation Brief process.
 5. Record Product verification, Learning evidence and remaining blockers in this file only.
