@@ -37,7 +37,7 @@ A Session follows these eight steps. The learner should remain involved in predi
 
 Inspect the latest `main`, active branch, related Issues and open PRs. Read the relevant code, content, tests and design documents. Separate implemented behavior from proposals, assumptions and unverified behavior.
 
-**Output:** an evidence-based starting point and a clear Session boundary.
+**Output:** an evidence-based starting point, a clear Session boundary and the source material needed for one Implementation Brief. AI performs this inspection and presents the synthesis; the learner is not asked to read every discovered document.
 
 ### 2. Learning Objective
 
@@ -88,6 +88,27 @@ Summarize what changed, what the learner actually demonstrated, remaining gaps, 
 ### Light Mode
 
 Use Light Mode for a small, familiar task or when the learner explicitly asks for direct execution. Keep the same sequence, but reduce the depth: a brief context check, one-line objective/prediction, only the explanation needed, focused execution, proportionate verification and a short record. Run Improve whenever something fails. Do not skip required tests, Godot runtime checks or any specifically requested independent learning check. For a purely administrative task that has no learning outcome, do not invent a learning objective or claim learning progress.
+
+### Implementation Brief — the learner's working document
+
+At the start of a development Session, AI prepares one concise Implementation Brief in the working conversation. The learner reads this brief as the starting point instead of opening and cross-reading the repository's documents.
+
+The brief is a task-specific view assembled from the existing sources of truth, not a new source of truth and not a permanent Markdown file. AI must inspect the relevant sources itself: latest `main`, active Issue, relevant open PRs/branch, canonical design or technical documents, affected code and tests. Do not infer implementation state from an old Session note or an unmerged PR.
+
+The brief must:
+1. **Direction:** state the Product objective and observable Learning objective.
+2. **Project snapshot:** identify the relevant baseline, Issue and PR/branch, and distinguish merged implementation from proposals.
+3. **Current behavior:** summarize only the code behavior and design rules relevant to this task, with repository file/section references.
+4. **Decisions and uncertainty:** separate confirmed decisions, assumptions that need validation and unresolved questions. Never present an assumption as an accepted rule.
+5. **Scope:** define what this Session will and will not change, including the Issue's acceptance criteria.
+6. **Implementation plan:** give a small, ordered sequence of changes and identify where the learner should predict, explain, diagnose or make a decision.
+7. **Code impact:** list likely files/components and their responsibilities. Mark this as expected impact until verified against the code.
+8. **Verification:** map each important acceptance criterion to an automated test, manual Godot journey or other observable check. State what cannot be verified in the current environment.
+9. **Risks and handoff:** list dependencies, likely failure points and the next decision or action.
+
+The brief should be short enough to read before implementation. Include only relevant context; link to source documents for traceability, but do not require the learner to read them all. AI may open additional sources during implementation when necessary and should explain the specific information that matters. The goal is one reading surface for the learner, not an artificial ban on consulting references.
+
+After the Session, update the correct durable owner: Issue for scope/acceptance criteria and unresolved work; PR for implementation decisions and verification evidence; the canonical design/technical document when an accepted rule or contract changes; this file for project status, learning evidence and handoff. Do not save a separate permanent file for each Implementation Brief or copy full design specifications into it.
 
 ## 3. Current project snapshot — official main
 
