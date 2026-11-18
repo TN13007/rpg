@@ -52,7 +52,7 @@ class MarkdownValidationTests(unittest.TestCase):
         self.assertEqual([], validate(self.root, self.tracked))
 
     def test_tracked_non_markdown_target_passes(self):
-        (self.root / "README.md").write_text("[Icon](Assets/icon.svg)", encoding="utf-8")
+        (self.root / "README.md").write_text("# Project\\n\\n[Guide](Docs/Guide.md) [Icon](Assets/icon.svg)", encoding="utf-8")
         self.assertEqual([], validate(self.root, self.tracked))
 
     def test_missing_file_fails(self):
@@ -72,7 +72,7 @@ class MarkdownValidationTests(unittest.TestCase):
 
     def test_external_links_are_ignored(self):
         (self.root / "README.md").write_text(
-            "[Web](https://example.com) [Mail](mailto:test@example.com) [Anchor](#project)",
+            "# Project\\n\\n[Web](https://example.com) [Mail](mailto:test@example.com) [Anchor](#project)",
             encoding="utf-8",
         )
         self.assertEqual([], validate(self.root, {"README.md"}))
