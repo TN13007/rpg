@@ -80,9 +80,9 @@ Allowed types:
 
 Examples:
 - `feat(actions): add action duration preview`
-- `fix(energy): prevent negative values`
+- `fix(resources): clamp Fatigue and Stamina`
 - `refactor(combat): extract encounter rules`
-- `test(actions): cover unconscious Rest`
+- `test(actions): cover Rest at resource limits`
 - `docs(workflow): clarify commit granularity`
 - `chore(ci): enforce repository naming audit`
 
@@ -118,7 +118,7 @@ Use a title consistent with Conventional Commits:
 <type>(<optional-scope>): <outcome>
 ```
 
-Examples: `fix(energy): prevent negative Energy`, `feat(summary): add daily activity summary`, `docs(workflow): define commit and PR standards`.
+Examples: `fix(resources): clamp Fatigue and Stamina`, `feat(summary): add daily activity summary`, `docs(workflow): define commit and PR standards`.
 
 In the PR description:
 - Use `Closes #<number>` only when this PR fully satisfies that Issue's acceptance criteria.
@@ -212,10 +212,10 @@ Use the [Google C# Style Guide](https://google.github.io/styleguide/csharpguide.
 
 | Element | Convention | Example |
 |---|---|---|
-| Class, struct, record, enum, delegate, method and test method | `PascalCase` | `CharacterData`, `CalculateDuration`, `RestAtMaximumEnergyDoesNotExceedMaximum` |
+| Class, struct, record, enum, delegate, method and test method | `PascalCase` | `CharacterData`, `CalculateDuration`, `RestAtMaximumFatigueAndStaminaDoesNotExceedMaximum` |
 | Public field/property, and event at any accessibility | `PascalCase` | `MaxHealth`, `ActionSelected` |
 | Interface | `I` + `PascalCase` | `IActionExecutor` |
-| Parameter and local variable | `camelCase` | `startingEnergy` |
+| Parameter and local variable | `camelCase` | `startingFatigue` |
 | Private, protected or internal field/property | `_camelCase` | `_combatService` |
 | Namespace | `PascalCase` | `RPG.Services` |
 
@@ -236,9 +236,9 @@ Use namespaces only where they provide a useful boundary. Keep namespaces to two
 
 | Element | Convention | Example |
 |---|---|---|
-| JSON property | `camelCase` | `startingEnergy`, `maxHealth` |
+| JSON property | `camelCase` | `startingFatigue`, `maxHealth` |
 | Game content ID | `snake_case` | `player_ari`, `inspect_letter`, `courtyard_goblin_ambush` |
-| Serialized enum-like value | `PascalCase` | `RestoreEnergy`, `NextDay`, `Agility` |
+| Serialized enum-like value | `PascalCase` | `RestoreFatigue`, `NextDay`, `Agility` |
 | Player-facing label/text | Natural language | `"Read the letter on your desk"` |
 
 Use `snake_case` consistently for IDs of Characters, Locations, Actions, Events, Choices and other authored content. IDs are machine-facing stable identifiers; labels and descriptions are player-facing text. Do not mix hyphens and underscores within the same ID system.
