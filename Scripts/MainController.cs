@@ -95,7 +95,7 @@ public partial class MainController : Control
         {
             if (!IsEventEncounterAction(location, action.Id))
             {
-                choices.Add(action);
+                choices.Add(CreateActionChoice("location:", action));
             }
         }
 
@@ -199,6 +199,11 @@ public partial class MainController : Control
         }
 
         LocationContent location = AcademyContent.Get(_currentLocationId);
+        if (choiceId.StartsWith("location:", StringComparison.Ordinal))
+        {
+            choiceId = choiceId.Substring("location:".Length);
+        }
+
         ActionDefinition selectedAction = FindChoice(location.Actions, choiceId);
 
         if (selectedAction == null)
@@ -260,6 +265,21 @@ public partial class MainController : Control
         }
     }
 
+    private ActionDefinition CreateActionChoice(string prefix, ActionDefinition action)
+    {
+        return new ActionDefinition(
+            prefix + action.Id,
+            action.Label,
+            action.DurationMinutes,
+            action.TimeModifier,
+            action.Feedback,
+            action.ActivityMet,
+            action.Effects,
+            action.TimeMode,
+            action.EstimatedDurationMinMinutes,
+            action.EstimatedDurationMaxMinutes);
+    }
+
     private bool IsEventEncounterAction(LocationContent location, string actionId)
     {
         foreach (LocationEventDefinition locationEvent in location.Events)
@@ -283,7 +303,12 @@ public partial class MainController : Control
         foreach (ActionDefinition action in actions)
         {
             string durationLabel = _durationEstimateMapper.Map(action, _player);
-            choices.Add(new ActionChoiceViewData(action.Id, action.Label, durationLabel));
+            string groupTitle = action.Id.StartsWith("player:", StringComparison.Ordinal)
+                ? "PERSONAL"
+                : action.Id.StartsWith("travel:", StringComparison.Ordinal)
+                    ? "TRAVEL"
+                    : "AT THIS LOCATION";
+            choices.Add(new ActionChoiceViewData(action.Id, action.Label, durationLabel, groupTitle));
         }
 
         return choices;
@@ -491,7 +516,7 @@ public partial class MainController : Control
             locationEvent.Title,
             locationEvent.Region,
             locationEvent.Description,
-            MapActionChoices(choices),
+            MapActionChoices(choices, "CURRENT SITUATION"),
             _dayClock.GetDisplayText());
         _storyPanel.ShowLocationButton(false);
     }
