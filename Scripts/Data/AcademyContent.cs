@@ -159,7 +159,6 @@ public static class AcademyContent
         new Dictionary<string, LocationContent>(StringComparer.Ordinal);
 
     public static IEnumerable<LocationContent> All => _locations.Values;
-    public static ActionDefinition[] SelfActions { get; private set; } = Array.Empty<ActionDefinition>();
     public static ActionDefinition Travel { get; private set; } = new ActionDefinition("travel", "Travel", 10);
     public static ActionDefinition CombatEncounter { get; private set; } = new ActionDefinition("combat_encounter", "Combat Encounter", 30);
 
@@ -201,10 +200,6 @@ public static class AcademyContent
             ActionDefinition loadedCombatEncounter = root.TryGetProperty("combatEncounter", out JsonElement combatData)
                 ? ReadActionDefinition("combat_encounter", "Combat Encounter", combatData)
                 : new ActionDefinition("combat_encounter", "Combat Encounter", 30);
-            ActionDefinition[] loadedSelfActions = root.TryGetProperty("selfActions", out JsonElement selfActionsData)
-                ? ReadActions(selfActionsData)
-                : Array.Empty<ActionDefinition>();
-
             JsonElement locations = root.GetProperty("locations");
 
             foreach (JsonElement locationData in locations.EnumerateArray())
@@ -235,10 +230,8 @@ public static class AcademyContent
             }
 
             ValidateLocationExits(loadedLocations);
-            ValidateSelfActionIds(loadedLocations, loadedSelfActions);
 
             _locations = loadedLocations;
-            SelfActions = loadedSelfActions;
             Travel = loadedTravel;
             CombatEncounter = loadedCombatEncounter;
         }
@@ -261,31 +254,6 @@ public static class AcademyContent
         }
 
         return location;
-    }
-
-    private static void ValidateSelfActionIds(
-        Dictionary<string, LocationContent> locations,
-        ActionDefinition[] selfActions)
-    {
-        ValidateActionIds("self", selfActions);
-
-        HashSet<string> selfActionIds = new HashSet<string>(StringComparer.Ordinal);
-        foreach (ActionDefinition action in selfActions)
-        {
-            selfActionIds.Add(action.Id);
-        }
-
-        foreach (LocationContent location in locations.Values)
-        {
-            foreach (ActionDefinition action in location.Actions)
-            {
-                if (selfActionIds.Contains(action.Id))
-                {
-                    throw new InvalidOperationException(
-                        "Self action ID '" + action.Id + "' conflicts with an action in location '" + location.Id + "'.");
-                }
-            }
-        }
     }
 
     private static void ValidateLocationEvents(
@@ -465,7 +433,7 @@ public static class AcademyContent
         return actions.ToArray();
     }
 
-    private static ActionDefinition ReadActionDefinition(string id, string label, JsonElement data)
+    public static ActionDefinition ReadActionDefinition(string id, string label, JsonElement data)
     {
         int durationMinutes = data.GetProperty("durationMinutes").GetInt32();
         double activityMet = data.TryGetProperty("activityMet", out JsonElement activityMetData)
