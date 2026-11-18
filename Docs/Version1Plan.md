@@ -253,7 +253,7 @@ Sessions 1 and 2 already introduced action duration, costs and execution. Before
 - Introduce a small Action Choice source/request contract that carries source kind, source ID, action ID and optional target/destination ID. Keep identity unambiguous.
 - Introduce an Available Interaction Query for the implemented sources: Player, Location, Travel and active Event.
 - Query is read-only. It distinguishes choices absent from the current context from contextual choices temporarily disabled by a resource/state condition.
-- Introduce an Exploration Mapper and grouped `ExplorationViewModel` / `ActionGroupViewModel` / `ActionChoiceViewModel` (names may follow repository conventions).
+- Introduce `ActionChoiceMapper` and grouped `ActionChoiceViewData` with a stable encoded selection request, label, duration label and group title. Keep location/event header and time label as direct StoryPanel inputs until a richer aggregate ViewModel is justified.
 - Render groups in StoryPanel. Initial groups: Personal, At This Location and Travel. Event uses a focused Current Situation group/view.
 - Keep MainController as the Godot composition root: construct dependencies and wire top-level signals. ExplorationFlowController owns Exploration context, request routing and refresh; CombatFlowController owns Combat presentation flow. Keep game rules in Application/Domain services.
 - Preserve the existing ActionExecutionService, ActivityTimeCalculator, Effects, Location Event behavior and Combat pipeline.
