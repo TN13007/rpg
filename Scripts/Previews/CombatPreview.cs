@@ -26,9 +26,10 @@ public partial class CombatPreview : Control
                 IntentConfidence.Suspected),
             new[]
             {
-                new CombatActionOption("attack", "Attack Goblin A", "No cost", "Deal damage with a basic attack.", targetId: "goblin-a"),
-                new CombatActionOption("defend", "Defend", "1 Energy", "Reduce the impact of the next incoming attack."),
-                new CombatActionOption("dodge", "Dodge", "2 Energy", "Attempt to evade the incoming attack."),
+                new CombatActionOption("attack", "Attack Goblin A", "No Stamina cost", "Deal damage with a basic attack.", targetId: "goblin-a"),
+                new CombatActionOption("defend", "Defend", "1 Stamina", "Reduce the impact of the next incoming attack."),
+                new CombatActionOption("dodge", "Dodge", "2 Stamina", "Attempt to evade the incoming attack."),
+                new CombatActionOption("catch_breath", "Catch Breath", "Recover 3 Stamina", "Recover your composure before the enemy responds."),
                 new CombatActionOption("items", "Use Item", "Varies", "Choose an item from your inventory.")
             });
 

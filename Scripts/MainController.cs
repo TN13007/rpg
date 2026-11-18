@@ -19,6 +19,7 @@ public partial class MainController : Control
     private CombatPresentationMapper _combatMapper;
     private DayClock _dayClock;
     private ActivityTimeCalculator _activityTimeCalculator;
+    private ActivityFatigueCalculator _activityFatigueCalculator;
     private ActionExecutionService _actionExecutionService;
     private ActionDurationEstimateMapper _durationEstimateMapper;
     private GameModeController _gameModeController;
@@ -48,9 +49,11 @@ public partial class MainController : Control
         _combatMapper = new CombatPresentationMapper();
         _dayClock = new DayClock();
         _activityTimeCalculator = new ActivityTimeCalculator();
+        _activityFatigueCalculator = new ActivityFatigueCalculator();
         _actionExecutionService = new ActionExecutionService(
             _activityTimeCalculator,
-            new ActionEffectExecutor());
+            new ActionEffectExecutor(),
+            _activityFatigueCalculator);
         _durationEstimateMapper = new ActionDurationEstimateMapper(_activityTimeCalculator);
         _gameModeController = new GameModeController(_storyPanel, _combatPanel);
         _locationEventService = new LocationEventService();
@@ -108,7 +111,7 @@ public partial class MainController : Control
                 travel.DurationMinutes,
                 travel.TimeModifier,
                 travel.Feedback,
-                travel.EnergyCost,
+                travel.ActivityMet,
                 travel.Effects,
                 travel.TimeMode,
                 travel.EstimatedDurationMinMinutes,
@@ -254,11 +257,6 @@ public partial class MainController : Control
 
         string feedback = action.Feedback;
 
-        if (_player.IsUnconscious)
-        {
-            feedback += " You collapse from exhaustion.";
-        }
-
         _storyPanel.ShowFeedback(feedback);
         return true;
     }
@@ -268,12 +266,6 @@ public partial class MainController : Control
         if (!_actionExecutionService.CanExecute(action, _player, out string failureReason))
         {
             _storyPanel.ShowFeedback(failureReason);
-            return false;
-        }
-
-        if (_player.Energy <= action.EnergyCost)
-        {
-            _storyPanel.ShowFeedback("You need to keep at least 1 Energy to enter combat.");
             return false;
         }
 
@@ -293,16 +285,8 @@ public partial class MainController : Control
 
         _characterPanel.SetCharacter(new CharacterViewModel(_player));
 
-        if (_player.IsUnconscious)
-        {
-            _storyPanel.ShowFeedback("You collapse from exhaustion before the encounter begins.");
-            return false;
-        }
-
         if (!_combatService.TryStartEncounter(out failureReason))
         {
-            _player.RestoreEnergy(action.EnergyCost);
-            _characterPanel.SetCharacter(new CharacterViewModel(_player));
             _storyPanel.ShowFeedback(failureReason);
             return false;
         }
@@ -343,6 +327,11 @@ public partial class MainController : Control
 
         int encounterDuration = _activityTimeCalculator.Calculate(AcademyContent.CombatEncounter, _player);
         _dayClock.AdvanceMinutes(encounterDuration);
+        double encounterFatigue = _activityFatigueCalculator.Calculate(
+            AcademyContent.CombatEncounter,
+            encounterDuration);
+        _player.AddFatigue(encounterFatigue);
+        _characterPanel.SetCharacter(new CharacterViewModel(_player));
         _combatPanel.ShowEncounterComplete(_combatService.IsVictory ? "VICTORY" : "DEFEAT");
     }
 
@@ -395,11 +384,6 @@ public partial class MainController : Control
             _dayClock.Day,
             _dayClock.MinutesOfDay);
         string feedback = "You arrive at " + AcademyContent.Get(destinationId).Name + ".";
-
-        if (_player.IsUnconscious)
-        {
-            feedback += " You collapse from exhaustion.";
-        }
 
         _storyPanel.ShowFeedback(feedback);
         TryTriggerLocationEvent();

@@ -63,10 +63,12 @@ public sealed class CharacterData
     public string Role { get; }
     public int Level { get; }
     public int MaxHealth { get; }
-    public int MaxEnergy { get; }
+    public double MaxFatigue { get; }
+    public int MaxStamina { get; }
     public int MaxMood { get; }
     public int StartingHealth { get; }
-    public int StartingEnergy { get; }
+    public double StartingFatigue { get; }
+    public int StartingStamina { get; }
     public int StartingMood { get; }
     public int StartingGold { get; }
     public CharacterStats Stats { get; }
@@ -77,10 +79,12 @@ public sealed class CharacterData
         string role,
         int level,
         int maxHealth,
-        int maxEnergy,
+        double maxFatigue,
+        int maxStamina,
         int maxMood,
         int startingHealth,
-        int startingEnergy,
+        double startingFatigue,
+        int startingStamina,
         int startingMood,
         int startingGold,
         CharacterStats stats = null)
@@ -95,7 +99,7 @@ public sealed class CharacterData
             throw new ArgumentException("Character name is required.", nameof(name));
         }
 
-        if (level < 1 || maxHealth < 1 || maxEnergy < 0 || maxMood < 0)
+        if (level < 1 || maxHealth < 1 || maxFatigue < 0 || maxStamina < 0 || maxMood < 0)
         {
             throw new ArgumentOutOfRangeException(nameof(level), "Character base values are invalid.");
         }
@@ -105,9 +109,15 @@ public sealed class CharacterData
             throw new ArgumentOutOfRangeException(nameof(startingHealth));
         }
 
-        if (startingEnergy < 0 || startingEnergy > maxEnergy)
+        if (double.IsNaN(startingFatigue) || double.IsInfinity(startingFatigue) ||
+            startingFatigue < 0 || startingFatigue > maxFatigue)
         {
-            throw new ArgumentOutOfRangeException(nameof(startingEnergy));
+            throw new ArgumentOutOfRangeException(nameof(startingFatigue));
+        }
+
+        if (startingStamina < 0 || startingStamina > maxStamina)
+        {
+            throw new ArgumentOutOfRangeException(nameof(startingStamina));
         }
 
         if (startingMood < 0 || startingMood > maxMood)
@@ -125,10 +135,12 @@ public sealed class CharacterData
         Role = role ?? string.Empty;
         Level = level;
         MaxHealth = maxHealth;
-        MaxEnergy = maxEnergy;
+        MaxFatigue = maxFatigue;
+        MaxStamina = maxStamina;
         MaxMood = maxMood;
         StartingHealth = startingHealth;
-        StartingEnergy = startingEnergy;
+        StartingFatigue = startingFatigue;
+        StartingStamina = startingStamina;
         StartingMood = startingMood;
         StartingGold = startingGold;
         Stats = stats ?? new CharacterStats(0, 0, 0, 0, 0);
@@ -162,10 +174,12 @@ public static class CharacterDataLoader
                 data.GetProperty("role").GetString(),
                 data.GetProperty("level").GetInt32(),
                 data.GetProperty("maxHealth").GetInt32(),
-                data.GetProperty("maxEnergy").GetInt32(),
+                data.GetProperty("maxFatigue").GetDouble(),
+                data.GetProperty("maxStamina").GetInt32(),
                 data.GetProperty("maxMood").GetInt32(),
                 data.GetProperty("startingHealth").GetInt32(),
-                data.GetProperty("startingEnergy").GetInt32(),
+                data.GetProperty("startingFatigue").GetDouble(),
+                data.GetProperty("startingStamina").GetInt32(),
                 data.GetProperty("startingMood").GetInt32(),
                 data.GetProperty("startingGold").GetInt32(),
                 ReadStats(data));

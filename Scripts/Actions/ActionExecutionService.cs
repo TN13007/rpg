@@ -3,14 +3,17 @@ using System;
 public sealed class ActionExecutionService
 {
     private readonly ActivityTimeCalculator _timeCalculator;
+    private readonly ActivityFatigueCalculator _fatigueCalculator;
     private readonly ActionEffectExecutor _effectExecutor;
 
     public ActionExecutionService(
         ActivityTimeCalculator timeCalculator,
-        ActionEffectExecutor effectExecutor)
+        ActionEffectExecutor effectExecutor,
+        ActivityFatigueCalculator fatigueCalculator = null)
     {
         _timeCalculator = timeCalculator ?? throw new ArgumentNullException(nameof(timeCalculator));
         _effectExecutor = effectExecutor ?? throw new ArgumentNullException(nameof(effectExecutor));
+        _fatigueCalculator = fatigueCalculator ?? new ActivityFatigueCalculator();
     }
 
     public bool CanExecute(ActionDefinition action, Character actor, out string failureReason)
@@ -28,18 +31,6 @@ public sealed class ActionExecutionService
         if (actor.IsDead)
         {
             failureReason = "You are dead and cannot perform actions.";
-            return false;
-        }
-
-        if (actor.IsUnconscious && !action.CanExecuteWhenUnconscious)
-        {
-            failureReason = "You are unconscious. Rest before continuing.";
-            return false;
-        }
-
-        if (actor.Energy < action.EnergyCost)
-        {
-            failureReason = "Not enough Energy. Rest before continuing.";
             return false;
         }
 
@@ -69,13 +60,6 @@ public sealed class ActionExecutionService
             ? _timeCalculator.Calculate(action, actor)
             : 0;
 
-        if (!actor.SpendEnergy(action.EnergyCost))
-        {
-            failureReason = "Not enough Energy. Rest before continuing.";
-            actualDuration = 0;
-            return false;
-        }
-
         if (action.TimeMode == ActionTimeMode.NextDay)
         {
             dayClock.SleepUntilNextDay();
@@ -85,6 +69,7 @@ public sealed class ActionExecutionService
             dayClock.AdvanceMinutes(actualDuration);
         }
 
+        actor.AddFatigue(_fatigueCalculator.Calculate(action, actualDuration));
         _effectExecutor.Apply(action, actor);
         failureReason = string.Empty;
         return true;

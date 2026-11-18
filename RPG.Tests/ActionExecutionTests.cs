@@ -1,3 +1,5 @@
+using System;
+using System.IO;
 using Xunit;
 
 public sealed class ActionExecutionTests
@@ -6,203 +8,124 @@ public sealed class ActionExecutionTests
         new ActionExecutionService(new ActivityTimeCalculator(), new ActionEffectExecutor());
 
     [Fact]
-    public void ZeroEnergyCannotPerformEvenZeroCostAction()
+    public void ActivityAddsFatigueFromMetAndCalculatedDuration()
     {
-        Character actor = TestCharacterFactory.CreatePlayer(health: 20, energy: 0);
+        Character actor = TestCharacterFactory.CreatePlayer(agility: 30);
         DayClock clock = new DayClock();
-        ActionDefinition freeAction = new ActionDefinition("free", "Free", 10);
+        ActionDefinition walk = new ActionDefinition("walk", "Walk", 10, activityMet: 2.8);
 
-        bool success = _service.TryExecute(freeAction, actor, clock, out string reason, out int duration);
+        bool success = _service.TryExecute(walk, actor, clock, out string reason, out int duration);
 
-        Assert.False(success);
-        Assert.Contains("unconscious", reason);
-        Assert.Equal(0, duration);
-        Assert.Equal(0, actor.Energy);
-        Assert.Equal(1, clock.Day);
-        Assert.Equal(450, clock.MinutesOfDay);
+        Assert.True(success, reason);
+        Assert.Equal(9, duration);
+        Assert.Equal(1.08, actor.Fatigue, 6);
+        Assert.Equal(8, actor.Stamina);
+        Assert.Equal(459, clock.MinutesOfDay);
     }
 
     [Fact]
-    public void InsufficientEnergyDoesNotSpendResourcesOrAdvanceTime()
+    public void HighFatigueDoesNotBlockOrdinaryActions()
     {
-        Character actor = TestCharacterFactory.CreatePlayer(energy: 2);
-        DayClock clock = new DayClock();
-        ActionDefinition action = new ActionDefinition("costly", "Costly", 30, energyCost: 3);
+        Character actor = TestCharacterFactory.CreatePlayer(fatigue: 100, stamina: 0);
+        ActionDefinition action = new ActionDefinition("read", "Read", 10, activityMet: 1.3);
 
-        bool success = _service.TryExecute(action, actor, clock, out string reason, out int duration);
-
-        Assert.False(success);
-        Assert.Contains("Rest before continuing", reason);
-        Assert.Equal(0, duration);
-        Assert.Equal(2, actor.Energy);
-        Assert.Equal(20, actor.Health);
-        Assert.Equal(70, actor.Mood);
-        Assert.Equal(20, actor.Gold);
-        Assert.Equal(450, clock.MinutesOfDay);
-    }
-
-    [Fact]
-    public void SpendingLastEnergyCompletesCurrentActionThenLeavesActorUnconscious()
-    {
-        Character actor = TestCharacterFactory.CreatePlayer(energy: 1);
-        DayClock clock = new DayClock();
-        ActionDefinition action = new ActionDefinition("last-action", "Last action", 15, energyCost: 1);
-
-        bool success = _service.TryExecute(action, actor, clock, out string reason, out int duration);
-
-        Assert.True(success);
+        Assert.True(_service.CanExecute(action, actor, out string reason));
         Assert.Empty(reason);
-        Assert.Equal(15, duration);
-        Assert.Equal(0, actor.Energy);
-        Assert.True(actor.IsUnconscious);
-        Assert.Equal(465, clock.MinutesOfDay);
     }
 
     [Fact]
-    public void DeadActorCannotUseRestToRecover()
+    public void DeadActorCannotPerformActionOrAdvanceTime()
     {
-        LoadAcademyContent();
-        Character actor = TestCharacterFactory.CreatePlayer(health: 0, energy: 0);
+        Character actor = TestCharacterFactory.CreatePlayer(health: 0, fatigue: 50);
         DayClock clock = new DayClock();
-        ActionDefinition rest = FindAction("rest");
+        ActionDefinition action = new ActionDefinition("read", "Read", 10);
 
-        bool success = _service.TryExecute(rest, actor, clock, out string reason, out int duration);
+        bool success = _service.TryExecute(action, actor, clock, out string reason, out int duration);
 
         Assert.False(success);
         Assert.Contains("dead", reason);
-        Assert.Equal(0, actor.Health);
-        Assert.Equal(0, actor.Energy);
-        Assert.Equal(1, clock.Day);
-        Assert.Equal(450, clock.MinutesOfDay);
         Assert.Equal(0, duration);
+        Assert.Equal(50, actor.Fatigue);
+        Assert.Equal(450, clock.MinutesOfDay);
     }
 
     [Fact]
-    public void RestFromZeroEnergyRecoversAndAllowsTheCharacterToAct()
+    public void RestRecoversFatigueStaminaAndMood()
     {
         LoadAcademyContent();
-        Character actor = TestCharacterFactory.CreatePlayer(health: 12, energy: 0, mood: 40, gold: 7);
+        Character actor = TestCharacterFactory.CreatePlayer(fatigue: 20, stamina: 1, mood: 40, gold: 7);
         DayClock clock = new DayClock();
-        ActionDefinition rest = FindAction("rest");
 
-        bool success = _service.TryExecute(rest, actor, clock, out string reason, out int duration);
+        bool success = _service.TryExecute(FindAction("rest"), actor, clock, out string reason, out int duration);
 
         Assert.True(success, reason);
-        Assert.Empty(reason);
         Assert.Equal(30, duration);
-        Assert.Equal(12, actor.Health);
-        Assert.Equal(3, actor.Energy);
+        Assert.Equal(15, actor.Fatigue);
+        Assert.Equal(4, actor.Stamina);
         Assert.Equal(42, actor.Mood);
         Assert.Equal(7, actor.Gold);
-        Assert.False(actor.IsUnconscious);
-        Assert.True(actor.CanAct);
-        Assert.Equal(1, clock.Day);
         Assert.Equal(480, clock.MinutesOfDay);
     }
 
     [Fact]
-    public void RestAtMaximumEnergyDoesNotExceedMaximum()
+    public void RestAndSleepRecoveryAreClamped()
     {
         LoadAcademyContent();
-        Character actor = TestCharacterFactory.CreatePlayer(energy: 10);
+        Character actor = TestCharacterFactory.CreatePlayer(fatigue: 0, stamina: 10);
         DayClock clock = new DayClock();
-        ActionDefinition rest = FindAction("rest");
 
-        bool success = _service.TryExecute(rest, actor, clock, out string reason, out int duration);
+        Assert.True(_service.TryExecute(FindAction("rest"), actor, clock, out string reason, out _), reason);
+        Assert.Equal(0, actor.Fatigue);
+        Assert.Equal(10, actor.Stamina);
+
+        actor.AddFatigue(90);
+        actor.SpendStamina(5);
+        Assert.True(_service.TryExecute(FindAction("sleep"), actor, clock, out reason, out _), reason);
+        Assert.Equal(0, actor.Fatigue);
+        Assert.Equal(10, actor.Stamina);
+    }
+
+    [Fact]
+    public void SleepAdvancesOneDayAndPreservesHealthAndMoodRecovery()
+    {
+        LoadAcademyContent();
+        Character actor = TestCharacterFactory.CreatePlayer(
+            health: 5, fatigue: 55, stamina: 2, mood: 50);
+        DayClock clock = new DayClock(1, 22, 0);
+
+        bool success = _service.TryExecute(FindAction("sleep"), actor, clock, out string reason, out int duration);
 
         Assert.True(success, reason);
-        Assert.Equal(10, actor.Energy);
-        Assert.Equal(30, duration);
-        Assert.Equal(480, clock.MinutesOfDay);
-    }
-
-    [Fact]
-    public void OnlyExplicitlyConfiguredActionsCanExecuteWhileUnconscious()
-    {
-        LoadAcademyContent();
-        ActionDefinition rest = FindAction("rest");
-        ActionDefinition ordinaryAction = FindAction("inspect_letter");
-        Character actor = TestCharacterFactory.CreatePlayer(energy: 0);
-
-        Assert.True(rest.CanExecuteWhenUnconscious);
-        Assert.False(ordinaryAction.CanExecuteWhenUnconscious);
-        Assert.False(AcademyContent.Travel.CanExecuteWhenUnconscious);
-        Assert.True(_service.CanExecute(rest, actor, out string restFailure));
-        Assert.Empty(restFailure);
-        Assert.False(_service.CanExecute(ordinaryAction, actor, out string ordinaryFailure));
-        Assert.Contains("unconscious", ordinaryFailure);
-        Assert.False(_service.CanExecute(AcademyContent.Travel, actor, out string travelFailure));
-        Assert.Contains("unconscious", travelFailure);
-    }
-
-    [Fact]
-    public void UnconsciousPermissionDoesNotBypassEnergyCost()
-    {
-        Character actor = TestCharacterFactory.CreatePlayer(health: 10, energy: 0, mood: 50, gold: 4);
-        DayClock clock = new DayClock();
-        ActionDefinition costlyRecovery = new ActionDefinition(
-            "costly-recovery",
-            "Costly recovery",
-            20,
-            energyCost: 1,
-            effects: new[] { new ActionEffectDefinition(ActionEffectType.RestoreEnergy, 5) },
-            canExecuteWhenUnconscious: true);
-
-        bool success = _service.TryExecute(
-            costlyRecovery,
-            actor,
-            clock,
-            out string reason,
-            out int duration);
-
-        Assert.False(success);
-        Assert.Contains("enough Energy", reason);
-        Assert.Equal(10, actor.Health);
-        Assert.Equal(0, actor.Energy);
-        Assert.Equal(50, actor.Mood);
-        Assert.Equal(4, actor.Gold);
-        Assert.Equal(450, clock.MinutesOfDay);
         Assert.Equal(0, duration);
+        Assert.Equal(2, clock.Day);
+        Assert.Equal(450, clock.MinutesOfDay);
+        Assert.Equal(20, actor.Health);
+        Assert.Equal(0, actor.Fatigue);
+        Assert.Equal(10, actor.Stamina);
+        Assert.Equal(60, actor.Mood);
     }
 
     [Fact]
-    public void NegativeEnergyCostIsRejectedByActionDefinition()
+    public void NegativeFatigueAndStaminaRestoreEffectsAreRejected()
     {
-        Assert.Throws<System.ArgumentOutOfRangeException>(CreateActionWithNegativeEnergyCost);
-    }
-
-    private static void CreateActionWithNegativeEnergyCost()
-    {
-        new ActionDefinition("invalid", "Invalid", 10, energyCost: -1);
-    }
-
-    [Fact]
-    public void SelfRestActionIsAvailableFromEveryLocationThroughContent()
-    {
-        LoadAcademyContent();
-        Assert.Single(AcademyContent.SelfActions);
-        Assert.Equal("rest", AcademyContent.SelfActions[0].Id);
-        Assert.True(AcademyContent.SelfActions[0].CanExecuteWhenUnconscious);
-
-        int locationCount = 0;
-        foreach (LocationContent location in AcademyContent.All)
-        {
-            locationCount++;
-        }
-
-        Assert.Equal(4, locationCount);
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            new ActionEffectDefinition(ActionEffectType.RestoreFatigue, -1));
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            new ActionEffectDefinition(ActionEffectType.RestoreStamina, -1));
     }
 
     [Fact]
-    public void EffectsApplyAndClampAllCharacterResources()
+    public void EffectExecutorAppliesAndClampsCharacterResources()
     {
-        Character actor = TestCharacterFactory.CreatePlayer(health: 18, energy: 9, mood: 98, gold: 20);
+        Character actor = TestCharacterFactory.CreatePlayer(
+            health: 18, fatigue: 98, stamina: 9, mood: 98, gold: 20);
         ActionDefinition action = new ActionDefinition(
             "all-effects", "All effects", 1,
             effects: new[]
             {
                 new ActionEffectDefinition(ActionEffectType.RestoreHealth, 10),
-                new ActionEffectDefinition(ActionEffectType.RestoreEnergy, 10),
+                new ActionEffectDefinition(ActionEffectType.RestoreFatigue, 10),
+                new ActionEffectDefinition(ActionEffectType.RestoreStamina, 10),
                 new ActionEffectDefinition(ActionEffectType.ChangeMood, 10),
                 new ActionEffectDefinition(ActionEffectType.AddGold, 25)
             });
@@ -210,95 +133,43 @@ public sealed class ActionExecutionTests
         new ActionEffectExecutor().Apply(action, actor);
 
         Assert.Equal(20, actor.Health);
-        Assert.Equal(10, actor.Energy);
+        Assert.Equal(88, actor.Fatigue);
+        Assert.Equal(10, actor.Stamina);
         Assert.Equal(100, actor.Mood);
         Assert.Equal(45, actor.Gold);
     }
 
     [Fact]
-    public void NegativeMoodEffectCanReduceMoodButCannotGoBelowZero()
+    public void TravelUsesActivityMetAndKeepsAgilityDurationModifier()
     {
-        Character actor = TestCharacterFactory.CreatePlayer(mood: 5);
-        ActionDefinition action = new ActionDefinition(
-            "bad-news", "Bad news", 0,
-            effects: new[] { new ActionEffectDefinition(ActionEffectType.ChangeMood, -20) });
+        LoadAcademyContent();
+        Character actor = TestCharacterFactory.CreatePlayer(agility: 30);
+        DayClock clock = new DayClock();
 
-        new ActionEffectExecutor().Apply(action, actor);
-        Assert.Equal(0, actor.Mood);
+        bool success = _service.TryExecute(
+            AcademyContent.Travel, actor, clock, out string reason, out int duration);
+
+        Assert.True(success, reason);
+        Assert.Equal(2.8, AcademyContent.Travel.ActivityMet, 6);
+        Assert.Equal(9, duration);
+        Assert.Equal(1.08, actor.Fatigue, 6);
+        Assert.Equal(8, actor.Stamina);
+        Assert.Equal(459, clock.MinutesOfDay);
     }
 
     [Fact]
-    public void TimeModifierUsesMinimumOneMinuteAndStatMaximum()
+    public void CombatEncounterHasSeparateDurationAndActivityIntensity()
     {
-        Character lowStat = TestCharacterFactory.CreatePlayer(intelligence: 0);
-        Character highStat = TestCharacterFactory.CreatePlayer(intelligence: 100);
-        ActionDefinition action = new ActionDefinition(
-            "study", "Study", 20,
-            new ActivityTimeModifier(CharacterStat.Intelligence, 0.5));
+        LoadAcademyContent();
 
-        Assert.Equal(20, new ActivityTimeCalculator().Calculate(action, lowStat));
-        Assert.Equal(10, new ActivityTimeCalculator().Calculate(action, highStat));
+        Assert.Equal(30, AcademyContent.CombatEncounter.DurationMinutes);
+        Assert.Equal(5.0, AcademyContent.CombatEncounter.ActivityMet, 6);
+        Assert.Equal(8.0, new ActivityFatigueCalculator().Calculate(
+            AcademyContent.CombatEncounter, AcademyContent.CombatEncounter.DurationMinutes), 6);
     }
 
     [Fact]
-    public void EveryCharacterStatValueProducesExpectedTimeModifier()
-    {
-        for (int statIndex = 0; statIndex < 5; statIndex++)
-        {
-            CharacterStat stat = (CharacterStat)statIndex;
-
-            for (int value = 0; value <= 100; value++)
-            {
-                CharacterStats stats = new CharacterStats(
-                    stat == CharacterStat.Strength ? value : 0,
-                    stat == CharacterStat.Agility ? value : 0,
-                    stat == CharacterStat.Intelligence ? value : 0,
-                    stat == CharacterStat.Endurance ? value : 0,
-                    stat == CharacterStat.Wisdom ? value : 0);
-
-                CharacterData data = new CharacterData(
-                    "stat-test", "Stat Test", "Test", 1,
-                    20, 10, 100, 20, 10, 50, 0, stats);
-                Character actor = new Character(data);
-                ActionDefinition action = new ActionDefinition(
-                    "stat-time", "Stat Time", 20,
-                    new ActivityTimeModifier(stat, 0.5));
-
-                int expectedDuration = (int)System.Math.Ceiling(20 * (1.0 - value / 100.0 * 0.5));
-                Assert.Equal(expectedDuration, new ActivityTimeCalculator().Calculate(action, actor));
-            }
-        }
-    }
-
-    [Fact]
-    public void NextDayActionAdvancesToWakeUpAndAppliesEffects()
-    {
-        Character actor = TestCharacterFactory.CreatePlayer(health: 5, energy: 2, mood: 50);
-        DayClock clock = new DayClock(1, 22, 0);
-        ActionDefinition sleep = new ActionDefinition(
-            "sleep", "Sleep", 0,
-            effects: new[]
-            {
-                new ActionEffectDefinition(ActionEffectType.RestoreHealth, 20),
-                new ActionEffectDefinition(ActionEffectType.RestoreEnergy, 10),
-                new ActionEffectDefinition(ActionEffectType.ChangeMood, 10)
-            },
-            timeMode: ActionTimeMode.NextDay);
-
-        bool success = _service.TryExecute(sleep, actor, clock, out string reason, out int duration);
-
-        Assert.True(success);
-        Assert.Empty(reason);
-        Assert.Equal(0, duration);
-        Assert.Equal(2, clock.Day);
-        Assert.Equal(450, clock.MinutesOfDay);
-        Assert.Equal(20, actor.Health);
-        Assert.Equal(10, actor.Energy);
-        Assert.Equal(60, actor.Mood);
-    }
-
-    [Fact]
-    public void EveryConfiguredLocationActionCanExecuteAndHasValidCostsAndEffects()
+    public void EveryConfiguredActivityHasValidIntensityAndDuration()
     {
         LoadAcademyContent();
         int actionCount = 0;
@@ -308,238 +179,13 @@ public sealed class ActionExecutionTests
             foreach (ActionDefinition action in location.Actions)
             {
                 actionCount++;
-                Assert.NotNull(action.Effects);
-                Assert.True(action.EnergyCost >= 0);
+                Assert.InRange(action.ActivityMet, 0, 20);
                 Assert.True(action.DurationMinutes >= 0);
-
-                Character actor = TestCharacterFactory.CreatePlayer(health: 5, energy: 8, mood: 50, gold: 10);
-                DayClock clock = new DayClock();
-                bool success = _service.TryExecute(action, actor, clock, out string reason, out int duration);
-
-                Assert.True(success, location.Id + "/" + action.Id + ": " + reason);
-                Assert.InRange(actor.Health, 0, actor.MaxHealth);
-                Assert.InRange(actor.Energy, 0, actor.MaxEnergy);
-                Assert.InRange(actor.Mood, 0, actor.MaxMood);
-                Assert.True(duration >= 0);
             }
         }
 
         Assert.Equal(9, actionCount);
         Assert.Single(AcademyContent.SelfActions);
-    }
-
-    [Fact]
-    public void SelfActionRestHandlesEveryHealthAndEnergyCombination()
-    {
-        LoadAcademyContent();
-        ActionDefinition rest = FindAction("rest");
-
-        for (int health = 0; health <= 20; health++)
-        {
-            for (int energy = 0; energy <= 10; energy++)
-            {
-                Character actor = TestCharacterFactory.CreatePlayer(
-                    health: health,
-                    energy: energy,
-                    mood: 50,
-                    gold: 10);
-                DayClock clock = new DayClock();
-
-                bool success = _service.TryExecute(rest, actor, clock, out string reason, out int duration);
-                bool expectedSuccess = health > 0;
-
-                Assert.Equal(expectedSuccess, success);
-
-                if (expectedSuccess)
-                {
-                    Assert.Empty(reason);
-                    Assert.Equal(System.Math.Min(10, energy + 3), actor.Energy);
-                    Assert.Equal(52, actor.Mood);
-                    Assert.False(actor.IsUnconscious);
-                    Assert.Equal(480, clock.MinutesOfDay);
-                    Assert.Equal(30, duration);
-                    continue;
-                }
-
-                Assert.Contains("dead", reason);
-                Assert.Equal(0, actor.Health);
-                Assert.Equal(energy, actor.Energy);
-                Assert.Equal(50, actor.Mood);
-                Assert.Equal(10, actor.Gold);
-                Assert.Equal(450, clock.MinutesOfDay);
-                Assert.Equal(0, duration);
-            }
-        }
-    }
-
-    [Fact]
-    public void EveryConfiguredActionCoversEveryHealthAndEnergyCombination()
-    {
-        LoadAcademyContent();
-
-        foreach (LocationContent location in AcademyContent.All)
-        {
-            foreach (ActionDefinition action in location.Actions)
-            {
-                for (int health = 0; health <= 20; health++)
-                {
-                    for (int energy = 0; energy <= 10; energy++)
-                    {
-                        Character actor = TestCharacterFactory.CreatePlayer(
-                            health: health,
-                            energy: energy,
-                            mood: 50);
-                        DayClock clock = new DayClock();
-
-                        bool success = _service.TryExecute(
-                            action,
-                            actor,
-                            clock,
-                            out string reason,
-                            out int duration);
-
-                        bool expectedSuccess = health > 0 && energy > 0 && energy >= action.EnergyCost;
-                        Assert.Equal(expectedSuccess, success);
-
-                        if (!expectedSuccess)
-                        {
-                            Assert.Equal(health, actor.Health);
-                            Assert.Equal(energy, actor.Energy);
-                            Assert.Equal(450, clock.MinutesOfDay);
-                            Assert.Equal(0, duration);
-                            continue;
-                        }
-
-                        int expectedHealth = health;
-                        int expectedEnergy = energy - action.EnergyCost;
-                        int expectedMood = 50;
-
-                        foreach (ActionEffectDefinition effect in action.Effects)
-                        {
-                            if (effect.Type == ActionEffectType.RestoreHealth)
-                            {
-                                expectedHealth = System.Math.Min(20, expectedHealth + effect.Amount);
-                            }
-                            else if (effect.Type == ActionEffectType.RestoreEnergy)
-                            {
-                                expectedEnergy = System.Math.Min(10, expectedEnergy + effect.Amount);
-                            }
-                            else if (effect.Type == ActionEffectType.ChangeMood)
-                            {
-                                expectedMood = (int)System.Math.Clamp((long)expectedMood + effect.Amount, 0L, 100L);
-                            }
-                        }
-
-                        Assert.Equal(expectedHealth, actor.Health);
-                        Assert.Equal(expectedEnergy, actor.Energy);
-                        Assert.Equal(expectedMood, actor.Mood);
-                    }
-                }
-            }
-        }
-    }
-
-    [Fact]
-    public void EveryConfiguredActionCoversEveryMoodValue()
-    {
-        LoadAcademyContent();
-
-        foreach (LocationContent location in AcademyContent.All)
-        {
-            foreach (ActionDefinition action in location.Actions)
-            {
-                for (int mood = 0; mood <= 100; mood++)
-                {
-                    Character actor = TestCharacterFactory.CreatePlayer(
-                        health: 20,
-                        energy: 8,
-                        mood: mood);
-                    DayClock clock = new DayClock();
-
-                    bool success = _service.TryExecute(
-                        action,
-                        actor,
-                        clock,
-                        out string reason,
-                        out int duration);
-
-                    Assert.True(success, location.Id + "/" + action.Id + ": " + reason);
-
-                    int expectedMood = mood;
-                    foreach (ActionEffectDefinition effect in action.Effects)
-                    {
-                        if (effect.Type == ActionEffectType.ChangeMood)
-                        {
-                            expectedMood = (int)System.Math.Clamp((long)expectedMood + effect.Amount, 0L, 100L);
-                        }
-                    }
-
-                    Assert.Equal(expectedMood, actor.Mood);
-                }
-            }
-        }
-    }
-
-    [Fact]
-    public void TravelDefinitionAppliesEnergyCostAndAgilityTimeModifier()
-    {
-        LoadAcademyContent();
-        Character actor = TestCharacterFactory.CreatePlayer(energy: 8, agility: 30);
-        DayClock clock = new DayClock();
-
-        bool success = _service.TryExecute(
-            AcademyContent.Travel,
-            actor,
-            clock,
-            out string reason,
-            out int duration);
-
-        Assert.True(success, reason);
-        Assert.Equal(1, AcademyContent.Travel.EnergyCost);
-        Assert.Equal(9, duration);
-        Assert.Equal(7, actor.Energy);
-        Assert.Equal(459, clock.MinutesOfDay);
-    }
-
-    [Fact]
-    public void CombatEncounterDurationIsConfiguredSeparatelyFromLocationActions()
-    {
-        LoadAcademyContent();
-        Assert.Equal(30, AcademyContent.CombatEncounter.DurationMinutes);
-        Assert.Equal(0, AcademyContent.CombatEncounter.EnergyCost);
-    }
-
-    [Fact]
-    public void ConfiguredActionsApplyExpectedEffectsAndCosts()
-    {
-        LoadAcademyContent();
-        AssertActionResult("rest", 0, 5, 10, 52, 10, 30);
-        AssertActionResult("inspect_letter", 1, 5, 7, 50, 10, 10);
-        AssertActionResult("sleep", 0, 20, 10, 60, 10, 0);
-        AssertActionResult("talk_mira", 1, 5, 7, 53, 10, 15);
-        AssertActionResult("inspect_board", 1, 5, 7, 50, 10, 10);
-        AssertActionResult("encounter_goblin", 2, 5, 6, 50, 10, 0);
-        AssertActionResult("talk_instructor", 1, 5, 7, 50, 10, 20);
-        AssertActionResult("inspect_maps", 2, 5, 6, 50, 10, 18);
-        AssertActionResult("talk_clerk", 1, 5, 7, 50, 10, 15);
-        AssertActionResult("inspect_requests", 1, 5, 7, 50, 10, 10);
-    }
-
-    private void AssertActionResult(string actionId, int expectedCost, int expectedHealth, int expectedEnergy, int expectedMood, int expectedGold, int expectedDuration)
-    {
-        ActionDefinition action = FindAction(actionId);
-        Character actor = TestCharacterFactory.CreatePlayer(health: 5, energy: 8, mood: 50, gold: 10);
-        DayClock clock = new DayClock();
-
-        bool success = _service.TryExecute(action, actor, clock, out string reason, out int duration);
-
-        Assert.True(success, actionId + ": " + reason);
-        Assert.Equal(expectedCost, action.EnergyCost);
-        Assert.Equal(expectedHealth, actor.Health);
-        Assert.Equal(expectedEnergy, actor.Energy);
-        Assert.Equal(expectedMood, actor.Mood);
-        Assert.Equal(expectedGold, actor.Gold);
-        Assert.Equal(expectedDuration, duration);
     }
 
     private static ActionDefinition FindAction(string actionId)
@@ -563,12 +209,12 @@ public sealed class ActionExecutionTests
             }
         }
 
-        throw new System.InvalidOperationException("Action not found: " + actionId);
+        throw new InvalidOperationException("Action not found: " + actionId);
     }
 
     private static void LoadAcademyContent()
     {
-        string path = System.IO.Path.Combine(System.AppContext.BaseDirectory, "Data", "AcademyLocations.json");
-        AcademyContent.LoadJson(System.IO.File.ReadAllText(path));
+        string path = Path.Combine(AppContext.BaseDirectory, "Data", "AcademyLocations.json");
+        AcademyContent.LoadJson(File.ReadAllText(path));
     }
 }

@@ -3,57 +3,36 @@ using Xunit;
 public sealed class CharacterTests
 {
     [Fact]
-    public void HealthEnergyAndMood_StateGrid_HasCorrectLifeAndActionState()
+    public void CharacterWithPositiveHealthCanActRegardlessOfFatigueOrStamina()
     {
-        for (int health = 0; health <= 20; health++)
+        for (int health = 1; health <= 20; health++)
         {
-            for (int energy = 0; energy <= 10; energy++)
+            for (int stamina = 0; stamina <= 10; stamina++)
             {
-                for (int mood = 0; mood <= 100; mood++)
-                {
-                    Character character = TestCharacterFactory.CreatePlayer(health: health, energy: energy, mood: mood);
-                    bool expectedDead = health == 0;
-                    bool expectedUnconscious = health > 0 && energy == 0;
+                Character character = TestCharacterFactory.CreatePlayer(
+                    health: health,
+                    fatigue: 100,
+                    stamina: stamina);
 
-                    Assert.Equal(!expectedDead, character.IsAlive);
-                    Assert.Equal(expectedDead, character.IsDead);
-                    Assert.Equal(expectedUnconscious, character.IsUnconscious);
-                    Assert.Equal(!expectedDead && !expectedUnconscious, character.CanAct);
-                    Assert.InRange(character.Mood, 0, character.MaxMood);
-                }
+                Assert.True(character.IsAlive);
+                Assert.False(character.IsDead);
+                Assert.True(character.CanAct);
             }
         }
     }
 
     [Fact]
-    public void Death_TakesPriorityWhenHealthAndEnergyAreBothZero()
+    public void DeathPreventsCharacterFromActing()
     {
-        Character character = TestCharacterFactory.CreatePlayer(health: 0, energy: 0);
+        Character character = TestCharacterFactory.CreatePlayer(health: 0, fatigue: 100, stamina: 0);
+
+        Assert.False(character.IsAlive);
         Assert.True(character.IsDead);
-        Assert.False(character.IsUnconscious);
         Assert.False(character.CanAct);
     }
 
     [Fact]
-    public void ZeroEnergyWithPositiveHealth_IsUnconscious()
-    {
-        Character character = TestCharacterFactory.CreatePlayer(health: 1, energy: 0);
-        Assert.True(character.IsAlive);
-        Assert.True(character.IsUnconscious);
-        Assert.False(character.CanAct);
-    }
-
-    [Fact]
-    public void CharacterWithNoEnergyResource_IsNotAutomaticallyUnconscious()
-    {
-        Character enemy = TestCharacterFactory.CreateEnemy();
-        Assert.True(enemy.IsAlive);
-        Assert.False(enemy.IsUnconscious);
-        Assert.True(enemy.CanAct);
-    }
-
-    [Fact]
-    public void DamageAndHealing_AreClampedAtMinimumAndMaximum()
+    public void DamageAndHealingAreClampedAtMinimumAndMaximum()
     {
         Character character = TestCharacterFactory.CreatePlayer(health: 5);
         Assert.Equal(0, character.TakeDamage(-10));
@@ -73,23 +52,39 @@ public sealed class CharacterTests
     }
 
     [Fact]
-    public void EnergySpendingAndRecovery_RespectBoundaries()
+    public void FatigueAccumulationAndRecoveryRespectBoundaries()
     {
-        Character character = TestCharacterFactory.CreatePlayer(energy: 5);
-        Assert.False(character.SpendEnergy(-1));
-        Assert.False(character.SpendEnergy(6));
-        Assert.Equal(5, character.Energy);
-        Assert.True(character.SpendEnergy(5));
-        Assert.Equal(0, character.Energy);
-        Assert.True(character.IsUnconscious);
-        Assert.Equal(0, character.RestoreEnergy(-5));
-        Assert.Equal(10, character.RestoreEnergy(100));
-        Assert.Equal(10, character.Energy);
-        Assert.False(character.IsUnconscious);
+        Character character = TestCharacterFactory.CreatePlayer(fatigue: 95);
+
+        Assert.Equal(5, character.AddFatigue(20));
+        Assert.Equal(100, character.Fatigue);
+        Assert.Equal(0, character.AddFatigue(-5));
+        Assert.Equal(0, character.AddFatigue(double.NaN));
+        Assert.Equal(25, character.RestoreFatigue(25));
+        Assert.Equal(75, character.Fatigue);
+        Assert.Equal(75, character.RestoreFatigue(100));
+        Assert.Equal(0, character.Fatigue);
+        Assert.Equal(0, character.RestoreFatigue(1));
     }
 
     [Fact]
-    public void Mood_IsClampedAtZeroAndMaximum()
+    public void StaminaSpendingAndRecoveryRespectBoundaries()
+    {
+        Character character = TestCharacterFactory.CreatePlayer(stamina: 5);
+
+        Assert.False(character.SpendStamina(-1));
+        Assert.False(character.SpendStamina(6));
+        Assert.Equal(5, character.Stamina);
+        Assert.True(character.SpendStamina(5));
+        Assert.Equal(0, character.Stamina);
+        Assert.True(character.CanAct);
+        Assert.Equal(0, character.RestoreStamina(-5));
+        Assert.Equal(10, character.RestoreStamina(100));
+        Assert.Equal(10, character.Stamina);
+    }
+
+    [Fact]
+    public void MoodIsClampedAtZeroAndMaximum()
     {
         Character character = TestCharacterFactory.CreatePlayer(mood: 50);
         character.ChangeMood(-100);
@@ -101,12 +96,25 @@ public sealed class CharacterTests
     }
 
     [Fact]
-    public void Gold_CannotDecreaseAndCannotOverflow()
+    public void GoldCannotDecreaseAndCannotOverflow()
     {
         Character character = TestCharacterFactory.CreatePlayer(gold: 20);
         character.AddGold(-100);
         Assert.Equal(20, character.Gold);
         character.AddGold(int.MaxValue);
         Assert.Equal(int.MaxValue, character.Gold);
+    }
+
+    [Fact]
+    public void ResetRestoresConfiguredFatigueAndStamina()
+    {
+        Character character = TestCharacterFactory.CreatePlayer(fatigue: 12.5, stamina: 4);
+
+        character.AddFatigue(20);
+        character.SpendStamina(2);
+        character.Reset();
+
+        Assert.Equal(12.5, character.Fatigue);
+        Assert.Equal(4, character.Stamina);
     }
 }

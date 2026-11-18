@@ -8,57 +8,54 @@ From the repository root:
 dotnet test .\RPG.Tests\RPG.Tests.csproj --configuration Release
 ```
 
-The test project targets .NET 8 and references the Godot project. It tests domain/application logic without launching the game window.
+The test project targets .NET 8 and tests domain/application logic without launching the Godot window.
 
 ## Coverage
 
-The automated suite currently exercises:
+The automated suite exercises:
 
-- Character state combinations and status precedence across Health, Energy and Mood values.
-- Resource boundaries: damage, healing, Energy spending/recovery, Mood changes and Gold addition.
-- Attribute-based activity time calculations.
-- Action definition loading/validation and configured Location/Self Actions.
-- Action execution, failure paths, state mutation and duration/time advancement.
-- DayClock rollover and next-day behavior where covered by the relevant tests.
-- Combat: Attack, Defend, Dodge, victory, reward, enemy response, invalid targets, insufficient Energy, death, unconsciousness and repeated actions after encounter completion.
-- Boundary matrices for Health/Energy combinations and combat resource spending.
+- Character state, Health/death, Fatigue accumulation/recovery, Stamina boundaries, Mood and Gold.
+- Activity Fatigue calculation from relative MET and actual duration, including fractional values and boundary inputs.
+- Action definition loading, authored activity intensity, duration modifiers, effects and time advancement.
+- Rest and Sleep recovery, resource clamping and failure behavior for dead characters.
+- Combat Attack, Defend, Dodge, Catch Breath, enemy response, insufficient Stamina, victory, death and invalid requests.
 
-The exact test count changes as coverage grows. Use current test output and CI runs as evidence; do not preserve a stale hard-coded action or test count in this document.
+Use current test output and CI runs as evidence; do not preserve stale hard-coded test counts in this document.
 
 ## Gameplay rules currently asserted
 
-1. Health = 0 means Dead and takes priority over Unconsciousness.
-2. Health > 0 and Energy = 0 means Unconscious.
-3. A dead character cannot perform actions, including Rest.
-4. An unconscious character cannot perform ordinary actions, Travel or enter Combat.
-5. An unconscious character may perform an Action only when its Action Definition explicitly sets `canExecuteWhenUnconscious = true`.
-6. The currently configured Rest Self Action sets that flag. It takes 30 minutes, costs 0 Energy, restores up to 3 Energy and adds 2 Mood. A living character at 0 Energy can therefore Rest and become able to act again.
-7. The unconscious permission does not waive an Action's Energy cost; an action that still costs Energy is rejected when the character cannot pay it.
-8. A valid action may spend the character's final Energy point. That action completes, then the character becomes unconscious and cannot perform another ordinary action.
-9. Defend or Dodge spending the final Energy point ends the encounter immediately; the enemy does not receive a response turn.
-10. Basic Attack is rejected at Energy = 0 even though its configured Energy cost is zero, because the unconscious state rule still applies.
+1. Health = 0 means Dead and blocks gameplay actions.
+2. Fatigue is a cumulative daily-life exertion meter from 0–100. It does not cause unconsciousness or block actions in this initial version.
+3. Fatigue is added using `max(0, activityMet - 1.0) * actualDurationMinutes / 15`. The calculation uses actual duration after any stat-based time modifier.
+4. A five-minute activity at 2.8 MET adds approximately 0.6 Fatigue; a 30-minute activity at 2.8 MET adds approximately 3.6.
+5. Rest takes 30 minutes, restores 5 Fatigue, restores 3 Stamina and adds 2 Mood.
+6. Sleep restores Fatigue to 0 and Stamina to maximum, and retains its configured Health/Mood recovery and NextDay transition.
+7. Stamina is a separate 0–10 Combat resource. Defend costs 1; Dodge costs 2; Attack has no Stamina cost.
+8. Insufficient Stamina disables/rejects only the requested defensive action. It does not make the character unconscious or end Combat.
+9. Catch Breath restores up to 3 Stamina and the enemy still resolves its response turn.
+10. Completing the configured Combat encounter adds its activity-based Fatigue once. Merely selecting the encounter entry action does not apply the Combat duration's Fatigue.
 
 ## Manual Godot checks
 
-Automated tests do not launch or inspect the Godot UI. Run the main scene in Godot 4.7.2 .NET and manually verify:
+Automated tests do not launch or inspect the rendered Godot UI. Run the main scene in Godot 4.7.2 .NET and manually verify:
 
-- The Character Panel refreshes after Health, Energy, Mood and Gold changes.
-- A normal action or Travel that spends the final Energy point completes, then displays the collapse message; attempting another ordinary action is rejected.
-- At 0 Energy with positive Health, Rest remains available and can be selected from the Exploration UI; verify 30 minutes elapse, Energy increases by up to 3 and Mood increases by 2.
-- At Health = 0, Rest is rejected and does not advance time or change resources.
-- Ordinary actions and Travel remain unavailable while unconscious.
-- Entering a Goblin encounter with exactly 2 Energy consumes the encounter cost and collapses the Player before Combat mode opens.
-- Defend with exactly 1 Energy ends combat immediately without a Goblin attack.
-- Dodge with exactly 2 Energy ends combat immediately without a Goblin attack.
-- The combat result screen displays DEFEAT for unconsciousness and death, and VICTORY only when the enemy is defeated.
-- Returning from a completed encounter returns to the same Location.
-- Sleep from the Dormitory advances to the next morning and applies its configured recovery Effects once. Session 4 owns the full calendar-boundary acceptance.
+- The Character Panel shows Health, Fatigue, Stamina, Mood and Gold and refreshes after changes.
+- A five-minute walk at 2.8 MET adds approximately 0.6 Fatigue; Travel does not spend Stamina.
+- High Fatigue does not block ordinary Location Actions or Travel.
+- Rest takes 30 minutes, reduces Fatigue by 5, restores up to 3 Stamina and adds 2 Mood.
+- Sleep advances to the next morning and restores Fatigue/Stamina plus its configured Health/Mood values exactly once.
+- Combat can start at 0 Stamina. Attack and Catch Breath are available.
+- Defend and Dodge show their Stamina costs and are unavailable only when Stamina is insufficient.
+- Catch Breath restores up to 3 Stamina and the enemy still attacks.
+- Defend/Dodge at the last available Stamina do not end the encounter.
+- Death at Health = 0 still ends Combat and prevents further actions.
+- Returning from a completed encounter returns to the same Location and the 30-minute Combat Fatigue is applied once.
 
 Record the tested branch/commit and attach the relevant Godot Output, screenshots or recording. A code-level unit test is not a substitute for a UI/runtime check.
 
 ## Current limitations and verification boundaries
 
+- Fatigue penalties, exhaustion thresholds, unconsciousness and fatigue-based action blocking are intentionally deferred until the initial accumulation/recovery curve has been playtested.
+- Activity MET values and the conversion scale are initial balancing parameters, not a precise physiological prediction.
+- Combat Stamina currently has only Defend, Dodge and Catch Breath as resource interactions. Future skills/actions may require additional costs and recovery rules.
 - This test project does not launch the Godot scene, inspect rendered controls or validate mouse/input wiring.
-- Rest provides the current short-term recovery path for a living unconscious Player. This does not imply that a larger infirmary, collapse consequence or world-level recovery system exists.
-- PR #21 and PR #22 report passing GitHub Actions .NET tests, but both PR descriptions leave Godot runtime acceptance pending. Verify the current `main` build before recording those runtime checks as complete.
-- A previous owner-marked playable-journey pass is documented in `Docs/QA/PlayableJourneyTestReport.md`; that record explicitly notes that raw logs/screenshots and per-action measurements were not retained.
