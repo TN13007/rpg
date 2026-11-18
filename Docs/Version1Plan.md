@@ -110,13 +110,13 @@ Explain why the mapper must not mutate state and why execution recalculates actu
 - Removed the full Action Preview / Confirm / Cancel screen.
 - Added optional authored estimate bounds and `ActionDurationEstimateMapper`.
 - Reused the character-stat duration modifier for both estimate bounds.
-- Displayed NextDay as “Until next morning” and zero-duration as “Immediate”.
+- Displayed authored duration estimates and zero-duration actions as “Immediate”.
 - Executed selected normal actions, travel and non-combat Event choices immediately.
 - Added actual elapsed-time feedback beside the clock for approximately 5–6 seconds and clock count-up animation.
 - Removed duplicate elapsed-minute narration from Story Log.
 
 ### Verification expected
-- Fixed duration, range, stat modifier, NextDay and Immediate labels.
+- Fixed duration, range, stat modifier and Immediate labels.
 - Invalid estimate bounds rejected.
 - Rejected actions do not advance time or show success feedback.
 - Travel, Event and Goblin Combat flow remain functional.
@@ -178,7 +178,7 @@ Explain why a five-minute walk must not consume a fixed combat resource, and why
 - Travel between Locations does not require a fixed resource point and a short walk does not force immediate Rest.
 - Observe Fatigue accumulation for Travel, reading, conversation and Study activities.
 - Rest for 30 minutes and verify Fatigue -5, Stamina +3 and Mood +2, with values clamped.
-- Sleep advances to the next day and restores Fatigue/Stamina and the configured Health/Mood values.
+- Sleep advances by 480 minutes; the calendar day changes only when midnight is crossed, and configured recovery effects apply once.
 - Enter Combat with 0 Stamina; Attack and Catch Breath are still usable.
 - Defend and Dodge show their Stamina requirements and become unavailable only when the current Stamina is insufficient.
 - Catch Breath restores Stamina and the enemy still responds.
@@ -248,7 +248,7 @@ Sessions 1 and 2 already introduced action duration, costs and execution. Before
 ### Scope
 - Add `playerActions` parsing and validation to `CharacterDataLoader` / `CharacterData`.
 - Move Rest from root `selfActions` into Player Actions. Preserve 30 minutes, recovery of up to 5 Fatigue and 3 Stamina, and +2 Mood; Fatigue/Stamina do not block actions.
-- Move Sleep's definition into Player Actions as a Player-owned operation; give it a context requirement that initially permits it only in Dormitory. Preserve NextDay and its current authored recovery Effects.
+- Move Sleep's definition into Player Actions as a Player-owned operation; give it a context requirement that initially permits it only in Dormitory. Set Sleep duration to 480 minutes and preserve its current authored recovery Effects.
 - Remove root `selfActions` after migration; avoid two competing ownership sources.
 - Introduce a small Action Choice source/request contract that carries source kind, source ID, action ID and optional target/destination ID. Keep identity unambiguous.
 - Introduce an Available Interaction Query for the implemented sources: Player, Location, Travel and active Event.
@@ -300,59 +300,57 @@ Automated test output plus a Godot recording/screenshots showing at least two Lo
 
 ## Session 4 — Sleep and the Next-Day Transition
 
-**Player-facing result:** The player can end the day in the Dormitory and wake at 07:30 on the next morning with recovered character values.
+**Player-facing result:** The player can sleep in the Dormitory for exactly 8 in-game hours. The clock advances continuously, rolls over the calendar day at midnight, and applies the authored recovery effects exactly once.
 
 ### Learning objective
 
 **Approval status:** Proposed — pending user approval.
 
-
-
-Explain how DayClock's NextDay transition differs from ordinary minute advancement and how authored Sleep Effects are applied.
+Explain how GameClock advances elapsed minutes and handles midnight rollover, and how Sleep composes time advancement with authored recovery effects.
 
 ### Independent practice
 
 **Approval status:** Proposed — pending user approval.
 
-
-
-Independently write or extend one calendar-boundary test and verify the expected day/time.
+Independently write or extend one test for an elapsed-time advancement that crosses midnight and verify the expected day/time.
 
 ### Knowledge check
 
 **Approval status:** Proposed — pending user approval.
 
-
-
-Explain how the implementation prevents double day increments and duplicate recovery.
+Explain why Sleep advances 480 minutes instead of setting a fixed wake-up time, and how the implementation avoids special calendar manipulation or duplicate recovery.
 
 ### Scope
-- Use `DayClock.SleepUntilNextDay()` as the only owner of the calendar transition.
-- Use Player-owned Sleep from Session 3; enforce Dormitory context through availability and authoritative validation.
-- Apply authored Sleep Effects exactly once: restore up to 20 Health, Fatigue to 0, Stamina to maximum and 10 Mood.
-- Keep wake-up time at 07:30.
-- Keep the Player in Dormitory and refresh Character Panel and Exploration ViewModel after waking.
-- A dead character cannot sleep to revive.
-- Do not add schedules or world simulation.
+
+- Use the Player-owned Sleep action from Session 3; enforce Dormitory availability in the Exploration query and authoritative selection handling.
+- Define Sleep as a normal duration action of exactly 480 minutes. Remove the special NextDay time mode and SleepUntilNextDay() path.
+- Keep GameClock as the single owner of current day, current time, elapsed-minute advancement and midnight rollover. Do not introduce a separate DaySystem.
+- Sleep requests the 480-minute time advancement and applies its authored recovery Effects through normal action execution.
+- Preserve the authored recovery: restore up to 20 Health, Fatigue to 0, Stamina to maximum and 10 Mood.
+- Keep the Player in Dormitory and refresh Character Panel and Exploration choices after waking.
+- A dead Player cannot sleep to revive.
+- Do not add NPC schedules or world simulation.
 
 ### Calendar rules and tests
-- Sleep from 07:30, noon and 23:59 advances exactly one day and wakes at 07:30.
-- Sleep at 02:00 after midnight does not increment the day a second time.
-- Verify 07:29 boundary behavior against the documented DayClock rule.
-- Recovery clamps to each maximum.
-- Full values do not exceed maxima.
-- Effects are applied once; failed sleep changes nothing.
-- Sleep outside Dormitory is hidden and direct stale/forged request is rejected.
-- Day counter overflow is handled explicitly.
+
+- Sleep from 22:00 advances to 06:00 on the following day.
+- Sleep from 02:00 advances to 10:00 on the same day.
+- Sleep from 23:00 advances to 07:00 on the following day.
+- Sleep from 07:29 advances to 15:29 on the same day; there is no special wake-up boundary.
+- Ordinary elapsed-minute advancement handles same-day time, exact midnight, one or multiple midnight crossings, and preserves all remaining minutes.
+- Negative elapsed-minute input is rejected without changing the clock.
+- Day counter overflow is handled explicitly without partially changing the clock.
+- Health and Mood recovery clamp to their maxima; Fatigue becomes 0 and Stamina reaches its maximum.
+- Successful Sleep applies each recovery effect exactly once. Failed Sleep does not advance time or apply effects.
+- Sleep outside Dormitory is hidden and a stale/forged selection is rejected; a dead Player cannot execute Sleep.
 
 ### Godot runtime acceptance
-Complete a normal day, sleep and verify day, 07:30 time, Dormitory location, Health, Fatigue, Stamina and Mood.
+
+Complete a normal day, return to the Dormitory and Sleep. Verify the clock advances by exactly 8 hours, the day changes only if midnight is crossed, the Player remains in Dormitory, all recovery values are correct, and the Character Panel/Exploration choices refresh.
 
 ### Completion evidence
-Before/after state record plus calendar-boundary automated test output.
 
-<a id="session-5"></a>
-
+Automated GameClock boundary/overflow tests, Sleep execution/recovery tests, and a Godot 4.7.2 .NET runtime record.
 ## Session 5 — Health, Injury and Recovery
 
 **Player-facing result:** Combat damage has a meaningful daily-life consequence and the Player can recover at the academy Infirmary.
@@ -558,7 +556,7 @@ Explain how the summary avoids treating failed requests or temporary clock feedb
 - Total summary duration matches actual clock advancement.
 - Multiple activities in one Location are recorded correctly.
 - New day starts a new summary.
-- NextDay is represented as a day transition, not a normal elapsed duration.
+- Calendar rollover is derived from elapsed time crossing midnight, not from a special NextDay action.
 - Summary matches execution results and does not mutate state.
 - Empty-day summary is valid.
 
@@ -686,7 +684,7 @@ Code-only output is not session completion.
 7. Complete the Courtyard Event through either Sneak or the dedicated Goblin Combat path.
 8. If injured, visit the Infirmary and receive treatment.
 9. Complete a meal, lesson or practice activity and observe Health/Fatigue/Stamina/Mood rules.
-10. Sleep in Dormitory and wake at 07:30 on the next day.
+10. Sleep in Dormitory for 8 hours and verify the clock advances continuously, including date rollover only when midnight is crossed.
 11. Review the daily summary.
 12. Save, close, restart and load.
 13. Verify day, time, Location, Health, Fatigue, Stamina, Mood, Gold and summary are preserved.

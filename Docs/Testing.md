@@ -22,7 +22,7 @@ The automated suite exercises:
 
 - Character state, Health/death, Fatigue accumulation/recovery, Stamina boundaries, Mood and Gold.
 - Activity Fatigue calculation from relative MET and actual duration, including fractional values and boundary inputs.
-- Action definition loading, authored activity intensity, duration modifiers, effects and time advancement.
+- Action definition loading, authored activity intensity, duration modifiers, effects and elapsed-time advancement.
 - Rest and Sleep recovery, resource clamping and failure behavior for dead characters.
 - Combat Action JSON parsing, ID catalog lookup, duplicate/unknown reference rejection, data-driven Attack damage, Defend, Dodge, Catch Breath, enemy response, insufficient Stamina, victory, death and invalid requests.
 
@@ -35,7 +35,7 @@ Use current test output and CI runs as evidence; do not preserve stale hard-code
 3. Fatigue is added using `max(0, activityMet - 1.0) * actualDurationMinutes / 15`. The calculation uses actual duration after any stat-based time modifier.
 4. A five-minute activity at 2.8 MET adds approximately 0.6 Fatigue; a 30-minute activity at 2.8 MET adds approximately 3.6.
 5. Rest takes 30 minutes, restores 5 Fatigue, restores 3 Stamina and adds 2 Mood.
-6. Sleep restores Fatigue to 0 and Stamina to maximum, and retains its configured Health/Mood recovery and NextDay transition.
+6. Sleep advances exactly 480 minutes through GameClock, rolls over the day only when midnight is crossed, and applies its configured Health/Fatigue/Stamina/Mood recovery once.
 7. Stamina is a separate 0–10 Combat resource. Defend costs 1; Dodge costs 2; Attack has no Stamina cost.
 8. Insufficient Stamina disables/rejects only the requested defensive action. It does not make the character unconscious or end Combat.
 9. Catch Breath restores up to 3 Stamina and the enemy still resolves its response turn.
@@ -49,7 +49,7 @@ Automated tests do not launch or inspect the rendered Godot UI. Run the main sce
 - A five-minute walk at 2.8 MET adds approximately 0.6 Fatigue; Travel does not spend Stamina.
 - High Fatigue does not block ordinary Location Actions or Travel.
 - Rest takes 30 minutes, reduces Fatigue by 5, restores up to 3 Stamina and adds 2 Mood.
-- Sleep advances to the next morning and restores Fatigue/Stamina plus its configured Health/Mood values exactly once.
+- Sleep advances 480 minutes from the current time; the day increments only if that interval crosses midnight, and recovery effects apply exactly once.
 - Combat can start at 0 Stamina. Attack and Catch Breath are available.
 - The four player Combat Actions are loaded from `Data/Combat/CombatActions.json` and resolved from `Player.json` IDs; their labels, descriptions, costs and supported behavior parameters match the authored definitions.
 - Defend and Dodge show their Stamina costs and are unavailable only when Stamina is insufficient.
@@ -150,13 +150,13 @@ Optional future activities (Cafeteria, Lesson, Practice and Infirmary treatment)
 
 ### 5. Sleep and next day
 
-Sleep from the Dormitory using `NextDay`. Wake at Day 2, 07:30; restore Fatigue to 0 and Stamina to 10; restore up to 20 Health and apply the configured +10 Mood. Apply recovery exactly once through Action Effects.
+Sleep from the Dormitory for exactly 480 minutes. The resulting day/time depends on the current clock (for example, 22:00 becomes 06:00 on the next day; 07:30 becomes 15:30 on the same day). Restore Fatigue to 0 and Stamina to 10; restore up to 20 Health and apply the configured +10 Mood. Apply recovery exactly once through Action Effects.
 
 | Event outcome | Day / time | Health | Fatigue | Stamina | Mood | Gold |
 |---|---|---:|---:|---:|---:|---:|
-| Confronted Goblin | Day 2, 07:30 | 20 | 0 | 10 | 82 | 45 |
-| Sneaked past | Day 2, 07:30 | 20 | 0 | 10 | 82 | 20 |
-| No Event | Day 2, 07:30 | 20 | 0 | 10 | 82 | 20 |
+| Confronted Goblin | Current clock + 8 hours | 20 | 0 | 10 | 82 | 45 |
+| Sneaked past | Current clock + 8 hours | 20 | 0 | 10 | 82 | 20 |
+| No Event | Current clock + 8 hours | 20 | 0 | 10 | 82 | 20 |
 
 ### 6. Required acceptance coverage
 
@@ -167,7 +167,7 @@ Sleep from the Dormitory using `NextDay`. Wake at Day 2, 07:30; restore Fatigue 
 - Completing the 30-minute Combat adds 8 Fatigue exactly once, on victory or defeat.
 - Sneak takes 10 minutes and adds approximately 0.67 Fatigue without spending Stamina.
 - Rest recovers up to 5 Fatigue, 3 Stamina and 2 Mood.
-- Sleep advances one day to 07:30 and restores Fatigue/Stamina plus configured Health/Mood Effects exactly once.
+- Sleep advances 480 minutes and restores Fatigue/Stamina plus configured Health/Mood Effects exactly once; calendar rollover occurs only when midnight is crossed.
 - The Event's 0, 0.5 and 1 probability cases are tested deterministically; production chance remains 50%.
 - Save/Load acceptance is added when that feature is implemented; this scenario does not imply persistence is already shipped.
 
