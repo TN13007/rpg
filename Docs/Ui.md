@@ -163,8 +163,8 @@ Currently implemented on `main`:
 - Combat uses a dedicated CombatService → CombatPresentationMapper → CombatViewData → CombatPanel pipeline.
 
 Current transitional boundaries:
-- MainController is still the composition root and retains some Exploration and Combat flow orchestration. Issue #15 tracks the remaining extraction.
-- Content loaders and some content definitions are being separated into Infrastructure and Domain responsibilities as part of the layered-structure refactor.
+- MainController is the Godot composition root. ExplorationFlowController and CombatFlowController own the Exploration and Combat presentation flows and delegate gameplay rules to Application/Domain services.
+- JSON loading is owned by Infrastructure; character, action and location definitions are separated into Domain files.
 - Godot runtime verification must be recorded separately from .NET CI; a passing test suite does not prove scene/resource integration.
 
 Not implemented:
