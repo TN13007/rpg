@@ -5,7 +5,8 @@ public enum InteractionSourceKind
 {
     Player,
     Location,
-    Travel
+    Travel,
+    Event
 }
 
 public sealed class AvailableInteraction
@@ -143,6 +144,23 @@ public sealed class AvailableInteractionQuery
         return interactions;
     }
 
+    public IReadOnlyList<AvailableInteraction> Query(LocationEventDefinition locationEvent)
+    {
+        if (locationEvent == null) throw new ArgumentNullException(nameof(locationEvent));
+
+        List<AvailableInteraction> interactions = new List<AvailableInteraction>();
+        foreach (LocationEventChoiceDefinition choice in locationEvent.Choices)
+        {
+            interactions.Add(new AvailableInteraction(
+                InteractionSourceKind.Event,
+                locationEvent.Id,
+                choice.Id,
+                choice.EncounterActionId ?? string.Empty,
+                choice.Action));
+        }
+        return interactions;
+    }
+
     private static bool IsEventEncounterAction(LocationContent location, string actionId)
     {
         foreach (LocationEventDefinition locationEvent in location.Events)
@@ -175,7 +193,8 @@ public sealed class ActionChoiceMapper
         {
             InteractionSourceKind.Player,
             InteractionSourceKind.Location,
-            InteractionSourceKind.Travel
+            InteractionSourceKind.Travel,
+            InteractionSourceKind.Event
         })
         {
             foreach (AvailableInteraction interaction in interactions)
@@ -191,6 +210,7 @@ public sealed class ActionChoiceMapper
                 InteractionSourceKind.Player => "PERSONAL",
                 InteractionSourceKind.Location => "AT THIS LOCATION",
                 InteractionSourceKind.Travel => "TRAVEL",
+                InteractionSourceKind.Event => "CURRENT SITUATION",
                 _ => throw new ArgumentOutOfRangeException()
             };
                 choices.Add(new ActionChoiceViewData(
