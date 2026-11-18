@@ -121,7 +121,8 @@ Adventurer Academy is a fantasy life-simulation RPG prototype about daily life, 
 - Godot 4.7.2 .NET / C# project and main scene.
 - Player Health, Fatigue, Stamina, Mood and Gold. Health = 0 means Dead; Fatigue and Stamina do not create an unconscious state.
 - GameClock owns day/minute tracking, elapsed-time advancement and midnight rollover. Sleep is a normal 480-minute Player Action with authored recovery Effects.
-- Location travel among Dormitory, Courtyard, Practical Classroom and Guild Hall.
+- Location travel among Dormitory, Courtyard, Practical Classroom, Guild Hall and the Academy Infirmary.
+- Infirmary Treatment is a 60-minute Location Action that restores up to 5 Health through the existing Effect pipeline; its authored activity intensity is 1.3 MET.
 - Location Actions, travel duration calculation and inline duration estimates.
 - Rest and Sleep are Player Actions in `Data/Characters/Player.json`. Rest is available at every actionable Location; Sleep is restricted to Dormitory.
 - Exploration choices flow through AvailableInteractionQuery → ActionChoiceMapper → grouped ActionChoiceViewData → StoryPanel. Requests preserve source kind, source ID, action ID and optional target ID.
@@ -148,7 +149,7 @@ The nine-Session Version 1 plan is accepted design scope, merged through [PR #23
 | [Session 2](https://github.com/TN13007/rpg/blob/main/Docs/Version1Plan.md#session-2) | Fatigue Accumulation, Rest and Combat Stamina | **Implemented** — [PR #47 merged](https://github.com/TN13007/rpg/pull/47); [CI #142](https://github.com/TN13007/rpg/actions/runs/44315667902) passed on the final feature-branch head before merge. Godot evidence needs reconciliation because the PR checklist is checked while its verification note still says pending. | **Not assessed** — independent evidence is still required |
 | [Session 3](https://github.com/TN13007/rpg/blob/main/Docs/Version1Plan.md#session-3) | Exploration Action Choice Pipeline | **Implemented** — [PR #57 merged](https://github.com/TN13007/rpg/pull/57); 84/84 .NET tests passed. PR #58 CI also passes Godot 4.7.2 headless import, main-scene and Combat-preview smoke checks. Full interactive player-journey verification remains separate. | **Not assessed** — independent pipeline-tracing practice remains outstanding |
 | [Session 4](https://github.com/TN13007/rpg/blob/main/Docs/Version1Plan.md#session-4) | Sleep and Next-Day Transition | **Implemented in main** — [PR #65 merged](https://github.com/TN13007/rpg/pull/65); [CI #205 passed](https://github.com/TN13007/rpg/actions/runs/44367815181), including formatter extraction and tests. Manual interactive Sleep runtime acceptance remains pending; [Issue #62](https://github.com/TN13007/rpg/issues/62) stays open for evidence. | **Not assessed** — independent test-writing practice and knowledge check remain outstanding |
-| [Session 5](https://github.com/TN13007/rpg/blob/main/Docs/Version1Plan.md#session-5) | Health, Injury and Recovery | **In progress** — [Issue #66](https://github.com/TN13007/rpg/issues/66) created; context checked against current Character, Action and Location pipelines. | **Proposed** — learning objective, independent practice and knowledge check require user approval |
+| [Session 5](https://github.com/TN13007/rpg/blob/main/Docs/Version1Plan.md#session-5) | Health, Injury and Recovery | **Implemented in main** — [PR #67 merged](https://github.com/TN13007/rpg/pull/67), merge commit `9e5f78ef8e1eae522402b3d447604e7b9f7564a9`; [CI #213 passed](https://github.com/TN13007/rpg/actions/runs/44370968083) including .NET tests, Debug build, Godot headless smoke tests and full naming audit. Manual interactive journey evidence has not yet been explicitly confirmed; [Issue #66](https://github.com/TN13007/rpg/issues/66) remains open for that verification. | **Not assessed** — learner prediction, independent practice and knowledge check have not been completed |
 | [Session 6](https://github.com/TN13007/rpg/blob/main/Docs/Version1Plan.md#session-6) | Mood and Daily Wellbeing | **Planned** — accepted scope; not implemented | **Proposed** — learning target requires user approval |
 | [Session 7](https://github.com/TN13007/rpg/blob/main/Docs/Version1Plan.md#session-7) | A Small, Complete Academy Routine | **Planned** — accepted scope; not implemented | **Proposed** — learning target requires user approval |
 | [Session 8](https://github.com/TN13007/rpg/blob/main/Docs/Version1Plan.md#session-8) | Daily Summary and Day Continuity | **Planned** — accepted scope; not implemented | **Proposed** — learning target requires user approval |
@@ -189,7 +190,7 @@ Track known disagreements between the documents and official implementation here
 ### Other active work
 
 - [Issue #11 — Decide the long-term gameplay loop](https://github.com/TN13007/rpg/issues/11) remains a separate long-term design question and does not block Version 1 implementation.
-- [Issue #66 — Session 5 Health, Injury and Recovery](https://github.com/TN13007/rpg/issues/66) is the active implementation scope. Session 4 runtime verification remains open in Issue #62.
+- [Issue #66 — Session 5 Health, Injury and Recovery](https://github.com/TN13007/rpg/issues/66) has been implemented and merged through [PR #67](https://github.com/TN13007/rpg/pull/67); CI #213 passed. Keep the Issue open until the manual interactive Infirmary journey is explicitly verified. Session 4 runtime verification remains separately open in Issue #62.
 - [Issue #61 — Generalize Academy location content](https://github.com/TN13007/rpg/issues/61) remains deferred; do not implement it as part of Session 4.
 - [PR #64 — AI repository navigation guidance](https://github.com/TN13007/rpg/pull/64) is merged; root `AGENTS.md` is now part of `main`.
 - [PR #60 — ID-based content catalog and data-driven Combat Actions](https://github.com/TN13007/rpg/pull/60) is merged; Issue #59 is complete.
@@ -199,13 +200,20 @@ Track known disagreements between the documents and official implementation here
 
 ## 6. Next Session handoff
 
-### Active — Session 5
+### Completed implementation — Session 5
 
-1. Work from [Issue #66 — Health, Injury and Recovery](https://github.com/TN13007/rpg/issues/66). The accepted product scope is one Infirmary Location and one 60-minute treatment Location Action that restores up to 5 Health, with no Gold cost.
-2. Preserve existing Health invariants: `Character.RestoreHealth` clamps to MaxHealth and returns 0 for dead Characters; `ActionExecutionService` rejects dead actors before advancing time or applying Effects.
-3. Reuse the existing Location Action → ActionExecutionService → ActionEffectExecutor pipeline. Avoid introducing a medical subsystem or refactoring the general action pipeline.
-4. Before implementation, approve the proposed Learning objective, independent practice and knowledge check; then make a small prediction about affected code and test boundaries.
-5. Verify the full Godot journey: receive Goblin Combat damage → return to Exploration → travel to Infirmary → treat → inspect Health, Fatigue and clock. Automated tests cover clamping, full Health, dead Player, successful time/effect application and failed requests with no partial mutation.
+- [PR #67](https://github.com/TN13007/rpg/pull/67) is merged into `main` at `9e5f78ef8e1eae522402b3d447604e7b9f7564a9`.
+- [CI #213](https://github.com/TN13007/rpg/actions/runs/44370968083) passed: repository validation, .NET tests, Godot 4.7.2 .NET Debug assembly build, Godot headless scene smoke tests and full naming audit.
+- Product implementation: Infirmary Location, Courtyard connection, 60-minute `infirmary_treatment`, `RestoreHealth(5)`, and `activityMet: 1.3`; no new service or Effect type.
+- Automated tests cover location/action availability, successful recovery and one-time costs, MaxHealth clamping, and dead-actor rejection without state mutation.
+- Manual interactive Godot journey remains unconfirmed. Keep [Issue #66](https://github.com/TN13007/rpg/issues/66) open until the user confirms the full journey: Goblin Combat damage → Exploration → Infirmary → Treatment → verify Health, Fatigue and GameClock.
+- Learning remains **Not assessed**. The proposed Health ownership / clamping knowledge check and independent boundary-test practice are still outstanding.
+
+### Next — Session 6
+
+- Session 6 scope is Mood and Daily Wellbeing, as defined in [Version1Plan.md](Docs/Version1Plan.md#session-6). Begin with a fresh Context Check against latest `main` and the relevant open Issues; do not assume its detailed implementation design from the Session 5 work.
+- Keep Session 5 manual runtime acceptance and Session 4 Sleep runtime acceptance as separate outstanding verification items until each is explicitly confirmed.
+- Session 5 Learning remains unassessed; do not carry it forward as completed merely because PR #67 and CI passed.
 
 ### Outstanding from Session 4
 
