@@ -23,6 +23,8 @@ public partial class MainController : Control
     private ActivityFatigueCalculator _activityFatigueCalculator;
     private ActionExecutionService _actionExecutionService;
     private ActionDurationEstimateMapper _durationEstimateMapper;
+    private AvailableInteractionQuery _availableInteractionQuery;
+    private ActionChoiceMapper _actionChoiceMapper;
     private GameModeController _gameModeController;
     private LocationEventService _locationEventService;
     private LocationEventDefinition _activeLocationEvent;
@@ -58,6 +60,8 @@ public partial class MainController : Control
             new ActionEffectExecutor(),
             _activityFatigueCalculator);
         _durationEstimateMapper = new ActionDurationEstimateMapper(_activityTimeCalculator);
+        _availableInteractionQuery = new AvailableInteractionQuery();
+        _actionChoiceMapper = new ActionChoiceMapper(_durationEstimateMapper);
         _gameModeController = new GameModeController(_storyPanel, _combatPanel);
         _locationEventService = new LocationEventService();
 
@@ -90,52 +94,11 @@ public partial class MainController : Control
         }
 
         LocationContent location = AcademyContent.Get(_currentLocationId);
-        List<ActionDefinition> choices = new List<ActionDefinition>();
-        foreach (ActionDefinition action in location.Actions)
-        {
-            if (!IsEventEncounterAction(location, action.Id))
-            {
-                choices.Add(CreateActionChoice("location:", action));
-            }
-        }
-
-        if (_player.CanAct)
-        {
-            foreach (PlayerActionDefinition playerAction in _playerActions)
-            {
-                if (playerAction.IsAvailableAt(location.Id))
-                {
-                    choices.Add(new ActionDefinition(
-                        "player:" + playerAction.Action.Id,
-                        playerAction.Action.Label,
-                        playerAction.Action.DurationMinutes,
-                        playerAction.Action.TimeModifier,
-                        playerAction.Action.Feedback,
-                        playerAction.Action.ActivityMet,
-                        playerAction.Action.Effects,
-                        playerAction.Action.TimeMode,
-                        playerAction.Action.EstimatedDurationMinMinutes,
-                        playerAction.Action.EstimatedDurationMaxMinutes));
-                }
-            }
-        }
-
-        foreach (string exitId in location.Exits)
-        {
-            LocationContent exit = AcademyContent.Get(exitId);
-            ActionDefinition travel = AcademyContent.Travel;
-            choices.Add(new ActionDefinition(
-                "travel:" + exitId,
-                "Travel to " + exit.Name,
-                travel.DurationMinutes,
-                travel.TimeModifier,
-                travel.Feedback,
-                travel.ActivityMet,
-                travel.Effects,
-                travel.TimeMode,
-                travel.EstimatedDurationMinMinutes,
-                travel.EstimatedDurationMaxMinutes));
-        }
+        IReadOnlyList<AvailableInteraction> interactions = _availableInteractionQuery.Query(
+            _player,
+            _playerActions,
+            location);
+        List<ActionChoiceViewData> choices = _actionChoiceMapper.Map(interactions, _player);
 
         _gameModeController.ShowExploration();
         _storyPanel.ShowContent(
@@ -186,33 +149,55 @@ public partial class MainController : Control
             return;
         }
 
-        if (choiceId.StartsWith("travel:", StringComparison.Ordinal))
+        if (!ActionSelectionRequest.TryParse(choiceId, out ActionSelectionRequest request))
         {
-            TravelTo(choiceId.Substring("travel:".Length));
+            _storyPanel.ShowFeedback("That action selection is invalid or outdated.");
             return;
         }
 
-        if (choiceId.StartsWith("player:", StringComparison.Ordinal))
+        switch (request.SourceKind)
         {
-            ExecutePlayerAction(choiceId.Substring("player:".Length));
-            return;
+            case InteractionSourceKind.Player:
+                if (request.SourceId != _player.Id)
+                {
+                    _storyPanel.ShowFeedback("That player action selection is outdated.");
+                    return;
+                }
+                ExecutePlayerAction(request.ActionId);
+                return;
+
+            case InteractionSourceKind.Location:
+                if (request.SourceId != _currentLocationId)
+                {
+                    _storyPanel.ShowFeedback("That location action selection is outdated.");
+                    return;
+                }
+                ActionDefinition locationAction = FindChoice(
+                    AcademyContent.Get(_currentLocationId).Actions,
+                    request.ActionId);
+                if (locationAction == null)
+                {
+                    _storyPanel.ShowFeedback("That action is no longer available here.");
+                    return;
+                }
+                ExecuteAction(locationAction);
+                return;
+
+            case InteractionSourceKind.Travel:
+                if (request.SourceId != _currentLocationId ||
+                    request.ActionId != AcademyContent.Travel.Id ||
+                    string.IsNullOrWhiteSpace(request.TargetId))
+                {
+                    _storyPanel.ShowFeedback("That travel selection is outdated.");
+                    return;
+                }
+                TravelTo(request.TargetId);
+                return;
+
+            default:
+                _storyPanel.ShowFeedback("That action source is not supported.");
+                return;
         }
-
-        LocationContent location = AcademyContent.Get(_currentLocationId);
-        if (choiceId.StartsWith("location:", StringComparison.Ordinal))
-        {
-            choiceId = choiceId.Substring("location:".Length);
-        }
-
-        ActionDefinition selectedAction = FindChoice(location.Actions, choiceId);
-
-        if (selectedAction == null)
-        {
-            _storyPanel.ShowFeedback("That action is not available here.");
-            return;
-        }
-
-        ExecuteAction(selectedAction);
     }
 
     private void ExecutePlayerAction(string actionId)
@@ -263,37 +248,6 @@ public partial class MainController : Control
                     throw new InvalidOperationException("Player action '" + playerAction.Action.Id + "' references unknown location '" + locationId + "'.");
             }
         }
-    }
-
-    private ActionDefinition CreateActionChoice(string prefix, ActionDefinition action)
-    {
-        return new ActionDefinition(
-            prefix + action.Id,
-            action.Label,
-            action.DurationMinutes,
-            action.TimeModifier,
-            action.Feedback,
-            action.ActivityMet,
-            action.Effects,
-            action.TimeMode,
-            action.EstimatedDurationMinMinutes,
-            action.EstimatedDurationMaxMinutes);
-    }
-
-    private bool IsEventEncounterAction(LocationContent location, string actionId)
-    {
-        foreach (LocationEventDefinition locationEvent in location.Events)
-        {
-            foreach (LocationEventChoiceDefinition choice in locationEvent.Choices)
-            {
-                if (choice.EncounterActionId == actionId)
-                {
-                    return true;
-                }
-            }
-        }
-
-        return false;
     }
 
     private List<ActionChoiceViewData> MapActionChoices(IReadOnlyList<ActionDefinition> actions, string groupTitleOverride = null)
