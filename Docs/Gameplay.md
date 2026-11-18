@@ -309,43 +309,17 @@ Distinguish:
 
 The Mapper transforms the query result into presentation-safe data. It formats duration and cost labels, maps choices into groups, and supplies stable identifiers. It does not load content, discover world objects, mutate state or decide gameplay outcomes.
 
-### 6. ViewModel contract
+### 6. Current presentation data contract
 
-The Exploration view should receive a composed ViewModel similar to:
+The current prototype does not use a single aggregate ExplorationViewModel. StoryPanel receives the location/event header and time label directly through `ShowContent`, plus a list of `ActionChoiceViewData` objects.
 
-```text
-ExplorationViewModel
-  LocationTitle
-  RegionLabel
-  Description
-  TimeLabel
-  ActionGroups[]
-    GroupId
-    GroupTitle
-    Choices[]
-      ChoiceId
-      SourceKind
-      SourceId
-      ActionId
-      TargetId (optional)
-      Label
-      Description
-      DurationLabel
-      CostLabel
-      IsEnabled
-      UnavailableReason
-```
+Each `ActionChoiceViewData` contains:
+- `ChoiceId`: encoded `ActionSelectionRequest` preserving source kind, source ID, action ID and optional target ID.
+- `Label`: player-facing choice label.
+- `DurationLabel`: informational duration text.
+- `GroupTitle`: Personal, At This Location, Travel or Current Situation.
 
-This is a conceptual contract, not a requirement to copy these exact property names. Keep it small and add fields only when a real view needs them.
-
-Choice identity must be unambiguous. Action IDs alone are not globally unique: two chests may both define `open`. Preserve source and target identity in the request. Do not route an action using only a display label or a bare action ID when more than one source can provide it.
-
-The UI:
-- Renders the groups and choices it receives.
-- Shows duration/cost/description and any unavailable reason.
-- Emits the selected choice identity.
-- Does not read JSON or runtime domain objects.
-- Does not calculate costs, check puzzle answers, open chests or mutate game state.
+A dedicated aggregate ViewModel may be introduced when the screen needs more composed state. Do not add one merely to mirror the current method parameters.
 
 ### 7. Selection and execution flow
 
