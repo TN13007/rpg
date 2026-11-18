@@ -58,7 +58,7 @@ An Event is an optional situation introduced during exploration. It does not aut
 ### 3. Prototype Event Selection Rules
 
 1. Evaluate events only after a successful travel action changes the player's current Location.
-2. The player must be able to act. If the player is dead or unconscious, the event evaluation is skipped and does not consume the daily attempt.
+2. The player must be able to act. If the player is dead, the event evaluation is skipped and does not consume the daily attempt.
 3. A Location's event pool is evaluated at most once per in-game day.
 4. If the Location has no events, no attempt is recorded.
 5. Evaluate event definitions in their authored JSON order. The first event whose chance succeeds is selected; at most one event is shown for that Location on that day.
@@ -81,7 +81,7 @@ An Event owns its available choices. A choice contains an Action Definition for 
 
 The first event is `courtyard_goblin_ambush`:
 - **Confront the goblin:** references the Courtyard's existing `encounter_goblin` action and enters Combat.
-- **Sneak past the goblin:** spends 1 Energy and 10 minutes, then returns to Courtyard Exploration.
+- **Sneak past the goblin:** spends 10 minutes at 2.0 MET, adds approximately 0.67 Fatigue through normal Action execution, and does not spend Combat Stamina.
 
 ### 5. Choice Presentation Boundary
 
@@ -113,7 +113,7 @@ No separate Expedition, Run or general-purpose Event System is introduced.
 - Invalid event probabilities and choice definitions.
 - Travel followed by event selection and successful Stealth resolution.
 - Confrontation linking to the existing encounter action and starting Combat.
-- Failed action execution not consuming Energy or advancing time.
+- Failed action execution not mutating resources or advancing time.
 - Content validation for duplicate Event IDs and unknown encounter-action references.
 
 These are automated domain/content tests. GitHub Actions run [#43](https://github.com/TN13007/rpg/actions/runs/43769290553) for commit `f5f018dfe31adb4d600ea4efff95f6987e45250c` completed with 64 passed and 0 failed. This result covers automated .NET tests, not the Godot UI.
@@ -161,14 +161,14 @@ Combat remains a separate, specialized pipeline and UI.
 | Action Definition | Authored description of an operation and its common execution data | Rest, Read Notice Board, Open Chest |
 | Action Source | The entity/content scope that supplies an action definition | Player, Location, NPC, Interactable, Event |
 | Action Choice | A concrete option offered now, associated with its source and optional target | Rest now; Talk to Mira; Open chest_01 |
-| Availability | Whether a choice belongs in the current context and whether it can currently execute | Mira is present; Player has enough Energy |
+| Availability | Whether a choice belongs in the current context and whether it can currently execute | Mira is present; Player satisfies the choice's current requirements |
 | Action Request | The identity of the selected choice sent for handling | Source kind + source ID + action ID + target ID |
-| Effect | A requested domain change processed by its owning rules | RestoreEnergy(3), UnlockDoor |
+| Effect | A requested domain change processed by its owning rules | RestoreFatigue(3), RestoreStamina(3), UnlockDoor |
 | ViewModel | Presentation-safe data that the UI can render | Group title and choice label |
 
 Do not confuse the action's source with its UI group. A Player Action may appear under Personal; an NPC interaction may appear under Nearby. The group is a presentation decision, while the source identifies where the choice came from.
 
-A common Action Definition is appropriate for shared fields such as ID, label, description, duration, Energy cost, availability requirements and common effects. Specialized systems still own rules that are unique to Travel, Dialogue, Containers, Puzzles or Combat. Do not force all behavior into a universal action executor.
+A common Action Definition is appropriate for shared fields such as ID, label, description, duration, activity intensity (`activityMet`), availability requirements and common effects. Specialized systems still own rules that are unique to Travel, Dialogue, Containers, Puzzles or Combat. Do not force all behavior into a universal action executor.
 
 ### 3. Choice sources
 
@@ -301,7 +301,7 @@ It does not mutate gameplay state. Availability shown in the UI is advisory. The
 
 Distinguish:
 - **Not present in context:** omit the choice (for example, an NPC who is not here).
-- **Present but temporarily unavailable:** include it as disabled with a reason when that information is useful to the player (for example, not enough Energy).
+- **Present but temporarily unavailable:** include it as disabled with a reason when that information is useful to the player (for example, a required item or context condition is missing).
 - **Available:** include it as enabled.
 
 #### Mapper
@@ -376,7 +376,7 @@ Re-run AvailableInteractionQuery
 Mapper -> ViewModel -> render updated choices
 ```
 
-MainController orchestrates which handler owns the request. It must not implement action requirements, Energy rules, puzzle rules, chest behavior, NPC dialogue or combat damage.
+MainController orchestrates which handler owns the request. It must not implement action requirements, activity-based Fatigue calculation or Combat Stamina rules, puzzle rules, chest behavior, NPC dialogue or combat damage.
 
 After a successful state change, rebuild the current Exploration ViewModel from current state. This naturally removes choices whose target/state/conditions have changed.
 
@@ -411,7 +411,7 @@ Implement now:
 - Available Interaction Query for the sources above.
 - Grouped Exploration ViewModel and generic grouped UI rendering.
 - Stable source/action identity in requests.
-- Existing time, Energy, Effect and Event/Combat execution rules preserved.
+- Existing time, activity-based Fatigue, Effects and Event/Combat execution rules are preserved. Combat Stamina remains owned by `CombatService`.
 
 Defer:
 - NPC presence, schedules and dialogue.
@@ -424,7 +424,7 @@ Defer:
 ### 10. Acceptance criteria
 
 - Adding a Player Action to `Player.json` makes it available according to its authored context requirements without editing StoryPanel.
-- Rest appears in Personal at every Location, including when the Player is unconscious; death still blocks it.
+- Rest appears in Personal at every Location for a living Player. Fatigue and Stamina do not block it; death still does.
 - Sleep is a Player-owned action but appears only in an allowed context.
 - Adding a Location Action to a Location's JSON makes it appear only at that Location.
 - Travel choices are derived from valid exits and carry the correct destination identity.
