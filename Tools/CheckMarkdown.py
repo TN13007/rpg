@@ -18,10 +18,10 @@ HEADING_PATTERN = re.compile(r"^#{1,6}\s+(.+?)\s*#*\s*$")
 FENCE_PATTERN = re.compile(r"^\s*(`{3,}|~{3,})")
 
 
-def tracked_markdown_files(root: Path) -> set[str]:
-    """Return tracked Markdown paths using Git's repository index."""
+def tracked_repository_files(root: Path) -> set[str]:
+    """Return all tracked repository paths using Git's index."""
     result = subprocess.run(
-        ["git", "ls-files", "*.md", "*.MD"],
+        ["git", "ls-files"],
         cwd=root,
         text=True,
         capture_output=True,
@@ -175,7 +175,7 @@ def main() -> int:
     parser.add_argument("--root", type=Path, default=ROOT, help=argparse.SUPPRESS)
     args = parser.parse_args()
     try:
-        tracked = tracked_markdown_files(args.root)
+        tracked = tracked_repository_files(args.root)
         issues = validate(args.root, tracked)
     except (OSError, subprocess.CalledProcessError) as error:
         print(f"Markdown validation could not run: {error}", file=sys.stderr)
