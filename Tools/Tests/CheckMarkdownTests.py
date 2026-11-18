@@ -51,6 +51,11 @@ class MarkdownValidationTests(unittest.TestCase):
         issues = validate(self.root, self.tracked)
         self.assertTrue(any("file does not exist or is not tracked" in issue for issue in issues))
 
+    def test_path_traversal_outside_repository_fails(self):
+        (self.root / "README.md").write_text("[Escape](../../outside.md)", encoding="utf-8")
+        issues = validate(self.root, self.tracked)
+        self.assertTrue(any("target escapes the repository" in issue for issue in issues))
+
     def test_missing_heading_anchor_fails(self):
         (self.root / "README.md").write_text("[Missing](Docs/Guide.md#unknown)", encoding="utf-8")
         issues = validate(self.root, self.tracked)
