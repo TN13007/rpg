@@ -1,91 +1,61 @@
 using System;
 using System.Collections.Generic;
-using Godot;
 
-/*
- * MainController is the application-level orchestrator.
- * It connects UI input to the relevant game systems and refreshes presentation.
- * It does not implement action costs, effects, time rules, combat rules, or mode visibility.
- */
-public partial class MainController : Control
+public sealed class ExplorationFlowController
 {
-    private Sidebar _sidebar;
-    private StoryPanel _storyPanel;
-    private CombatPanel _combatPanel;
-    private CharacterPanel _characterPanel;
-    private Character _player;
-    private PlayerActionDefinition[] _playerActions = Array.Empty<PlayerActionDefinition>();
-    private Character _goblin;
-    private CombatService _combatService;
-    private CombatPresentationMapper _combatMapper;
-    private DayClock _dayClock;
-    private ActivityTimeCalculator _activityTimeCalculator;
-    private ActivityFatigueCalculator _activityFatigueCalculator;
-    private ActionExecutionService _actionExecutionService;
-    private ActionDurationEstimateMapper _durationEstimateMapper;
-    private AvailableInteractionQuery _availableInteractionQuery;
-    private ActionChoiceMapper _actionChoiceMapper;
-    private GameModeController _gameModeController;
-    private LocationEventService _locationEventService;
-    private LocationEventDefinition _activeLocationEvent;
-    private int _combatStartDay;
-    private int _combatStartMinutes;
-    private bool _hasCombatTimeFeedback;
+    private readonly StoryPanel _storyPanel;
+    private readonly CharacterPanel _characterPanel;
+    private readonly GameModeController _gameModeController;
+    private readonly Character _player;
+    private readonly PlayerActionDefinition[] _playerActions;
+    private readonly List<LocationContent> _locations;
+    private readonly Func<string, LocationContent> _getLocation;
+    private readonly ActionDefinition _travelAction;
+    private readonly DayClock _dayClock;
+    private readonly ActionExecutionService _actionExecutionService;
+    private readonly AvailableInteractionQuery _availableInteractionQuery;
+    private readonly ActionChoiceMapper _actionChoiceMapper;
+    private readonly LocationEventService _locationEventService;
+    private readonly Func<ActionDefinition, bool> _startEncounter;
 
     private string _currentLocationId = "dormitory";
+    private LocationEventDefinition _activeLocationEvent;
 
-    public override void _Ready()
+    public ExplorationFlowController(
+        StoryPanel storyPanel,
+        CharacterPanel characterPanel,
+        GameModeController gameModeController,
+        Character player,
+        PlayerActionDefinition[] playerActions,
+        IEnumerable<LocationContent> locations,
+        Func<string, LocationContent> getLocation,
+        ActionDefinition travelAction,
+        DayClock dayClock,
+        ActionExecutionService actionExecutionService,
+        AvailableInteractionQuery availableInteractionQuery,
+        ActionChoiceMapper actionChoiceMapper,
+        LocationEventService locationEventService,
+        Func<ActionDefinition, bool> startEncounter)
     {
-        _sidebar = GetNode<Sidebar>("SafeArea/Layout/Sidebar");
-        _storyPanel = GetNode<StoryPanel>("SafeArea/Layout/StoryPanel");
-        _combatPanel = GetNode<CombatPanel>("SafeArea/Layout/CombatPanel");
-        _characterPanel = GetNode<CharacterPanel>("SafeArea/Layout/CharacterPanel");
+        _storyPanel = storyPanel ?? throw new ArgumentNullException(nameof(storyPanel));
+        _characterPanel = characterPanel ?? throw new ArgumentNullException(nameof(characterPanel));
+        _gameModeController = gameModeController ?? throw new ArgumentNullException(nameof(gameModeController));
+        _player = player ?? throw new ArgumentNullException(nameof(player));
+        _playerActions = playerActions ?? throw new ArgumentNullException(nameof(playerActions));
+        _locations = new List<LocationContent>(locations ?? throw new ArgumentNullException(nameof(locations)));
+        _getLocation = getLocation ?? throw new ArgumentNullException(nameof(getLocation));
+        _travelAction = travelAction ?? throw new ArgumentNullException(nameof(travelAction));
+        _dayClock = dayClock ?? throw new ArgumentNullException(nameof(dayClock));
+        _actionExecutionService = actionExecutionService ?? throw new ArgumentNullException(nameof(actionExecutionService));
+        _availableInteractionQuery = availableInteractionQuery ?? throw new ArgumentNullException(nameof(availableInteractionQuery));
+        _actionChoiceMapper = actionChoiceMapper ?? throw new ArgumentNullException(nameof(actionChoiceMapper));
+        _locationEventService = locationEventService ?? throw new ArgumentNullException(nameof(locationEventService));
+        _startEncounter = startEncounter ?? throw new ArgumentNullException(nameof(startEncounter));
 
-        AcademyContent.Load("res://Data/AcademyLocations.json");
-
-        CharacterData playerData = CharacterDataLoader.Load("res://Data/Characters/Player.json");
-        _playerActions = playerData.PlayerActions;
-        ValidatePlayerActions(_playerActions);
-        CharacterData goblinData = CharacterDataLoader.Load("res://Data/Characters/Goblin.json");
-
-        _player = new Character(playerData);
-        _goblin = new Character(goblinData);
-        _combatService = new CombatService(_player, _goblin);
-        _combatMapper = new CombatPresentationMapper();
-        _dayClock = new DayClock();
-        _activityTimeCalculator = new ActivityTimeCalculator();
-        _activityFatigueCalculator = new ActivityFatigueCalculator();
-        _actionExecutionService = new ActionExecutionService(
-            _activityTimeCalculator,
-            new ActionEffectExecutor(),
-            _activityFatigueCalculator);
-        _durationEstimateMapper = new ActionDurationEstimateMapper(_activityTimeCalculator);
-        _availableInteractionQuery = new AvailableInteractionQuery();
-        _actionChoiceMapper = new ActionChoiceMapper(_durationEstimateMapper);
-        _gameModeController = new GameModeController(_storyPanel, _combatPanel);
-        _locationEventService = new LocationEventService();
-
-        _sidebar.TabSelected += OpenTab;
-        _storyPanel.ChoiceSelected += HandleChoice;
-        _storyPanel.ReturnToLocationRequested += ShowLocation;
-        _combatPanel.ActionSelected += HandleCombatAction;
-        _combatPanel.ContinueRequested += ReturnToExploration;
-
-        _characterPanel.SetCharacter(new CharacterViewModel(_player));
-        ShowLocation();
+        ValidatePlayerActions();
     }
 
-    private void OpenTab(string tab)
-    {
-        if (_gameModeController.IsCombatMode)
-        {
-            return;
-        }
-
-        ShowPage(tab);
-    }
-
-    private void ShowLocation()
+    public void ShowLocation()
     {
         if (_activeLocationEvent != null)
         {
@@ -93,11 +63,13 @@ public partial class MainController : Control
             return;
         }
 
-        LocationContent location = AcademyContent.Get(_currentLocationId);
+        LocationContent location = _getLocation(_currentLocationId);
         IReadOnlyList<AvailableInteraction> interactions = _availableInteractionQuery.Query(
             _player,
             _playerActions,
-            location);
+            location,
+            _getLocation,
+            _travelAction);
         List<ActionChoiceViewData> choices = _actionChoiceMapper.Map(interactions, _player);
 
         _gameModeController.ShowExploration();
@@ -110,7 +82,7 @@ public partial class MainController : Control
         _storyPanel.ShowLocationButton(false);
     }
 
-    private void ShowPage(string tab)
+    public void ShowPage(string tab)
     {
         string description = tab switch
         {
@@ -124,24 +96,16 @@ public partial class MainController : Control
         };
 
         _gameModeController.ShowExploration();
-        _storyPanel.ShowContent(tab, "ADVENTURER RECORD", description, Array.Empty<ActionChoiceViewData>(), _dayClock.GetDisplayText());
+        _storyPanel.ShowContent(
+            tab,
+            "ADVENTURER RECORD",
+            description,
+            Array.Empty<ActionChoiceViewData>(),
+            _dayClock.GetDisplayText());
         _storyPanel.ShowLocationButton(true);
     }
 
-    private string GetProfileDescription()
-    {
-        CharacterStats stats = _player.Stats;
-
-        return "A summary of your adventurer and current condition."
-            + "\n\nATTRIBUTES"
-            + "\nStrength: " + stats.Strength
-            + "\nAgility: " + stats.Agility
-            + "\nIntelligence: " + stats.Intelligence
-            + "\nEndurance: " + stats.Endurance
-            + "\nWisdom: " + stats.Wisdom;
-    }
-
-    private void HandleChoice(string choiceId)
+    public void HandleChoice(string choiceId)
     {
         if (_activeLocationEvent != null)
         {
@@ -171,6 +135,7 @@ public partial class MainController : Control
                     _storyPanel.ShowFeedback("That player action selection is outdated.");
                     return;
                 }
+
                 ExecutePlayerAction(request.ActionId);
                 return;
 
@@ -180,25 +145,28 @@ public partial class MainController : Control
                     _storyPanel.ShowFeedback("That location action selection is outdated.");
                     return;
                 }
+
                 ActionDefinition locationAction = FindChoice(
-                    AcademyContent.Get(_currentLocationId).Actions,
+                    _getLocation(_currentLocationId).Actions,
                     request.ActionId);
                 if (locationAction == null)
                 {
                     _storyPanel.ShowFeedback("That action is no longer available here.");
                     return;
                 }
+
                 ExecuteAction(locationAction);
                 return;
 
             case InteractionSourceKind.Travel:
                 if (request.SourceId != _currentLocationId ||
-                    request.ActionId != AcademyContent.Travel.Id ||
+                    request.ActionId != _travelAction.Id ||
                     string.IsNullOrWhiteSpace(request.TargetId))
                 {
                     _storyPanel.ShowFeedback("That travel selection is outdated.");
                     return;
                 }
+
                 TravelTo(request.TargetId);
                 return;
 
@@ -206,6 +174,19 @@ public partial class MainController : Control
                 _storyPanel.ShowFeedback("That action source is not supported.");
                 return;
         }
+    }
+
+    private string GetProfileDescription()
+    {
+        CharacterStats stats = _player.Stats;
+
+        return "A summary of your adventurer and current condition."
+            + "\n\nATTRIBUTES"
+            + "\nStrength: " + stats.Strength
+            + "\nAgility: " + stats.Agility
+            + "\nIntelligence: " + stats.Intelligence
+            + "\nEndurance: " + stats.Endurance
+            + "\nWisdom: " + stats.Wisdom;
     }
 
     private void ExecutePlayerAction(string actionId)
@@ -232,37 +213,49 @@ public partial class MainController : Control
         _storyPanel.ShowFeedback("That personal action is no longer available.");
     }
 
-    private void ValidatePlayerActions(PlayerActionDefinition[] playerActions)
+    private void ValidatePlayerActions()
     {
         HashSet<string> actionIds = new HashSet<string>(StringComparer.Ordinal);
-        foreach (LocationContent location in AcademyContent.All)
+        foreach (LocationContent location in _locations)
         {
             foreach (ActionDefinition action in location.Actions)
             {
                 if (!actionIds.Add(action.Id))
+                {
                     throw new InvalidOperationException("Duplicate action ID across locations: " + action.Id);
+                }
             }
         }
 
-        foreach (PlayerActionDefinition playerAction in playerActions)
+        foreach (PlayerActionDefinition playerAction in _playerActions)
         {
             if (!actionIds.Add(playerAction.Action.Id))
+            {
                 throw new InvalidOperationException("Player action ID conflicts with another action: " + playerAction.Action.Id);
+            }
 
             foreach (string locationId in playerAction.AvailableLocationIds)
             {
                 bool locationExists = false;
-                foreach (LocationContent location in AcademyContent.All)
+                foreach (LocationContent location in _locations)
                 {
-                    if (location.Id == locationId) { locationExists = true; break; }
+                    if (location.Id == locationId)
+                    {
+                        locationExists = true;
+                        break;
+                    }
                 }
+
                 if (!locationExists)
-                    throw new InvalidOperationException("Player action '" + playerAction.Action.Id + "' references unknown location '" + locationId + "'.");
+                {
+                    throw new InvalidOperationException(
+                        "Player action '" + playerAction.Action.Id + "' references unknown location '" + locationId + "'.");
+                }
             }
         }
     }
 
-    private ActionDefinition FindChoice(ActionDefinition[] choices, string choiceId)
+    private static ActionDefinition FindChoice(ActionDefinition[] choices, string choiceId)
     {
         foreach (ActionDefinition choice in choices)
         {
@@ -298,109 +291,15 @@ public partial class MainController : Control
             startMinutes,
             _dayClock.Day,
             _dayClock.MinutesOfDay);
-
-        string feedback = action.Feedback;
-
-        _storyPanel.ShowFeedback(feedback);
+        _storyPanel.ShowFeedback(action.Feedback);
         return true;
-    }
-
-    private bool StartGoblinEncounter(ActionDefinition action)
-    {
-        if (!_actionExecutionService.CanExecute(action, _player, out string failureReason))
-        {
-            _storyPanel.ShowFeedback(failureReason);
-            return false;
-        }
-
-        int startDay = _dayClock.Day;
-        int startMinutes = _dayClock.MinutesOfDay;
-
-        if (!_actionExecutionService.TryExecute(
-            action,
-            _player,
-            _dayClock,
-            out failureReason,
-            out _))
-        {
-            _storyPanel.ShowFeedback(failureReason);
-            return false;
-        }
-
-        _characterPanel.SetCharacter(new CharacterViewModel(_player));
-
-        if (!_combatService.TryStartEncounter(out failureReason))
-        {
-            _storyPanel.ShowFeedback(failureReason);
-            return false;
-        }
-
-        _characterPanel.SetCharacter(new CharacterViewModel(_player));
-        _combatStartDay = startDay;
-        _combatStartMinutes = startMinutes;
-        _hasCombatTimeFeedback = true;
-        _activeLocationEvent = null;
-        _gameModeController.ShowCombat();
-        _combatPanel.BeginEncounter("Goblin Ambush");
-        _combatPanel.AppendMessage(new CombatMessage(
-            "goblin-encounter-start",
-            1,
-            CombatMessageType.System,
-            CombatMessageCategory.Environment,
-            "SYSTEM",
-            "A goblin jumps out from the bushes and blocks your way."));
-        _combatPanel.ApplyViewData(_combatMapper.Map(_combatService.GetSnapshot()));
-        return true;
-    }
-
-    private void HandleCombatAction(CombatActionRequest request)
-    {
-        if (_combatService.IsEncounterOver)
-        {
-            return;
-        }
-
-        CombatResult result = _combatService.ExecuteAction(request);
-        _combatPanel.ApplyViewData(_combatMapper.Map(result));
-        _characterPanel.SetCharacter(new CharacterViewModel(_player));
-
-        if (!_combatService.IsEncounterOver)
-        {
-            return;
-        }
-
-        int encounterDuration = _activityTimeCalculator.Calculate(AcademyContent.CombatEncounter, _player);
-        _dayClock.AdvanceMinutes(encounterDuration);
-        double encounterFatigue = _activityFatigueCalculator.Calculate(
-            AcademyContent.CombatEncounter,
-            encounterDuration);
-        _player.AddFatigue(encounterFatigue);
-        _characterPanel.SetCharacter(new CharacterViewModel(_player));
-        _combatPanel.ShowEncounterComplete(_combatService.IsVictory ? "VICTORY" : "DEFEAT");
-    }
-
-    private void ReturnToExploration()
-    {
-        _gameModeController.ShowExploration();
-        _characterPanel.SetCharacter(new CharacterViewModel(_player));
-        ShowLocation();
-
-        if (_hasCombatTimeFeedback)
-        {
-            _storyPanel.ShowTimeAdvanceFeedback(
-                _combatStartDay,
-                _combatStartMinutes,
-                _dayClock.Day,
-                _dayClock.MinutesOfDay);
-            _hasCombatTimeFeedback = false;
-        }
     }
 
     private void TravelTo(string destinationId)
     {
         int startDay = _dayClock.Day;
         int startMinutes = _dayClock.MinutesOfDay;
-        LocationContent current = AcademyContent.Get(_currentLocationId);
+        LocationContent current = _getLocation(_currentLocationId);
         if (Array.IndexOf(current.Exits, destinationId) < 0)
         {
             _storyPanel.ShowFeedback("That location is not connected to your current position.");
@@ -408,7 +307,7 @@ public partial class MainController : Control
         }
 
         if (!_actionExecutionService.TryExecute(
-            AcademyContent.Travel,
+            _travelAction,
             _player,
             _dayClock,
             out string failureReason,
@@ -427,15 +326,13 @@ public partial class MainController : Control
             startMinutes,
             _dayClock.Day,
             _dayClock.MinutesOfDay);
-        string feedback = "You arrive at " + AcademyContent.Get(destinationId).Name + ".";
-
-        _storyPanel.ShowFeedback(feedback);
+        _storyPanel.ShowFeedback("You arrive at " + _getLocation(destinationId).Name + ".");
         TryTriggerLocationEvent();
     }
 
     private void TryTriggerLocationEvent()
     {
-        LocationContent location = AcademyContent.Get(_currentLocationId);
+        LocationContent location = _getLocation(_currentLocationId);
 
         if (!_locationEventService.TryTrigger(
             location,
@@ -478,7 +375,8 @@ public partial class MainController : Control
             }
         }
 
-        if (selectedChoice == null || (selectedChoice.EncounterActionId ?? string.Empty) != (targetId ?? string.Empty))
+        if (selectedChoice == null ||
+            (selectedChoice.EncounterActionId ?? string.Empty) != (targetId ?? string.Empty))
         {
             _storyPanel.ShowFeedback("That event choice is not available or has changed.");
             return;
@@ -487,7 +385,7 @@ public partial class MainController : Control
         if (selectedChoice.EncounterActionId != null)
         {
             ActionDefinition encounterAction = FindChoice(
-                AcademyContent.Get(_currentLocationId).Actions,
+                _getLocation(_currentLocationId).Actions,
                 selectedChoice.EncounterActionId);
 
             if (encounterAction == null)
@@ -496,7 +394,11 @@ public partial class MainController : Control
                 return;
             }
 
-            StartGoblinEncounter(encounterAction);
+            if (_startEncounter(encounterAction))
+            {
+                _activeLocationEvent = null;
+            }
+
             return;
         }
 

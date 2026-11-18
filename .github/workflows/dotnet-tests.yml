@@ -8,20 +8,57 @@ on:
     branches:
       - main
 
+concurrency:
+  group: rpg-validation-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.x"
-      - name: Run complete repository validation
+
+      - name: Detect validation scope
+        id: scope
+        shell: bash
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD_REF: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          if [[ "${BASE_REF}" =~ ^0+$ ]]; then
+            BASE_REF="$(git rev-parse "${HEAD_REF}^" 2>/dev/null || true)"
+          fi
+          if [[ -z "${BASE_REF}" ]]; then
+            CHANGED="$(git ls-tree -r --name-only "${HEAD_REF}")"
+          else
+            CHANGED="$(git diff --name-only "${BASE_REF}...${HEAD_REF}")"
+          fi
+
+          if grep -Eq '\.cs$|\.csproj$|(^|/)(Scenes|Resources)/|(^|/)[^/]+\.(tscn|tres)$|^project\.godot$' <<< "${CHANGED}"; then
+            echo "godot=true" >> "${GITHUB_OUTPUT}"
+          else
+            echo "godot=false" >> "${GITHUB_OUTPUT}"
+          fi
+
+          if grep -Eq '\.cs$|\.csproj$|\.sln$|^Tools/CheckProjectNaming\.py$' <<< "${CHANGED}"; then
+            echo "naming_audit=true" >> "${GITHUB_OUTPUT}"
+          else
+            echo "naming_audit=false" >> "${GITHUB_OUTPUT}"
+          fi
+
+      - name: Run fast repository validation and .NET tests
         shell: bash
         env:
           EVENT_NAME: ${{ github.event_name }}
@@ -29,12 +66,56 @@ jobs:
           HEAD_REF: ${{ github.sha }}
           BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
         run: |
+          set -euo pipefail
           ARGS=(--base "$BASE_REF" --head "$HEAD_REF" --branch "$BRANCH_NAME")
           if [[ "$EVENT_NAME" == "pull_request" ]]; then
             ARGS+=(--check-branch)
           fi
           python3 Tools/Validate.py "${ARGS[@]}"
 
+      - name: Install Godot 4.7.2 .NET
+        if: steps.scope.outputs.godot == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          GODOT_ARCHIVE="Godot_v4.7.2-stable_mono_linux_x86_64.zip"
+          GODOT_URL="https://github.com/godotengine/godot/releases/download/4.7.2-stable/${GODOT_ARCHIVE}"
+          curl --fail --location --silent --show-error "${GODOT_URL}" --output /tmp/godot.zip
+          mkdir -p /tmp/godot
+          unzip -q /tmp/godot.zip -d /tmp/godot
+          GODOT_BIN="$(find /tmp/godot -type f -name 'Godot_v4.7.2-stable_mono_linux.x86_64' -print -quit)"
+          if [[ -z "${GODOT_BIN}" ]]; then
+            echo "Godot 4.7.2 .NET executable was not found in the release archive."
+            exit 1
+          fi
+          chmod +x "${GODOT_BIN}"
+          echo "GODOT_BIN=${GODOT_BIN}" >> "${GITHUB_ENV}"
+
+      - name: Build Debug C# assembly for Godot runtime
+        if: steps.scope.outputs.godot == 'true'
+        run: dotnet build RPG.csproj --configuration Debug
+
+      - name: Run Godot 4.7.2 .NET scene smoke tests
+        if: steps.scope.outputs.godot == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          run_godot_check() {
+            local check_name="$1"
+            shift
+            local log_file="/tmp/godot-${check_name}.log"
+            timeout 60s "${GODOT_BIN}" "$@" 2>&1 | tee "${log_file}"
+            if grep -E 'ERROR:|SCRIPT ERROR:' "${log_file}"; then
+              echo "Godot ${check_name} check reported an engine or script error."
+              exit 1
+            fi
+          }
+
+          run_godot_check import --headless --editor --path . --quit
+          run_godot_check main-scene --headless --path . --quit-after 10
+          run_godot_check combat-preview --headless --path . --scene res://Scenes/Previews/CombatPreview.tscn --quit-after 120
+
       - name: Enforce full repository naming audit
+        if: steps.scope.outputs.naming_audit == 'true'
         shell: bash
         run: python3 Tools/CheckProjectNaming.py --audit-all

@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3]
 
-[ext_resource type="Script" path="res://Scripts/Previews/CombatPreview.cs" id="1"]
+[ext_resource type="Script" path="res://Scripts/Presentation/Previews/CombatPreview.cs" id="1"]
 [ext_resource type="PackedScene" path="res://Scenes/UI/Combat/CombatPanel.tscn" id="2"]
 
 [node name="CombatPreview" type="Control"]

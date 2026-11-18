@@ -67,15 +67,15 @@ JSON Loaders
   -> runtime state + current context
   -> Available Interaction Query
   -> Action Choice Mapper
-  -> ExplorationViewModel / ActionGroupViewModel
-  -> StoryPanel
+  -> ActionChoiceViewData list
+  -> StoryPanel.ShowContent(header, time, choices)
 ```
 
 Responsibilities:
 - **Loader:** reads and validates its JSON source; creates data definitions.
 - **Query:** selects choices that belong in the current context and determines advisory availability from current state. It does not mutate state.
 - **Mapper:** converts query results into presentation-safe, grouped data. It does not read files or apply gameplay rules.
-- **ViewModel:** contains labels, duration/cost text, stable choice identity, enabled state and unavailable reason needed by the View.
+- **ActionChoiceViewData:** contains the player-facing label, duration label, group title and encoded ActionSelectionRequest in ChoiceId. The current prototype passes the screen header/time separately; it does not have an aggregate ExplorationViewModel.
 - **StoryPanel:** renders groups and emits the selected choice identity. It does not execute actions or access domain objects.
 
 The Loader is upstream from the Mapper, but the Mapper does not depend on or call the Loader. Query sits between loaded definitions/runtime state and the Mapper.
@@ -143,31 +143,29 @@ Avoid duplication unless repetition materially improves usability.
 
 ### 6. Mode Ownership and Transitions
 
-MainController owns high-level Main Panel mode transitions:
-- Entering a Location presents Exploration.
-- Selecting an Event choice preserves the focused Event context until resolved.
-- Starting an encounter switches to Combat.
-- Ending Combat returns to the same Location's Exploration presentation.
-- Character Panel remains persistent.
+MainController is the Godot composition root. It wires UI signals to the focused flow controllers and does not own feature-level transitions.
 
-MainController orchestrates handlers and refreshes ViewModels. It must not calculate action costs, decide object state, resolve puzzles or implement combat rules.
+- ExplorationFlowController presents Locations, preserves active Event context and dispatches selected Exploration choices.
+- CombatFlowController starts encounters, handles Combat requests and returns to Exploration.
+- GameModeController switches the visible Main Panel mode.
+- Character Panel remains persistent across both modes.
+
+The flow controllers coordinate Presentation and call Application/Domain services. They must not duplicate action costs, mutate state outside the owning service or implement combat rules.
 
 ### 7. Prototype Reality Check
 
-Currently implemented:
+Currently implemented on `main`:
 - Sidebar and persistent Character Panel.
-- Exploration list of choices rendered by StoryPanel.
-- Flat ActionChoiceViewData with ID, label and duration label.
-- MainController currently combines Location Actions, root academy Self Actions and derived Travel choices.
-- AcademyContent reads Location content and the transitional root `selfActions` list.
-- CharacterDataLoader reads Player identity/base values/stats, but not Player Actions.
-- A dedicated Combat Panel and Combat Service → Mapper → ViewData pipeline for the Goblin encounter.
+- Exploration choices are discovered by `AvailableInteractionQuery` for Player, Location, Travel and Event sources.
+- Rest and Sleep are Player Actions in `Data/Characters/Player.json`; Rest is available at every actionable Location and Sleep is restricted to Dormitory.
+- `ActionChoiceMapper` converts available interactions into grouped `ActionChoiceViewData`; StoryPanel renders those groups.
+- `ActionSelectionRequest` carries source kind, source ID, action ID and optional target ID. ExplorationFlowController validates the current source/context before dispatch.
+- Combat uses a dedicated CombatService → CombatPresentationMapper → CombatViewData → CombatPanel pipeline.
 
-Planned in Version 1:
-- Player Actions authored in `Player.json`.
-- Available Interaction Query for Player, Location, Travel and Event sources.
-- Grouped Exploration ViewModel and grouped StoryPanel rendering.
-- Stable source/action request identity and MainController orchestration without flat-list composition.
+Current transitional boundaries:
+- MainController is the Godot composition root. ExplorationFlowController and CombatFlowController own the Exploration and Combat presentation flows and delegate gameplay rules to Application/Domain services.
+- JSON loading is owned by Infrastructure; character, action and location definitions are separated into Domain files.
+- Godot runtime verification must be recorded separately from .NET CI; a passing test suite does not prove scene/resource integration.
 
 Not implemented:
 - NPC population and presence, Inventory/item use, generic Interactable Objects, Containers, Puzzles and Nearby choice group.

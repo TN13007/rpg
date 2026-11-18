@@ -1,6 +1,6 @@
 [gd_scene load_steps=6 format=3]
 
-[ext_resource type="Script" path="res://Scripts/MainController.cs" id="1"]
+[ext_resource type="Script" path="res://Scripts/Bootstrap/MainController.cs" id="1"]
 [ext_resource type="PackedScene" path="res://Scenes/UI/Sidebar.tscn" id="2"]
 [ext_resource type="PackedScene" path="res://Scenes/UI/StoryPanel.tscn" id="3"]
 [ext_resource type="PackedScene" path="res://Scenes/UI/CharacterPanel.tscn" id="4"]

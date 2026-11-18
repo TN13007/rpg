@@ -51,7 +51,7 @@ An Event is an optional situation introduced during exploration. It does not aut
 
 - A `Location` declares the Event Definitions that may occur there.
 - An Event Definition is reusable content: identity, title, description, chance and available choices.
-- A runtime occurrence exists only when the selection process chooses that definition. The current prototype presents it immediately and keeps the active choice context in `MainController`.
+- A runtime occurrence exists only when the selection process chooses that definition. The current prototype presents it immediately and keeps the active choice context in `ExplorationFlowController`.
 - Event content is stored in `Data/AcademyLocations.json`; C# owns selection, validation and execution rules.
 - An Event is not the same as an Encounter. The Goblin event offers a confrontation choice that starts the existing Combat encounter. Sneaking resolves through the normal Action execution path.
 
@@ -77,7 +77,7 @@ An Event owns its available choices. A choice contains an Action Definition for 
 - The Event Choice ID must match its Action ID so the UI's emitted choice identifier always resolves to exactly one authored choice.
 - A choice that cannot currently execute is rejected without spending resources or time; the Event remains available for another choice.
 - Successful non-combat resolution returns to Exploration at the same Location.
-- Successful Combat resolution uses the dedicated Combat UI and `CombatService`. The existing victory reward, defeat/death rules and encounter duration remain authoritative.
+- Successful Combat resolution uses the dedicated Combat UI and `CombatService`. `CombatSessionService` coordinates encounter entry and applies the configured completion duration/Fatigue. The existing victory reward and defeat/death rules remain authoritative.
 
 The first event is `courtyard_goblin_ambush`:
 - **Confront the goblin:** references the Courtyard's existing `encounter_goblin` action and enters Combat.
@@ -93,18 +93,19 @@ The Event query/presentation path is responsible for turning the active Event's 
 
 | Responsibility | Owner |
 |---|---|
-| Event and choice definitions, content validation | `AcademyContent` and `LocationEventDefinition` |
+| Event and choice definitions, content validation | `AcademyContent` (Infrastructure) and `LocationEventDefinition` (Domain) |
 | Daily event-pool attempt and random selection | `LocationEventService` |
-| Travel, active event context, choice routing and mode transitions | `MainController` (application orchestrator) |
+| Travel, active event context and choice routing | `ExplorationFlowController` (Presentation flow coordinator) |
+| Exploration/Combat mode visibility | `GameModeController`; flow transitions are coordinated by the corresponding flow controller |
 | Action cost, time and effect execution | `ActionExecutionService` |
-| Combat validation, turns, enemy response and victory reward | `CombatService` |
+| Combat encounter entry, completion time and activity Fatigue | `CombatSessionService` (Application) |\n| Combat validation, turns, enemy response and victory reward | `CombatService` (Domain) |
 | Exploration and Combat rendering | Existing UI panels |
 
 No separate Expedition, Run or general-purpose Event System is introduced.
 
 ### 7. Automated Test Coverage
 
-`RPG.Tests/LocationEventLoopTests.cs` verifies:
+`RPG.Tests/Events/LocationEventLoopTests.cs` verifies:
 - Loading the Courtyard Event and its choices from JSON.
 - Guaranteed and impossible event chances.
 - Once-per-location-per-day behavior, next-day reset and independent locations.
@@ -270,7 +271,7 @@ JSON content
                     ActionChoiceMapper
                                   |
                                   v
-                    ExplorationViewModel
+                    ActionChoiceViewData
                                   |
                                   v
                     StoryPanel / Exploration UI
@@ -308,43 +309,17 @@ Distinguish:
 
 The Mapper transforms the query result into presentation-safe data. It formats duration and cost labels, maps choices into groups, and supplies stable identifiers. It does not load content, discover world objects, mutate state or decide gameplay outcomes.
 
-### 6. ViewModel contract
+### 6. Current presentation data contract
 
-The Exploration view should receive a composed ViewModel similar to:
+The current prototype does not use a single aggregate ExplorationViewModel. StoryPanel receives the location/event header and time label directly through `ShowContent`, plus a list of `ActionChoiceViewData` objects.
 
-```text
-ExplorationViewModel
-  LocationTitle
-  RegionLabel
-  Description
-  TimeLabel
-  ActionGroups[]
-    GroupId
-    GroupTitle
-    Choices[]
-      ChoiceId
-      SourceKind
-      SourceId
-      ActionId
-      TargetId (optional)
-      Label
-      Description
-      DurationLabel
-      CostLabel
-      IsEnabled
-      UnavailableReason
-```
+Each `ActionChoiceViewData` contains:
+- `ChoiceId`: encoded `ActionSelectionRequest` preserving source kind, source ID, action ID and optional target ID.
+- `Label`: player-facing choice label.
+- `DurationLabel`: informational duration text.
+- `GroupTitle`: Personal, At This Location, Travel or Current Situation.
 
-This is a conceptual contract, not a requirement to copy these exact property names. Keep it small and add fields only when a real view needs them.
-
-Choice identity must be unambiguous. Action IDs alone are not globally unique: two chests may both define `open`. Preserve source and target identity in the request. Do not route an action using only a display label or a bare action ID when more than one source can provide it.
-
-The UI:
-- Renders the groups and choices it receives.
-- Shows duration/cost/description and any unavailable reason.
-- Emits the selected choice identity.
-- Does not read JSON or runtime domain objects.
-- Does not calculate costs, check puzzle answers, open chests or mutate game state.
+A dedicated aggregate ViewModel may be introduced when the screen needs more composed state. Do not add one merely to mirror the current method parameters.
 
 ### 7. Selection and execution flow
 
@@ -355,7 +330,7 @@ Player selects a rendered choice
 ActionSelectionRequest (source + action + optional target)
         |
         v
-MainController / request handler
+ExplorationFlowController / request handler
         |
         v
 Resolve the responsible rule owner
@@ -364,7 +339,7 @@ Resolve the responsible rule owner
         +--> Travel -> travel/location rule owner
         +--> Event choice -> Event resolution owner
         +--> NPC / Object interaction -> future specialized service
-        +--> Combat choice -> CombatService (separate mode)
+        +--> Combat choice -> CombatFlowController -> CombatSessionService -> CombatService
         |
         v
 Validate again -> execute -> update runtime state
@@ -376,7 +351,7 @@ Re-run AvailableInteractionQuery
 Mapper -> ViewModel -> render updated choices
 ```
 
-MainController orchestrates which handler owns the request. It must not implement action requirements, activity-based Fatigue calculation or Combat Stamina rules, puzzle rules, chest behavior, NPC dialogue or combat damage.
+ExplorationFlowController routes the UI request to the owning Application/Domain service and refreshes the current Exploration presentation. MainController only constructs dependencies and wires top-level signals. Neither controller implements action requirements, activity-based Fatigue calculation, Combat Stamina rules, puzzle rules, chest behavior, NPC dialogue or combat damage.
 
 After a successful state change, rebuild the current Exploration ViewModel from current state. This naturally removes choices whose target/state/conditions have changed.
 

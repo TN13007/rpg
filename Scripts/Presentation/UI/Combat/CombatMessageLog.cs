@@ -2,8 +2,8 @@ using Godot;
 
 public partial class CombatMessageLog : PanelContainer
 {
-    private const int MaximumMessages = 60;
-    private const int BottomThreshold = 4;
+    private const int _maximumMessages = 60;
+    private const int _bottomThreshold = 4;
 
     private ScrollContainer _scroll;
     private VBoxContainer _entries;
@@ -30,7 +30,7 @@ public partial class CombatMessageLog : PanelContainer
         _entries.AddChild(entry);
         entry.SetMessage(message);
 
-        while (_entries.GetChildCount() > MaximumMessages)
+        while (_entries.GetChildCount() > _maximumMessages)
         {
             Node oldestEntry = _entries.GetChild(0);
             _entries.RemoveChild(oldestEntry);
@@ -58,6 +58,6 @@ public partial class CombatMessageLog : PanelContainer
     {
         VScrollBar scrollBar = _scroll.GetVScrollBar();
         int maximumScroll = Mathf.Max(0, (int)(scrollBar.MaxValue - scrollBar.Page));
-        return _scroll.ScrollVertical >= maximumScroll - BottomThreshold;
+        return _scroll.ScrollVertical >= maximumScroll - _bottomThreshold;
     }
 }

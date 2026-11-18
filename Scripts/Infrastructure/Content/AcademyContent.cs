@@ -3,156 +3,6 @@ using System.Collections.Generic;
 using System.Text.Json;
 using Godot;
 
-public sealed class ActivityTimeModifier
-{
-    public CharacterStat Stat { get; }
-    public double MaxReduction { get; }
-
-    public ActivityTimeModifier(CharacterStat stat, double maxReduction)
-    {
-        if (!Enum.IsDefined(typeof(CharacterStat), stat))
-        {
-            throw new ArgumentOutOfRangeException(nameof(stat));
-        }
-
-        if (maxReduction < 0 || maxReduction > 1)
-        {
-            throw new ArgumentOutOfRangeException(nameof(maxReduction), "Maximum time reduction must be between 0 and 1.");
-        }
-
-        Stat = stat;
-        MaxReduction = maxReduction;
-    }
-}
-
-public enum ActionTimeMode
-{
-    Duration,
-    NextDay
-}
-
-public enum ActionEffectType
-{
-    RestoreHealth,
-    RestoreFatigue,
-    RestoreStamina,
-    ChangeMood,
-    AddGold
-}
-
-public sealed class ActionEffectDefinition
-{
-    public ActionEffectType Type { get; }
-    public int Amount { get; }
-
-    public ActionEffectDefinition(ActionEffectType type, int amount)
-    {
-        if (!Enum.IsDefined(typeof(ActionEffectType), type))
-        {
-            throw new ArgumentOutOfRangeException(nameof(type));
-        }
-
-        if (type != ActionEffectType.ChangeMood && amount < 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(amount), "This effect amount cannot be negative.");
-        }
-
-        Type = type;
-        Amount = amount;
-    }
-}
-
-public sealed class ActionDefinition
-{
-    public string Id { get; }
-    public string Label { get; }
-    public string Feedback { get; }
-    public int DurationMinutes { get; }
-    public double ActivityMet { get; }
-    public ActivityTimeModifier TimeModifier { get; }
-    public ActionTimeMode TimeMode { get; }
-    public ActionEffectDefinition[] Effects { get; }
-    public int? EstimatedDurationMinMinutes { get; }
-    public int? EstimatedDurationMaxMinutes { get; }
-
-    public ActionDefinition(
-        string id,
-        string label,
-        int durationMinutes,
-        ActivityTimeModifier timeModifier = null,
-        string feedback = "",
-        double activityMet = 1.0,
-        ActionEffectDefinition[] effects = null,
-        ActionTimeMode timeMode = ActionTimeMode.Duration,
-        int? estimatedDurationMinMinutes = null,
-        int? estimatedDurationMaxMinutes = null)
-    {
-        if (string.IsNullOrWhiteSpace(id)) throw new ArgumentException("Action ID is required.", nameof(id));
-        if (string.IsNullOrWhiteSpace(label)) throw new ArgumentException("Action label is required.", nameof(label));
-        if (durationMinutes < 0) throw new ArgumentOutOfRangeException(nameof(durationMinutes));
-        if (double.IsNaN(activityMet) || double.IsInfinity(activityMet) || activityMet < 0 || activityMet > 20)
-        {
-            throw new ArgumentOutOfRangeException(nameof(activityMet));
-        }
-        if (!Enum.IsDefined(typeof(ActionTimeMode), timeMode)) throw new ArgumentOutOfRangeException(nameof(timeMode));
-        if (estimatedDurationMinMinutes.HasValue != estimatedDurationMaxMinutes.HasValue)
-        {
-            throw new ArgumentException("Both estimated duration bounds must be provided together.");
-        }
-        if (estimatedDurationMinMinutes.HasValue &&
-            (estimatedDurationMinMinutes.Value < 0 ||
-             estimatedDurationMaxMinutes.Value < estimatedDurationMinMinutes.Value))
-        {
-            throw new ArgumentOutOfRangeException(nameof(estimatedDurationMinMinutes));
-        }
-        if (timeMode == ActionTimeMode.NextDay &&
-            (estimatedDurationMinMinutes.HasValue || estimatedDurationMaxMinutes.HasValue))
-        {
-            throw new ArgumentException("NextDay actions cannot define a duration estimate.");
-        }
-
-        Id = id;
-        Label = label;
-        DurationMinutes = durationMinutes;
-        ActivityMet = activityMet;
-        TimeModifier = timeModifier;
-        TimeMode = timeMode;
-        Effects = effects ?? Array.Empty<ActionEffectDefinition>();
-        Feedback = feedback ?? string.Empty;
-        EstimatedDurationMinMinutes = estimatedDurationMinMinutes;
-        EstimatedDurationMaxMinutes = estimatedDurationMaxMinutes;
-    }
-}
-
-public sealed class LocationContent
-{
-    public string Id { get; }
-    public string Name { get; }
-    public string Region { get; }
-    public string Description { get; }
-    public string[] Exits { get; }
-    public ActionDefinition[] Actions { get; }
-    public LocationEventDefinition[] Events { get; }
-
-    public LocationContent(
-        string id,
-        string name,
-        string region,
-        string description,
-        string[] exits,
-        ActionDefinition[] actions,
-        LocationEventDefinition[] events = null)
-    {
-        Id = id;
-        Name = name;
-        Region = region;
-        Description = description;
-        Exits = exits ?? Array.Empty<string>();
-        Actions = actions ?? Array.Empty<ActionDefinition>();
-        Events = events ?? Array.Empty<LocationEventDefinition>();
-    }
-}
-
 public static class AcademyContent
 {
     private static Dictionary<string, LocationContent> _locations =
@@ -194,11 +44,11 @@ public static class AcademyContent
             JsonElement root = document.RootElement;
 
             ActionDefinition loadedTravel = root.TryGetProperty("travel", out JsonElement travelData)
-                ? ReadActionDefinition("travel", "Travel", travelData)
+                ? ActionDefinitionJsonReader.ReadActionDefinition("travel", "Travel", travelData)
                 : new ActionDefinition("travel", "Travel", 10);
 
             ActionDefinition loadedCombatEncounter = root.TryGetProperty("combatEncounter", out JsonElement combatData)
-                ? ReadActionDefinition("combat_encounter", "Combat Encounter", combatData)
+                ? ActionDefinitionJsonReader.ReadActionDefinition("combat_encounter", "Combat Encounter", combatData)
                 : new ActionDefinition("combat_encounter", "Combat Encounter", 30);
             if (root.TryGetProperty("selfActions", out _))
             {
@@ -339,7 +189,7 @@ public static class AcademyContent
                 string encounterActionId = choiceData.TryGetProperty("encounterActionId", out JsonElement encounterData)
                     ? encounterData.GetString()
                     : null;
-                ActionDefinition action = ReadActionDefinition(choiceId, label, choiceData);
+                ActionDefinition action = ActionDefinitionJsonReader.ReadActionDefinition(choiceId, label, choiceData);
                 choices.Add(new LocationEventChoiceDefinition(choiceId, action, encounterActionId));
             }
 
@@ -429,7 +279,7 @@ public static class AcademyContent
 
         foreach (JsonElement item in data.EnumerateArray())
         {
-            actions.Add(ReadActionDefinition(
+            actions.Add(ActionDefinitionJsonReader.ReadActionDefinition(
                 ReadString(item, "id"),
                 ReadString(item, "label"),
                 item));
@@ -438,94 +288,11 @@ public static class AcademyContent
         return actions.ToArray();
     }
 
-    public static ActionDefinition ReadActionDefinition(string id, string label, JsonElement data)
-    {
-        int durationMinutes = data.GetProperty("durationMinutes").GetInt32();
-        double activityMet = data.TryGetProperty("activityMet", out JsonElement activityMetData)
-            ? activityMetData.GetDouble()
-            : 1.0;
-        ActivityTimeModifier modifier = data.TryGetProperty("timeModifier", out JsonElement modifierData)
-            ? ReadTimeModifier(modifierData)
-            : null;
-        ActionEffectDefinition[] effects = data.TryGetProperty("effects", out JsonElement effectsData)
-            ? ReadEffects(effectsData)
-            : Array.Empty<ActionEffectDefinition>();
-        ActionTimeMode timeMode = data.TryGetProperty("timeMode", out JsonElement timeModeData)
-            ? ReadTimeMode(timeModeData)
-            : ActionTimeMode.Duration;
-        string feedback = data.TryGetProperty("feedback", out JsonElement feedbackData)
-            ? feedbackData.GetString()
-            : string.Empty;
-        int? estimatedDurationMinMinutes = data.TryGetProperty("estimatedDurationMinMinutes", out JsonElement minDurationData)
-            ? minDurationData.GetInt32()
-            : null;
-        int? estimatedDurationMaxMinutes = data.TryGetProperty("estimatedDurationMaxMinutes", out JsonElement maxDurationData)
-            ? maxDurationData.GetInt32()
-            : null;
+    
 
-        return new ActionDefinition(
-            id,
-            label,
-            durationMinutes,
-            modifier,
-            feedback,
-            activityMet,
-            effects,
-            timeMode,
-            estimatedDurationMinMinutes,
-            estimatedDurationMaxMinutes);
-    }
+    
 
-    private static ActionEffectDefinition[] ReadEffects(JsonElement data)
-    {
-        if (data.ValueKind != JsonValueKind.Array)
-        {
-            throw new InvalidOperationException("Action effects must be an array.");
-        }
+    
 
-        List<ActionEffectDefinition> effects = new List<ActionEffectDefinition>();
-
-        foreach (JsonElement item in data.EnumerateArray())
-        {
-            string typeName = ReadString(item, "type");
-
-            if (!Enum.TryParse(typeName, true, out ActionEffectType type) ||
-                !Enum.IsDefined(typeof(ActionEffectType), type))
-            {
-                throw new InvalidOperationException("Unknown action effect type: " + typeName);
-            }
-
-            int amount = item.GetProperty("amount").GetInt32();
-            effects.Add(new ActionEffectDefinition(type, amount));
-        }
-
-        return effects.ToArray();
-    }
-
-    private static ActionTimeMode ReadTimeMode(JsonElement data)
-    {
-        string modeName = data.GetString();
-
-        if (!Enum.TryParse(modeName, true, out ActionTimeMode mode) ||
-            !Enum.IsDefined(typeof(ActionTimeMode), mode))
-        {
-            throw new InvalidOperationException("Unknown action time mode: " + modeName);
-        }
-
-        return mode;
-    }
-
-    private static ActivityTimeModifier ReadTimeModifier(JsonElement data)
-    {
-        string statName = ReadString(data, "stat");
-
-        if (!Enum.TryParse(statName, true, out CharacterStat stat) ||
-            !Enum.IsDefined(typeof(CharacterStat), stat))
-        {
-            throw new InvalidOperationException("Unknown character stat in time modifier: " + statName);
-        }
-
-        double maxReduction = data.GetProperty("maxReduction").GetDouble();
-        return new ActivityTimeModifier(stat, maxReduction);
-    }
+    
 }
