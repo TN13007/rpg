@@ -35,7 +35,7 @@ public static class CharacterDataLoader
                 data.GetProperty("startingGold").GetInt32(),
                 ReadStats(data),
                 ReadPlayerActions(data),
-                ReadStringArray(data, "combatActionIds"));
+                ReadOptionalStringArray(data, "combatActionIds"));
         }
         catch (JsonException exception)
         {
@@ -69,7 +69,7 @@ public static class CharacterDataLoader
         return actions.ToArray();
     }
 
-    private static string[] ReadStringArray(JsonElement data, string propertyName)
+    private static string[] ReadOptionalStringArray(JsonElement data, string propertyName)
     {
         if (!data.TryGetProperty(propertyName, out JsonElement valuesData)) return Array.Empty<string>();
         return ReadStringArray(valuesData, propertyName);
