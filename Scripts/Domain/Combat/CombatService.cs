@@ -9,6 +9,7 @@ public sealed class CombatService : ICombatService
     private readonly Character _player;
     private readonly Character _enemy;
     private readonly Dictionary<string, CombatActionDefinition> _playerActions;
+    private readonly List<CombatActionDefinition> _playerActionOrder = new List<CombatActionDefinition>();
     private int _round;
     private bool _encounterOver;
     private bool _defending;
@@ -33,6 +34,7 @@ public sealed class CombatService : ICombatService
             if (action == null) throw new ArgumentException("Combat actions cannot contain null values.", nameof(playerActions));
             if (!_playerActions.TryAdd(action.Id, action))
                 throw new ArgumentException("Duplicate combat action ID: " + action.Id, nameof(playerActions));
+            _playerActionOrder.Add(action);
         }
     }
 
@@ -66,7 +68,7 @@ public sealed class CombatService : ICombatService
         List<CombatActionOption> availableActions = new List<CombatActionOption>();
         if (canAct)
         {
-            foreach (CombatActionDefinition action in _playerActions.Values)
+            foreach (CombatActionDefinition action in _playerActionOrder)
             {
                 bool isAvailable = IsActionAvailable(action);
                 string unavailableReason = isAvailable
