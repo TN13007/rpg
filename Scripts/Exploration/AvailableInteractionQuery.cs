@@ -171,9 +171,17 @@ public sealed class ActionChoiceMapper
         if (player == null) throw new ArgumentNullException(nameof(player));
 
         List<ActionChoiceViewData> choices = new List<ActionChoiceViewData>();
-        foreach (AvailableInteraction interaction in interactions)
+        foreach (InteractionSourceKind sourceKind in new[]
         {
-            ActionSelectionRequest request = new ActionSelectionRequest(
+            InteractionSourceKind.Player,
+            InteractionSourceKind.Location,
+            InteractionSourceKind.Travel
+        })
+        {
+            foreach (AvailableInteraction interaction in interactions)
+            {
+                if (interaction.SourceKind != sourceKind) continue;
+                ActionSelectionRequest request = new ActionSelectionRequest(
                 interaction.SourceKind,
                 interaction.SourceId,
                 interaction.ActionId,
@@ -185,11 +193,12 @@ public sealed class ActionChoiceMapper
                 InteractionSourceKind.Travel => "TRAVEL",
                 _ => throw new ArgumentOutOfRangeException()
             };
-            choices.Add(new ActionChoiceViewData(
-                request.Encode(),
-                interaction.Action.Label,
-                _durationMapper.Map(interaction.Action, player),
-                groupTitle));
+                choices.Add(new ActionChoiceViewData(
+                    request.Encode(),
+                    interaction.Action.Label,
+                    _durationMapper.Map(interaction.Action, player),
+                    groupTitle));
+            }
         }
         return choices;
     }
