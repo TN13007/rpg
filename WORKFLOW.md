@@ -122,8 +122,8 @@ The nine-Session Version 1 plan is accepted design scope, merged through [PR #23
 
 | Session | Scope | Product status | Learning status |
 |---|---|---|---|
-| [Session 1](https://github.com/TN13007/rpg/blob/main/Docs/Design/Version1SessionPlan.md#session-1) | Inline Action Duration Estimates | **Implemented** — PR #21 merged; .NET CI passed; Godot runtime acceptance pending | **Not assessed** — no structured independent evidence recorded |
-| [Session 2](https://github.com/TN13007/rpg/blob/main/Docs/Design/Version1SessionPlan.md#session-2) | Fatigue Accumulation, Rest and Combat Stamina | **Proposed replacement** — Issue #46; implementation PR pending | **Not assessed** — no structured independent evidence recorded |
+| [Session 1](https://github.com/TN13007/rpg/blob/main/Docs/Design/Version1SessionPlan.md#session-1) | Inline Action Duration Estimates | **Implemented** — PR #21 merged; .NET CI passed; user reports Godot runtime check passed on 2026-11-18 | **Not assessed** — no structured independent evidence recorded |
+| [Session 2](https://github.com/TN13007/rpg/blob/main/Docs/Design/Version1SessionPlan.md#session-2) | Fatigue Accumulation, Rest and Combat Stamina | **In PR #47** — Fatigue/Stamina replacement implemented on branch; automated CI and Godot runtime retest pending. Original Energy version was reported OK before replacement. | **Not assessed** — no structured independent evidence recorded |
 | [Session 3](https://github.com/TN13007/rpg/blob/main/Docs/Design/Version1SessionPlan.md#session-3) | Exploration Action Choice Pipeline | **Planned** — accepted scope; no implementation on main | **Proposed** — learning target requires user approval |
 | [Session 4](https://github.com/TN13007/rpg/blob/main/Docs/Design/Version1SessionPlan.md#session-4) | Sleep and Next-Day Transition | **Planned** — accepted scope; not implemented | **Proposed** — learning target requires user approval |
 | [Session 5](https://github.com/TN13007/rpg/blob/main/Docs/Design/Version1SessionPlan.md#session-5) | Health, Injury and Recovery | **Planned** — accepted scope; not implemented | **Proposed** — learning target requires user approval |
@@ -159,7 +159,7 @@ Track known disagreements between the documents and official implementation here
 | SYNC-02 | The original Session 2 Energy/unconsciousness rules no longer match the proposed Fatigue/Stamina model. | Issue #46 owns the migration and the updated Session 2 specification. | **Implementation and runtime validation pending.** |
 | SYNC-03 | The accepted Version 1 plan targets a grouped Player/Location/Travel/Event choice pipeline; current MainController still assembles a flat list. | [Exploration Pipeline](Docs/Design/ExplorationActionPipeline.md) and [Version 1 Session Plan](Docs/Design/Version1SessionPlan.md) were accepted/merged in PR #23. | **Design accepted; implementation pending Session 3.** |
 | SYNC-04 | Rest and Sleep ownership differ from the proposed Player Action model. | Current main: Rest is root `selfActions`; Sleep is a Dormitory Location Action. Target proposal: Player-owned actions in Session 3. | **Design-to-implementation work is not started.** |
-| SYNC-05 | Sessions 1–2 passed their .NET CI checks, but Godot runtime acceptance remains unrecorded. | [PR #21](https://github.com/TN13007/rpg/pull/21) and [PR #22](https://github.com/TN13007/rpg/pull/22). | **Run the affected journeys in Godot or explicitly defer with a reason.** |
+| SYNC-05 | User reports that Sessions 1–2 ran correctly on the original Energy implementation. Session 2 must be rechecked on PR #47 because its resource model has changed. | [PR #21](https://github.com/TN13007/rpg/pull/21), [PR #22](https://github.com/TN13007/rpg/pull/22) and [PR #47](https://github.com/TN13007/rpg/pull/47). | **Session 1 reported passing; rerun Session 2 with Fatigue/Stamina from PR #47 before merge.** |
 | SYNC-06 | Issue #15 (extract Location/Event and Combat flow from MainController) may overlap with Session 3's Exploration query/choice pipeline. | [Issue #15](https://github.com/TN13007/rpg/issues/15) and [Exploration Pipeline](Docs/Design/ExplorationActionPipeline.md). | **Reconcile ownership and boundaries before Session 3 implementation; keep Issue #15 open.** |
 
 ### Other active work
@@ -173,7 +173,7 @@ Track known disagreements between the documents and official implementation here
 
 ## 6. Next Session handoff
 
-1. Complete or explicitly defer the Godot runtime checks for Sessions 1–2; .NET CI is not runtime evidence.
+1. Session 1 runtime check and the original Session 2 check are reported passing; rerun Session 2 on PR #47 with Fatigue/Stamina before treating it as complete.
 2. Perform independent Learning checks for Sessions 1–2 before claiming mastery.
 3. Complete Issue #46's Fatigue/Stamina migration and runtime verification before Session 3. Reconcile Issue #15 with the accepted Exploration/MainController boundaries.
 4. Approve or revise the Session 3 Learning objective, independent practice and knowledge check before using them.
