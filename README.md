@@ -6,6 +6,7 @@ Adventurer Academy is a fantasy life-simulation RPG prototype about daily life, 
 
 ## Start here
 
+- [AGENTS.md](AGENTS.md) — repository navigation and working instructions for coding agents.
 - [WORKFLOW.md](WORKFLOW.md) — current implementation snapshot, Session progress, Learning evidence, blockers and handoff.
 - [Version 1 Plan](Docs/Version1Plan.md) — detailed product and Learning-first plan for Version 1. It describes intended scope; it does not mean every Session is implemented.
 - [CONTRIBUTING.md](CONTRIBUTING.md) — Issue → Branch → Validate → Pull Request workflow, naming and documentation governance.
@@ -38,4 +39,4 @@ Historical records are retained under `Docs/Archive/` and are not current implem
 
 ## Working with AI
 
-At the start of each development Session, use the Implementation Brief process in [WORKFLOW.md](WORKFLOW.md). AI should gather and synthesize the relevant repository context; this document index is for navigation, not a checklist of files the learner must read.
+Start with [AGENTS.md](AGENTS.md) for repository navigation and code-discovery instructions. At the beginning of each development Session, follow the Implementation Brief process in [WORKFLOW.md](WORKFLOW.md). AI should gather and synthesize only the relevant repository context; this document index is for navigation, not a checklist of files the learner must read.
