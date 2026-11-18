@@ -113,13 +113,14 @@ public sealed class CombatServiceTests
     [Fact]
     public void CatchBreathAtFullStaminaIsRejectedWithoutConsumingTurn()
     {
-        CombatService combat = TestCharacterFactory.CreateCombat(out Character player, out Character enemy);
+        CombatService combat = TestCharacterFactory.CreateCombat(
+            out Character player, out Character enemy, playerStamina: 10);
         Assert.True(combat.TryStartEncounter(out string reason));
 
         CombatResult result = combat.ExecuteAction(new CombatActionRequest("catch_breath"));
 
         Assert.False(result.Success);
-        Assert.Equal(8, player.Stamina);
+        Assert.Equal(10, player.Stamina);
         Assert.Equal(20, player.Health);
         Assert.Equal(40, enemy.Health);
         Assert.False(combat.IsEncounterOver);

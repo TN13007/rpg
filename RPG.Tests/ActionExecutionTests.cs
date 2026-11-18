@@ -12,7 +12,10 @@ public sealed class ActionExecutionTests
     {
         Character actor = TestCharacterFactory.CreatePlayer(agility: 30);
         DayClock clock = new DayClock();
-        ActionDefinition walk = new ActionDefinition("walk", "Walk", 10, activityMet: 2.8);
+        ActionDefinition walk = new ActionDefinition(
+            "walk", "Walk", 10,
+            new ActivityTimeModifier(CharacterStat.Agility, 0.5),
+            activityMet: 2.8);
 
         bool success = _service.TryExecute(walk, actor, clock, out string reason, out int duration);
 
