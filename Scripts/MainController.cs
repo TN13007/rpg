@@ -229,7 +229,11 @@ public partial class MainController : Control
         HashSet<string> actionIds = new HashSet<string>(StringComparer.Ordinal);
         foreach (LocationContent location in AcademyContent.All)
         {
-            foreach (ActionDefinition action in location.Actions) actionIds.Add(action.Id);
+            foreach (ActionDefinition action in location.Actions)
+            {
+                if (!actionIds.Add(action.Id))
+                    throw new InvalidOperationException("Duplicate action ID across locations: " + action.Id);
+            }
         }
 
         foreach (PlayerActionDefinition playerAction in playerActions)
