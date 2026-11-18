@@ -3,15 +3,12 @@ using System.Collections.Generic;
 
 public sealed class CombatService : ICombatService
 {
-    private const int _playerAttackDamage = 20;
     private const int _enemyAttackDamage = 4;
     private const int _victoryReward = 25;
-    private const int _defendStaminaCost = 1;
-    private const int _dodgeStaminaCost = 2;
-    private const int _catchBreathRecovery = 3;
 
     private readonly Character _player;
     private readonly Character _enemy;
+    private readonly Dictionary<string, CombatActionDefinition> _playerActions;
     private int _round;
     private bool _encounterOver;
     private bool _defending;
@@ -21,10 +18,22 @@ public sealed class CombatService : ICombatService
     public bool IsEncounterOver => _encounterOver;
     public int RewardGold => IsVictory ? _victoryReward : 0;
 
-    public CombatService(Character player, Character enemy)
+    public CombatService(
+        Character player,
+        Character enemy,
+        IEnumerable<CombatActionDefinition> playerActions)
     {
         _player = player ?? throw new ArgumentNullException(nameof(player));
         _enemy = enemy ?? throw new ArgumentNullException(nameof(enemy));
+        if (playerActions == null) throw new ArgumentNullException(nameof(playerActions));
+
+        _playerActions = new Dictionary<string, CombatActionDefinition>(StringComparer.Ordinal);
+        foreach (CombatActionDefinition action in playerActions)
+        {
+            if (action == null) throw new ArgumentException("Combat actions cannot contain null values.", nameof(playerActions));
+            if (!_playerActions.TryAdd(action.Id, action))
+                throw new ArgumentException("Duplicate combat action ID: " + action.Id, nameof(playerActions));
+        }
     }
 
     public bool TryStartEncounter(out string failureReason)
@@ -50,104 +59,95 @@ public sealed class CombatService : ICombatService
     public CombatSnapshot GetSnapshot()
     {
         bool canAct = !_encounterOver && _player.CanAct && _enemy.IsAlive;
-
         IntentObservation intent = canAct
             ? new IntentObservation(_enemy.Id, _enemy.Name, "The enemy is watching you and preparing to strike.", IntentConfidence.Suspected)
             : null;
 
-        CombatActionOption[] actions = canAct
-            ? new[]
+        List<CombatActionOption> availableActions = new List<CombatActionOption>();
+        if (canAct)
+        {
+            foreach (CombatActionDefinition action in _playerActions.Values)
             {
-                new CombatActionOption("attack", "Attack", "No Stamina cost", "Deal 20 damage to the enemy.", targetId: _enemy.Id),
-                new CombatActionOption("defend", "Defend", _defendStaminaCost + " Stamina", "Reduce the next enemy hit to 1 damage.", _player.Stamina >= _defendStaminaCost, "Not enough Stamina."),
-                new CombatActionOption("dodge", "Dodge", _dodgeStaminaCost + " Stamina", "Avoid the next enemy attack.", _player.Stamina >= _dodgeStaminaCost, "Not enough Stamina."),
-                new CombatActionOption("catch_breath", "Catch Breath", "Recover " + _catchBreathRecovery + " Stamina", "Recover your composure; the enemy still gets its turn.", _player.Stamina < _player.MaxStamina, "Stamina is already full.")
+                bool isAvailable = IsActionAvailable(action);
+                string unavailableReason = isAvailable
+                    ? string.Empty
+                    : GetUnavailableReason(action);
+                availableActions.Add(new CombatActionOption(
+                    action.Id,
+                    action.Label,
+                    action.CostLabel,
+                    action.Description,
+                    isAvailable,
+                    unavailableReason,
+                    action.Behavior == CombatActionBehavior.Attack ? _enemy.Id : string.Empty));
             }
-            : Array.Empty<CombatActionOption>();
+        }
 
         EnemyCombatStatus[] enemies =
         {
             new EnemyCombatStatus(_enemy.Id, _enemy.Name, _enemy.Health, _enemy.MaxHealth, GetEnemyCondition())
         };
 
-        return new CombatSnapshot(_round, "PLAYER TURN", enemies, intent, actions);
+        return new CombatSnapshot(_round, "PLAYER TURN", enemies, intent, availableActions.ToArray());
     }
 
     public CombatResult ExecuteAction(CombatActionRequest request)
     {
-        if (request == null)
-        {
-            throw new ArgumentNullException(nameof(request));
-        }
-
-        if (_encounterOver)
-        {
-            return Failure("The encounter has already ended.");
-        }
-
+        if (request == null) throw new ArgumentNullException(nameof(request));
+        if (_encounterOver) return Failure("The encounter has already ended.");
         if (_player.IsDead)
         {
             _encounterOver = true;
             IsVictory = false;
             return Failure("Your character is dead and cannot act.");
         }
-
         if (!_enemy.IsAlive)
         {
             _encounterOver = true;
             IsVictory = false;
             return Failure("There is no living enemy to fight.");
         }
+        if (!_playerActions.TryGetValue(request.ActionId, out CombatActionDefinition action))
+            return Failure("That action is not available.");
+        if (!IsActionAvailable(action))
+            return Failure(GetUnavailableReason(action));
+
+        if (action.Behavior == CombatActionBehavior.Attack && request.TargetId != _enemy.Id)
+            return Failure("Choose the enemy as your target.");
 
         List<CombatEvent> events = new List<CombatEvent>();
-
-        if (request.ActionId == "attack")
+        switch (action.Behavior)
         {
-            if (request.TargetId != _enemy.Id)
-            {
-                return Failure("Choose the enemy as your target.");
-            }
+            case CombatActionBehavior.Attack:
+                events.Add(new CombatEvent(CombatEventType.PlayerAction, _round, detail: action.ActionDetail));
+                int damage = _enemy.TakeDamage(action.Damage);
+                events.Add(new CombatEvent(CombatEventType.Damage, _round, targetName: _enemy.Name, amount: damage));
+                break;
 
-            events.Add(new CombatEvent(CombatEventType.PlayerAction, _round, detail: "You attack the enemy with a basic strike."));
-            int damage = _enemy.TakeDamage(_playerAttackDamage);
-            events.Add(new CombatEvent(CombatEventType.Damage, _round, targetName: _enemy.Name, amount: damage));
-        }
-        else if (request.ActionId == "defend")
-        {
-            if (!_player.SpendStamina(_defendStaminaCost))
-            {
-                return Failure("Not enough Stamina to defend.");
-            }
+            case CombatActionBehavior.Defend:
+                if (!_player.SpendStamina(action.StaminaCost))
+                    return Failure(GetUnavailableReason(action));
+                _defending = true;
+                events.Add(new CombatEvent(CombatEventType.PlayerAction, _round, detail: action.ActionDetail));
+                break;
 
-            _defending = true;
-            events.Add(new CombatEvent(CombatEventType.PlayerAction, _round, detail: "You take a guarded stance."));
-        }
-        else if (request.ActionId == "dodge")
-        {
-            if (!_player.SpendStamina(_dodgeStaminaCost))
-            {
-                return Failure("Not enough Stamina to dodge.");
-            }
+            case CombatActionBehavior.Dodge:
+                if (!_player.SpendStamina(action.StaminaCost))
+                    return Failure(GetUnavailableReason(action));
+                _dodging = true;
+                events.Add(new CombatEvent(CombatEventType.PlayerAction, _round, detail: action.ActionDetail));
+                break;
 
-            _dodging = true;
-            events.Add(new CombatEvent(CombatEventType.PlayerAction, _round, detail: "You prepare to evade the next attack."));
-        }
-        else if (request.ActionId == "catch_breath")
-        {
-            if (_player.Stamina >= _player.MaxStamina)
-            {
-                return Failure("Your Stamina is already full.");
-            }
+            case CombatActionBehavior.RecoverStamina:
+                int restored = _player.RestoreStamina(action.RecoveryAmount);
+                events.Add(new CombatEvent(
+                    CombatEventType.PlayerAction,
+                    _round,
+                    detail: action.ActionDetail.Replace("{amount}", restored.ToString())));
+                break;
 
-            int restored = _player.RestoreStamina(_catchBreathRecovery);
-            events.Add(new CombatEvent(
-                CombatEventType.PlayerAction,
-                _round,
-                detail: "You catch your breath and recover " + restored + " Stamina."));
-        }
-        else
-        {
-            return Failure("That action is not available.");
+            default:
+                return Failure("The action uses an unsupported combat behavior.");
         }
 
         if (!_enemy.IsAlive)
@@ -157,7 +157,6 @@ public sealed class CombatService : ICombatService
         }
 
         ResolveEnemyTurn(events);
-
         if (_player.IsDead)
         {
             _encounterOver = true;
@@ -169,10 +168,23 @@ public sealed class CombatService : ICombatService
         return Success(events);
     }
 
+    private bool IsActionAvailable(CombatActionDefinition action)
+    {
+        if (action.Behavior == CombatActionBehavior.RecoverStamina)
+            return _player.Stamina < _player.MaxStamina;
+        return _player.Stamina >= action.StaminaCost;
+    }
+
+    private static string GetUnavailableReason(CombatActionDefinition action)
+    {
+        return string.IsNullOrWhiteSpace(action.UnavailableReason)
+            ? "This action is currently unavailable."
+            : action.UnavailableReason;
+    }
+
     private void ResolveEnemyTurn(List<CombatEvent> events)
     {
         events.Add(new CombatEvent(CombatEventType.EnemyAction, _round, actorName: _enemy.Name.ToUpperInvariant(), detail: "The enemy lunges at you."));
-
         if (_dodging)
         {
             events.Add(new CombatEvent(CombatEventType.Check, _round, detail: "You evade the enemy's attack."));
