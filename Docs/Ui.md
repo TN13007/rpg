@@ -67,15 +67,15 @@ JSON Loaders
   -> runtime state + current context
   -> Available Interaction Query
   -> Action Choice Mapper
-  -> ExplorationViewModel / ActionGroupViewModel
-  -> StoryPanel
+  -> ActionChoiceViewData list
+  -> StoryPanel.ShowContent(header, time, choices)
 ```
 
 Responsibilities:
 - **Loader:** reads and validates its JSON source; creates data definitions.
 - **Query:** selects choices that belong in the current context and determines advisory availability from current state. It does not mutate state.
 - **Mapper:** converts query results into presentation-safe, grouped data. It does not read files or apply gameplay rules.
-- **ViewModel:** contains labels, duration/cost text, stable choice identity, enabled state and unavailable reason needed by the View.
+- **ActionChoiceViewData:** contains the player-facing label, duration label, group title and encoded ActionSelectionRequest in ChoiceId. The current prototype passes the screen header/time separately; it does not have an aggregate ExplorationViewModel.
 - **StoryPanel:** renders groups and emits the selected choice identity. It does not execute actions or access domain objects.
 
 The Loader is upstream from the Mapper, but the Mapper does not depend on or call the Loader. Query sits between loaded definitions/runtime state and the Mapper.
