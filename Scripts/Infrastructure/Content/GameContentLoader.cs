@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Godot;
 
 public static class GameContentLoader
@@ -14,8 +15,28 @@ public static class GameContentLoader
         AcademyContent academy = new AcademyContent();
         academy.Load(normalizedRoot + "/AcademyLocations.json");
 
-        CharacterData player = CharacterDataLoader.Load(normalizedRoot + "/Characters/Player.json");
-        CharacterData goblin = CharacterDataLoader.Load(normalizedRoot + "/Characters/Goblin.json");
+        string charactersPath = normalizedRoot + "/Characters";
+        DirAccess characterDirectory = DirAccess.Open(charactersPath);
+        if (characterDirectory == null)
+        {
+            throw new InvalidOperationException("Character data directory was not found: " + charactersPath);
+        }
+
+        List<CharacterData> characters = new List<CharacterData>();
+        foreach (string fileName in characterDirectory.GetFiles())
+        {
+            if (!fileName.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            characters.Add(CharacterDataLoader.Load(charactersPath + "/" + fileName));
+        }
+
+        if (characters.Count == 0)
+        {
+            throw new InvalidOperationException("At least one character definition is required.");
+        }
 
         string combatActionsPath = normalizedRoot + "/Combat/CombatActions.json";
         if (!FileAccess.FileExists(combatActionsPath))
@@ -23,10 +44,10 @@ public static class GameContentLoader
             throw new InvalidOperationException("Combat action content file was not found: " + combatActionsPath);
         }
 
-        string combatActionsJson = FileAccess.GetFileAsString(combatActionsPath);
         CombatActionCatalog combatActions = new CombatActionCatalog(
-            CombatActionJsonReader.Read(combatActionsJson));
+            CombatActionJsonReader.Read(FileAccess.GetFileAsString(combatActionsPath)));
+        CharacterCatalog characterCatalog = new CharacterCatalog(characters);
 
-        return new GameContentCatalog(academy, player, goblin, combatActions);
+        return new GameContentCatalog(academy, characterCatalog, combatActions);
     }
 }
