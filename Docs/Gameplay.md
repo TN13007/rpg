@@ -51,7 +51,7 @@ An Event is an optional situation introduced during exploration. It does not aut
 
 - A `Location` declares the Event Definitions that may occur there.
 - An Event Definition is reusable content: identity, title, description, chance and available choices.
-- A runtime occurrence exists only when the selection process chooses that definition. The current prototype presents it immediately and keeps the active choice context in `MainController`.
+- A runtime occurrence exists only when the selection process chooses that definition. The current prototype presents it immediately and keeps the active choice context in `ExplorationFlowController`.
 - Event content is stored in `Data/AcademyLocations.json`; C# owns selection, validation and execution rules.
 - An Event is not the same as an Encounter. The Goblin event offers a confrontation choice that starts the existing Combat encounter. Sneaking resolves through the normal Action execution path.
 
@@ -95,7 +95,8 @@ The Event query/presentation path is responsible for turning the active Event's 
 |---|---|
 | Event and choice definitions, content validation | `AcademyContent` and `LocationEventDefinition` |
 | Daily event-pool attempt and random selection | `LocationEventService` |
-| Travel, active event context, choice routing and mode transitions | `MainController` (application orchestrator) |
+| Travel, active event context and choice routing | `ExplorationFlowController` (Presentation flow coordinator) |
+| Exploration/Combat mode visibility | `GameModeController`; flow transitions are coordinated by the corresponding flow controller |
 | Action cost, time and effect execution | `ActionExecutionService` |
 | Combat validation, turns, enemy response and victory reward | `CombatService` |
 | Exploration and Combat rendering | Existing UI panels |
@@ -104,7 +105,7 @@ No separate Expedition, Run or general-purpose Event System is introduced.
 
 ### 7. Automated Test Coverage
 
-`RPG.Tests/LocationEventLoopTests.cs` verifies:
+`RPG.Tests/Events/LocationEventLoopTests.cs` verifies:
 - Loading the Courtyard Event and its choices from JSON.
 - Guaranteed and impossible event chances.
 - Once-per-location-per-day behavior, next-day reset and independent locations.
@@ -270,7 +271,7 @@ JSON content
                     ActionChoiceMapper
                                   |
                                   v
-                    ExplorationViewModel
+                    ActionChoiceViewData
                                   |
                                   v
                     StoryPanel / Exploration UI
@@ -355,7 +356,7 @@ Player selects a rendered choice
 ActionSelectionRequest (source + action + optional target)
         |
         v
-MainController / request handler
+ExplorationFlowController / request handler
         |
         v
 Resolve the responsible rule owner
@@ -376,7 +377,7 @@ Re-run AvailableInteractionQuery
 Mapper -> ViewModel -> render updated choices
 ```
 
-MainController orchestrates which handler owns the request. It must not implement action requirements, activity-based Fatigue calculation or Combat Stamina rules, puzzle rules, chest behavior, NPC dialogue or combat damage.
+ExplorationFlowController routes the UI request to the owning Application/Domain service and refreshes the current Exploration presentation. MainController only constructs dependencies and wires top-level signals. Neither controller implements action requirements, activity-based Fatigue calculation, Combat Stamina rules, puzzle rules, chest behavior, NPC dialogue or combat damage.
 
 After a successful state change, rebuild the current Exploration ViewModel from current state. This naturally removes choices whose target/state/conditions have changed.
 
