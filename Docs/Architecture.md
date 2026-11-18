@@ -46,8 +46,8 @@ It is not the place where gameplay rules, availability discovery or presentation
 | Choosing contextually available Exploration choices | AvailableInteractionQuery |
 | Mapping choices to grouped ViewModels | ActionChoiceMapper |
 | Action duration estimates | ActionDurationEstimateMapper |
-| Energy validation and common action execution | ActionExecutionService |
-| Applying Health, Energy, Mood and Gold Effects | ActionEffectExecutor |
+| Action validation, activity-based Fatigue accumulation and common action execution | ActionExecutionService |
+| Applying Health, Fatigue, Stamina, Mood and Gold Effects | ActionEffectExecutor |
 | Calculating action duration | ActivityTimeCalculator |
 | Advancing the calendar | DayClock |
 | Travel rules and location-state update | Location/travel rule owner |
@@ -95,6 +95,6 @@ CombatService owns validation, resolution and state mutation. MainController onl
 
 ### Design boundary
 
-MainController may decide **which use case/handler should receive a request** and **what high-level flow follows**. It must not decide **which world objects are present**, **whether a chest is unlocked**, **how a puzzle is solved**, **how Energy is spent**, **how an Effect mutates a Character**, or **how Combat damage is calculated**.
+MainController may decide **which use case/handler should receive a request** and **what high-level flow follows**. It must not decide **which world objects are present**, **whether a chest is unlocked**, **how a puzzle is solved**, **how activity-based Fatigue is calculated or Combat Stamina is spent**, **how an Effect mutates a Character**, or **how Combat damage is calculated**.
 
 Add orchestration only when a use case needs to connect existing responsibility owners. Do not move business rules into MainController to avoid creating a new focused owner.
