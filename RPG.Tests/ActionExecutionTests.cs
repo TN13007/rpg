@@ -187,8 +187,8 @@ public sealed class ActionExecutionTests
             }
         }
 
-        Assert.Equal(9, actionCount);
-        Assert.Single(AcademyContent.SelfActions);
+        Assert.Equal(8, actionCount);
+        Assert.Equal(2, LoadPlayerData().PlayerActions.Length);
     }
 
     private static ActionDefinition FindAction(string actionId)
@@ -204,15 +204,21 @@ public sealed class ActionExecutionTests
             }
         }
 
-        foreach (ActionDefinition action in AcademyContent.SelfActions)
+        foreach (PlayerActionDefinition playerAction in LoadPlayerData().PlayerActions)
         {
-            if (action.Id == actionId)
+            if (playerAction.Action.Id == actionId)
             {
-                return action;
+                return playerAction.Action;
             }
         }
 
         throw new InvalidOperationException("Action not found: " + actionId);
+    }
+
+    private static CharacterData LoadPlayerData()
+    {
+        string path = Path.Combine(AppContext.BaseDirectory, "Data", "Player.json");
+        return CharacterDataLoader.LoadJson(File.ReadAllText(path));
     }
 
     private static void LoadAcademyContent()
