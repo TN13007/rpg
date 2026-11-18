@@ -346,7 +346,7 @@ Explain how the implementation prevents double day increments and duplicate reco
 - Day counter overflow is handled explicitly.
 
 ### Godot runtime acceptance
-Complete a normal day, sleep and verify day, 07:30 time, Dormitory location, Health, Energy and Mood.
+Complete a normal day, sleep and verify day, 07:30 time, Dormitory location, Health, Fatigue, Stamina and Mood.
 
 ### Completion evidence
 Before/after state record plus calendar-boundary automated test output.
