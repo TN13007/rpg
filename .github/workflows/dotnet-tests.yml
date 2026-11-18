@@ -8,9 +8,14 @@ on:
     branches:
       - main
 
+concurrency:
+  group: rpg-validation-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
@@ -63,7 +68,7 @@ jobs:
             local check_name="$1"
             shift
             local log_file="/tmp/godot-${check_name}.log"
-            "${GODOT_BIN}" "$@" 2>&1 | tee "${log_file}"
+            timeout 60s "${GODOT_BIN}" "$@" 2>&1 | tee "${log_file}"
             if grep -E 'ERROR:|SCRIPT ERROR:' "${log_file}"; then
               echo "Godot ${check_name} check reported an engine or script error."
               exit 1
@@ -71,7 +76,7 @@ jobs:
           }
 
           run_godot_check import --headless --editor --path . --quit
-          run_godot_check main-scene --headless --path . --quit-after 120
+          run_godot_check main-scene --headless --path . --quit-after 10
           run_godot_check combat-preview --headless --path . --scene res://Scenes/Previews/CombatPreview.tscn --quit-after 120
 
       - name: Enforce full repository naming audit
