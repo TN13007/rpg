@@ -121,7 +121,7 @@ Infrastructure owns JSON parsing, file access, catalog construction and cross-re
 
 A data definition can select only behavior already supported by code. Adding another action that uses an existing `CombatActionBehavior` can be content-only; introducing a genuinely new behavior requires a Domain implementation and tests. Combat AI, skill progression and arbitrary executable scripts in JSON are not part of this content pipeline.
 
-The current pilot uses `Data/Combat/CombatActions.json` as the shared definition source and `Player.json` as an ID-reference list. `GameContentLoader` is the single composition entry point, while `CombatActionJsonReader`, `CharacterDataLoader` and `AcademyContent` remain focused schema-specific readers. `GameContentCatalog` owns the loaded Academy data and Combat Action catalog; it does not rely on process-wide static Academy state.
+The current pilot uses `Data/Combat/CombatActions.json` as the shared definition source and each file under `Data/Characters/` can reference actions through `combatActionIds`. `GameContentLoader` is the single composition entry point and discovers character JSON files in that directory. `CombatActionJsonReader`, `CharacterDataLoader` and `AcademyContent` remain focused schema-specific readers. `GameContentCatalog` owns the loaded Academy data, Character Catalog and Combat Action catalog; it does not rely on process-wide static Academy state.
 
 ## 4. File organization rules
 
