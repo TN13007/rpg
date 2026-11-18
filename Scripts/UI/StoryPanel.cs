@@ -53,9 +53,23 @@ public partial class StoryPanel : PanelContainer
         _feedback.Text = "Choose an option to continue.";
         _returnButton.Visible = false;
         ClearChoices();
+        string currentGroup = null;
 
         foreach (ActionChoiceViewData choice in choices)
         {
+            if (!string.IsNullOrWhiteSpace(choice.GroupTitle) && choice.GroupTitle != currentGroup)
+            {
+                Label groupHeading = new Label
+                {
+                    Text = choice.GroupTitle,
+                    Modulate = new Color(0.72f, 0.78f, 0.88f, 1.0f)
+                };
+                groupHeading.AddThemeFontSizeOverride("font_size", 12);
+                groupHeading.AddThemeColorOverride("font_color", new Color(0.72f, 0.78f, 0.88f, 1.0f));
+                _choices.AddChild(groupHeading);
+                currentGroup = choice.GroupTitle;
+            }
+
             StoryChoiceButton button = new StoryChoiceButton
             {
                 Text = string.IsNullOrEmpty(choice.DurationLabel)
