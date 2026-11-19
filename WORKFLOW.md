@@ -114,7 +114,9 @@ After the Session, update the correct durable owner: Issue for scope/acceptance 
 
 ### Product direction
 
-Adventurer Academy is a fantasy life-simulation RPG prototype about daily life, character wellbeing, academy activities, location-based exploration and occasional encounters. The current baseline is a narrow academy/Goblin vertical slice.
+The long-term product direction is a Reincarnation Life-Simulation RPG: the player lives through distinct lives, meets familiar souls in changed circumstances, faces the consequences of past choices and eventually may seek a final life beyond the reincarnation cycle. The narrative combines reunion across lives, redemption/responsibility and the meaning of a finite life. The player must have a reason to care about the current life before the larger reincarnation mystery takes over. See [Docs/Roadmap.md](Docs/Roadmap.md), [Issue #68](https://github.com/TN13007/rpg/issues/68) and [roadmap tracking Issue #69](https://github.com/TN13007/rpg/issues/69).
+
+This is the accepted long-term direction, not implemented gameplay and not a change to Version 1 scope. The current official implementation remains a narrow Academy/Goblin life-simulation prototype.
 
 ### Implemented capabilities
 
@@ -214,6 +216,7 @@ Track known disagreements between the documents and official implementation here
 - Session 6 scope is Mood and Daily Wellbeing, as defined in [Version1Plan.md](Docs/Version1Plan.md#session-6-mood-and-daily-wellbeing). Begin with a fresh Context Check against latest `main` and the relevant open Issues; do not assume its detailed implementation design from the Session 5 work.
 - Session 5 Product and manual runtime acceptance are complete. Session 4 Sleep runtime acceptance remains outstanding in Issue #62.
 - Session 5 Learning remains unassessed; do not carry it forward as completed merely because PR #67 and CI passed.
+- The long-term Reincarnation RPG delivery sequence is documented in [Docs/Roadmap.md](Docs/Roadmap.md) and tracked by [Issue #69](https://github.com/TN13007/rpg/issues/69). This does not change the accepted Version 1 scope; continue with Session 6 after a fresh Context Check.
 
 ### Outstanding from Session 4
 
