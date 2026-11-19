@@ -64,21 +64,24 @@ layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="Content" type="VBoxContainer" parent="Margin/Content/Views/FullBodyPanel"]
+[node name="Margin" type="MarginContainer" parent="Margin/Content/Views/FullBodyPanel"]
 layout_mode = 2
 theme_override_constants/margin_left = 18
 theme_override_constants/margin_top = 18
 theme_override_constants/margin_right = 18
 theme_override_constants/margin_bottom = 18
+
+[node name="Content" type="VBoxContainer" parent="Margin/Content/Views/FullBodyPanel/Margin"]
+layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="SectionTitle" type="Label" parent="Margin/Content/Views/FullBodyPanel/Content"]
+[node name="SectionTitle" type="Label" parent="Margin/Content/Views/FullBodyPanel/Margin/Content"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 11
 theme_override_colors/font_color = Color(0.776, 0.647, 0.416, 1)
 text = "LOCATION / FULL BODY"
 
-[node name="CharacterImage" type="TextureRect" parent="Margin/Content/Views/FullBodyPanel/Content"]
+[node name="CharacterImage" type="TextureRect" parent="Margin/Content/Views/FullBodyPanel/Margin/Content"]
 custom_minimum_size = Vector2(0, 610)
 layout_mode = 2
 size_flags_horizontal = 3
@@ -87,7 +90,7 @@ texture = ExtResource("2")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="CharacterName" type="Label" parent="Margin/Content/Views/FullBodyPanel/Content"]
+[node name="CharacterName" type="Label" parent="Margin/Content/Views/FullBodyPanel/Margin/Content"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
 theme_override_colors/font_color = Color(0.91, 0.89, 0.84, 1)
@@ -98,21 +101,24 @@ custom_minimum_size = Vector2(270, 0)
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="Content" type="VBoxContainer" parent="Margin/Content/Views/PortraitPanel"]
+[node name="Margin" type="MarginContainer" parent="Margin/Content/Views/PortraitPanel"]
 layout_mode = 2
 theme_override_constants/margin_left = 16
 theme_override_constants/margin_top = 18
 theme_override_constants/margin_right = 16
 theme_override_constants/margin_bottom = 18
+
+[node name="Content" type="VBoxContainer" parent="Margin/Content/Views/PortraitPanel/Margin"]
+layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="SectionTitle" type="Label" parent="Margin/Content/Views/PortraitPanel/Content"]
+[node name="SectionTitle" type="Label" parent="Margin/Content/Views/PortraitPanel/Margin/Content"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 11
 theme_override_colors/font_color = Color(0.776, 0.647, 0.416, 1)
 text = "DIALOGUE / PORTRAIT"
 
-[node name="PortraitImage" type="TextureRect" parent="Margin/Content/Views/PortraitPanel/Content"]
+[node name="PortraitImage" type="TextureRect" parent="Margin/Content/Views/PortraitPanel/Margin/Content"]
 custom_minimum_size = Vector2(0, 390)
 layout_mode = 2
 size_flags_horizontal = 3
@@ -120,7 +126,7 @@ texture = ExtResource("2")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="CharacterName" type="Label" parent="Margin/Content/Views/PortraitPanel/Content"]
+[node name="CharacterName" type="Label" parent="Margin/Content/Views/PortraitPanel/Margin/Content"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
 theme_override_colors/font_color = Color(0.91, 0.89, 0.84, 1)
@@ -132,59 +138,62 @@ layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="Content" type="VBoxContainer" parent="Margin/Content/Views/ProfilePanel"]
+[node name="Margin" type="MarginContainer" parent="Margin/Content/Views/ProfilePanel"]
 layout_mode = 2
 theme_override_constants/margin_left = 20
 theme_override_constants/margin_top = 20
 theme_override_constants/margin_right = 20
 theme_override_constants/margin_bottom = 20
+
+[node name="Content" type="VBoxContainer" parent="Margin/Content/Views/ProfilePanel/Margin"]
+layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="SectionTitle" type="Label" parent="Margin/Content/Views/ProfilePanel/Content"]
+[node name="SectionTitle" type="Label" parent="Margin/Content/Views/ProfilePanel/Margin/Content"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 11
 theme_override_colors/font_color = Color(0.776, 0.647, 0.416, 1)
 text = "CHARACTER PROFILE"
 
-[node name="CharacterName" type="Label" parent="Margin/Content/Views/ProfilePanel/Content"]
+[node name="CharacterName" type="Label" parent="Margin/Content/Views/ProfilePanel/Margin/Content"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 26
 theme_override_colors/font_color = Color(0.91, 0.89, 0.84, 1)
 text = "Ari"
 
-[node name="Role" type="Label" parent="Margin/Content/Views/ProfilePanel/Content"]
+[node name="Role" type="Label" parent="Margin/Content/Views/ProfilePanel/Margin/Content"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.68, 0.7, 0.73, 1)
 text = "First-year adventurer"
 
-[node name="Level" type="Label" parent="Margin/Content/Views/ProfilePanel/Content"]
+[node name="Level" type="Label" parent="Margin/Content/Views/ProfilePanel/Margin/Content"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 theme_override_colors/font_color = Color(0.776, 0.647, 0.416, 1)
 text = "LEVEL 1"
 
-[node name="Separator" type="HSeparator" parent="Margin/Content/Views/ProfilePanel/Content"]
+[node name="Separator" type="HSeparator" parent="Margin/Content/Views/ProfilePanel/Margin/Content"]
 layout_mode = 2
 
-[node name="AttributesTitle" type="Label" parent="Margin/Content/Views/ProfilePanel/Content"]
+[node name="AttributesTitle" type="Label" parent="Margin/Content/Views/ProfilePanel/Margin/Content"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 11
 theme_override_colors/font_color = Color(0.776, 0.647, 0.416, 1)
 text = "ATTRIBUTES"
 
-[node name="Attributes" type="Label" parent="Margin/Content/Views/ProfilePanel/Content"]
+[node name="Attributes" type="Label" parent="Margin/Content/Views/ProfilePanel/Margin/Content"]
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_font_sizes/font_size = 14
 text = "STRENGTH       20\nAGILITY           30\nINTELLIGENCE  25\nENDURANCE    20\nWISDOM           20"
 
-[node name="ConditionTitle" type="Label" parent="Margin/Content/Views/ProfilePanel/Content"]
+[node name="ConditionTitle" type="Label" parent="Margin/Content/Views/ProfilePanel/Margin/Content"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 11
 theme_override_colors/font_color = Color(0.776, 0.647, 0.416, 1)
 text = "CURRENT CONDITION"
 
-[node name="Condition" type="Label" parent="Margin/Content/Views/ProfilePanel/Content"]
+[node name="Condition" type="Label" parent="Margin/Content/Views/ProfilePanel/Margin/Content"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "HEALTH     20 / 20\nFATIGUE   0 / 100\nSTAMINA  8 / 10\nMOOD      70 / 100\nGOLD       20 G"
@@ -194,4 +203,3 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 10
 theme_override_colors/font_color = Color(0.52, 0.55, 0.59, 1)
 text = "TEMPORARY ARTWORK · NOT A FINAL CHARACTER DESIGN"
-}
