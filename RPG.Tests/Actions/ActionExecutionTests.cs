@@ -72,6 +72,27 @@ public sealed class ActionExecutionTests
     }
 
     [Fact]
+    public void TalkToMiraAppliesAuthoredMoodIncreaseExactlyOnce()
+    {
+        LoadAcademyContent();
+        Character actor = TestCharacterFactory.CreatePlayer(mood: 40);
+        GameClock clock = new GameClock();
+        ActionDefinition action = FindAction("talk_mira");
+
+        ActionEffectDefinition moodEffect = Assert.Single(action.Effects);
+        Assert.Equal(ActionEffectType.ChangeMood, moodEffect.Type);
+        Assert.Equal(3, moodEffect.Amount);
+
+        bool success = _service.TryExecute(
+            action, actor, clock, out string reason, out int duration);
+
+        Assert.True(success, reason);
+        Assert.Equal(15, duration);
+        Assert.Equal(43, actor.Mood);
+        Assert.Equal(465, clock.MinutesOfDay);
+    }
+
+    [Fact]
     public void RestAndSleepRecoveryAreClamped()
     {
         LoadAcademyContent();
