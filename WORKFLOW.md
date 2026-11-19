@@ -211,12 +211,15 @@ Track known disagreements between the documents and official implementation here
 - Manual interactive Godot journey: user confirmed the full Infirmary journey works without issues (Goblin Combat damage → Exploration → Infirmary → Treatment; Health, Fatigue and GameClock behaved as expected). [Issue #66](https://github.com/TN13007/rpg/issues/66) is closed.
 - Learning remains **Not assessed**. The proposed Health ownership / clamping knowledge check and independent boundary-test practice are still outstanding.
 
-### Next — Session 6
+### Session 6 — In progress
 
-- Session 6 scope is Mood and Daily Wellbeing, as defined in [Version1Plan.md](Docs/Version1Plan.md#session-6-mood-and-daily-wellbeing). Begin with a fresh Context Check against latest `main` and the relevant open Issues; do not assume its detailed implementation design from the Session 5 work.
-- Session 5 Product and manual runtime acceptance are complete. Session 4 Sleep runtime acceptance remains outstanding in Issue #62.
-- Session 5 Learning remains unassessed; do not carry it forward as completed merely because PR #67 and CI passed.
-- The long-term Reincarnation RPG delivery sequence is documented in [Docs/Roadmap.md](Docs/Roadmap.md) and tracked by [Issue #69](https://github.com/TN13007/rpg/issues/69). This does not change the accepted Version 1 scope; continue with Session 6 after a fresh Context Check.
+- Session 6 scope remains Mood and Daily Wellbeing as defined in [Version1Plan.md](Docs/Version1Plan.md#session-6-mood-and-daily-wellbeing). [Issue #71](https://github.com/TN13007/rpg/issues/71) tracks the implementation; [Draft PR #72](https://github.com/TN13007/rpg/pull/72) contains the current changes on branch `feat/issue-71-mood-daily-wellbeing`.
+- Context Check was completed against `main` at `9b4a8883eb0c5b5bbfdf9d7e791af81daa2a2721`. The implementation adds normalized Mood bands, Character Panel presentation, actual Mood-change feedback, and a bounded negative Mood Effect on `inspect_requests`; Mood remains descriptive and does not affect gameplay calculations.
+- [CI #220](https://github.com/TN13007/rpg/actions/runs/44549739197) passed repository validation, the full .NET test suite, Godot 4.7.2 .NET Debug build, import/main-scene/Combat-preview headless smoke checks and full repository naming audit.
+- **Manual runtime acceptance remains pending.** Verify the Mood transition path in Godot: starting at 70 (Steady), Talk to Mira twice to reach 76 (Positive), then Browse expedition requests to reach 74 (Steady). Check numeric value, band label and feedback after each action. Keep PR #72 in Draft and Issue #71 open until this is recorded.
+- Session 6 Learning objectives remain proposed and unassessed. Do not treat AI implementation or passing tests as independent learning evidence.
+- Session 5 Product and manual runtime acceptance are complete. Session 5 Learning remains unassessed. Session 4 Sleep runtime acceptance remains outstanding in [Issue #62](https://github.com/TN13007/rpg/issues/62).
+- The long-term Reincarnation RPG delivery sequence is documented in [Docs/Roadmap.md](Docs/Roadmap.md) and tracked by [Issue #69](https://github.com/TN13007/rpg/issues/69). This does not change the accepted Version 1 scope.
 
 ### Outstanding from Session 4
 
