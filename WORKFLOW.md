@@ -223,7 +223,7 @@ Track known disagreements between the documents and official implementation here
 
 ### Next — Session 7: A Small, Complete Academy Routine
 
-- Begin with [Version1Plan.md — Session 7](Docs/Version1Plan.md#session-7) and the new Session 7 tracking Issue. Keep the accepted Version 1 scope unchanged.
+- Begin with [Version1Plan.md — Session 7](Docs/Version1Plan.md#session-7) and [Issue #73](https://github.com/TN13007/rpg/issues/73). Keep the accepted Version 1 scope unchanged.
 - Product outcome: the player can spend one in-game day across distinct Meal, Lesson and Practice activities, alongside existing Rest, Treatment and Sleep, and make a meaningful time/Fatigue trade-off.
 - Current implementation patterns: academy activities are data-authored Location Actions in `Data/AcademyLocations.json`; `ActionExecutionService` calculates actual duration, advances `GameClock`, accumulates Fatigue from actual duration and `activityMet`, then applies configured Effects. The existing choice/query/mapper/presentation path exposes Location Actions and refreshes after execution.
 - Session 7 must not add XP/skill progression, Combat Stamina costs, food inventory, shopping, full timetables, NPC schedules or quest chains. Initial durations/intensities are tuning candidates, not final balance.
