@@ -236,7 +236,7 @@ Track known disagreements between the documents and official implementation here
 
 ### Next — Session 8: Daily Summary and Day Continuity
 
-- Prepared in [Issue #75](https://github.com/TN13007/rpg/issues/75); canonical scope is [Version1Plan.md — Session 8](Docs/Version1Plan.md#session-8).
+- Prepared in [Issue #75](https://github.com/TN13007/rpg/issues/75); canonical scope is [Version1Plan.md — Session 8](Docs/Version1Plan.md#session-8-daily-summary-and-day-continuity).
 - Do not begin implementation until PR #74 is merged and the Learning objective / independent practice / knowledge check have been approved.
 - The feature should summarize successful completed activities using actual execution results, exclude rejected requests, match GameClock elapsed time and begin a clean record on the next day.
 - Resolve whether the summary is shown immediately before or after Sleep's next-day transition. Keep the result bounded to the current day; no permanent journal or quest tracker.
