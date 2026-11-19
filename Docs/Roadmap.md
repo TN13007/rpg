@@ -153,7 +153,9 @@ NPC entities, relationship gameplay, autonomous NPC simulation, item/container i
 - Sessions 1–5 have merged implementations on main.
 - Session 5 (Infirmary treatment) has user-confirmed interactive runtime acceptance.
 - Session 4 implementation and automated tests are merged, but manual Sleep runtime evidence remains tracked by [Issue #62](https://github.com/TN13007/rpg/issues/62).
-- Sessions 6–9 (Mood and Daily Wellbeing, Complete Academy Routine, Daily Summary, Save/Load) remain planned and are not implemented.
+- Sessions 6–7 (Mood and Daily Wellbeing, Complete Academy Routine) are implemented in main.
+- Session 8 (Daily Summary) is intentionally deferred by the user until day skipping or off-screen NPC simulation makes it useful; [Issue #75](https://github.com/TN13007/rpg/issues/75) remains open.
+- Session 9 (minimum Save/Load) remains planned. Add the persistence required by the first-life slice before restart continuity becomes a player-facing requirement.
 - Earlier runtime evidence for some sessions is incomplete or ambiguous; do not infer complete acceptance from merged code or CI alone.
 
 ### Exit criteria
