@@ -2,8 +2,8 @@
 
 **Project:** TN13007/rpg  
 **Engine:** Godot 4.7.2 .NET / C#  
-**Roadmap status:** Proposed long-term product plan; Version 1 scope remains accepted and unchanged  
-**Last reviewed:** 2026-11-19  
+**Roadmap status:** Proposed long-term product plan; implementation priority updated 2026-11-20 to establish a text-first playable Academy life before visual production  
+**Last reviewed:** 2026-11-20  
 **Canonical planning issue:** [#69 — Deliver the Reincarnation RPG vision through playable milestones](https://github.com/TN13007/rpg/issues/69)  
 **Narrative idea:** [#68 — Reincarnation narrative](https://github.com/TN13007/rpg/issues/68)
 
@@ -168,36 +168,34 @@ NPC entities, relationship gameplay, autonomous NPC simulation, item/container i
 
 **Detailed implementation plan:** [Version 1 — Session-by-Session Implementation Plan](Version1Plan.md).
 
-## Version 2 — Character Identity, Presentation and Growth
+## Version 2 — Character Identity and Gameplay Growth (Text-First)
 
-**Player-facing promise:** The player sees a persistent character as an individual, can make a small set of visible changes and can develop capabilities that alter gameplay.
+**Player-facing promise:** The Player is a distinct, developing Character whose attributes, traits and learned capabilities create meaningful differences in what they can do. This version uses the existing text/profile UI; visual customization is not a prerequisite.
 
 ### Scope
 
-- Establish a tested character visual pipeline. Compare a Godot-native 2D rig/animation prototype with Live2D only if the model/extension workflow is viable; select based on the same proof-of-concept criteria, not assumptions.
-- Show the same Character identity and appearance in Location full-body presentation, dialogue portrait and profile/customization preview.
-- Support a deliberately bounded set of appearance options and one clothing/equipment visual change.
-- Define the initial attribute/skill/proficiency model based on actual activities.
-- Let lessons, books, practice, training or mentorship improve selected capabilities.
-- Make skills, traits, state or equipment affect a small set of Action requirements and gameplay outcomes.
-- Distinguish visual-only clothing from equipment that changes gameplay values or capabilities.
-- Extend persistence for appearance, progression and equipment state only as those features are added.
+- Establish a clear shared Character definition/runtime model usable by Player and NPCs without embedding Player input or NPC decision policy in the shared Domain model.
+- Give the existing Strength, Agility, Intelligence, Endurance and Wisdom attributes explicit, tested gameplay meaning; remove or defer any stat that has no concrete use.
+- Add a small skill/proficiency model grounded in actual activities such as lessons, practice, social interaction or combat.
+- Let the Player make at least two meaningful growth choices that affect Action availability, requirements or outcomes.
+- Define a small trait/personality vocabulary while keeping personality distinct from raw attributes and skills.
+- Show identity, capabilities, traits and growth through the existing text-based Character Profile.
+- Extend persistence for progression only when the relevant save boundary is implemented.
 
 ### Visible gameplay change
 
-The player can see their character in the game, change a supported appearance/equipment option, and choose between at least two meaningful development paths that unlock different gameplay options.
+The Player can develop in at least two different directions and observe those choices changing available or executable Actions. The same Character foundation can represent Player and NPCs.
 
 ### Exit criteria
 
-- One Character identity is rendered consistently across Location, portrait and customization views.
-- The selected rendering pipeline passes Godot 4.7.2 .NET runtime/import/export and required license/maintenance checks.
-- At least one supported appearance and one clothing/equipment change are visibly demonstrated.
-- At least two development paths affect available or executable Actions.
+- Player and NPC share the same core Character capability/state model without Player-only assumptions in Domain.
+- Every retained core attribute has a documented and tested gameplay use.
+- At least one skill improves through a real in-game activity.
+- At least two growth paths create different gameplay options or outcomes.
 - Capability requirements are validated at query and execution time.
-- Character progression and visual configuration survive the required save/load transitions.
-- Art authoring cost and constraints are documented from the prototype.
+- Character identity and progression are communicated in the existing text UI and preserved at the required persistence boundary.
 
-**Out of scope:** Arbitrary mix-and-match outfits, large skill trees, procedural character creation or a universal equipment framework before a concrete content need exists.
+**Out of scope:** Character art, body/face customization, modular outfits, rigging, animation, large skill trees and universal equipment systems. Visual presentation is a separate deferred production track tracked by [Issue #76](https://github.com/TN13007/rpg/issues/76).
 
 ## Version 3 — People at the Academy
 
@@ -214,7 +212,7 @@ The player can see their character in the game, change a supported appearance/eq
 - Add selective Life Memory for meaningful witnessed/learned events. Respect knowledge boundaries: NPCs only know what they observe or are told.
 - Reuse the Character model for Player and NPC. Separate shared capability/state from Player input and NPC decision policy.
 - Keep autonomy bounded and understandable. A simple priority/utility rule and authored fallback is sufficient for this milestone; full GOAP is not required.
-- Present NPC appearance, presence, dialogue and relationship changes in the running game.
+- Present NPC identity, presence, dialogue, schedule changes and relationship outcomes through the existing text UI and static portrait. Visual customization is deferred.
 
 ### Visible gameplay change
 
@@ -242,7 +240,8 @@ The player meets Mira in the Academy, sees her at different places/times, can bu
 - Design one bounded first-life story arc using the narrative principles in Section 1.2.
 - Establish the player's life goals, Mira's independent goals and at least one additional character perspective.
 - Connect daily activities, locations, social interactions and one consequential event to the story.
-- Add the minimum Narrative State/Storylet/Dialogue capability needed for authored conditions, choices and Effects. Evaluate tools such as Ink through a small integration proof before adopting a dependency.
+- Extend the existing Location Event and Action pipeline only as needed for authored story beats, conditions, choices, flags and Effects. Keep story-critical Events condition-driven and ambient Events bounded; do not create a generic quest/event framework without a demonstrated need.
+- Add the minimum Narrative State/Dialogue capability needed for authored conditions, choices and Effects. Evaluate tools such as Ink through a small integration proof before adopting a dependency.
 - Allow prior actions, relationship state and NPC knowledge to influence dialogue/opportunities/outcomes.
 - Include a meaningful personal choice with a consequence that cannot be erased by a routine reset.
 - Introduce one recurring symbol, object, phrase, song or reaction that can later serve as a potential Echo. Do not explain the full reincarnation mystery yet.
@@ -442,7 +441,7 @@ These tracks evolve alongside the version that needs them.
 
 | Track | Responsibility |
 |---|---|
-| Character art and presentation | Compare rendering pipelines, define model/rig contract, full-body/portrait reuse, supported outfit changes, animation and visual QA. |
+| Character art and presentation (deferred) | After the text-first playable life is established, compare rendering pipelines, define model/rig contract, full-body/portrait reuse, supported outfit changes, animation and visual QA. Tracked by [Issue #76](https://github.com/TN13007/rpg/issues/76). |
 | Narrative and content pipeline | Create reusable authoring conventions for scenes, dialogue, conditions, effects, story flags, motifs and content validation; adopt Ink or another tool only after a prototype. |
 | Save/Load and lifecycle | Version save data as new state scopes are introduced; test migrations, safe writes, recovery and no duplicate Effects. |
 | NPC and world simulation | Keep Schedule, Goal, Decision, Action Execution and Event outcomes distinct; define simulation level of detail and catch-up behavior. |
@@ -491,16 +490,21 @@ Do not lock final content quantities before the first-life and two-life proofs. 
 
 ## 9. Current Next Steps
 
-The official next implementation sequence remains:
+**Current implementation priority (user-approved 2026-11-20):** deliver a text-first playable Academy life before investing in character artwork. This reprioritizes implementation order; it does not mark the accepted Version 1 plan complete or silently change its formal scope.
 
-1. Continue Version 1 from a fresh Context Check. Complete Session 6 Mood and Daily Wellbeing.
-2. Complete Session 7 Academy Routine, Session 8 Daily Summary and Session 9 minimum Save/Load.
-3. Close the outstanding manual Sleep runtime acceptance in [Issue #62](https://github.com/TN13007/rpg/issues/62).
-4. Before Version 2 implementation, create a small Character Presentation proof of concept and compare candidate pipelines using the criteria in [Issue #11](https://github.com/TN13007/rpg/issues/11).
-5. Start V3 with one fully observable named NPC (Mira), not a general NPC population.
-6. Use V4 as the first major narrative/product gate before expanding into multiple worlds and reincarnations.
+1. Start with [Issue #78 — Text-First Academy Life](https://github.com/TN13007/rpg/issues/78), using its child issues in dependency order:
+   - [#79 — Shared Character Foundation and Meaningful Growth](https://github.com/TN13007/rpg/issues/79).
+   - [#80 — NPC Runtime Presence, Social Interaction and Relationships](https://github.com/TN13007/rpg/issues/80).
+   - [#81 — Bounded NPC Agency: Schedule, Goals, Decisions and Memory](https://github.com/TN13007/rpg/issues/81).
+   - [#82 — Conditional Story Events and Consequence Pipeline](https://github.com/TN13007/rpg/issues/82).
+   - [#83 — First Playable Academy Life](https://github.com/TN13007/rpg/issues/83).
+2. Reuse the existing Character Panel, static portrait, StoryPanel and location/action UI. Do not block gameplay on art, animation or Character Creator work.
+3. Keep [Issue #75 — Daily Summary](https://github.com/TN13007/rpg/issues/75) deferred until day skipping or off-screen NPC simulation makes a summary materially useful. Preserve the accepted Version 1 plan until it is explicitly revised.
+4. Add the minimum save/load boundary required before the first-life slice needs relationships, NPC memory and Event outcomes to survive restart; do not build persistence speculatively.
+5. Keep [Issue #62](https://github.com/TN13007/rpg/issues/62) as outstanding manual Sleep runtime evidence and verify it when the day/time loop is next touched.
+6. Resume [Issue #76 — Character Visual Pipeline](https://github.com/TN13007/rpg/issues/76) only after the text-first playable life has a coherent loop and the user is ready to learn/produce character art.
 
-Do not start Soul/Incarnation implementation merely because the idea is exciting. The first complete life, persistent NPC interactions and a reliable save boundary are prerequisites for a meaningful reincarnation prototype.
+Do not start Soul/Incarnation implementation merely because the idea is exciting. One complete, playable life and reliable state persistence are prerequisites for a meaningful reincarnation prototype.
 
 ## 10. Relationship to Other Sources of Truth
 
