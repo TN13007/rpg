@@ -153,7 +153,7 @@ The nine-Session Version 1 plan is accepted design scope, merged through [PR #23
 | [Session 4](https://github.com/TN13007/rpg/blob/main/Docs/Version1Plan.md#session-4) | Sleep and Next-Day Transition | **Implemented in main** — [PR #65 merged](https://github.com/TN13007/rpg/pull/65); [CI #205 passed](https://github.com/TN13007/rpg/actions/runs/44367815181), including formatter extraction and tests. Manual interactive Sleep runtime acceptance remains pending; [Issue #62](https://github.com/TN13007/rpg/issues/62) stays open for evidence. | **Not assessed** — independent test-writing practice and knowledge check remain outstanding |
 | [Session 5](https://github.com/TN13007/rpg/blob/main/Docs/Version1Plan.md#session-5) | Health, Injury and Recovery | **Implemented and runtime-verified in main** — [PR #67 merged](https://github.com/TN13007/rpg/pull/67), merge commit `9e5f78ef8e1eae522402b3d447604e7b9f7564a9`; [CI #213 passed](https://github.com/TN13007/rpg/actions/runs/44370968083). User confirmed the interactive Infirmary journey works without issues; [Issue #66](https://github.com/TN13007/rpg/issues/66) closed. | **Not assessed** — learner prediction, independent practice and knowledge check have not been completed |
 | [Session 6](https://github.com/TN13007/rpg/blob/main/Docs/Version1Plan.md#session-6) | Mood and Daily Wellbeing | **Implemented and runtime-verified in main** — [PR #72 merged](https://github.com/TN13007/rpg/pull/72) as `d8bc1a222dde03d10c94fa985824d8e84f557630`; CI #224 passed on final feature-branch head; user confirmed Mood transitions and UI | **Not assessed** — independent learning evidence not recorded |
-| [Session 7](https://github.com/TN13007/rpg/blob/main/Docs/Version1Plan.md#session-7) | A Small, Complete Academy Routine | **In progress** — [Issue #73](https://github.com/TN13007/rpg/issues/73); Canteen, Meal, Lesson and Practice content plus execution regression test implemented on feature branch; [CI #228 passed](https://github.com/TN13007/rpg/actions/runs/44578063938); Godot manual runtime acceptance pending | **Approved** — user approved tracing, independent implementation practice and responsibility knowledge check on 2026-11-20; evidence not yet assessed |
+| [Session 7](https://github.com/TN13007/rpg/blob/main/Docs/Version1Plan.md#session-7) | A Small, Complete Academy Routine | **Ready for review** — [Issue #73](https://github.com/TN13007/rpg/issues/73); implementation on `feat/issue-73-academy-routine`; [PR #74](https://github.com/TN13007/rpg/pull/74) is open, ready for review and not merged; automated and user-confirmed Godot runtime acceptance complete | **Not assessed** — approved learning targets remain outstanding; independent trace, implementation practice and knowledge check still required |
 | [Session 8](https://github.com/TN13007/rpg/blob/main/Docs/Version1Plan.md#session-8) | Daily Summary and Day Continuity | **Planned** — accepted scope; not implemented | **Proposed** — learning target requires user approval |
 | [Session 9](https://github.com/TN13007/rpg/blob/main/Docs/Version1Plan.md#session-9) | Save and Load the Daily-Life Loop | **Planned** — accepted scope; not implemented | **Proposed** — learning target requires user approval |
 
@@ -221,21 +221,26 @@ Track known disagreements between the documents and official implementation here
 - Feature branch `feat/issue-71-mood-daily-wellbeing` has been deleted. No additional branch cleanup is required.
 - Learning remains **Not assessed**. Do not treat AI implementation, user runtime acceptance or passing tests as independent learning evidence.
 
-### In progress — Session 7: A Small, Complete Academy Routine
+### Ready for review — Session 7: A Small, Complete Academy Routine
 
-- Begin with [Version1Plan.md — Session 7](Docs/Version1Plan.md) and [Issue #73](https://github.com/TN13007/rpg/issues/73). Keep the accepted Version 1 scope unchanged.
-- Implementation branch: `feat/issue-73-academy-routine`, created from the latest `main` after Session 6 and the workflow handoff updates.
-- Decision resolved: add `canteen` as a new Location connected bidirectionally to `courtyard`; this gives Meal a plausible location without adding inventory or schedule systems.
-- Authored activities on the branch: `eat_meal` (20m, 1.5 MET, Mood +2), `attend_lesson` (60m, 2.0 MET) in Classroom, and `practice` (45m, 3.0 MET) in Courtyard.
-- Regression coverage added in `RPG.Tests/Actions/ActionExecutionTests.cs`: verifies each activity is authored only at its intended Location, the combined 125-minute sequence accumulates approximately 10.67 Fatigue, Meal changes Mood once, and Combat Stamina / Health / Gold remain unchanged. Existing configured-action count updated from 9 to 12.
-- [CI #228](https://github.com/TN13007/rpg/actions/runs/44578063938) passed: Markdown validation, 144/144 .NET tests, Godot 4.7.2 .NET Debug build, headless import/main/combat-preview smoke tests and full naming audit. Manual interactive Godot runtime acceptance remains pending; do not mark Issue #73 complete until it is recorded.
-- Learning targets are approved, but learning evidence remains **Not assessed** until the learner independently traces the pipeline, implements one activity and answers the knowledge check.
-- Product outcome: the player can spend one in-game day across distinct Meal, Lesson and Practice activities, alongside existing Rest, Treatment and Sleep, and make a meaningful time/Fatigue trade-off.
-- Current implementation patterns: academy activities are data-authored Location Actions in `Data/AcademyLocations.json`; `ActionExecutionService` calculates actual duration, advances `GameClock`, accumulates Fatigue from actual duration and `activityMet`, then applies configured Effects. The existing choice/query/mapper/presentation path exposes Location Actions and refreshes after execution.
-- Session 7 must not add XP/skill progression, Combat Stamina costs, food inventory, shopping, full timetables, NPC schedules or quest chains. Initial durations/intensities are tuning candidates, not final balance.
-- Resolve the Meal placement against the current Location graph before implementation. There is no dedicated dining location on `main`; do not silently place a Meal action somewhere implausible or add a new Location without a concrete reason.
-- Learning remains separate from Product. The Session 7 learning objective, independent practice and knowledge check in the Session Plan are proposed and require user approval before they are treated as learning targets.
-- Session 5 runtime acceptance is complete. Session 4 Sleep runtime acceptance remains outstanding in [Issue #62](https://github.com/TN13007/rpg/issues/62).
+- [Issue #73](https://github.com/TN13007/rpg/issues/73) records all Product acceptance criteria as complete, including the user-confirmed interactive Godot 4.7.2 runtime journey.
+- Implementation branch: `feat/issue-73-academy-routine`, created from the Session 6 `main` baseline.
+- [PR #74](https://github.com/TN13007/rpg/pull/74) is **Ready for review**, open and not merged. Do not treat its implementation as part of official `main` until merged.
+- Decision: add `canteen` as a new Location connected bidirectionally to `courtyard`; Meal belongs there without adding inventory or schedule systems.
+- Authored activities: `eat_meal` (20m, 1.5 MET, Mood +2), `attend_lesson` (60m, 2.0 MET) in Classroom, and `practice` (45m, 3.0 MET) in Courtyard.
+- Regression coverage in `RPG.Tests/Actions/ActionExecutionTests.cs`: activity ownership, combined 125-minute sequence, approximately 10.67 Fatigue, one-time Mood change, and unchanged Combat Stamina / Health / Gold. Configured Location Action count is 12.
+- [CI #228](https://github.com/TN13007/rpg/actions/runs/44578063938) and [CI #229](https://github.com/TN13007/rpg/actions/runs/44578378686) passed: 144/144 .NET tests, Godot 4.7.2 .NET Debug build, headless import/main/combat-preview smoke tests, Markdown validation and full naming audit.
+- Manual Godot runtime acceptance: user confirmed the interactive academy routine journey works without issues. This closes the remaining Session 7 Product runtime criterion.
+- Learning targets are approved, but evidence remains **Not assessed**. The learner still needs to trace an activity pipeline, independently add one concrete activity with tests, and answer the responsibility knowledge check.
+- Do not add XP/skill progression, Combat Stamina costs, food inventory, shopping, full timetables, NPC schedules or quest chains to this Session.
+
+### Next — Session 8: Daily Summary and Day Continuity
+
+- Prepared in [Issue #undefined](https://github.com/TN13007/rpg/issues/undefined); canonical scope is [Version1Plan.md — Session 8](Docs/Version1Plan.md#session-8).
+- Do not begin implementation until PR #74 is merged and the Learning objective / independent practice / knowledge check have been approved.
+- The feature should summarize successful completed activities using actual execution results, exclude rejected requests, match GameClock elapsed time and begin a clean record on the next day.
+- Resolve whether the summary is shown immediately before or after Sleep's next-day transition. Keep the result bounded to the current day; no permanent journal or quest tracker.
+- Issue #62 still tracks the separate manual runtime check for Sleep's 480-minute midnight rollover; verify it before relying on that behavior in the Session 8 runtime journey.
 
 ### Outstanding from Session 4
 
