@@ -114,6 +114,7 @@ jobs:
           run_godot_check import --headless --editor --path . --quit
           run_godot_check main-scene --headless --path . --quit-after 10
           run_godot_check combat-preview --headless --path . --scene res://Scenes/Previews/CombatPreview.tscn --quit-after 120
+          run_godot_check character-presentation-preview --headless --path . --scene res://Scenes/Previews/CharacterPresentationPreview.tscn --quit-after 10
 
       - name: Enforce full repository naming audit
         if: steps.scope.outputs.naming_audit == 'true'
