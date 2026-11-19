@@ -14,15 +14,15 @@ public partial class CharacterPresentationPreview : Control
 
     public override void _Ready()
     {
-        _fullBodyImage = GetNode<TextureRect>("Margin/Content/Views/FullBodyPanel/Content/CharacterImage");
-        _portraitImage = GetNode<TextureRect>("Margin/Content/Views/PortraitPanel/Content/PortraitImage");
-        _fullBodyName = GetNode<Label>("Margin/Content/Views/FullBodyPanel/Content/CharacterName");
-        _portraitName = GetNode<Label>("Margin/Content/Views/PortraitPanel/Content/CharacterName");
-        _profileName = GetNode<Label>("Margin/Content/Views/ProfilePanel/Content/CharacterName");
-        _profileRole = GetNode<Label>("Margin/Content/Views/ProfilePanel/Content/Role");
-        _profileLevel = GetNode<Label>("Margin/Content/Views/ProfilePanel/Content/Level");
-        _profileAttributes = GetNode<Label>("Margin/Content/Views/ProfilePanel/Content/Attributes");
-        _profileCondition = GetNode<Label>("Margin/Content/Views/ProfilePanel/Content/Condition");
+        _fullBodyImage = GetNode<TextureRect>("Margin/Content/Views/FullBodyPanel/Margin/Content/CharacterImage");
+        _portraitImage = GetNode<TextureRect>("Margin/Content/Views/PortraitPanel/Margin/Content/PortraitImage");
+        _fullBodyName = GetNode<Label>("Margin/Content/Views/FullBodyPanel/Margin/Content/CharacterName");
+        _portraitName = GetNode<Label>("Margin/Content/Views/PortraitPanel/Margin/Content/CharacterName");
+        _profileName = GetNode<Label>("Margin/Content/Views/ProfilePanel/Margin/Content/CharacterName");
+        _profileRole = GetNode<Label>("Margin/Content/Views/ProfilePanel/Margin/Content/Role");
+        _profileLevel = GetNode<Label>("Margin/Content/Views/ProfilePanel/Margin/Content/Level");
+        _profileAttributes = GetNode<Label>("Margin/Content/Views/ProfilePanel/Margin/Content/Attributes");
+        _profileCondition = GetNode<Label>("Margin/Content/Views/ProfilePanel/Margin/Content/Condition");
 
         LoadPlayerPresentation();
     }
