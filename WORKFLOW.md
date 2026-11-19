@@ -2,7 +2,7 @@
 
 **Repository:** [TN13007/rpg](https://github.com/TN13007/rpg)  
 **Engine:** Godot 4.7.2 .NET / C#  
-**Last reviewed:** 2026-11-19  
+**Last reviewed:** 2026-11-20  
 **Official implementation baseline:** latest `main` — consult the current branch head rather than a copied commit hash.
 
 > Start here at the beginning and end of every Session. This is the single project-status and handoff tracker. Do not create separate project-state, decision, learning or per-session tracking files.
@@ -191,6 +191,10 @@ Track known disagreements between the documents and official implementation here
 
 ### Other active work
 
+- [Issue #78 — Text-First Academy Life](https://github.com/TN13007/rpg/issues/78) is the current product-priority umbrella. Its ordered slices are [Character Foundation #79](https://github.com/TN13007/rpg/issues/79), [NPC Presence and Relationships #80](https://github.com/TN13007/rpg/issues/80), [NPC Agency #81](https://github.com/TN13007/rpg/issues/81), [Conditional Events #82](https://github.com/TN13007/rpg/issues/82) and [First Playable Academy Life #83](https://github.com/TN13007/rpg/issues/83).
+- [Issue #76 — 2D Modular Character Visual Pipeline](https://github.com/TN13007/rpg/issues/76) is deferred until the text-first playable life is established. [PR #77](https://github.com/TN13007/rpg/pull/77) was closed without merging; no visual-pipeline changes are in main.
+- [Issue #75 — Daily Summary](https://github.com/TN13007/rpg/issues/75) is deferred until day skipping or off-screen NPC simulation gives it clear player-facing value. This does not mark accepted Version 1 scope complete or revise Version1Plan.md.
+
 - [Issue #11 — Decide the long-term gameplay loop](https://github.com/TN13007/rpg/issues/11) remains a separate long-term design question and does not block Version 1 implementation.
 - [Issue #66 — Session 5 Health, Injury and Recovery](https://github.com/TN13007/rpg/issues/66) is complete and closed after the user confirmed the interactive Infirmary journey works. Session 4 runtime verification remains separately open in [Issue #62](https://github.com/TN13007/rpg/issues/62).
 - [Issue #61 — Generalize Academy location content](https://github.com/TN13007/rpg/issues/61) remains deferred; do not implement it as part of Session 4.
@@ -233,13 +237,27 @@ Track known disagreements between the documents and official implementation here
 - Learning targets are approved, but evidence remains **Not assessed**. The learner still needs to trace an activity pipeline, independently add one concrete activity with tests, and answer the responsibility knowledge check.
 - Do not add XP/skill progression, Combat Stamina costs, food inventory, shopping, full timetables, NPC schedules or quest chains to this Session.
 
-### Next — Session 8: Daily Summary and Day Continuity
+### Current priority — Text-First Academy Life
 
-- Scope and acceptance criteria: [Issue #75](https://github.com/TN13007/rpg/issues/75); canonical Session Plan: [Version1Plan.md — Session 8](Docs/Version1Plan.md#session-8-daily-summary-and-day-continuity).
-- Session 7 is now merged, so the product dependency is satisfied. Session 8 Learning objective, independent practice and knowledge check remain **proposed** and require user approval before being treated as learning targets.
-- Product outcome: summarize successful completed activities using actual execution results, exclude rejected requests, match GameClock elapsed time and begin a clean record on the next day.
-- Resolve whether the summary is shown immediately before or after Sleep's next-day transition. Keep the result bounded to the current day; no permanent journal or quest tracker.
-- [Issue #62](https://github.com/TN13007/rpg/issues/62) still tracks the separate manual runtime check for Sleep's 480-minute midnight rollover; verify it before relying on that behavior in the Session 8 runtime journey.
+The user has chosen to establish a playable Character/NPC/Event loop before investing in character art. The approved umbrella is [Issue #78](https://github.com/TN13007/rpg/issues/78).
+
+Implementation order:
+1. [Issue #79 — Shared Character Foundation and Meaningful Growth](https://github.com/TN13007/rpg/issues/79): clarify shared Character definition/runtime state, make attributes meaningful, add a small skill/proficiency loop and at least two gameplay-relevant growth choices.
+2. [Issue #80 — NPC Runtime Presence, Social Interaction and Relationships](https://github.com/TN13007/rpg/issues/80): create real NPC instances, Nearby interactions, dialogue choices and observable relationship state.
+3. [Issue #81 — Bounded NPC Agency](https://github.com/TN13007/rpg/issues/81): one important NPC with Schedule, Goals, Decisions, Action validation/execution, interruption/replanning and selective Memory.
+4. [Issue #82 — Conditional Story Events](https://github.com/TN13007/rpg/issues/82): authored story beats plus bounded ambient events with explicit conditions, choices and consequences.
+5. [Issue #83 — First Playable Academy Life](https://github.com/TN13007/rpg/issues/83): connect the systems into a short, complete text-first story arc.
+
+Use the existing StoryPanel, CharacterPanel, static portrait and location/action UI. No new artwork, animation, Live2D or Character Creator is required.
+
+### Deferred work and boundaries
+
+- [Issue #76 — Character Visual Pipeline](https://github.com/TN13007/rpg/issues/76) is deferred until the text-first playable life is coherent. [PR #77](https://github.com/TN13007/rpg/pull/77) was closed without merging; no visual prototype changes entered main.
+- [Issue #75 — Daily Summary](https://github.com/TN13007/rpg/issues/75) is deferred until day skipping or off-screen NPC simulation makes a daily recap useful. The accepted Version 1 Session Plan remains unchanged; Session 8 is not marked complete.
+- Session 9 Save/Load remains planned. Add the minimum persistence needed for relationships, NPC memory and Event outcomes before the first-life slice depends on restart continuity; do not build a speculative parallel persistence system.
+- [Issue #62](https://github.com/TN13007/rpg/issues/62) still tracks manual Godot runtime evidence for Sleep's 480-minute advancement and midnight rollover. Verify it when the time/day loop is next touched.
+
+The text-first milestone is a deliberate implementation-priority change, not a claim that Version 1's accepted exit criteria are complete.
 
 ### Outstanding from Session 4
 
