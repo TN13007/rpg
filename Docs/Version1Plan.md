@@ -488,14 +488,14 @@ Explain why the activity belongs in its current source/service and what would ju
 
 ### Scope
 Add a small set of data-authored activities:
-- Meal: suitable academy Location; 20 minutes; authored activityMet; optional small Mood increase.
-- Lesson: Classroom; 60 minutes; authored activityMet; no XP or Combat Stamina cost.
-- Practice: Courtyard/training area; 45 minutes; authored activityMet; no skill gain or Combat Stamina cost.
-- Rest: preserve Session 2 behavior.
-- Treatment: preserve Session 5 behavior.
-- Sleep: preserve Session 4 behavior.
+- **Meal:** Add an Academy Canteen Location connected bidirectionally to Courtyard. The meal takes 20 minutes, uses an initial `activityMet: 1.5`, and applies `ChangeMood(2)`. It does not restore Combat Stamina.
+- **Lesson:** Add a 60-minute Location Action in Classroom with initial `activityMet: 2.0`; no XP or Combat Stamina cost.
+- **Practice:** Add a 45-minute Location Action in Courtyard with initial `activityMet: 3.0`; no skill gain or Combat Stamina cost.
+- **Rest:** preserve Session 2 behavior.
+- **Treatment:** preserve Session 5 behavior.
+- **Sleep:** preserve Session 4 behavior.
 
-Keep initial values as tuning candidates, not final balance. Do not add inventory requirements for food, XP/skills, shopping, full timetables, NPC schedules or quest chains.
+The Canteen is a concrete Location needed to give Meal a plausible place in the current academy graph; it does not introduce an inventory, schedule or NPC system. Durations and activity intensities are first-pass tuning values, not final balance. Do not add inventory requirements for food, XP/skills, shopping, full timetables, NPC schedules or quest chains.
 
 ### Automated tests
 - All activity definitions load and validate.
