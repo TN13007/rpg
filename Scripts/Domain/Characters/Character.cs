@@ -13,6 +13,7 @@ public sealed class Character
     public int Stamina { get; private set; }
     public int MaxStamina => _data.MaxStamina;
     public int Mood { get; private set; }
+    public MoodBand MoodBand => MoodBandCalculator.Calculate(Mood, MaxMood);
     public int MaxMood => _data.MaxMood;
     public int Gold { get; private set; }
     public CharacterStats Stats => _data.Stats;

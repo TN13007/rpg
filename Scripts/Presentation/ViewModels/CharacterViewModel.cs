@@ -12,6 +12,7 @@ public sealed class CharacterViewModel
     public int Stamina { get; }
     public int MaxStamina { get; }
     public int Mood { get; }
+    public MoodBand MoodBand { get; }
     public int MaxMood { get; }
     public int Gold { get; }
     public CharacterStats Stats { get; }
@@ -33,6 +34,7 @@ public sealed class CharacterViewModel
         Stamina = character.Stamina;
         MaxStamina = character.MaxStamina;
         Mood = character.Mood;
+        MoodBand = character.MoodBand;
         MaxMood = character.MaxMood;
         Gold = character.Gold;
         Stats = character.Stats;

@@ -72,6 +72,27 @@ public sealed class ActionExecutionTests
     }
 
     [Fact]
+    public void TalkToMiraAppliesAuthoredMoodIncreaseExactlyOnce()
+    {
+        LoadAcademyContent();
+        Character actor = TestCharacterFactory.CreatePlayer(mood: 40);
+        GameClock clock = new GameClock();
+        ActionDefinition action = FindAction("talk_mira");
+
+        ActionEffectDefinition moodEffect = Assert.Single(action.Effects);
+        Assert.Equal(ActionEffectType.ChangeMood, moodEffect.Type);
+        Assert.Equal(3, moodEffect.Amount);
+
+        bool success = _service.TryExecute(
+            action, actor, clock, out string reason, out int duration);
+
+        Assert.True(success, reason);
+        Assert.Equal(15, duration);
+        Assert.Equal(43, actor.Mood);
+        Assert.Equal(465, clock.MinutesOfDay);
+    }
+
+    [Fact]
     public void RestAndSleepRecoveryAreClamped()
     {
         LoadAcademyContent();
@@ -219,6 +240,27 @@ public sealed class ActionExecutionTests
 
         Assert.Equal(9, actionCount);
         Assert.Equal(2, LoadPlayerData().PlayerActions.Length);
+    }
+
+    [Fact]
+    public void InspectRequestsAppliesAuthoredNegativeMoodEffect()
+    {
+        LoadAcademyContent();
+        Character actor = TestCharacterFactory.CreatePlayer(mood: 76);
+        GameClock clock = new GameClock();
+        ActionDefinition action = FindAction("inspect_requests");
+
+        ActionEffectDefinition moodEffect = Assert.Single(action.Effects);
+        Assert.Equal(ActionEffectType.ChangeMood, moodEffect.Type);
+        Assert.Equal(-2, moodEffect.Amount);
+
+        bool success = _service.TryExecute(
+            action, actor, clock, out string reason, out int duration);
+
+        Assert.True(success, reason);
+        Assert.Equal(10, duration);
+        Assert.Equal(74, actor.Mood);
+        Assert.Equal(460, clock.MinutesOfDay);
     }
 
     [Fact]
