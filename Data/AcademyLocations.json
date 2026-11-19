@@ -42,7 +42,8 @@
         "dormitory",
         "classroom",
         "guild_hall",
-        "infirmary"
+        "infirmary",
+        "canteen"
       ],
       "actions": [
         {
@@ -72,6 +73,14 @@
           "durationMinutes": 0,
           "effects": [],
           "activityMet": 1
+        },
+        {
+          "id": "practice",
+          "label": "Practice basic combat techniques",
+          "durationMinutes": 45,
+          "effects": [],
+          "feedback": "You repeat the academy's basic drills until the movements begin to feel familiar.",
+          "activityMet": 3
         }
       ],
       "events": [
@@ -131,6 +140,14 @@
           "effects": [],
           "feedback": "The field maps show the academy grounds and a small supervised dungeon.",
           "activityMet": 1.5
+        },
+        {
+          "id": "attend_lesson",
+          "label": "Attend the fundamentals lesson",
+          "durationMinutes": 60,
+          "effects": [],
+          "feedback": "You spend the hour studying the fundamentals of adventuring and field safety.",
+          "activityMet": 2
         }
       ]
     },
@@ -187,6 +204,30 @@
           ],
           "feedback": "You rest while the infirmary staff tend to your wounds.",
           "activityMet": 1.3
+        }
+      ]
+    },
+    {
+      "id": "canteen",
+      "name": "Academy Canteen",
+      "region": "STUDENT QUARTERS",
+      "description": "The canteen is warm and busy. Students gather here between lessons to eat and exchange news.",
+      "exits": [
+        "courtyard"
+      ],
+      "actions": [
+        {
+          "id": "eat_meal",
+          "label": "Have a meal",
+          "durationMinutes": 20,
+          "effects": [
+            {
+              "type": "ChangeMood",
+              "amount": 2
+            }
+          ],
+          "feedback": "You take a quiet break over a simple meal. The pause lifts your spirits.",
+          "activityMet": 1.5
         }
       ]
     }
