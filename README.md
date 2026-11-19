@@ -13,7 +13,7 @@ Adventurer Academy is a fantasy life-simulation RPG prototype about daily life, 
 
 ## Run the project
 
-Open the repository in Godot 4.7.2 .NET and run `Scenes/Main.tscn`.
+Open the repository in Godot 4.7.2 .NET and run Scenes/Main.tscn.
 
 Run all automated repository checks from the repository root:
 
@@ -23,7 +23,7 @@ $branch = git branch --show-current
 python Tools/Validate.py --base origin/main --head HEAD --branch $branch --check-branch
 ```
 
-This runs the Python validator tests, project naming checks, changed-file C# naming checks and the .NET test suite. Godot runtime/UI checks remain manual and must be recorded separately in `WORKFLOW.md`.
+This runs the Python validator tests, project naming checks, changed-file C# naming checks and the .NET test suite. Godot runtime/UI checks remain manual and must be recorded separately in WORKFLOW.md.
 
 ## Active design and technical documents
 
@@ -33,10 +33,11 @@ This runs the Python validator tests, project naming checks, changed-file C# nam
 - [Gameplay](Docs/Gameplay.md) — Location/Event loop and Exploration action-choice pipeline.
 - [UI Architecture](Docs/Ui.md) — main interface and Combat presentation contracts.
 - [Application Architecture](Docs/Architecture.md) — MainController and application responsibility boundaries.
+- [Character Visual Pipeline](Docs/CharacterVisualPipeline.md) — selected 2D modular character direction, asset workflow, customization boundaries and learning path.
 - [Testing and Acceptance](Docs/Testing.md) — automated tests, manual Godot checks and Day 1 scenario.
 
-Historical records are retained under `Docs/Archive/` and are not current implementation guidance.
+Historical records are retained under Docs/Archive/ and are not current implementation guidance.
 
 ## Working with AI
 
-Start with [AGENTS.md](AGENTS.md) for repository navigation and code-discovery instructions. At the beginning of each development Session, follow the Implementation Brief process in [WORKFLOW.md](WORKFLOW.md). AI should gather and synthesize only the relevant repository context; this document index is for navigation, not a checklist of files the learner must read.
+Start with AGENTS.md for repository navigation and code-discovery instructions. At the beginning of each development Session, follow the Implementation Brief process in WORKFLOW.md. AI should gather and synthesize only the relevant repository context; this document index is for navigation, not a checklist of files the learner must read.
