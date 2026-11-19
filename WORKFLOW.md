@@ -223,7 +223,7 @@ Track known disagreements between the documents and official implementation here
 
 ### In progress — Session 7: A Small, Complete Academy Routine
 
-- Begin with [Version1Plan.md — Session 7](Docs/Version1Plan.md#session-7) and [Issue #73](https://github.com/TN13007/rpg/issues/73). Keep the accepted Version 1 scope unchanged.
+- Begin with [Version1Plan.md — Session 7](Docs/Version1Plan.md) and [Issue #73](https://github.com/TN13007/rpg/issues/73). Keep the accepted Version 1 scope unchanged.
 - Implementation branch: `feat/issue-73-academy-routine`, created from the latest `main` after Session 6 and the workflow handoff updates.
 - Decision resolved: add `canteen` as a new Location connected bidirectionally to `courtyard`; this gives Meal a plausible location without adding inventory or schedule systems.
 - Authored activities on the branch: `eat_meal` (20m, 1.5 MET, Mood +2), `attend_lesson` (60m, 2.0 MET) in Classroom, and `practice` (45m, 3.0 MET) in Courtyard.
