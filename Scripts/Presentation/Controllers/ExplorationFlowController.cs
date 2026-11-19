@@ -272,6 +272,7 @@ public sealed class ExplorationFlowController
     {
         int startDay = _gameClock.Day;
         int startMinutes = _gameClock.MinutesOfDay;
+        int moodBeforeAction = _player.Mood;
 
         if (!_actionExecutionService.TryExecute(
             action,
@@ -291,7 +292,7 @@ public sealed class ExplorationFlowController
             startMinutes,
             _gameClock.Day,
             _gameClock.MinutesOfDay);
-        _storyPanel.ShowFeedback(action.Feedback);
+        _storyPanel.ShowFeedback(ActionMoodFeedbackFormatter.Format(action, _player.Mood - moodBeforeAction));
         return true;
     }
 

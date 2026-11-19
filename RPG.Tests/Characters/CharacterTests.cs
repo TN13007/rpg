@@ -87,9 +87,9 @@ public sealed class CharacterTests
     public void MoodIsClampedAtZeroAndMaximum()
     {
         Character character = TestCharacterFactory.CreatePlayer(mood: 50);
-        character.ChangeMood(-100);
+        character.ChangeMood(int.MinValue);
         Assert.Equal(0, character.Mood);
-        character.ChangeMood(100);
+        character.ChangeMood(int.MaxValue);
         Assert.Equal(100, character.Mood);
         character.ChangeMood(1);
         Assert.Equal(100, character.Mood);

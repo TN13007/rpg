@@ -46,7 +46,7 @@ public partial class CharacterPanel : PanelContainer
         _healthValue.Text = character.Health + " / " + character.MaxHealth;
         _fatigueValue.Text = character.Fatigue.ToString("0.0") + " / " + character.MaxFatigue.ToString("0");
         _staminaValue.Text = character.Stamina + " / " + character.MaxStamina;
-        _moodValue.Text = character.Mood + " / " + character.MaxMood;
+        _moodValue.Text = character.Mood + " / " + character.MaxMood + " · " + FormatMoodBand(character.MoodBand);
         _gold.Text = character.Gold + " G";
         _healthBar.MaxValue = character.MaxHealth;
         _healthBar.Value = character.Health;
@@ -56,5 +56,17 @@ public partial class CharacterPanel : PanelContainer
         _staminaBar.Value = character.Stamina;
         _moodBar.MaxValue = character.MaxMood;
         _moodBar.Value = character.Mood;
+    }
+
+    private static string FormatMoodBand(MoodBand moodBand)
+    {
+        return moodBand switch
+        {
+            MoodBand.VeryLow => "Very Low",
+            MoodBand.Low => "Low",
+            MoodBand.Steady => "Steady",
+            MoodBand.Positive => "Positive",
+            _ => throw new System.ArgumentOutOfRangeException(nameof(moodBand))
+        };
     }
 }
