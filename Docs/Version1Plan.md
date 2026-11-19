@@ -464,7 +464,7 @@ Runtime examples plus complete Mood-boundary test results.
 
 ### Learning objective
 
-**Approval status:** Proposed — pending user approval.
+**Approval status:** Approved by the user on 2026-11-20.
 
 
 
@@ -472,7 +472,7 @@ Trace one academy activity from authored content to availability, execution, Eff
 
 ### Independent practice
 
-**Approval status:** Proposed — pending user approval.
+**Approval status:** Approved by the user on 2026-11-20.
 
 
 
@@ -480,7 +480,7 @@ Add one concrete daily activity using existing patterns and tests, without addin
 
 ### Knowledge check
 
-**Approval status:** Proposed — pending user approval.
+**Approval status:** Approved by the user on 2026-11-20.
 
 
 
