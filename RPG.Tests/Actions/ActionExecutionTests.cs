@@ -238,8 +238,62 @@ public sealed class ActionExecutionTests
             }
         }
 
-        Assert.Equal(9, actionCount);
+        Assert.Equal(12, actionCount);
         Assert.Equal(2, LoadPlayerData().PlayerActions.Length);
+    }
+
+    [Fact]
+    public void AcademyRoutineActivitiesAdvanceTimeApplyFatigueAndPreserveCombatStamina()
+    {
+        LoadAcademyContent();
+        Character actor = TestCharacterFactory.CreatePlayer(
+            health: 20, fatigue: 0, stamina: 4, mood: 40, gold: 7);
+        GameClock clock = new GameClock(1, 7, 30);
+
+        LocationContent courtyard = _academy.Get("courtyard");
+        LocationContent classroom = _academy.Get("classroom");
+        LocationContent canteen = _academy.Get("canteen");
+
+        Assert.Contains("canteen", courtyard.Exits);
+        Assert.Contains("courtyard", canteen.Exits);
+        Assert.Contains(courtyard.Actions, action => action.Id == "practice");
+        Assert.Contains(classroom.Actions, action => action.Id == "attend_lesson");
+        Assert.Contains(canteen.Actions, action => action.Id == "eat_meal");
+        Assert.DoesNotContain(classroom.Actions, action => action.Id == "practice");
+        Assert.DoesNotContain(courtyard.Actions, action => action.Id == "attend_lesson");
+        Assert.DoesNotContain(courtyard.Actions, action => action.Id == "eat_meal");
+
+        ActionDefinition meal = FindAction("eat_meal");
+        ActionDefinition lesson = FindAction("attend_lesson");
+        ActionDefinition practice = FindAction("practice");
+
+        Assert.Equal(20, meal.DurationMinutes);
+        Assert.Equal(1.5, meal.ActivityMet, 6);
+        Assert.Equal(60, lesson.DurationMinutes);
+        Assert.Equal(2.0, lesson.ActivityMet, 6);
+        Assert.Equal(45, practice.DurationMinutes);
+        Assert.Equal(3.0, practice.ActivityMet, 6);
+
+        Assert.True(_service.TryExecute(meal, actor, clock, out string reason, out int mealDuration), reason);
+        Assert.Equal(20, mealDuration);
+        Assert.Equal(0.666667, actor.Fatigue, 5);
+        Assert.Equal(42, actor.Mood);
+        Assert.Equal(4, actor.Stamina);
+
+        Assert.True(_service.TryExecute(lesson, actor, clock, out reason, out int lessonDuration), reason);
+        Assert.Equal(60, lessonDuration);
+        Assert.Equal(4.666667, actor.Fatigue, 5);
+        Assert.Equal(4, actor.Stamina);
+
+        Assert.True(_service.TryExecute(practice, actor, clock, out reason, out int practiceDuration), reason);
+        Assert.Equal(45, practiceDuration);
+        Assert.Equal(10.666667, actor.Fatigue, 5);
+        Assert.Equal(4, actor.Stamina);
+        Assert.Equal(20, actor.Health);
+        Assert.Equal(7, actor.Gold);
+        Assert.Equal(42, actor.Mood);
+        Assert.Equal(1, clock.Day);
+        Assert.Equal(575, clock.MinutesOfDay);
     }
 
     [Fact]
