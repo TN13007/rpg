@@ -51,6 +51,22 @@ theme_override_font_sizes/font_size = 10
 theme_override_colors/font_color = Color(0.776, 0.647, 0.416, 1)
 text = "LEVEL 1"
 
+[node name="AttributesTitle" type="Label" parent="Margin/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+theme_override_colors/font_color = Color(0.608, 0.639, 0.678, 1)
+text = "ATTRIBUTES"
+
+[node name="AttributesPrimary" type="Label" parent="Margin/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "STR 20   AGI 30   INT 25"
+
+[node name="AttributesSecondary" type="Label" parent="Margin/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "END 20   WIS 20"
+
 [node name="HealthHeader" type="HBoxContainer" parent="Margin/Content"]
 layout_mode = 2
 
