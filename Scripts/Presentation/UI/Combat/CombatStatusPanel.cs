@@ -4,11 +4,11 @@ using Godot;
 
 public partial class CombatStatusPanel : PanelContainer
 {
-    private const double TimelineWindow = 8.0;
-    private const float MarkerWidth = 108.0f;
-    private const float MarkerHeight = 20.0f;
-    private const int TimelineLaneCount = 6;
-    private const float LaneSpacing = 22.0f;
+    private const double _timelineWindow = 8.0;
+    private const float _markerWidth = 108.0f;
+    private const float _markerHeight = 20.0f;
+    private const int _timelineLaneCount = 6;
+    private const float _laneSpacing = 22.0f;
 
     private Label _round;
     private Label _turn;
@@ -88,9 +88,9 @@ public partial class CombatStatusPanel : PanelContainer
             new Vector2(2.0f, 13.0f),
             UiTheme.Accent);
 
-        for (int tick = 0; tick <= (int)TimelineWindow; tick += 2)
+        for (int tick = 0; tick <= (int)_timelineWindow; tick += 2)
         {
-            float tickX = left + railWidth * tick / (float)TimelineWindow;
+            float tickX = left + railWidth * tick / (float)_timelineWindow;
             AddRectangle(
                 _timelineTrack,
                 new Vector2(tickX - 1.0f, railY - 4.0f),
@@ -99,7 +99,7 @@ public partial class CombatStatusPanel : PanelContainer
 
             Label tickLabel = new Label
             {
-                Text = tick == 0 ? "NOW" : tick == (int)TimelineWindow ? "8 CT" : tick.ToString(),
+                Text = tick == 0 ? "NOW" : tick == (int)_timelineWindow ? "8 CT" : tick.ToString(),
                 Position = new Vector2(tick == 0 ? tickX - 36.0f : tickX - 9.0f, railY + 7.0f),
                 Size = new Vector2(tick == 0 ? 36.0f : 24.0f, 18.0f),
                 MouseFilter = Control.MouseFilterEnum.Ignore
@@ -129,8 +129,8 @@ public partial class CombatStatusPanel : PanelContainer
         }
 
         visibleEntries.Sort(CompareTimelineEntries);
-        float[] laneLastCenter = new float[TimelineLaneCount];
-        for (int lane = 0; lane < TimelineLaneCount; lane++)
+        float[] laneLastCenter = new float[_timelineLaneCount];
+        for (int lane = 0; lane < _timelineLaneCount; lane++)
         {
             laneLastCenter[lane] = float.NegativeInfinity;
         }
@@ -138,13 +138,13 @@ public partial class CombatStatusPanel : PanelContainer
         foreach (TimelineCombatantStatus entry in visibleEntries)
         {
             double timeToReady = GetTimeToReady(entry);
-            double clampedTime = Math.Min(timeToReady, TimelineWindow);
-            float markerCenter = left + railWidth * (float)(clampedTime / TimelineWindow);
+            double clampedTime = Math.Min(timeToReady, _timelineWindow);
+            float markerCenter = left + railWidth * (float)(clampedTime / _timelineWindow);
             int lane = FindAvailableLane(markerCenter, laneLastCenter);
             laneLastCenter[lane] = markerCenter;
 
-            float markerX = Mathf.Clamp(markerCenter - MarkerWidth / 2.0f, 0.0f, width - MarkerWidth);
-            float markerY = 2.0f + lane * LaneSpacing;
+            float markerX = Mathf.Clamp(markerCenter - _markerWidth / 2.0f, 0.0f, width - _markerWidth);
+            float markerY = 2.0f + lane * _laneSpacing;
             Color markerBackground = entry.IsReady
                 ? new Color("#514735")
                 : entry.IsEnemy ? new Color("#3b2d2d") : new Color("#303744");
@@ -152,14 +152,14 @@ public partial class CombatStatusPanel : PanelContainer
 
             AddRectangle(
                 _timelineTrack,
-                new Vector2(markerCenter - 1.0f, markerY + MarkerHeight),
-                new Vector2(2.0f, Math.Max(0.0f, railY - markerY - MarkerHeight)),
+                new Vector2(markerCenter - 1.0f, markerY + _markerHeight),
+                new Vector2(2.0f, Math.Max(0.0f, railY - markerY - _markerHeight)),
                 entry.IsEnemy ? new Color("#a85f55") : UiTheme.Accent);
 
             PanelContainer marker = new PanelContainer
             {
                 Position = new Vector2(markerX, markerY),
-                Size = new Vector2(MarkerWidth, MarkerHeight),
+                Size = new Vector2(_markerWidth, _markerHeight),
                 MouseFilter = Control.MouseFilterEnum.Ignore,
                 TooltipText = entry.Name + " · " + (entry.IsReady
                     ? "Ready now"
@@ -182,7 +182,7 @@ public partial class CombatStatusPanel : PanelContainer
 
             string timeLabel = entry.IsReady
                 ? "NOW"
-                : timeToReady > TimelineWindow
+                : timeToReady > _timelineWindow
                     ? ">8 CT"
                     : timeToReady.ToString("0.0") + " CT";
             Label markerLabel = new Label
@@ -231,7 +231,7 @@ public partial class CombatStatusPanel : PanelContainer
     {
         for (int lane = 0; lane < laneLastCenter.Length; lane++)
         {
-            if (markerCenter - laneLastCenter[lane] >= MarkerWidth + 6.0f)
+            if (markerCenter - laneLastCenter[lane] >= _markerWidth + 6.0f)
             {
                 return lane;
             }
