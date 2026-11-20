@@ -3,6 +3,22 @@ using Xunit;
 public sealed class CharacterTests
 {
     [Fact]
+    public void LuckIsAnIndependentCharacterStat()
+    {
+        Character character = TestCharacterFactory.CreatePlayer(luck: 42);
+
+        Assert.Equal(42, character.Stats.Luck);
+        Assert.Equal(42, character.Stats.GetValue(CharacterStat.Luck));
+    }
+
+    [Fact]
+    public void LuckMustRemainWithinCharacterStatBounds()
+    {
+        Assert.Throws<System.ArgumentOutOfRangeException>(() => new CharacterStats(1, 1, 1, 1, 1, -1));
+        Assert.Throws<System.ArgumentOutOfRangeException>(() => new CharacterStats(1, 1, 1, 1, 1, 101));
+    }
+
+    [Fact]
     public void CharacterWithPositiveHealthCanActRegardlessOfFatigueOrStamina()
     {
         for (int health = 1; health <= 20; health++)
