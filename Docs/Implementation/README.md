@@ -1,25 +1,26 @@
-# Implementation Documentation
+# Implementation
 
-This folder is the source of truth for how the current repository is built, how runtime responsibilities are divided, how authored data is loaded, and how changes are verified.
+This folder is the authoritative guide to **how the current repository works**. It describes the code and technical contracts on latest `main`; it does not define the intended future game.
 
-## Documents
+## Read by topic
 
 | Document | Owns |
 |---|---|
-| [Codebase Guide](CodebaseGuide.md) | Repository map and where to begin code discovery |
-| [Architecture](Architecture.md) | Layers, dependency direction, composition root and runtime flows |
-| [Exploration Implementation](Exploration.md) | Current Location/Event behavior and Exploration action pipeline |
-| [World Model](WorldModel.md) | Domain vocabulary, modeling constraints and implementation review findings |
-| [UI Contracts](UI.md) | UI composition, presentation flow and view contracts |
-| [Testing](Testing.md) | Automated checks, manual Godot verification and acceptance journeys |
-| [Version 1 Plan](Version1Plan.md) | Historical Version 1 implementation scope and acceptance criteria for the existing prototype |
+| [Cross-Layer Architecture](CrossLayerArchitecture.md) | Repository map, layers, dependency direction, composition root, runtime flows and code-discovery method |
+| [Cross-Layer Runtime Systems](CrossLayerRuntimeSystems.md) | Current domain vocabulary, authored content, Location/Event/Action behavior and the implemented Combat slice |
+| [Presentation User Interface](PresentationUserInterface.md) | Current screen composition, presentation data flow and UI/service boundaries |
+| [Testing Strategy](TestingStrategy.md) | Automated test strategy, Godot runtime verification and evidence requirements |
 
-## Rules
+## How to use these documents
 
-- Describe code that exists as **Implemented** only when verified on `main`.
-- Describe planned code as **Planned** or **Proposed**; an Issue or PR does not make it implemented.
-- Codebase facts must be traceable to paths, symbols, tests or observed runtime behavior.
-- Do not define player fantasy, combat design, story ideas or progression goals here. Link to [Design Documentation](../Design/README.md).
-- Do not duplicate current Session status, delivery order or handoff. [WORKFLOW.md](../../WORKFLOW.md), GitHub Issues and PRs own current work tracking.
-- The old reincarnation life-simulation delivery roadmap is retained in [Archive](../Archive/DevelopmentRoadmapV0ReincarnationLifeSim.md), not as current implementation authority.
-- When an accepted design rule changes, update the relevant Design document first, then update this folder only if the implementation contract or code state changes.
+1. Read the relevant [Design](../Design/README.md) section to understand the desired player-facing behavior.
+2. Read the relevant Implementation document to understand what exists and where the behavior belongs.
+3. Trace the actual source and tests before editing. The documents are navigation and contracts, not substitutes for code inspection.
+4. If the implementation does not meet the design, describe the gap in the Issue/PR. Do not update Implementation to claim planned behavior exists.
+
+## Ownership
+
+- Product direction, ideas and gameplay rules → [Design](../Design/README.md).
+- Current codebase, runtime behavior, data and presentation contracts → this folder.
+- Current status and handoff → [WORKFLOW.md](../../WORKFLOW.md).
+- Stable collaboration, Git and naming rules → [CONTRIBUTING.md](../../CONTRIBUTING.md).

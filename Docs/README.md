@@ -1,37 +1,26 @@
 # Documentation Hub
 
-The repository has two canonical documentation areas. Choose the one that matches the question.
+Use the two documentation areas for two different questions.
 
 ## Design — what the game should be
 
 [Open Design Documentation](Design/README.md)
 
-Contains the player experience, ideas, accepted gameplay decisions, combat rules, progression direction, world/narrative and product roadmap.
+Read this to understand the product direction, player experience, gameplay rules, accepted decisions, proposals and unresolved questions. It describes intended behavior, not what the code necessarily implements today.
 
-## Implementation — how the repository works
+## Implementation — how the current repository works
 
 [Open Implementation Documentation](Implementation/README.md)
 
-Contains codebase navigation, architecture, current runtime behavior, data/domain model, UI contracts, tests and implementation plans.
+Read this to understand the current codebase, architecture, runtime behavior, authored data, UI contracts and verification. It describes the implementation on `main`, not a future architecture inferred from Design.
 
-## Legacy document paths
+## Working agreement
 
-These compatibility pages preserve older links and redirect readers to the canonical documentation:
+- [WORKFLOW.md](../WORKFLOW.md) owns current status, blockers, Session handoff and learning evidence.
+- [CONTRIBUTING.md](../CONTRIBUTING.md) owns the Issue → Branch → Commit → Pull Request → Review → Merge process, validation and naming rules.
+- [AGENTS.md](../AGENTS.md) is the repository navigation and coding-agent entry point.
+- [Archive](Archive/README.md) contains historical records only.
 
-- [Architecture](Architecture.md)
-- [Combat Balance](CombatBalance.md)
-- [Game Design](GameDesign.md)
-- [Gameplay](Gameplay.md)
-- [Roadmap](Roadmap.md)
-- [Testing](Testing.md)
-- [UI](Ui.md)
-- [Version 1 Plan](Version1Plan.md)
-- [World](World.md)
+## Reading rule
 
-## Project status and workflow
-
-[WORKFLOW.md](../WORKFLOW.md) is the only project-status and session-handoff tracker. [CONTRIBUTING.md](../CONTRIBUTING.md) defines the GitHub workflow.
-
-## Documentation boundary
-
-Design is authoritative for intended gameplay. Implementation documents describe the code that exists and the technical contract used to realize accepted design. If implementation differs from design, record the gap; do not silently rewrite one to match the other.
+For a feature, read the relevant Design section first to understand the intended player-facing outcome, then read the relevant Implementation section to understand the existing code and constraints. If they disagree, record the gap; do not duplicate or silently rewrite either source.

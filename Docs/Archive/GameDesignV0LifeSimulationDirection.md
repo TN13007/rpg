@@ -1,4 +1,4 @@
-> **Historical document — superseded.** This records an earlier life-simulation-first direction. The current product direction is in [Design/GameVision](../Design/GameVision.md); current experience rules are in [Design/GameplayLoop](../Design/GameplayLoop.md).
+> **Historical document — superseded.** This records an earlier life-simulation-first direction. The current product direction is in [Design/GameVision](../Design/GameVision.md); current experience rules are in [Design/GameVision](../Design/GameVision.md).
 
 # Game Design — Adventurer Academy RPG
 
@@ -29,7 +29,7 @@ The intended experience combines:
 - **Exploration:** Visit locations, discover people and objects, and choose contextual interactions.
 - **Adventure and combat:** Enter dangerous encounters as an occasional but meaningful part of the wider life simulation.
 
-The initial Version 1 rules for Fatigue and Combat Stamina are specified in [Version 1 Plan](../Implementation/Version1Plan.md) and [Testing](../Implementation/Testing.md). Broader schedule simulation, progression formulas and long-term activity balancing remain open; do not assume they are implemented.
+The initial Version 1 rules for Fatigue and Combat Stamina are specified in [Version 1 Plan](Version1PrototypePlan.md) and [Testing](../Implementation/TestingStrategy.md). Broader schedule simulation, progression formulas and long-term activity balancing remain open; do not assume they are implemented.
 
 ### 3. World Navigation and Interaction
 
@@ -52,11 +52,11 @@ Combat is planned as **turn-based**.
 
 Combat has a dedicated presentation mode rather than reusing the normal Exploration presentation. The player should be able to understand the current encounter, distinguish actions from outcomes, read enemy reactions and make an informed next decision.
 
-The current main scene contains one playable, deterministic Goblin encounter: the player enters Combat from the Academy Courtyard, chooses Attack / Defend / Dodge, resolves the Goblin's response, receives 25 G on victory and returns to the same location. This is a narrow vertical slice, not the final combat system. See [UI Architecture and Combat Panel Contract](../Implementation/UI.md) and [Playable Journey Sprint](SprintPlayableJourney.md).
+The current main scene contains one playable, deterministic Goblin encounter: the player enters Combat from the Academy Courtyard, chooses Attack / Defend / Dodge, resolves the Goblin's response, receives 25 G on victory and returns to the same location. This is a narrow vertical slice, not the final combat system. See [UI Architecture and Combat Panel Contract](../Implementation/PresentationUserInterface.md) and [Playable Journey Sprint](SprintPlayableJourney.md).
 
 ### 5. Player State
 
-The current prototype exposes four core character indicators; the exact UI presentation is defined in [UI Architecture](../Implementation/UI.md):
+The current prototype exposes four core character indicators; the exact UI presentation is defined in [UI Architecture](../Implementation/PresentationUserInterface.md):
 
 | Indicator | Current initial meaning |
 |---|---|
@@ -110,7 +110,7 @@ Do not turn every unresolved question into a new system. Prefer the smallest des
 
 **Status:** Design direction — early concept, not an implementation specification.  
 **Scope:** Long-term world simulation and challenge design for Adventurer Academy RPG.  
-**Related:** [Game Overview](../Design/GameVision.md), [Gameplay Loop and Location Events](../Implementation/Exploration.md).
+**Related:** [Game Overview](../Design/GameVision.md), [Runtime Systems — current prototype](../Implementation/CrossLayerRuntimeSystems.md).
 
 ### 1. Core Vision
 

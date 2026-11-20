@@ -1,4 +1,4 @@
-# World & Narrative Design
+# World and Narrative Design
 
 **Status:** Long-term direction; details remain in development  
 **Last updated:** 2026-11-20
@@ -18,7 +18,7 @@ The story should give emotional and thematic meaning to the player's current lif
 
 The player should first have reasons to care about the people and events of the current life. The reincarnation mystery should deepen that investment rather than replace it.
 
-## Evolving challenges
+## Evolving challenges and consequences
 
 Major threats may change while the player pursues other goals. The player may intervene early, prepare, seek allies, partially resolve a threat, ignore it or fail. Outcomes may affect:
 - NPC circumstances and survival.
@@ -31,7 +31,7 @@ Not every challenge must escalate into catastrophe. Consequences should be legib
 
 ## NPCs and relationships
 
-NPCs should be characters with their own motivations, schedules, memories and capabilities where those systems are justified. A desire to do something is not the same as being able to do it: events, resources, relationships and the player's actions may prevent or redirect an NPC's plans.
+NPCs should have their own motivations, schedules, memories and capabilities where those systems are justified. A desire to do something is not the same as being able to do it: events, resources, relationships and the player's actions may prevent or redirect an NPC's plans.
 
 NPC behavior and relationship mechanics should serve narrative and player-facing choices, not exist merely to simulate complexity.
 
@@ -41,8 +41,4 @@ Optional personal-interest content, including NSFW material, is secondary to the
 
 ## Open questions
 
-- How much of the wider world changes autonomously.
-- How challenge stages and consequences are authored.
-- How NPC memory and schedules affect observable behavior.
-- How reincarnation affects character identity and mechanical progression.
-- How story branches converge or remain distinct.
+How much of the wider world changes autonomously; how challenge stages and consequences are authored; how NPC memory and schedules affect observable behavior; how reincarnation affects character identity and mechanical progression; and how story branches converge or remain distinct.

@@ -128,13 +128,13 @@ The current repository is no longer an empty project. It contains a narrow, inte
 - The current Combat is a small prototype, not the final adventure/party combat system.
 - Soul Identity, Incarnation, cross-life Memory, Life transition and Reincarnation are narrative/design ideas only.
 
-**Baseline evidence:** [WORKFLOW.md](../../WORKFLOW.md), [Architecture](../Implementation/Architecture.md), [Gameplay](../Implementation/Exploration.md), [Testing](../Implementation/Testing.md), and the current source tree. The last main snapshot reviewed for this roadmap is commit `98c438f32a22ff1b738a58102ca20d000d264a4f` (2026-11-19). Re-check main before each implementation Session.
+**Baseline evidence:** [WORKFLOW.md](../../WORKFLOW.md), [Architecture](../Implementation/CrossLayerArchitecture.md), [Gameplay](../Implementation/CrossLayerRuntimeSystems.md), [Testing](../Implementation/TestingStrategy.md), and the current source tree. The last main snapshot reviewed for this roadmap is commit `98c438f32a22ff1b738a58102ca20d000d264a4f` (2026-11-19). Re-check main before each implementation Session.
 
 ## 4. Version Roadmap
 
 ## Version 1 — A Day at the Academy
 
-**Status:** In progress. Accepted scope is owned by [Version1Plan.md](../Implementation/Version1Plan.md); this roadmap does not silently change it.
+**Status:** In progress. Accepted scope is owned by [Version1Plan.md](Version1PrototypePlan.md); this roadmap does not silently change it.
 
 **Player-facing promise:** The player can live through a meaningful Academy day, understand choices available in each context, manage Health/Fatigue/Stamina/Mood and continue into the next day.
 
@@ -168,7 +168,7 @@ NPC entities, relationship gameplay, autonomous NPC simulation, item/container i
 - Save/Load restores the supported day state without replaying Effects or duplicating history.
 - Automated tests and Godot runtime acceptance cover the complete daily-life journey.
 
-**Detailed implementation plan:** [Version 1 — Session-by-Session Implementation Plan](../Implementation/Version1Plan.md).
+**Detailed implementation plan:** [Version 1 — Session-by-Session Implementation Plan](Version1PrototypePlan.md).
 
 ## Version 2 — Character Identity and Gameplay Growth (Text-First)
 
@@ -511,11 +511,11 @@ Do not start Soul/Incarnation implementation merely because the idea is exciting
 ## 10. Relationship to Other Sources of Truth
 
 - [WORKFLOW.md](../../WORKFLOW.md) owns current implementation status, verification evidence, learning evidence and handoff.
-- [Version1Plan.md](../Implementation/Version1Plan.md) owns the accepted Version 1 Session scope and acceptance criteria.
-- [Architecture.md](../Implementation/Architecture.md) owns current layer boundaries and runtime dependency rules.
-- [Gameplay.md](../Implementation/Exploration.md) owns the implemented Location/Event and Exploration action-choice behavior.
+- [Version1Plan.md](Version1PrototypePlan.md) owns the accepted Version 1 Session scope and acceptance criteria.
+- [Architecture.md](../Implementation/CrossLayerArchitecture.md) owns current layer boundaries and runtime dependency rules.
+- [Gameplay.md](../Implementation/CrossLayerRuntimeSystems.md) owns the implemented Location/Event and Exploration action-choice behavior.
 - [GameDesign.md](../Design/GameVision.md) owns product concept and long-term world design; accepted narrative canon should be moved there after the narrative prototype is approved.
-- [World.md](../Implementation/WorldModel.md) owns provisional world/location modeling vocabulary.
+- [World.md](../Implementation/CrossLayerRuntimeSystems.md) owns provisional world/location modeling vocabulary.
 - [Issue #11](https://github.com/TN13007/rpg/issues/11) owns long-term system design questions and baseline.
 - [Issue #68](https://github.com/TN13007/rpg/issues/68) owns the reincarnation narrative idea.
 - [Issue #69](https://github.com/TN13007/rpg/issues/69) tracks this end-to-end delivery roadmap.
