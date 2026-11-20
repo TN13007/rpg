@@ -3,6 +3,22 @@ using Xunit;
 public sealed class CharacterTests
 {
     [Fact]
+    public void LuckIsAnIndependentCharacterStat()
+    {
+        Character character = TestCharacterFactory.CreatePlayer(luck: 42);
+
+        Assert.Equal(42, character.Stats.Luck);
+        Assert.Equal(42, character.Stats.GetValue(CharacterStat.Luck));
+    }
+
+    [Fact]
+    public void LuckMustRemainWithinCharacterStatBounds()
+    {
+        Assert.Throws<System.ArgumentOutOfRangeException>(() => new CharacterStats(1, 1, 1, 1, 1, -1));
+        Assert.Throws<System.ArgumentOutOfRangeException>(() => new CharacterStats(1, 1, 1, 1, 1, 101));
+    }
+
+    [Fact]
     public void CharacterWithPositiveHealthCanActRegardlessOfFatigueOrStamina()
     {
         for (int health = 1; health <= 20; health++)
@@ -49,6 +65,21 @@ public sealed class CharacterTests
         Assert.Equal(0, character.TakeDamage(100));
         Assert.Equal(0, character.RestoreHealth(100));
         Assert.True(character.IsDead);
+    }
+
+    [Fact]
+    public void ReviveRestoresLimitedHealthOnlyWhenCharacterIsNotAlive()
+    {
+        Character character = TestCharacterFactory.CreatePlayer(health: 0, maxHealth: 20);
+
+        Assert.Equal(0, character.RestoreHealth(10));
+        Assert.Equal(0, character.Revive(0));
+        Assert.Equal(0, character.Revive(-5));
+        Assert.Equal(5, character.Revive(5));
+        Assert.True(character.IsAlive);
+        Assert.True(character.CanAct);
+        Assert.Equal(0, character.Revive(10));
+        Assert.Equal(5, character.Health);
     }
 
     [Fact]

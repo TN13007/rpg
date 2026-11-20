@@ -105,6 +105,27 @@ public sealed class ExplorationFlowController
         _storyPanel.ShowLocationButton(true);
     }
 
+    public bool StartDebugGoblinEncounter(ActionDefinition entryAction)
+    {
+        if (entryAction == null)
+        {
+            throw new ArgumentNullException(nameof(entryAction));
+        }
+
+        if (_gameModeController.IsCombatMode)
+        {
+            return false;
+        }
+
+        if (!_startEncounter(entryAction))
+        {
+            return false;
+        }
+
+        _activeLocationEvent = null;
+        return true;
+    }
+
     public void HandleChoice(string choiceId)
     {
         if (_activeLocationEvent != null)

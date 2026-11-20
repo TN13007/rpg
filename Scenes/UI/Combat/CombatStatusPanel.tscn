@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://Scripts/Presentation/UI/Combat/CombatStatusPanel.cs" id="1"]
+[ext_resource type="PackedScene" path="res://Scenes/UI/Combat/TimelineTrack.tscn" id="2"]
 
 [node name="CombatStatusPanel" type="PanelContainer"]
 layout_mode = 2
@@ -31,11 +32,39 @@ text = "ROUND 01"
 layout_mode = 2
 theme_override_font_sizes/font_size = 11
 theme_override_colors/font_color = Color(0.91, 0.89, 0.84, 1)
-text = "PLAYER TURN"
+text = "PLAYER DECISION"
 
-[node name="EnemyList" type="HBoxContainer" parent="Margin/Content"]
+[node name="TimelineTitle" type="Label" parent="Margin/Content"]
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_override_font_sizes/font_size = 10
+theme_override_colors/font_color = Color(0.608, 0.639, 0.678, 1)
+text = "EXPECTED ACTIONS · NEXT 10 SECONDS"
+
+[node name="TimelineLegend" type="HBoxContainer" parent="Margin/Content"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Ari" type="Label" parent="Margin/Content/TimelineLegend"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+theme_override_colors/font_color = Color(0.333, 0.655, 1, 1)
+text = "● Ari"
+
+[node name="Party" type="Label" parent="Margin/Content/TimelineLegend"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+theme_override_colors/font_color = Color(0.91, 0.741, 0.333, 1)
+text = "● Party"
+
+[node name="Enemy" type="Label" parent="Margin/Content/TimelineLegend"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+theme_override_colors/font_color = Color(0.894, 0.373, 0.408, 1)
+text = "● Enemy"
+
+[node name="TimelineTrack" parent="Margin/Content" instance=ExtResource("2")]
+layout_mode = 2
+size_flags_horizontal = 3
 
 [node name="IntentCard" type="PanelContainer" parent="Margin/Content"]
 visible = false
@@ -56,16 +85,14 @@ theme_override_constants/separation = 3
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 theme_override_colors/font_color = Color(0.86, 0.69, 0.43, 1)
-text = "Goblin A · Possible Heavy Strike"
+text = "Goblin"
 
 [node name="Description" type="Label" parent="Margin/Content/IntentCard/Margin/Content"]
 layout_mode = 2
 autowrap_mode = 3
 theme_override_font_sizes/font_size = 12
-text = "The goblin appears to be preparing an attack."
 
 [node name="Confidence" type="Label" parent="Margin/Content/IntentCard/Margin/Content"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 9
 theme_override_colors/font_color = Color(0.608, 0.639, 0.678, 1)
-text = "PREDICTED"

@@ -50,7 +50,7 @@ For a combatant that is not Stunned or otherwise prevented from progressing:
 
 `TimeToReady = RemainingProgress / EffectiveSpeed`
 
-The scheduler advances the Combat Clock to the earliest relevant event: a combatant becoming Ready or a timed combat effect reaching its scheduled time. All eligible combatants progress over the same elapsed interval. Every active, non-Stunned combatant must have a strictly positive Effective Speed; Stun is represented as an eligibility/progress-freeze state, not by assigning zero Speed.
+The Combat Clock advances in real time at **1.0x** in the current implementation: one real-world second contributes one Combat second. The runtime supplies elapsed frame time to the simulation. Each frame's elapsed time is clamped at the earliest relevant event: a combatant becoming Ready or a timed combat effect reaching its scheduled time. This preserves event ordering without jumping over Ready events. There is no time-acceleration control in this slice. All eligible combatants progress over the same elapsed interval. Every active, non-Stunned combatant must have a strictly positive Effective Speed; Stun is represented as an eligibility/progress-freeze state, not by assigning zero Speed.
 
 A combatant with zero Remaining Progress is Ready. Ready is not an action by itself; it means the combatant is eligible to be considered for the next action opportunity, subject to statuses and encounter state.
 
@@ -59,6 +59,12 @@ A combatant with zero Remaining Progress is Ready. Ready is not an action by its
 At encounter start, each active combatant receives the same configured Initial Progress. Effective Speed determines who reaches Ready first. This makes Speed relevant from the opening of combat without granting a side an arbitrary first-turn advantage.
 
 The Initial Progress value and all numeric tuning are provisional. They must be tuned in a playable encounter, not treated as permanent design constants.
+
+The current pacing target is that the slowest active combatant takes no more than **4 seconds** to recover from the largest Recovery Cost available in the encounter. Progress values use one shared scale:
+
+`ProgressScale = (4 seconds × SlowestBaseSpeed) / LargestRecoveryCost`
+
+The same scale applies to Initial Progress, Recovery Cost and Delay so their relative timing remains consistent. Stun duration is already measured in Combat Time and is not scaled. This is a tuning target, not a player-facing timer or a limit on how long Stun can prevent an action.
 
 ### 3.3 Action recovery
 
@@ -78,7 +84,7 @@ Casting time, channeling and interruptible action execution are not part of the 
 
 When a player-controlled party member becomes Ready, the Combat Clock pauses and the player chooses an action. No combatant progresses and no Combat-Time-based effect advances while the player is deciding. There is no real-world decision timer.
 
-After the action is confirmed and resolved, the scheduler processes any other combatants already Ready at that same Combat Time before advancing the clock again.
+After the action is confirmed and resolved, the actor receives its Recovery Cost. The Combat Clock resumes on the next runtime frame. Any other combatants already Ready at that same Combat Time are resolved before elapsed time advances again.
 
 Enemy actions are selected and resolved by enemy behavior when an enemy becomes Ready. They do not require the player to wait through a real-time decision timer.
 
@@ -213,17 +219,19 @@ An encounter should combine behaviors to create competing priorities. There shou
 
 ## 10. Downed and revival
 
-When HP reaches zero, a character enters **Downed** rather than immediately causing total party defeat.
+When HP reaches zero, a Party member enters **Downed** rather than immediately causing total party defeat. Enemies at zero HP are defeated in this first implementation.
 
-Design intent:
+Rules for the first playable encounter:
 
-- A Downed character cannot take normal actions and leaves the normal action order.
-- An ally skill or limited-use item may revive them.
-- Revival returns the character with limited HP and/or a temporary drawback, making recovery consequential.
-- If all four party members are Downed, the party loses the encounter.
-- Some enemies or bosses may threaten Downed characters as a special encounter rule.
+- A Downed Party member remains in the Party roster at zero HP but is removed from the Timeline and cannot take normal actions.
+- Enemy actions cannot target a Downed Party member.
+- Any active ally can use the built-in **Revive** action on a Downed ally. Revival costs 4 Stamina.
+- Revival restores 25% of maximum HP, rounded up to at least 1 HP.
+- Each Party member can be revived only once per encounter. A member who is Downed again cannot be revived a second time.
+- The revived member re-enters the Timeline with a Recovery Cost equal to the largest authored Recovery Cost in the active encounter roster. The ally performing Revive pays that same Recovery Cost. This makes revival consequential without allowing the revived character to act immediately.
+- If every Party member is Downed, the party loses the encounter immediately. No bleed-out timer is used in this slice.
 
-Whether Downed characters can be targeted, how bleed-out/death is handled, revival costs and post-revival timing remain open and require playtesting.
+These are provisional encounter rules chosen to prove a finite, understandable revival loop. Downed targeting by special enemies, bleed-out/death and broader revival costs remain open for future encounters.
 
 ## 11. Resource persistence
 
@@ -271,7 +279,7 @@ The following are intentionally not finalized:
 - Enemy intent / telegraph disclosure.
 - Casting, channeling, Interrupt and Cooldown rules.
 - Luck range, growth and whether any future effect modifies tie-break Luck.
-- Downed targeting, bleed-out/death, revival costs and post-revival timing.
+- Bleed-out/death and special enemy rules for targeting Downed characters.
 - Resource types and regeneration, escape rules, final party roles, character identities and skill lists.
 - Whether Stagger is universal or encounter-specific.
 

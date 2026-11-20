@@ -6,49 +6,34 @@ public sealed class CombatSessionServiceTests
     public void CompletingEncounterAdvancesTimeAndAddsFatigueExactlyOnce()
     {
         Character player = TestCharacterFactory.CreatePlayer();
-        Character enemy = TestCharacterFactory.CreateEnemy(20);
-        CombatService combatService = new CombatService(player, enemy, TestCharacterFactory.CreateCombatActions());
+        Character enemy = TestCharacterFactory.CreateEnemy(8);
+        CombatService combatService = new CombatService(
+            player, enemy, TestCharacterFactory.CreatePlayerCombatActions(),
+            TestCharacterFactory.CreateEnemyCombatActions(), new System.Random(1));
         GameClock gameClock = new GameClock();
         ActivityTimeCalculator timeCalculator = new ActivityTimeCalculator();
         ActivityFatigueCalculator fatigueCalculator = new ActivityFatigueCalculator();
         ActionExecutionService actionExecutionService = new ActionExecutionService(
-            timeCalculator,
-            new ActionEffectExecutor(),
-            fatigueCalculator);
+            timeCalculator, new ActionEffectExecutor(), fatigueCalculator);
         ActionDefinition entryAction = new ActionDefinition("encounter_entry", "Enter encounter", 0);
         ActionDefinition combatActivity = new ActionDefinition(
-            "combat_encounter",
-            "Combat encounter",
-            30,
-            activityMet: 2.8);
+            "combat_encounter", "Combat encounter", 30, activityMet: 2.8);
         CombatSessionService session = new CombatSessionService(
-            player,
-            combatService,
-            gameClock,
-            timeCalculator,
-            fatigueCalculator,
-            actionExecutionService,
-            combatActivity);
+            player, combatService, gameClock, timeCalculator,
+            fatigueCalculator, actionExecutionService, combatActivity);
 
         Assert.True(session.TryStartEncounter(entryAction, out string failureReason));
         Assert.Empty(failureReason);
-
-        CombatResult result = session.ExecuteAction(new CombatActionRequest("attack", enemy.Id));
-
+        session.AdvanceCombatTime(1000);
+        CombatResult result = session.ExecuteAction(new CombatActionRequest("quick_strike", enemy.Id));
         Assert.NotNull(result);
         Assert.True(result.Success);
         Assert.True(session.IsEncounterOver);
         Assert.Equal(480, gameClock.MinutesOfDay);
         Assert.Equal(3.6, player.Fatigue, 2);
-
-        Assert.Null(session.ExecuteAction(new CombatActionRequest("attack", enemy.Id)));
+        Assert.Null(session.ExecuteAction(new CombatActionRequest("quick_strike", enemy.Id)));
         Assert.Equal(3.6, player.Fatigue, 2);
-
-        Assert.True(session.TryConsumeTimeAdvance(
-            out int startDay,
-            out int startMinutes,
-            out int endDay,
-            out int endMinutes));
+        Assert.True(session.TryConsumeTimeAdvance(out int startDay, out int startMinutes, out int endDay, out int endMinutes));
         Assert.Equal(1, startDay);
         Assert.Equal(450, startMinutes);
         Assert.Equal(1, endDay);

@@ -10,6 +10,7 @@ public partial class MainController : Control
     private GameModeController _gameModeController;
     private ExplorationFlowController _explorationController;
     private CombatFlowController _combatController;
+    private ActionDefinition _debugGoblinEncounterAction;
 
     public override void _Ready()
     {
@@ -23,69 +24,102 @@ public partial class MainController : Control
         CharacterData goblinData = content.GetCharacter("goblin-a");
         Character player = new Character(playerData);
         Character goblin = new Character(goblinData);
+        _debugGoblinEncounterAction = FindAction(
+            content.GetLocation("courtyard").Actions,
+            "encounter_goblin");
+
+        if (_debugGoblinEncounterAction == null)
+        {
+            throw new System.InvalidOperationException("Debug Goblin encounter action is missing from courtyard content.");
+        }
 
         GameClock gameClock = new GameClock();
         ActivityTimeCalculator activityTimeCalculator = new ActivityTimeCalculator();
         ActivityFatigueCalculator activityFatigueCalculator = new ActivityFatigueCalculator();
         ActionExecutionService actionExecutionService = new ActionExecutionService(
-            activityTimeCalculator,
-            new ActionEffectExecutor(),
-            activityFatigueCalculator);
-        ActionDurationEstimateMapper durationEstimateMapper =
-            new ActionDurationEstimateMapper(activityTimeCalculator);
+            activityTimeCalculator, new ActionEffectExecutor(), activityFatigueCalculator);
+        ActionDurationEstimateMapper durationEstimateMapper = new ActionDurationEstimateMapper(activityTimeCalculator);
         AvailableInteractionQuery availableInteractionQuery = new AvailableInteractionQuery();
         ActionChoiceMapper actionChoiceMapper = new ActionChoiceMapper(durationEstimateMapper);
-        CombatService combatService = new CombatService(player, goblin, content.GetCombatActionsForCharacter(playerData.Id));
+
+        CombatantDefinition[] encounterCombatants =
+        {
+            new CombatantDefinition(
+                player,
+                CombatantSide.Party,
+                content.GetCombatActionsForCharacter(playerData.Id)),
+            new CombatantDefinition(
+                goblin,
+                CombatantSide.Enemy,
+                content.GetCombatActionsForCharacter(goblinData.Id))
+        };
+        CombatService combatService = new CombatService(encounterCombatants);
         CombatPresentationMapper combatPresentationMapper = new CombatPresentationMapper();
         LocationEventService locationEventService = new LocationEventService();
 
         _gameModeController = new GameModeController(storyPanel, combatPanel);
         CombatSessionService combatSessionService = new CombatSessionService(
-            player,
-            combatService,
-            gameClock,
-            activityTimeCalculator,
-            activityFatigueCalculator,
-            actionExecutionService,
-            content.CombatEncounter);
-        _combatController = new CombatFlowController(
-            storyPanel,
+            player, combatService, gameClock, activityTimeCalculator,
+            activityFatigueCalculator, actionExecutionService, content.CombatEncounter);
+        CombatPresentationOrchestrator combatPresentation = new CombatPresentationOrchestrator(
+            _gameModeController,
+            _sidebar,
             combatPanel,
             characterPanel,
-            _gameModeController,
-            player,
-            combatSessionService,
-            combatPresentationMapper);
-        _explorationController = new ExplorationFlowController(
+            combatPresentationMapper,
+            combatService.PartyMembers);
+        _combatController = new CombatFlowController(
             storyPanel,
-            characterPanel,
-            _gameModeController,
-            player,
-            playerData.PlayerActions,
-            content.Locations,
-            content.GetLocation,
-            content.Travel,
-            gameClock,
-            actionExecutionService,
-            availableInteractionQuery,
-            actionChoiceMapper,
-            locationEventService,
-            _combatController.StartGoblinEncounter);
+            combatPresentation,
+            combatSessionService);
+        _explorationController = new ExplorationFlowController(
+            storyPanel, characterPanel, _gameModeController, player,
+            playerData.PlayerActions, content.Locations, content.GetLocation,
+            content.Travel, gameClock, actionExecutionService, availableInteractionQuery,
+            actionChoiceMapper, locationEventService, _combatController.StartGoblinEncounter);
 
         _sidebar.TabSelected += OpenTab;
+        _sidebar.DebugGoblinEncounterRequested += StartDebugGoblinEncounter;
         storyPanel.ChoiceSelected += _explorationController.HandleChoice;
         storyPanel.ReturnToLocationRequested += _explorationController.ShowLocation;
         combatPanel.ActionSelected += _combatController.HandleCombatAction;
         combatPanel.ContinueRequested += ReturnToExploration;
-
         characterPanel.SetCharacter(new CharacterViewModel(player));
         _explorationController.ShowLocation();
+    }
+
+    public override void _Process(double delta)
+    {
+        _combatController?.AdvanceCombatTime(delta);
     }
 
     private void OpenTab(string tab)
     {
         if (_gameModeController.IsCombatMode) return;
         _explorationController.ShowPage(tab);
+    }
+
+    private void StartDebugGoblinEncounter()
+    {
+        if (_explorationController == null || _debugGoblinEncounterAction == null)
+        {
+            return;
+        }
+
+        _explorationController.StartDebugGoblinEncounter(_debugGoblinEncounterAction);
+    }
+
+    private static ActionDefinition FindAction(ActionDefinition[] actions, string actionId)
+    {
+        foreach (ActionDefinition action in actions)
+        {
+            if (action.Id == actionId)
+            {
+                return action;
+            }
+        }
+
+        return null;
     }
 
     private void ReturnToExploration()

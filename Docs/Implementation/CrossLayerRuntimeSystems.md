@@ -1,6 +1,6 @@
 # Cross-Layer Runtime Systems
 
-**Status:** Describes the current prototype on latest `main`  
+**Status:** Describes the current repository runtime behavior  
 **Boundary:** This document records implemented runtime behavior and the limits of the current model. Desired future behavior belongs in [Design](../Design/README.md).
 
 ## 1. Current prototype overview
@@ -34,7 +34,7 @@ Do not infer that the repository already contains a generalized NPC presence, ob
 
 The current prototype exposes Health, Fatigue, Stamina, Mood and Gold.
 
-- Health reaching zero means Dead; the current resource model has no Downed/revival state.
+- Outside Combat, zero Health prevents ordinary Character actions. During Combat, CombatService tracks Party members at zero Health as Downed, removes them from the Timeline and retains them in the Party roster for possible revival.
 - Fatigue is a cumulative daily-life exertion value. It does not currently cause unconsciousness or block ordinary actions.
 - Stamina is a separate Combat resource used by defensive actions. Insufficient Stamina rejects the requested action; it does not end Combat.
 - Mood is a tracked character value; current effects may change it, but it is not the future party progression system.
@@ -66,15 +66,20 @@ Do not treat the current event selection rules as a finalized world-event schedu
 
 ## 6. Current Combat implementation
 
-The current integrated Combat prototype is a deterministic single-Goblin encounter. Its supported actions include Attack, Defend, Dodge and Catch Breath. It uses the existing player resource model and returns to the same Exploration Location after resolution.
+Combat now uses a shared Continuous Timeline driven in real time at 1.0x. `MainController._Process(delta)` forwards each Godot frame delta through `CombatFlowController` and `CombatSessionService` to `CombatService.AdvanceCombatTime`. The service advances all eligible combatants together, clamps each frame step at the next Ready or Stun-expiry event, resolves one Ready Enemy at a time, and stops immediately when a Party member becomes Ready. Time does not advance while the player chooses an action. After an action resolves, its Recovery Cost is applied and the next frame resumes the shared clock. Every party member is player-controlled. Enemy actions are selected from the actions authored for that enemy.
+
+Each combatant has Remaining Progress and Speed. At encounter start, CombatService calculates one Progress Scale from the slowest active Base Speed and the largest Recovery Cost in the active roster. The current target is a maximum 4-second recovery for the slowest combatant. CombatTimeline applies that same scale to Initial Progress, Recovery Cost and Delay; Stun durations remain unscaled Combat Time. This keeps quick and heavy actions proportionate while shortening idle gaps. An action applies its scaled Recovery Cost as the actor's next Remaining Progress. The simulation supports Delay and Stun through the combat effect resolver/dispatcher. Stun preserves progress while freezing the target; its duration is measured in Combat Time.
+
+The presentation pipeline maps combat timing into `TimelineMarkerViewData.TimeToReadySeconds`. For normal combatants this is `RemainingProgress / Speed`; for Stunned combatants it also includes the remaining Stun duration. `TimelineTrack.tscn` displays the next 10 seconds by default, with NOW at the left and the future horizon at the right. The Timeline is refreshed from the current snapshot each runtime frame, so marker movement matches the 1.0x Combat Clock without a lagging fixed-duration Tween. Party markers occupy the upper side of the rail and Enemy markers the lower side; overlapping markers stack within their own side without changing their horizontal time. It creates and reuses `TimelineMarker.tscn` instances by combatant ID. Hidden enemies are filtered from the UI but remain registered in the simulation.
 
 Current limitations:
-- One player-controlled Character and one deterministic Goblin, not a four-member party.
-- No visible action Timeline or action-time manipulation.
-- No general Delay, Stun, Interrupt, Downed/revival or party-synergy system.
-- No advanced enemy AI, broad skill system, equipment progression or multiple enemy archetypes.
+- The service and roster tests support a four-member Party, but the playable `MainController` encounter is still wired with Ari and one Goblin.
+- Current Timeline markers use faction-colored circles. The marker scene has an icon slot, but no combatant portrait textures are currently supplied.
+- A Party member reaching zero HP enters Downed, remains visible in the Party roster and leaves the Timeline. Any active ally can spend 4 Stamina to revive that member once per encounter at 25% maximum HP (rounded up). The revived member and the reviving actor both receive the largest authored Recovery Cost in the encounter; the revived member is re-registered on the Timeline. If every Party member is Downed, the encounter ends in defeat. Enemies at zero HP are defeated rather than Downed.
+- Speed modifiers, Acceleration, Interrupt, casting/channeling and Cooldowns are not implemented.
+- Enemy behavior remains limited to the currently authored Goblin actions; distinct enemy behavior archetypes and multi-enemy playable encounters remain incomplete.
 
-The intended future rules are defined only in [Design/Combat](../Design/Combat.md). Do not extend this prototype by assuming the target design has already been implemented.
+The intended rules and open decisions are defined in [Design/Combat](../Design/Combat.md). Do not treat numeric balance or explicitly open design decisions as finalized implementation contracts.
 
 ## 7. Content and identity constraints
 

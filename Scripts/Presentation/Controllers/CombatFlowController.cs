@@ -3,32 +3,28 @@ using System;
 public sealed class CombatFlowController
 {
     private readonly StoryPanel _storyPanel;
-    private readonly CombatPanel _combatPanel;
-    private readonly CharacterPanel _characterPanel;
-    private readonly GameModeController _gameModeController;
-    private readonly Character _player;
+    private readonly CombatPresentationOrchestrator _presentation;
     private readonly CombatSessionService _combatSession;
-    private readonly CombatPresentationMapper _combatMapper;
 
     public CombatFlowController(
         StoryPanel storyPanel,
-        CombatPanel combatPanel,
-        CharacterPanel characterPanel,
-        GameModeController gameModeController,
-        Character player,
-        CombatSessionService combatSession,
-        CombatPresentationMapper combatMapper)
+        CombatPresentationOrchestrator presentation,
+        CombatSessionService combatSession)
     {
         _storyPanel = storyPanel ?? throw new ArgumentNullException(nameof(storyPanel));
-        _combatPanel = combatPanel ?? throw new ArgumentNullException(nameof(combatPanel));
-        _characterPanel = characterPanel ?? throw new ArgumentNullException(nameof(characterPanel));
-        _gameModeController = gameModeController ?? throw new ArgumentNullException(nameof(gameModeController));
-        _player = player ?? throw new ArgumentNullException(nameof(player));
+        _presentation = presentation ?? throw new ArgumentNullException(nameof(presentation));
         _combatSession = combatSession ?? throw new ArgumentNullException(nameof(combatSession));
-        _combatMapper = combatMapper ?? throw new ArgumentNullException(nameof(combatMapper));
     }
 
     public bool StartGoblinEncounter(ActionDefinition action)
+    {
+        return StartEncounter(
+            action,
+            "Goblin Ambush",
+            "A goblin jumps out from the bushes and blocks your way.");
+    }
+
+    public bool StartEncounter(ActionDefinition action, string title, string openingMessage)
     {
         if (!_combatSession.TryStartEncounter(action, out string failureReason))
         {
@@ -36,18 +32,37 @@ public sealed class CombatFlowController
             return false;
         }
 
-        _characterPanel.SetCharacter(new CharacterViewModel(_player));
-        _gameModeController.ShowCombat();
-        _combatPanel.BeginEncounter("Goblin Ambush");
-        _combatPanel.AppendMessage(new CombatMessage(
-            "goblin-encounter-start",
-            1,
-            CombatMessageType.System,
-            CombatMessageCategory.Environment,
-            "SYSTEM",
-            "A goblin jumps out from the bushes and blocks your way."));
-        _combatPanel.ApplyViewData(_combatMapper.Map(_combatSession.GetSnapshot()));
+        CombatSnapshot snapshot = _combatSession.GetSnapshot();
+        _presentation.BeginEncounter(title, snapshot, openingMessage);
         return true;
+    }
+
+    public void AdvanceCombatTime(double elapsedCombatTime)
+    {
+        if (_combatSession.IsEncounterOver || _combatSession.IsAwaitingPlayerDecision)
+        {
+            return;
+        }
+
+        CombatResult result = _combatSession.AdvanceCombatTime(elapsedCombatTime);
+        if (result == null)
+        {
+            return;
+        }
+
+        if (result.Events.Length > 0 || !string.IsNullOrWhiteSpace(result.Snapshot.ActiveCombatantId))
+        {
+            _presentation.Present(result);
+        }
+        else
+        {
+            _presentation.UpdateTimeline(result.Snapshot);
+        }
+
+        if (_combatSession.IsEncounterOver)
+        {
+            _presentation.CompleteEncounter(_combatSession.IsVictory);
+        }
     }
 
     public void HandleCombatAction(CombatActionRequest request)
@@ -63,16 +78,12 @@ public sealed class CombatFlowController
             return;
         }
 
-        _combatPanel.ApplyViewData(_combatMapper.Map(result));
-        _characterPanel.SetCharacter(new CharacterViewModel(_player));
+        _presentation.Present(result);
 
-        if (!_combatSession.IsEncounterOver)
+        if (_combatSession.IsEncounterOver)
         {
-            return;
+            _presentation.CompleteEncounter(_combatSession.IsVictory);
         }
-
-        _characterPanel.SetCharacter(new CharacterViewModel(_player));
-        _combatPanel.ShowEncounterComplete(_combatSession.IsVictory ? "VICTORY" : "DEFEAT");
     }
 
     public void ReturnToExploration(Action showLocation)
@@ -82,8 +93,7 @@ public sealed class CombatFlowController
             throw new ArgumentNullException(nameof(showLocation));
         }
 
-        _gameModeController.ShowExploration();
-        _characterPanel.SetCharacter(new CharacterViewModel(_player));
+        _presentation.EndEncounter();
         showLocation();
 
         if (_combatSession.TryConsumeTimeAdvance(

@@ -18,6 +18,7 @@ public sealed class CombatSessionService
 
     public bool IsEncounterOver => !_encounterStarted || _combatService.IsEncounterOver;
     public bool IsVictory => _combatService.IsVictory;
+    public bool IsAwaitingPlayerDecision => _combatService.IsAwaitingPlayerDecision;
 
     public CombatSessionService(
         Character player,
@@ -89,6 +90,23 @@ public sealed class CombatSessionService
         }
 
         CombatResult result = _combatService.ExecuteAction(request);
+
+        if (_combatService.IsEncounterOver && !_encounterCompleted)
+        {
+            CompleteEncounter();
+        }
+
+        return result;
+    }
+
+    public CombatResult AdvanceCombatTime(double elapsedCombatTime)
+    {
+        if (!_encounterStarted || _encounterCompleted)
+        {
+            return null;
+        }
+
+        CombatResult result = _combatService.AdvanceCombatTime(elapsedCombatTime);
 
         if (_combatService.IsEncounterOver && !_encounterCompleted)
         {

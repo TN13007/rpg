@@ -4,31 +4,25 @@ public sealed class CombatPresentationMapper
 {
     public CombatViewData Map(CombatSnapshot snapshot)
     {
-        if (snapshot == null)
-        {
-            throw new ArgumentNullException(nameof(snapshot));
-        }
-
+        if (snapshot == null) throw new ArgumentNullException(nameof(snapshot));
         return new CombatViewData(
             snapshot.Round,
             snapshot.ActiveTurnLabel,
             snapshot.Enemies,
             snapshot.Intent,
             snapshot.AvailableActions,
-            Array.Empty<CombatMessage>());
+            Array.Empty<CombatMessage>(),
+            MapTimeline(snapshot.Timeline),
+            snapshot.Party,
+            snapshot.ActiveCombatantId);
     }
 
     public CombatViewData Map(CombatResult result)
     {
-        if (result == null)
-        {
-            throw new ArgumentNullException(nameof(result));
-        }
-
+        if (result == null) throw new ArgumentNullException(nameof(result));
         CombatSnapshot snapshot = result.Snapshot;
         int extraMessageCount = result.Success || string.IsNullOrWhiteSpace(result.FailureReason) ? 0 : 1;
         CombatMessage[] messages = new CombatMessage[result.Events.Length + extraMessageCount];
-
         for (int i = 0; i < result.Events.Length; i++)
         {
             messages[i] = MapEvent(result.Events[i]);
@@ -45,7 +39,45 @@ public sealed class CombatPresentationMapper
                 result.FailureReason);
         }
 
-        return new CombatViewData(snapshot.Round, snapshot.ActiveTurnLabel, snapshot.Enemies, snapshot.Intent, snapshot.AvailableActions, messages);
+        return new CombatViewData(
+            snapshot.Round,
+            snapshot.ActiveTurnLabel,
+            snapshot.Enemies,
+            snapshot.Intent,
+            snapshot.AvailableActions,
+            messages,
+            MapTimeline(snapshot.Timeline),
+            snapshot.Party,
+            snapshot.ActiveCombatantId);
+    }
+
+    private static TimelineMarkerViewData[] MapTimeline(TimelineCombatantStatus[] entries)
+    {
+        if (entries == null || entries.Length == 0)
+        {
+            return Array.Empty<TimelineMarkerViewData>();
+        }
+
+        TimelineMarkerViewData[] mapped = new TimelineMarkerViewData[entries.Length];
+        for (int index = 0; index < entries.Length; index++)
+        {
+            TimelineCombatantStatus entry = entries[index];
+            double timeToReady = entry.RemainingStunTime +
+                entry.RemainingProgress / entry.Speed;
+
+            mapped[index] = new TimelineMarkerViewData(
+                entry.Id,
+                entry.Name,
+                entry.IsEnemy,
+                entry.IsPrimaryPartyMember,
+                entry.IsVisible,
+                entry.IsReady,
+                entry.IsStunned,
+                entry.Luck,
+                timeToReady);
+        }
+
+        return mapped;
     }
 
     private CombatMessage MapEvent(CombatEvent combatEvent)
@@ -59,11 +91,21 @@ public sealed class CombatPresentationMapper
         {
             case CombatEventType.PlayerAction:
                 type = CombatMessageType.Player;
-                speaker = "YOU";
+                speaker = string.IsNullOrWhiteSpace(combatEvent.ActorName)
+                    ? "PARTY"
+                    : combatEvent.ActorName.ToUpperInvariant();
+                if (!string.IsNullOrWhiteSpace(combatEvent.TargetName))
+                {
+                    text = combatEvent.Detail + " (Target: " + combatEvent.TargetName + ")";
+                }
                 break;
             case CombatEventType.EnemyAction:
                 type = CombatMessageType.Enemy;
                 speaker = combatEvent.ActorName;
+                if (!string.IsNullOrWhiteSpace(combatEvent.TargetName))
+                {
+                    text = combatEvent.Detail + " (Target: " + combatEvent.TargetName + ")";
+                }
                 break;
             case CombatEventType.Damage:
                 category = CombatMessageCategory.Damage;
@@ -92,6 +134,12 @@ public sealed class CombatPresentationMapper
                 break;
         }
 
-        return new CombatMessage(combatEvent.Id, combatEvent.Round, type, category, speaker, text);
+        return new CombatMessage(
+            combatEvent.Id,
+            combatEvent.Round,
+            type,
+            category,
+            speaker,
+            text);
     }
 }

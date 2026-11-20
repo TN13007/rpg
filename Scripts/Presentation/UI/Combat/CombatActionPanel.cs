@@ -4,7 +4,6 @@ using Godot;
 public partial class CombatActionPanel : PanelContainer
 {
     public event Action<CombatActionRequest> ActionSelected;
-
     private GridContainer _actionGrid;
 
     public override void _Ready()
@@ -16,7 +15,6 @@ public partial class CombatActionPanel : PanelContainer
     public void SetActions(CombatActionOption[] actions)
     {
         ClearChildren();
-
         if (actions == null || actions.Length == 0)
         {
             Label emptyLabel = new Label { Text = "No actions available." };
@@ -24,11 +22,7 @@ public partial class CombatActionPanel : PanelContainer
             _actionGrid.AddChild(emptyLabel);
             return;
         }
-
-        foreach (CombatActionOption action in actions)
-        {
-            _actionGrid.AddChild(CreateActionButton(action));
-        }
+        foreach (CombatActionOption action in actions) _actionGrid.AddChild(CreateActionButton(action));
     }
 
     private CombatActionButton CreateActionButton(CombatActionOption action)
@@ -36,12 +30,10 @@ public partial class CombatActionPanel : PanelContainer
         string cost = string.IsNullOrWhiteSpace(action.CostLabel) ? string.Empty : "  ·  " + action.CostLabel;
         string detail = string.IsNullOrWhiteSpace(action.Description) ? string.Empty : "\n" + action.Description;
         string unavailableReason = action.IsAvailable || string.IsNullOrWhiteSpace(action.UnavailableReason)
-            ? string.Empty
-            : "\n" + action.UnavailableReason;
-
+            ? string.Empty : "\n" + action.UnavailableReason;
         CombatActionButton button = new CombatActionButton
         {
-            Request = new CombatActionRequest(action.Id, action.TargetId),
+            Request = new CombatActionRequest(action.Id, action.TargetId, action.ActorId),
             Text = action.Label + cost + detail + unavailableReason,
             TooltipText = action.UnavailableReason,
             CustomMinimumSize = new Vector2(0, 62),
@@ -49,16 +41,12 @@ public partial class CombatActionPanel : PanelContainer
             Alignment = HorizontalAlignment.Left,
             FocusMode = FocusModeEnum.All
         };
-
         UiTheme.StyleButton(button);
         button.ActionSelected += HandleActionSelected;
         return button;
     }
 
-    private void HandleActionSelected(CombatActionRequest request)
-    {
-        ActionSelected?.Invoke(request);
-    }
+    private void HandleActionSelected(CombatActionRequest request) { ActionSelected?.Invoke(request); }
 
     private void ClearChildren()
     {

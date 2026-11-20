@@ -38,6 +38,27 @@ text = "ADVENTURER ACADEMY"
 [node name="Separator" type="HSeparator" parent="Margin/Content"]
 layout_mode = 2
 
+[node name="Enemies" type="VBoxContainer" parent="Margin/Content"]
+visible = false
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 7
+
+[node name="EnemyTitle" type="Label" parent="Margin/Content/Enemies"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+theme_override_colors/font_color = Color(0.776, 0.647, 0.416, 1)
+text = "ENEMIES"
+
+[node name="EnemyScroll" type="ScrollContainer" parent="Margin/Content/Enemies"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="EnemyList" type="VBoxContainer" parent="Margin/Content/Enemies/EnemyScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 7
+
 [node name="Character" type="VBoxContainer" parent="Margin/Content"]
 layout_mode = 2
 theme_override_constants/separation = 5
@@ -102,6 +123,21 @@ text = "SYSTEM"
 layout_mode = 2
 text = "Settings"
 script = ExtResource("2")
+
+[node name="Debug" type="VBoxContainer" parent="Margin/Content"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="DebugTitle" type="Label" parent="Margin/Content/Debug"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+theme_override_colors/font_color = Color(0.776, 0.647, 0.416, 1)
+text = "DEBUG"
+
+[node name="ForceGoblinEncounter" type="Button" parent="Margin/Content/Debug"]
+layout_mode = 2
+text = "Force Goblin Encounter"
 
 [node name="Spacer" type="Control" parent="Margin/Content"]
 layout_mode = 2

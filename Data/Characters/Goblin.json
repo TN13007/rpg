@@ -11,5 +11,18 @@
   "startingFatigue": 0,
   "startingStamina": 0,
   "startingMood": 0,
-  "startingGold": 0
+  "startingGold": 0,
+  "stats": {
+    "strength": 12,
+    "agility": 8,
+    "intelligence": 3,
+    "endurance": 10,
+    "wisdom": 3,
+    "luck": 5
+  },
+  "combatActionIds": [
+    "goblin_quick_jab",
+    "goblin_heavy_swing",
+    "goblin_staggering_blow"
+  ]
 }
