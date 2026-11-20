@@ -5,6 +5,8 @@ public partial class CharacterPanel : PanelContainer
     private Label _name;
     private Label _role;
     private Label _level;
+    private Label _attributesPrimary;
+    private Label _attributesSecondary;
     private Label _healthValue;
     private Label _fatigueValue;
     private Label _staminaValue;
@@ -21,6 +23,8 @@ public partial class CharacterPanel : PanelContainer
         _name = GetNode<Label>("Margin/Content/Name");
         _role = GetNode<Label>("Margin/Content/Role");
         _level = GetNode<Label>("Margin/Content/Level");
+        _attributesPrimary = GetNode<Label>("Margin/Content/AttributesPrimary");
+        _attributesSecondary = GetNode<Label>("Margin/Content/AttributesSecondary");
         _healthValue = GetNode<Label>("Margin/Content/HealthHeader/HealthValue");
         _fatigueValue = GetNode<Label>("Margin/Content/FatigueHeader/FatigueValue");
         _staminaValue = GetNode<Label>("Margin/Content/StaminaHeader/StaminaValue");
@@ -43,6 +47,13 @@ public partial class CharacterPanel : PanelContainer
         _name.Text = character.Name;
         _role.Text = character.Role;
         _level.Text = "LEVEL " + character.Level;
+        _attributesPrimary.Text =
+            "STR " + character.Stats.Strength +
+            "   AGI " + character.Stats.Agility +
+            "   INT " + character.Stats.Intelligence;
+        _attributesSecondary.Text =
+            "END " + character.Stats.Endurance +
+            "   WIS " + character.Stats.Wisdom;
         _healthValue.Text = character.Health + " / " + character.MaxHealth;
         _fatigueValue.Text = character.Fatigue.ToString("0.0") + " / " + character.MaxFatigue.ToString("0");
         _staminaValue.Text = character.Stamina + " / " + character.MaxStamina;
