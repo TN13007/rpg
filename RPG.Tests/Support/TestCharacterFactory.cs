@@ -14,13 +14,14 @@ internal static class TestCharacterFactory
         int maxStamina = 10,
         int maxMood = 100,
         int agility = 30,
-        int intelligence = 25)
+        int intelligence = 25,
+        int luck = 15)
     {
         CharacterData data = new CharacterData(
             "test-player", "Test Player", "Test", 1,
             maxHealth, maxFatigue, maxStamina, maxMood,
             health, fatigue, stamina, mood, gold,
-            new CharacterStats(20, agility, intelligence, 20, 20));
+            new CharacterStats(20, agility, intelligence, 20, 20, luck));
         return new Character(data);
     }
 
