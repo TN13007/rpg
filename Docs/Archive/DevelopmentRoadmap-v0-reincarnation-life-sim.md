@@ -1,4 +1,6 @@
-> **Historical delivery roadmap — superseded.** This plan belongs to the earlier reincarnation life-simulation-first product direction. Current player-facing direction is in [Design/Roadmap](../Design/Roadmap.md). Current implementation status is in [WORKFLOW.md](../../WORKFLOW.md). Retained for traceability to earlier Issues and planning decisions.# Development Roadmap — Adventurer Academy: Reincarnation RPG
+> **Historical delivery roadmap — superseded.** This plan belongs to the earlier reincarnation life-simulation-first product direction. Current player-facing direction is in [Design/Roadmap](../Design/Roadmap.md). Current implementation status is in [WORKFLOW.md](../../WORKFLOW.md). Retained for traceability to earlier Issues and planning decisions.
+
+# Development Roadmap — Adventurer Academy: Reincarnation RPG
 
 **Project:** TN13007/rpg  
 **Engine:** Godot 4.7.2 .NET / C#  
