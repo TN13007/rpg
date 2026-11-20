@@ -69,8 +69,9 @@ public sealed class EnemyCombatStatus
     public int CurrentHealth { get; }
     public int MaxHealth { get; }
     public string Condition { get; }
+    public bool IsVisible { get; }
 
-    public EnemyCombatStatus(string id, string name, int currentHealth, int maxHealth, string condition)
+    public EnemyCombatStatus(string id, string name, int currentHealth, int maxHealth, string condition, bool isVisible = true)
     {
         if (maxHealth < 1) throw new ArgumentOutOfRangeException(nameof(maxHealth));
         if (currentHealth < 0 || currentHealth > maxHealth) throw new ArgumentOutOfRangeException(nameof(currentHealth));
@@ -79,6 +80,29 @@ public sealed class EnemyCombatStatus
         CurrentHealth = currentHealth;
         MaxHealth = maxHealth;
         Condition = condition ?? string.Empty;
+        IsVisible = isVisible;
+    }
+}
+
+public sealed class PartyCombatStatus
+{
+    public string Id { get; }
+    public string Name { get; }
+    public int CurrentHealth { get; }
+    public int MaxHealth { get; }
+    public string Condition { get; }
+    public bool IsActive { get; }
+
+    public PartyCombatStatus(string id, string name, int currentHealth, int maxHealth, string condition, bool isActive)
+    {
+        if (maxHealth < 1) throw new ArgumentOutOfRangeException(nameof(maxHealth));
+        if (currentHealth < 0 || currentHealth > maxHealth) throw new ArgumentOutOfRangeException(nameof(currentHealth));
+        Id = id ?? string.Empty;
+        Name = name ?? string.Empty;
+        CurrentHealth = currentHealth;
+        MaxHealth = maxHealth;
+        Condition = condition ?? string.Empty;
+        IsActive = isActive;
     }
 }
 
@@ -92,8 +116,18 @@ public sealed class TimelineCombatantStatus
     public int Luck { get; }
     public bool IsReady { get; }
     public bool IsStunned { get; }
+    public bool IsVisible { get; }
 
-    public TimelineCombatantStatus(string id, string name, bool isEnemy, double remainingProgress, double speed, int luck, bool isReady, bool isStunned)
+    public TimelineCombatantStatus(
+        string id,
+        string name,
+        bool isEnemy,
+        double remainingProgress,
+        double speed,
+        int luck,
+        bool isReady,
+        bool isStunned,
+        bool isVisible = true)
     {
         Id = id ?? string.Empty;
         Name = name ?? string.Empty;
@@ -103,6 +137,7 @@ public sealed class TimelineCombatantStatus
         Luck = luck;
         IsReady = isReady;
         IsStunned = isStunned;
+        IsVisible = isVisible;
     }
 }
 
@@ -151,18 +186,30 @@ public sealed class CombatSnapshot
     public int Round { get; }
     public string ActiveTurnLabel { get; }
     public EnemyCombatStatus[] Enemies { get; }
+    public PartyCombatStatus[] Party { get; }
     public IntentObservation Intent { get; }
     public CombatActionOption[] AvailableActions { get; }
     public TimelineCombatantStatus[] Timeline { get; }
+    public string ActiveCombatantId { get; }
 
-    public CombatSnapshot(int round, string activeTurnLabel, EnemyCombatStatus[] enemies, IntentObservation intent, CombatActionOption[] availableActions, TimelineCombatantStatus[] timeline = null)
+    public CombatSnapshot(
+        int round,
+        string activeTurnLabel,
+        EnemyCombatStatus[] enemies,
+        IntentObservation intent,
+        CombatActionOption[] availableActions,
+        TimelineCombatantStatus[] timeline = null,
+        PartyCombatStatus[] party = null,
+        string activeCombatantId = "")
     {
         Round = round;
         ActiveTurnLabel = activeTurnLabel ?? string.Empty;
         Enemies = enemies ?? Array.Empty<EnemyCombatStatus>();
+        Party = party ?? Array.Empty<PartyCombatStatus>();
         Intent = intent;
         AvailableActions = availableActions ?? Array.Empty<CombatActionOption>();
         Timeline = timeline ?? Array.Empty<TimelineCombatantStatus>();
+        ActiveCombatantId = activeCombatantId ?? string.Empty;
     }
 }
 
@@ -195,19 +242,32 @@ public sealed class CombatViewData
     public int Round { get; }
     public string ActiveTurnLabel { get; }
     public EnemyCombatStatus[] Enemies { get; }
+    public PartyCombatStatus[] Party { get; }
     public IntentObservation Intent { get; }
     public CombatActionOption[] AvailableActions { get; }
     public CombatMessage[] NewMessages { get; }
     public TimelineCombatantStatus[] Timeline { get; }
+    public string ActiveCombatantId { get; }
 
-    public CombatViewData(int round, string activeTurnLabel, EnemyCombatStatus[] enemies, IntentObservation intent, CombatActionOption[] availableActions, CombatMessage[] newMessages, TimelineCombatantStatus[] timeline = null)
+    public CombatViewData(
+        int round,
+        string activeTurnLabel,
+        EnemyCombatStatus[] enemies,
+        IntentObservation intent,
+        CombatActionOption[] availableActions,
+        CombatMessage[] newMessages,
+        TimelineCombatantStatus[] timeline = null,
+        PartyCombatStatus[] party = null,
+        string activeCombatantId = "")
     {
         Round = round;
         ActiveTurnLabel = activeTurnLabel ?? string.Empty;
         Enemies = enemies ?? Array.Empty<EnemyCombatStatus>();
+        Party = party ?? Array.Empty<PartyCombatStatus>();
         Intent = intent;
         AvailableActions = availableActions ?? Array.Empty<CombatActionOption>();
         NewMessages = newMessages ?? Array.Empty<CombatMessage>();
         Timeline = timeline ?? Array.Empty<TimelineCombatantStatus>();
+        ActiveCombatantId = activeCombatantId ?? string.Empty;
     }
 }

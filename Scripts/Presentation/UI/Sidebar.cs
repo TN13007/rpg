@@ -62,7 +62,22 @@ public partial class Sidebar : PanelContainer
 
         ClearChildren(_enemyList);
 
-        if (enemies == null || enemies.Length == 0)
+        int visibleCount = 0;
+        if (enemies != null)
+        {
+            foreach (EnemyCombatStatus enemy in enemies)
+            {
+                if (!enemy.IsVisible)
+                {
+                    continue;
+                }
+
+                _enemyList.AddChild(CreateEnemyCard(enemy));
+                visibleCount++;
+            }
+        }
+
+        if (visibleCount == 0)
         {
             Label emptyLabel = new Label
             {
@@ -72,12 +87,6 @@ public partial class Sidebar : PanelContainer
             emptyLabel.AddThemeFontSizeOverride("font_size", 11);
             emptyLabel.AddThemeColorOverride("font_color", UiTheme.Muted);
             _enemyList.AddChild(emptyLabel);
-            return;
-        }
-
-        foreach (EnemyCombatStatus enemy in enemies)
-        {
-            _enemyList.AddChild(CreateEnemyCard(enemy));
         }
     }
 

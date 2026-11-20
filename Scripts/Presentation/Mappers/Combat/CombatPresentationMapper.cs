@@ -5,8 +5,16 @@ public sealed class CombatPresentationMapper
     public CombatViewData Map(CombatSnapshot snapshot)
     {
         if (snapshot == null) throw new ArgumentNullException(nameof(snapshot));
-        return new CombatViewData(snapshot.Round, snapshot.ActiveTurnLabel, snapshot.Enemies,
-            snapshot.Intent, snapshot.AvailableActions, Array.Empty<CombatMessage>(), snapshot.Timeline);
+        return new CombatViewData(
+            snapshot.Round,
+            snapshot.ActiveTurnLabel,
+            snapshot.Enemies,
+            snapshot.Intent,
+            snapshot.AvailableActions,
+            Array.Empty<CombatMessage>(),
+            snapshot.Timeline,
+            snapshot.Party,
+            snapshot.ActiveCombatantId);
     }
 
     public CombatViewData Map(CombatResult result)
@@ -15,14 +23,32 @@ public sealed class CombatPresentationMapper
         CombatSnapshot snapshot = result.Snapshot;
         int extraMessageCount = result.Success || string.IsNullOrWhiteSpace(result.FailureReason) ? 0 : 1;
         CombatMessage[] messages = new CombatMessage[result.Events.Length + extraMessageCount];
-        for (int i = 0; i < result.Events.Length; i++) messages[i] = MapEvent(result.Events[i]);
+        for (int i = 0; i < result.Events.Length; i++)
+        {
+            messages[i] = MapEvent(result.Events[i]);
+        }
+
         if (extraMessageCount == 1)
         {
-            messages[messages.Length - 1] = new CombatMessage(Guid.NewGuid().ToString("N"), snapshot.Round,
-                CombatMessageType.System, CombatMessageCategory.StatusChange, "SYSTEM", result.FailureReason);
+            messages[messages.Length - 1] = new CombatMessage(
+                Guid.NewGuid().ToString("N"),
+                snapshot.Round,
+                CombatMessageType.System,
+                CombatMessageCategory.StatusChange,
+                "SYSTEM",
+                result.FailureReason);
         }
-        return new CombatViewData(snapshot.Round, snapshot.ActiveTurnLabel, snapshot.Enemies,
-            snapshot.Intent, snapshot.AvailableActions, messages, snapshot.Timeline);
+
+        return new CombatViewData(
+            snapshot.Round,
+            snapshot.ActiveTurnLabel,
+            snapshot.Enemies,
+            snapshot.Intent,
+            snapshot.AvailableActions,
+            messages,
+            snapshot.Timeline,
+            snapshot.Party,
+            snapshot.ActiveCombatantId);
     }
 
     private CombatMessage MapEvent(CombatEvent combatEvent)
@@ -31,15 +57,26 @@ public sealed class CombatPresentationMapper
         CombatMessageCategory category = CombatMessageCategory.None;
         string speaker = "SYSTEM";
         string text = combatEvent.Detail;
+
         switch (combatEvent.Type)
         {
             case CombatEventType.PlayerAction:
                 type = CombatMessageType.Player;
-                speaker = string.IsNullOrWhiteSpace(combatEvent.ActorName) ? "YOU" : combatEvent.ActorName.ToUpperInvariant();
+                speaker = string.IsNullOrWhiteSpace(combatEvent.ActorName)
+                    ? "PARTY"
+                    : combatEvent.ActorName.ToUpperInvariant();
+                if (!string.IsNullOrWhiteSpace(combatEvent.TargetName))
+                {
+                    text = combatEvent.Detail + " (Target: " + combatEvent.TargetName + ")";
+                }
                 break;
             case CombatEventType.EnemyAction:
                 type = CombatMessageType.Enemy;
                 speaker = combatEvent.ActorName;
+                if (!string.IsNullOrWhiteSpace(combatEvent.TargetName))
+                {
+                    text = combatEvent.Detail + " (Target: " + combatEvent.TargetName + ")";
+                }
                 break;
             case CombatEventType.Damage:
                 category = CombatMessageCategory.Damage;
@@ -67,6 +104,13 @@ public sealed class CombatPresentationMapper
                 category = CombatMessageCategory.Round;
                 break;
         }
-        return new CombatMessage(combatEvent.Id, combatEvent.Round, type, category, speaker, text);
+
+        return new CombatMessage(
+            combatEvent.Id,
+            combatEvent.Round,
+            type,
+            category,
+            speaker,
+            text);
     }
 }

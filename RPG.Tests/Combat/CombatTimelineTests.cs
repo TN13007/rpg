@@ -107,6 +107,19 @@ public sealed class CombatTimelineTests
     }
 
     [Fact]
+    public void RemovingDefeatedCombatantRemovesItFromFutureTimelineEvents()
+    {
+        CombatTimeline timeline = new CombatTimeline();
+        timeline.AddCombatant("party", 10, 2, 10);
+        timeline.AddCombatant("enemy", 5, 1, 10);
+
+        Assert.True(timeline.RemoveCombatant("enemy"));
+        Assert.False(timeline.ContainsCombatant("enemy"));
+        Assert.True(timeline.AdvanceToNextEvent());
+        Assert.Equal("party", timeline.GetNextReadyCombatantId());
+    }
+
+    [Fact]
     public void InvalidSpeedProgressAndRecoveryAreRejected()
     {
         CombatTimeline timeline = new CombatTimeline();

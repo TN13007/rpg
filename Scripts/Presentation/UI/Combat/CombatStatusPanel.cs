@@ -76,26 +76,13 @@ public partial class CombatStatusPanel : PanelContainer
         const float railY = 143.0f;
         float railWidth = width - left - rightMargin;
 
-        AddRectangle(
-            _timelineTrack,
-            new Vector2(left, railY),
-            new Vector2(railWidth, 3.0f),
-            new Color("#566171"));
-
-        AddRectangle(
-            _timelineTrack,
-            new Vector2(left, railY - 5.0f),
-            new Vector2(2.0f, 13.0f),
-            UiTheme.Accent);
+        AddRectangle(_timelineTrack, new Vector2(left, railY), new Vector2(railWidth, 3.0f), new Color("#566171"));
+        AddRectangle(_timelineTrack, new Vector2(left, railY - 5.0f), new Vector2(2.0f, 13.0f), UiTheme.Accent);
 
         for (int tick = 0; tick <= (int)_timelineWindow; tick += 2)
         {
             float tickX = left + railWidth * tick / (float)_timelineWindow;
-            AddRectangle(
-                _timelineTrack,
-                new Vector2(tickX - 1.0f, railY - 4.0f),
-                new Vector2(2.0f, 11.0f),
-                new Color("#7b8795"));
+            AddRectangle(_timelineTrack, new Vector2(tickX - 1.0f, railY - 4.0f), new Vector2(2.0f, 11.0f), new Color("#7b8795"));
 
             Label tickLabel = new Label
             {
@@ -114,6 +101,11 @@ public partial class CombatStatusPanel : PanelContainer
 
         foreach (TimelineCombatantStatus entry in _timelineEntries)
         {
+            if (!entry.IsVisible)
+            {
+                continue;
+            }
+
             if (entry.IsStunned)
             {
                 stunnedNames.Add(entry.Name);

@@ -8,6 +8,7 @@ public partial class CombatPanel : PanelContainer
     private Label _encounterTitle;
     private Label _mode;
     private Button _continueButton;
+    private PartyRosterPanel _partyRosterPanel;
     private CombatStatusPanel _statusPanel;
     private CombatMessageLog _messageLog;
     private CombatActionPanel _actionPanel;
@@ -18,6 +19,7 @@ public partial class CombatPanel : PanelContainer
         _encounterTitle = GetNode<Label>("Margin/Content/Header/EncounterTitle");
         _mode = GetNode<Label>("Margin/Content/Header/Mode");
         _continueButton = GetNode<Button>("Margin/Content/ContinueButton");
+        _partyRosterPanel = GetNode<PartyRosterPanel>("Margin/Content/PartyRosterPanel");
         _statusPanel = GetNode<CombatStatusPanel>("Margin/Content/CombatStatusPanel");
         _messageLog = GetNode<CombatMessageLog>("Margin/Content/CombatMessageLog");
         _actionPanel = GetNode<CombatActionPanel>("Margin/Content/CombatActionPanel");
@@ -31,6 +33,7 @@ public partial class CombatPanel : PanelContainer
     public void BeginEncounter(string title)
     {
         _encounterTitle.Text = title;
+        _partyRosterPanel.SetMembers(Array.Empty<PartyCombatStatus>());
         _statusPanel.SetTurn(1, "PLAYER DECISION");
         _statusPanel.SetTimeline(Array.Empty<TimelineCombatantStatus>());
         _statusPanel.SetIntent(null);
@@ -41,15 +44,27 @@ public partial class CombatPanel : PanelContainer
 
     public void ApplyViewData(CombatViewData viewData)
     {
-        if (viewData == null) { GD.PushError("CombatPanel received null view data."); return; }
+        if (viewData == null)
+        {
+            GD.PushError("CombatPanel received null view data.");
+            return;
+        }
+
+        _partyRosterPanel.SetMembers(viewData.Party);
         _statusPanel.SetTurn(viewData.Round, viewData.ActiveTurnLabel);
         _statusPanel.SetTimeline(viewData.Timeline);
         _statusPanel.SetIntent(viewData.Intent);
         _actionPanel.SetActions(viewData.AvailableActions);
-        foreach (CombatMessage message in viewData.NewMessages) _messageLog.Append(message);
+        foreach (CombatMessage message in viewData.NewMessages)
+        {
+            _messageLog.Append(message);
+        }
     }
 
-    public void AppendMessage(CombatMessage message) { _messageLog.Append(message); }
+    public void AppendMessage(CombatMessage message)
+    {
+        _messageLog.Append(message);
+    }
 
     public void ShowEncounterComplete(string resultText)
     {
@@ -60,6 +75,13 @@ public partial class CombatPanel : PanelContainer
         _encounterTitle.Text = resultText;
     }
 
-    private void HandleActionSelected(CombatActionRequest request) { ActionSelected?.Invoke(request); }
-    private void HandleContinuePressed() { ContinueRequested?.Invoke(); }
+    private void HandleActionSelected(CombatActionRequest request)
+    {
+        ActionSelected?.Invoke(request);
+    }
+
+    private void HandleContinuePressed()
+    {
+        ContinueRequested?.Invoke();
+    }
 }

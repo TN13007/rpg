@@ -41,11 +41,19 @@ public partial class MainController : Control
         ActionDurationEstimateMapper durationEstimateMapper = new ActionDurationEstimateMapper(activityTimeCalculator);
         AvailableInteractionQuery availableInteractionQuery = new AvailableInteractionQuery();
         ActionChoiceMapper actionChoiceMapper = new ActionChoiceMapper(durationEstimateMapper);
-        CombatService combatService = new CombatService(
-            player,
-            goblin,
-            content.GetCombatActionsForCharacter(playerData.Id),
-            content.GetCombatActionsForCharacter(goblinData.Id));
+
+        CombatantDefinition[] encounterCombatants =
+        {
+            new CombatantDefinition(
+                player,
+                CombatantSide.Party,
+                content.GetCombatActionsForCharacter(playerData.Id)),
+            new CombatantDefinition(
+                goblin,
+                CombatantSide.Enemy,
+                content.GetCombatActionsForCharacter(goblinData.Id))
+        };
+        CombatService combatService = new CombatService(encounterCombatants);
         CombatPresentationMapper combatPresentationMapper = new CombatPresentationMapper();
         LocationEventService locationEventService = new LocationEventService();
 
@@ -53,9 +61,17 @@ public partial class MainController : Control
         CombatSessionService combatSessionService = new CombatSessionService(
             player, combatService, gameClock, activityTimeCalculator,
             activityFatigueCalculator, actionExecutionService, content.CombatEncounter);
+        CombatPresentationOrchestrator combatPresentation = new CombatPresentationOrchestrator(
+            _gameModeController,
+            _sidebar,
+            combatPanel,
+            characterPanel,
+            combatPresentationMapper,
+            combatService.PartyMembers);
         _combatController = new CombatFlowController(
-            storyPanel, combatPanel, characterPanel, _sidebar, _gameModeController,
-            player, combatSessionService, combatPresentationMapper);
+            storyPanel,
+            combatPresentation,
+            combatSessionService);
         _explorationController = new ExplorationFlowController(
             storyPanel, characterPanel, _gameModeController, player,
             playerData.PlayerActions, content.Locations, content.GetLocation,

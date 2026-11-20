@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
@@ -125,5 +127,105 @@ public sealed class CombatServiceTests
             "The goblin lands a staggering blow."
         };
         Assert.Contains(result.Events, item => item.Type == CombatEventType.EnemyAction && allowed.Contains(item.Detail));
+    }
+
+    [Fact]
+    public void EncounterRegistersEveryCombatantAndLetsThePlayerCommandEachPartyMember()
+    {
+        CombatActionDefinition[] partyActions = TestCharacterFactory.CreatePlayerCombatActions();
+        CombatActionDefinition[] enemyActions = TestCharacterFactory.CreateEnemyCombatActions();
+        Character[] party =
+        {
+            CreateRosterCharacter("party-a", "Party A", 20, 30, 20),
+            CreateRosterCharacter("party-b", "Party B", 15, 30, 20),
+            CreateRosterCharacter("party-c", "Party C", 10, 30, 20),
+            CreateRosterCharacter("party-d", "Party D", 5, 30, 20)
+        };
+        Character enemyA = CreateRosterCharacter("enemy-a", "Enemy A", 5, 8, 100);
+        Character enemyB = CreateRosterCharacter("enemy-b", "Enemy B", 5, 8, 100);
+
+        List<CombatantDefinition> roster = new List<CombatantDefinition>();
+        foreach (Character member in party)
+        {
+            roster.Add(new CombatantDefinition(member, CombatantSide.Party, partyActions));
+        }
+
+        roster.Add(new CombatantDefinition(enemyA, CombatantSide.Enemy, enemyActions));
+        roster.Add(new CombatantDefinition(enemyB, CombatantSide.Enemy, enemyActions));
+
+        CombatService combat = new CombatService(roster, new Random(23));
+        Assert.True(combat.TryStartEncounter(out string reason));
+
+        CombatSnapshot openingSnapshot = combat.GetSnapshot();
+        Assert.Equal(4, openingSnapshot.Party.Length);
+        Assert.Equal(2, openingSnapshot.Enemies.Length);
+        Assert.Equal(6, openingSnapshot.Timeline.Length);
+        Assert.Equal("party-a", openingSnapshot.ActiveCombatantId);
+
+        CombatResult lastResult = null;
+        foreach (Character member in party)
+        {
+            CombatSnapshot snapshot = combat.GetSnapshot();
+            Assert.Equal(member.Id, snapshot.ActiveCombatantId);
+
+            CombatActionOption action = Assert.Single(snapshot.AvailableActions.Where(option =>
+                option.Id == "quick_strike" && option.TargetId == enemyA.Id));
+            Assert.Equal(member.Id, action.ActorId);
+
+            lastResult = combat.ExecuteAction(new CombatActionRequest(
+                action.Id,
+                action.TargetId,
+                action.ActorId));
+            Assert.True(lastResult.Success);
+        }
+
+        Assert.Contains(lastResult.Events, item => item.Type == CombatEventType.EnemyAction);
+        Assert.Contains(lastResult.Events, item =>
+            item.Type == CombatEventType.Damage &&
+            party.Any(member => member.Name == item.TargetName));
+        Assert.Equal(4, combat.GetSnapshot().Party.Length);
+    }
+
+    [Fact]
+    public void HiddenEnemyRemainsInSimulationButIsMarkedInvisibleForPresentation()
+    {
+        Character party = CreateRosterCharacter("party-hidden-test", "Scout", 15, 0, 500);
+        Character hiddenEnemy = CreateRosterCharacter("hidden-enemy", "Hidden Enemy", 5, 100, 40);
+        CombatActionDefinition[] enemyActions = TestCharacterFactory.CreateEnemyCombatActions();
+        CombatService combat = new CombatService(
+            new[]
+            {
+                new CombatantDefinition(party, CombatantSide.Party, TestCharacterFactory.CreatePlayerCombatActions()),
+                new CombatantDefinition(hiddenEnemy, CombatantSide.Enemy, enemyActions, false)
+            },
+            new Random(3));
+
+        Assert.True(combat.TryStartEncounter(out string reason));
+        Assert.True(party.Health < party.MaxHealth);
+
+        CombatSnapshot snapshot = combat.GetSnapshot();
+        Assert.False(Assert.Single(snapshot.Enemies).IsVisible);
+        TimelineCombatantStatus hiddenEntry = Assert.Single(snapshot.Timeline.Where(entry => entry.Id == hiddenEnemy.Id));
+        Assert.False(hiddenEntry.IsVisible);
+    }
+
+    private static Character CreateRosterCharacter(string id, string name, int luck, int agility, int health)
+    {
+        CharacterData data = new CharacterData(
+            id,
+            name,
+            "Encounter test combatant",
+            1,
+            health,
+            100,
+            10,
+            100,
+            health,
+            0,
+            10,
+            50,
+            0,
+            new CharacterStats(20, agility, 20, 20, 20, luck));
+        return new Character(data);
     }
 }
