@@ -10,5 +10,8 @@ This directory contains historical records retained for traceability. Archived f
 | [PlayableJourneyTestReport.md](PlayableJourneyTestReport.md) | Historical owner-reported verification record with explicitly incomplete raw evidence. | [Testing.md](../Testing.md) for current verification instructions |
 | [ProjectNamingAudit.md](ProjectNamingAudit.md) | Initial audit and remediation history; current naming enforcement is automated. | [CONTRIBUTING.md](../../CONTRIBUTING.md) and CI |
 | [OpenDesignQuestions.md](OpenDesignQuestions.md) | Historical snapshot mixing resolved decisions and deferred questions. | Owning domain documents; [Issue #51](https://github.com/TN13007/rpg/issues/51) for deferred UI/Combat decisions |
+| [CombatBalanceV1PrePartyTimeline.md](CombatBalanceV1PrePartyTimeline.md) | Superseded numeric combat proposal predating the current party Timeline design. | [Design/Combat.md](../Design/Combat.md) |
+| [DevelopmentRoadmapV0ReincarnationLifeSim.md](DevelopmentRoadmapV0ReincarnationLifeSim.md) | Superseded life-simulation-first delivery roadmap. | [Design/Roadmap.md](../Design/Roadmap.md) |
+| [GameDesignV0LifeSimulationDirection.md](GameDesignV0LifeSimulationDirection.md) | Superseded life-simulation-first product direction. | [Design/GameVision.md](../Design/GameVision.md) |
 
 Do not add a new archive file for ordinary Session notes. Archive only superseded records whose historical evidence or rationale is worth retaining.
