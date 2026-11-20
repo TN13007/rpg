@@ -559,11 +559,14 @@ public sealed class CombatService : ICombatService
                 state.IsReady,
                 state.IsStunned(_timeline.CombatTime),
                 combatant.IsVisible,
-                combatant.Character.Id == _rewardRecipient.Id));
+                combatant.Character.Id == _rewardRecipient.Id,
+                state.IsStunned(_timeline.CombatTime)
+                    ? Math.Max(0.0, state.StunEndTime.Value - _timeline.CombatTime)
+                    : 0.0));
         }
 
         return entries
-            .OrderBy(entry => entry.IsStunned ? double.MaxValue : entry.RemainingProgress / entry.Speed)
+            .OrderBy(entry => entry.RemainingStunTime + entry.RemainingProgress / entry.Speed)
             .ThenByDescending(entry => entry.Luck)
             .ThenBy(entry => entry.Id, StringComparer.Ordinal)
             .ToArray();

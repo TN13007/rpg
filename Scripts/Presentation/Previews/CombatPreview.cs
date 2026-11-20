@@ -31,6 +31,29 @@ public partial class CombatPreview : Control
                 new CombatActionOption("dodge", "Dodge", "2 Stamina", "Attempt to evade the incoming attack."),
                 new CombatActionOption("catch_breath", "Catch Breath", "Recover 3 Stamina", "Recover your composure before the enemy responds."),
                 new CombatActionOption("items", "Use Item", "Varies", "Choose an item from your inventory.")
+            },
+            timeline: new[]
+            {
+                new TimelineCombatantStatus(
+                    "ari",
+                    "Ari",
+                    false,
+                    20.0,
+                    10.0,
+                    15,
+                    false,
+                    false,
+                    true,
+                    true),
+                new TimelineCombatantStatus(
+                    "goblin-a",
+                    "Goblin A",
+                    true,
+                    100.0,
+                    10.0,
+                    5,
+                    false,
+                    false)
             });
 
         CombatResult previewResult = new CombatResult(

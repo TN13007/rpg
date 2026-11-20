@@ -118,6 +118,7 @@ public sealed class TimelineCombatantStatus
     public bool IsStunned { get; }
     public bool IsVisible { get; }
     public bool IsPrimaryPartyMember { get; }
+    public double RemainingStunTime { get; }
 
     public TimelineCombatantStatus(
         string id,
@@ -129,8 +130,16 @@ public sealed class TimelineCombatantStatus
         bool isReady,
         bool isStunned,
         bool isVisible = true,
-        bool isPrimaryPartyMember = false)
+        bool isPrimaryPartyMember = false,
+        double remainingStunTime = 0.0)
     {
+        if (double.IsNaN(remainingStunTime) ||
+            double.IsInfinity(remainingStunTime) ||
+            remainingStunTime < 0.0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(remainingStunTime));
+        }
+
         Id = id ?? string.Empty;
         Name = name ?? string.Empty;
         IsEnemy = isEnemy;
@@ -141,6 +150,7 @@ public sealed class TimelineCombatantStatus
         IsStunned = isStunned;
         IsVisible = isVisible;
         IsPrimaryPartyMember = !isEnemy && isPrimaryPartyMember;
+        RemainingStunTime = remainingStunTime;
     }
 }
 
@@ -240,6 +250,48 @@ public interface ICombatService
     CombatResult ExecuteAction(CombatActionRequest request);
 }
 
+public sealed class TimelineMarkerViewData
+{
+    public string Id { get; }
+    public string Name { get; }
+    public bool IsEnemy { get; }
+    public bool IsPrimaryPartyMember { get; }
+    public bool IsVisible { get; }
+    public bool IsReady { get; }
+    public int Luck { get; }
+    public bool IsStunned { get; }
+    public double TimeToReadySeconds { get; }
+
+    public TimelineMarkerViewData(
+        string id,
+        string name,
+        bool isEnemy,
+        bool isPrimaryPartyMember,
+        bool isVisible,
+        bool isReady,
+        bool isStunned,
+        int luck,
+        double timeToReadySeconds)
+    {
+        if (double.IsNaN(timeToReadySeconds) ||
+            double.IsInfinity(timeToReadySeconds) ||
+            timeToReadySeconds < 0.0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(timeToReadySeconds));
+        }
+
+        Id = id ?? string.Empty;
+        Name = name ?? string.Empty;
+        IsEnemy = isEnemy;
+        IsPrimaryPartyMember = !isEnemy && isPrimaryPartyMember;
+        IsVisible = isVisible;
+        IsReady = isReady;
+        IsStunned = isStunned;
+        Luck = luck;
+        TimeToReadySeconds = timeToReadySeconds;
+    }
+}
+
 public sealed class CombatViewData
 {
     public int Round { get; }
@@ -249,7 +301,7 @@ public sealed class CombatViewData
     public IntentObservation Intent { get; }
     public CombatActionOption[] AvailableActions { get; }
     public CombatMessage[] NewMessages { get; }
-    public TimelineCombatantStatus[] Timeline { get; }
+    public TimelineMarkerViewData[] Timeline { get; }
     public string ActiveCombatantId { get; }
 
     public CombatViewData(
@@ -259,7 +311,7 @@ public sealed class CombatViewData
         IntentObservation intent,
         CombatActionOption[] availableActions,
         CombatMessage[] newMessages,
-        TimelineCombatantStatus[] timeline = null,
+        TimelineMarkerViewData[] timeline = null,
         PartyCombatStatus[] party = null,
         string activeCombatantId = "")
     {
@@ -270,7 +322,7 @@ public sealed class CombatViewData
         Intent = intent;
         AvailableActions = availableActions ?? Array.Empty<CombatActionOption>();
         NewMessages = newMessages ?? Array.Empty<CombatMessage>();
-        Timeline = timeline ?? Array.Empty<TimelineCombatantStatus>();
+        Timeline = timeline ?? Array.Empty<TimelineMarkerViewData>();
         ActiveCombatantId = activeCombatantId ?? string.Empty;
     }
 }

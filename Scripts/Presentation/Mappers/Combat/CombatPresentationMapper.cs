@@ -12,7 +12,7 @@ public sealed class CombatPresentationMapper
             snapshot.Intent,
             snapshot.AvailableActions,
             Array.Empty<CombatMessage>(),
-            snapshot.Timeline,
+            MapTimeline(snapshot.Timeline),
             snapshot.Party,
             snapshot.ActiveCombatantId);
     }
@@ -46,9 +46,38 @@ public sealed class CombatPresentationMapper
             snapshot.Intent,
             snapshot.AvailableActions,
             messages,
-            snapshot.Timeline,
+            MapTimeline(snapshot.Timeline),
             snapshot.Party,
             snapshot.ActiveCombatantId);
+    }
+
+    private static TimelineMarkerViewData[] MapTimeline(TimelineCombatantStatus[] entries)
+    {
+        if (entries == null || entries.Length == 0)
+        {
+            return Array.Empty<TimelineMarkerViewData>();
+        }
+
+        TimelineMarkerViewData[] mapped = new TimelineMarkerViewData[entries.Length];
+        for (int index = 0; index < entries.Length; index++)
+        {
+            TimelineCombatantStatus entry = entries[index];
+            double timeToReady = entry.RemainingStunTime +
+                entry.RemainingProgress / entry.Speed;
+
+            mapped[index] = new TimelineMarkerViewData(
+                entry.Id,
+                entry.Name,
+                entry.IsEnemy,
+                entry.IsPrimaryPartyMember,
+                entry.IsVisible,
+                entry.IsReady,
+                entry.IsStunned,
+                entry.Luck,
+                timeToReady);
+        }
+
+        return mapped;
     }
 
     private CombatMessage MapEvent(CombatEvent combatEvent)

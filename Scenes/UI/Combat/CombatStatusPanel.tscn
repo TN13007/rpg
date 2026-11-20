@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://Scripts/Presentation/UI/Combat/CombatStatusPanel.cs" id="1"]
+[ext_resource type="PackedScene" path="res://Scenes/UI/Combat/TimelineTrack.tscn" id="2"]
 
 [node name="CombatStatusPanel" type="PanelContainer"]
 layout_mode = 2
@@ -37,7 +38,7 @@ text = "PLAYER DECISION"
 layout_mode = 2
 theme_override_font_sizes/font_size = 10
 theme_override_colors/font_color = Color(0.608, 0.639, 0.678, 1)
-text = "PROGRESS TO READY"
+text = "EXPECTED ACTIONS · NEXT 10 SECONDS"
 
 [node name="TimelineLegend" type="HBoxContainer" parent="Margin/Content"]
 layout_mode = 2
@@ -61,32 +62,9 @@ theme_override_font_sizes/font_size = 10
 theme_override_colors/font_color = Color(0.894, 0.373, 0.408, 1)
 text = "● Enemy"
 
-[node name="TimelineTrack" type="Control" parent="Margin/Content"]
-custom_minimum_size = Vector2(0, 36)
+[node name="TimelineTrack" parent="Margin/Content" instance=ExtResource("2")]
 layout_mode = 2
 size_flags_horizontal = 3
-clip_contents = true
-
-[node name="Rail" type="ColorRect" parent="Margin/Content/TimelineTrack"]
-layout_mode = 0
-color = Color(0.286, 0.239, 0.188, 1)
-mouse_filter = 2
-
-[node name="Markers" type="Control" parent="Margin/Content/TimelineTrack"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-
-[node name="StunnedLabel" type="Label" parent="Margin/Content"]
-visible = false
-layout_mode = 2
-autowrap_mode = 3
-theme_override_font_sizes/font_size = 10
-theme_override_colors/font_color = Color(0.82, 0.48, 0.42, 1)
 
 [node name="IntentCard" type="PanelContainer" parent="Margin/Content"]
 visible = false

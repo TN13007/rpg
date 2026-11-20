@@ -35,7 +35,7 @@ public partial class CombatPanel : PanelContainer
         _encounterTitle.Text = title;
         _partyRosterPanel.SetMembers(Array.Empty<PartyCombatStatus>());
         _statusPanel.SetTurn(1, "PLAYER DECISION");
-        _statusPanel.SetTimeline(Array.Empty<TimelineCombatantStatus>());
+        _statusPanel.SetTimeline(Array.Empty<TimelineMarkerViewData>());
         _statusPanel.SetIntent(null);
         _messageLog.Clear();
         _actionPanel.SetActions(Array.Empty<CombatActionOption>());
