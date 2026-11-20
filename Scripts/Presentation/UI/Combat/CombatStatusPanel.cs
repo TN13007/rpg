@@ -6,41 +6,49 @@ public partial class CombatStatusPanel : PanelContainer
 {
     private const double _initialProgress = 100.0;
     private const float _markerSize = 14.0f;
-    private const float _laneSpacing = 15.0f;
-    private const float _railY = 138.0f;
-    private const float _leftMargin = 12.0f;
-    private const float _rightMargin = 16.0f;
+    private const float _railStart = 10.0f;
+    private const float _railEnd = 10.0f;
     private const double _markerTweenDuration = 0.45;
 
-    private static readonly Color _railColor = new Color("#758397");
+    private static readonly Color _railColor = new Color("#493d30");
     private static readonly Color _ariColor = new Color("#55a7ff");
     private static readonly Color _partyColor = new Color("#e8bd55");
     private static readonly Color _enemyColor = new Color("#e45f68");
+    private static readonly Color _markerBorderColor = new Color("#20252d");
 
     private Label _round;
     private Label _turn;
     private Control _timelineTrack;
+    private ColorRect _timelineRail;
+    private Control _markerLayer;
     private Label _stunnedLabel;
     private PanelContainer _intentCard;
     private Label _intentHeading;
     private Label _intentDescription;
     private Label _intentConfidence;
+
     private TimelineCombatantStatus[] _timelineEntries = Array.Empty<TimelineCombatantStatus>();
-    private readonly Dictionary<string, double> _lastProgressByCombatant =
-        new Dictionary<string, double>(StringComparer.Ordinal);
+    private readonly Dictionary<string, Panel> _markers =
+        new Dictionary<string, Panel>(StringComparer.Ordinal);
+    private readonly Dictionary<string, Tween> _markerTweens =
+        new Dictionary<string, Tween>(StringComparer.Ordinal);
     private bool _hasRenderedTimeline;
 
     public override void _Ready()
     {
         UiTheme.StylePanel(this);
+
         _round = GetNode<Label>("Margin/Content/Heading/Round");
         _turn = GetNode<Label>("Margin/Content/Heading/Turn");
         _timelineTrack = GetNode<Control>("Margin/Content/TimelineTrack");
+        _timelineRail = GetNode<ColorRect>("Margin/Content/TimelineTrack/Rail");
+        _markerLayer = GetNode<Control>("Margin/Content/TimelineTrack/Markers");
         _stunnedLabel = GetNode<Label>("Margin/Content/StunnedLabel");
         _intentCard = GetNode<PanelContainer>("Margin/Content/IntentCard");
         _intentHeading = GetNode<Label>("Margin/Content/IntentCard/Margin/Content/Heading");
         _intentDescription = GetNode<Label>("Margin/Content/IntentCard/Margin/Content/Description");
         _intentConfidence = GetNode<Label>("Margin/Content/IntentCard/Margin/Content/Confidence");
+
         _intentCard.Visible = false;
         _timelineTrack.Resized += RefreshTimeline;
     }
@@ -68,20 +76,29 @@ public partial class CombatStatusPanel : PanelContainer
         _intentCard.Visible = true;
         _intentHeading.Text = intent.EnemyName;
         _intentDescription.Text = intent.Description;
-        _intentConfidence.Text = intent.Confidence == IntentConfidence.Recognized ? "RECOGNIZED" : "SUSPECTED";
+        _intentConfidence.Text = intent.Confidence == IntentConfidence.Recognized
+            ? "RECOGNIZED"
+            : "SUSPECTED";
     }
 
     private void RefreshTimeline()
     {
-        ClearChildren(_timelineTrack);
-
         float width = _timelineTrack.Size.X;
-        if (width < 80.0f)
+        float height = _timelineTrack.Size.Y;
+        if (width < 80.0f || height < _markerSize)
         {
             return;
         }
 
-        List<TimelineCombatantStatus> visibleEntries = new List<TimelineCombatantStatus>();
+        float railWidth = Math.Max(1.0f, width - _railStart - _railEnd);
+        float railY = (height - 3.0f) / 2.0f;
+
+        _timelineRail.Position = new Vector2(_railStart, railY);
+        _timelineRail.Size = new Vector2(railWidth, 3.0f);
+
+        float markerY = (height - _markerSize) / 2.0f;
+        float firstMarkerX = _railStart - _markerSize / 2.0f;
+        HashSet<string> visibleIds = new HashSet<string>(StringComparer.Ordinal);
         List<string> stunnedNames = new List<string>();
 
         foreach (TimelineCombatantStatus entry in _timelineEntries)
@@ -91,151 +108,113 @@ public partial class CombatStatusPanel : PanelContainer
                 continue;
             }
 
-            visibleEntries.Add(entry);
+            visibleIds.Add(entry.Id);
             if (entry.IsStunned)
             {
                 stunnedNames.Add(entry.Name);
             }
-        }
 
-        visibleEntries.Sort(CompareProgress);
-        float railY = Math.Max(_railY, 24.0f + Math.Max(0, visibleEntries.Count - 1) * _laneSpacing);
-        float requiredHeight = railY + 32.0f;
-        if (Math.Abs(_timelineTrack.CustomMinimumSize.Y - requiredHeight) > 1.0f)
-        {
-            _timelineTrack.CustomMinimumSize = new Vector2(_timelineTrack.CustomMinimumSize.X, requiredHeight);
-        }
+            Panel marker = GetOrCreateMarker(entry);
+            bool wasVisible = marker.Visible;
+            marker.TooltipText = GetMarkerTooltip(entry);
 
-        float railWidth = Math.Max(1.0f, width - _leftMargin - _rightMargin);
-        AddRectangle(
-            _timelineTrack,
-            new Vector2(_leftMargin, railY),
-            new Vector2(railWidth, 2.0f),
-            _railColor);
-
-        AddRectangle(
-            _timelineTrack,
-            new Vector2(_leftMargin, railY - 4.0f),
-            new Vector2(2.0f, 10.0f),
-            UiTheme.Accent);
-
-        AddRectangle(
-            _timelineTrack,
-            new Vector2(_leftMargin + railWidth - 2.0f, railY - 4.0f),
-            new Vector2(2.0f, 10.0f),
-            UiTheme.Accent);
-
-        AddEndpointLabel("START", new Vector2(_leftMargin, railY + 6.0f), new Vector2(45.0f, 16.0f));
-        AddEndpointLabel("READY", new Vector2(_leftMargin + railWidth - 45.0f, railY + 6.0f), new Vector2(45.0f, 16.0f));
-
-        float[] laneLastCenter = new float[Math.Max(1, visibleEntries.Count)];
-        for (int lane = 0; lane < laneLastCenter.Length; lane++)
-        {
-            laneLastCenter[lane] = float.NegativeInfinity;
-        }
-
-        Dictionary<string, double> currentProgressByCombatant =
-            new Dictionary<string, double>(StringComparer.Ordinal);
-
-        foreach (TimelineCombatantStatus entry in visibleEntries)
-        {
             double progress = GetProgressFraction(entry);
-            currentProgressByCombatant[entry.Id] = progress;
+            float targetX = _railStart + railWidth * (float)progress - _markerSize / 2.0f;
+            targetX = Mathf.Clamp(targetX, 0.0f, width - _markerSize);
+            Vector2 targetPosition = new Vector2(targetX, markerY);
 
-            float markerCenter = _leftMargin + railWidth * (float)progress;
-            int lane = FindAvailableLane(markerCenter, laneLastCenter);
-            laneLastCenter[lane] = markerCenter;
+            marker.Visible = true;
 
-            float markerY = 3.0f + lane * _laneSpacing;
-            float markerX = Mathf.Clamp(
-                markerCenter - _markerSize / 2.0f,
-                _leftMargin - _markerSize / 2.0f,
-                _leftMargin + railWidth - _markerSize / 2.0f);
-
-            Color markerColor = GetMarkerColor(entry);
-            Color stemColor = new Color(markerColor.R, markerColor.G, markerColor.B, 0.58f);
-            float stemTop = markerY + _markerSize;
-            float stemHeight = Math.Max(0.0f, railY - stemTop);
-
-            if (stemHeight > 0.0f)
+            if (!_hasRenderedTimeline)
             {
-                AddRectangle(
-                    _timelineTrack,
-                    new Vector2(markerCenter - 1.0f, stemTop),
-                    new Vector2(2.0f, stemHeight),
-                    stemColor);
+                marker.Position = new Vector2(firstMarkerX, markerY);
+                MoveMarker(entry.Id, marker, targetPosition);
             }
-
-            PanelContainer marker = CreateMarker(entry, markerColor, progress);
-            double previousProgress = 0.0;
-            if (_hasRenderedTimeline &&
-                _lastProgressByCombatant.TryGetValue(entry.Id, out double lastProgress))
+            else if (wasVisible)
             {
-                previousProgress = lastProgress;
+                MoveMarker(entry.Id, marker, targetPosition);
             }
-            else if (_hasRenderedTimeline)
+            else
             {
-                previousProgress = progress;
+                StopMarkerTween(entry.Id);
+                marker.Position = targetPosition;
             }
-
-            float previousX = _leftMargin + railWidth * (float)previousProgress - _markerSize / 2.0f;
-            marker.Position = new Vector2(previousX, markerY);
-            _timelineTrack.AddChild(marker);
-
-            Vector2 targetPosition = new Vector2(markerX, markerY);
-            marker.CreateTween()
-                .TweenProperty(marker, "position", targetPosition, _markerTweenDuration)
-                .SetTrans(Tween.TransitionType.Cubic)
-                .SetEase(Tween.EaseType.Out);
         }
 
-        foreach (TimelineCombatantStatus entry in _timelineEntries)
+        foreach (KeyValuePair<string, Panel> item in _markers)
         {
-            if (!currentProgressByCombatant.ContainsKey(entry.Id))
+            if (visibleIds.Contains(item.Key))
             {
-                _lastProgressByCombatant[entry.Id] = GetProgressFraction(entry);
+                continue;
             }
+
+            item.Value.Visible = false;
+            StopMarkerTween(item.Key);
         }
 
-        foreach (KeyValuePair<string, double> current in currentProgressByCombatant)
-        {
-            _lastProgressByCombatant[current.Key] = current.Value;
-        }
-
-        _hasRenderedTimeline = _timelineEntries.Length > 0;
+        _hasRenderedTimeline = true;
         _stunnedLabel.Text = stunnedNames.Count == 0
             ? string.Empty
             : "STUNNED  ·  " + string.Join("  ·  ", stunnedNames);
         _stunnedLabel.Visible = stunnedNames.Count > 0;
     }
 
-    private PanelContainer CreateMarker(
-        TimelineCombatantStatus entry,
-        Color markerColor,
-        double progress)
+    private Panel GetOrCreateMarker(TimelineCombatantStatus entry)
     {
-        PanelContainer marker = new PanelContainer
+        if (_markers.TryGetValue(entry.Id, out Panel existingMarker))
         {
-            Size = new Vector2(_markerSize, _markerSize),
-            MouseFilter = Control.MouseFilterEnum.Ignore,
-            TooltipText = entry.Name + " · " +
-                (entry.IsStunned
-                    ? "STUNNED"
-                    : entry.IsReady
-                        ? "READY"
-                        : (progress * 100.0).ToString("0") + "% progress")
-        };
+            return existingMarker;
+        }
 
+        Color markerColor = GetMarkerColor(entry);
         StyleBoxFlat markerStyle = new StyleBoxFlat
         {
             BgColor = markerColor,
+            BorderColor = _markerBorderColor,
+            BorderWidthLeft = 1,
+            BorderWidthTop = 1,
+            BorderWidthRight = 1,
+            BorderWidthBottom = 1,
             CornerRadiusTopLeft = 7,
             CornerRadiusTopRight = 7,
             CornerRadiusBottomLeft = 7,
             CornerRadiusBottomRight = 7
         };
+
+        Panel marker = new Panel
+        {
+            Name = "Marker",
+            Size = new Vector2(_markerSize, _markerSize),
+            Visible = false,
+            MouseFilter = Control.MouseFilterEnum.Ignore
+        };
         marker.AddThemeStyleboxOverride("panel", markerStyle);
+        marker.AddToGroup("timeline_markers");
+        _markerLayer.AddChild(marker);
+        _markers.Add(entry.Id, marker);
         return marker;
+    }
+
+    private void MoveMarker(string combatantId, Panel marker, Vector2 targetPosition)
+    {
+        StopMarkerTween(combatantId);
+
+        Tween tween = marker.CreateTween();
+        tween.TweenProperty(marker, "position", targetPosition, _markerTweenDuration)
+            .SetTrans(Tween.TransitionType.Cubic)
+            .SetEase(Tween.EaseType.Out);
+        _markerTweens[combatantId] = tween;
+    }
+
+    private void StopMarkerTween(string combatantId)
+    {
+        if (!_markerTweens.TryGetValue(combatantId, out Tween tween))
+        {
+            return;
+        }
+
+        tween.Kill();
+        _markerTweens.Remove(combatantId);
     }
 
     private static double GetProgressFraction(TimelineCombatantStatus entry)
@@ -259,63 +238,20 @@ public partial class CombatStatusPanel : PanelContainer
         return entry.IsPrimaryPartyMember ? _ariColor : _partyColor;
     }
 
-    private static int CompareProgress(TimelineCombatantStatus left, TimelineCombatantStatus right)
+    private static string GetMarkerTooltip(TimelineCombatantStatus entry)
     {
-        int progressComparison = GetProgressFraction(left).CompareTo(GetProgressFraction(right));
-        if (progressComparison != 0)
+        if (entry.IsStunned)
         {
-            return progressComparison;
+            return entry.Name + " · STUNNED";
         }
 
-        return string.CompareOrdinal(left.Id, right.Id);
-    }
-
-    private static int FindAvailableLane(float markerCenter, float[] laneLastCenter)
-    {
-        for (int lane = 0; lane < laneLastCenter.Length; lane++)
+        if (entry.IsReady)
         {
-            if (markerCenter - laneLastCenter[lane] >= _markerSize + 4.0f)
-            {
-                return lane;
-            }
+            return entry.Name + " · READY";
         }
 
-        int selectedLane = 0;
-        for (int lane = 1; lane < laneLastCenter.Length; lane++)
-        {
-            if (laneLastCenter[lane] < laneLastCenter[selectedLane])
-            {
-                selectedLane = lane;
-            }
-        }
-
-        return selectedLane;
-    }
-
-    private void AddEndpointLabel(string text, Vector2 position, Vector2 size)
-    {
-        Label label = new Label
-        {
-            Text = text,
-            Position = position,
-            Size = size,
-            MouseFilter = Control.MouseFilterEnum.Ignore
-        };
-        label.AddThemeFontSizeOverride("font_size", 9);
-        label.AddThemeColorOverride("font_color", UiTheme.Muted);
-        _timelineTrack.AddChild(label);
-    }
-
-    private static void AddRectangle(Control parent, Vector2 position, Vector2 size, Color color)
-    {
-        ColorRect rectangle = new ColorRect
-        {
-            Position = position,
-            Size = size,
-            Color = color,
-            MouseFilter = Control.MouseFilterEnum.Ignore
-        };
-        parent.AddChild(rectangle);
+        return entry.Name + " · " +
+            (GetProgressFraction(entry) * 100.0).ToString("0") + "%";
     }
 
     private void ClearIntent()
@@ -324,14 +260,5 @@ public partial class CombatStatusPanel : PanelContainer
         _intentHeading.Text = string.Empty;
         _intentDescription.Text = string.Empty;
         _intentConfidence.Text = string.Empty;
-    }
-
-    private static void ClearChildren(Node parent)
-    {
-        foreach (Node child in parent.GetChildren())
-        {
-            parent.RemoveChild(child);
-            child.QueueFree();
-        }
     }
 }
