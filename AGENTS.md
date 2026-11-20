@@ -26,7 +26,8 @@ Do not read every document or every source file by default. Follow the task's ac
 | `Data/` | Authored JSON content and ID references | Identify the relevant schema/loader before editing |
 | `Scenes/` | Godot scene composition and previews | `Main.tscn` or the affected preview scene |
 | `RPG.Tests/` | Automated tests grouped by feature | Open the matching feature folder before changing behavior |
-| `Docs/` | Product, gameplay, UI and technical contracts | Use the document index in `README.md` |
+| `Docs/Design/` | Player experience, ideas and gameplay rules | `Docs/Design/README.md` |
+| `Docs/Implementation/` | Codebase, architecture, data/UI contracts and verification | `Docs/Implementation/README.md` |
 
 For the full layer contract, dependency direction and current runtime flows, [Docs/Implementation/Architecture.md](Docs/Implementation/Architecture.md) is authoritative. The table above is only a locator.
 
