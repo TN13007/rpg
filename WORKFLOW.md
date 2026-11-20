@@ -32,13 +32,13 @@ The intended product is a combat-first Tactical Timeline RPG:
 - The Academy is a supporting hub for preparation, growth, recovery and relationships.
 - Adventures and combat are the primary repeatable gameplay; narrative gives the journey meaning.
 
-The accepted direction and unresolved design questions are owned by [Design](Docs/Design/README.md), especially [Combat](Docs/Design/Combat.md). Do not copy detailed rules or provisional balance values into this status file.
+The accepted direction and unresolved design questions are owned by [Design](Docs/Design/README.md), especially [Combat](Docs/Design/Combat.md) and the [Product Roadmap](Docs/Design/Roadmap.md). Do not copy detailed rules or provisional balance values into this status file.
 
 ### Implementation reality on main
 
 The current repository is still an earlier Academy/location/Event/Goblin prototype. It has a Godot main scene, layered C# code, authored JSON content, Location-based Exploration choices, a deterministic single-Goblin Combat flow, character resources and a dedicated Combat presentation.
 
-The current implementation does **not** yet realize the intended four-person Timeline combat, party synergy, Downed/revival loop or the full adventure/progression experience. Read [Implementation](Docs/Implementation/README.md) for verified code structure and runtime behavior. Do not use the old Version 1 Session plan as the current product roadmap.
+The current implementation does **not** yet realize the intended four-person Timeline combat, party synergy, Downed/revival loop or the full adventure/progression experience. Read [Implementation](Docs/Implementation/README.md) for verified code structure and runtime behavior. The archived Version 1 Academy Session plan is not the current product roadmap.
 
 ## 3. Session protocol
 
@@ -60,9 +60,15 @@ The Git workflow, commit granularity and PR requirements are defined only in [CO
 
 ## 4. Current handoff
 
-- Choose the next product/design task from an existing GitHub Issue or create one using the appropriate template.
-- Do not infer a next Session from the archived Version 1 plan.
-- Before starting a task, confirm whether it changes the intended design, the current implementation, or both. Update the owning source of truth only.
+**Next implementation task:** [Issue #91 — Four-Person Tactical Timeline Encounter](https://github.com/TN13007/rpg/issues/91).
+
+Before implementation:
+- Read [Game Vision](Docs/Design/GameVision.md), [Combat Design](Docs/Design/Combat.md) and [Roadmap Phase 1](Docs/Design/Roadmap.md).
+- Read [Cross-Layer Runtime Systems](Docs/Implementation/CrossLayerRuntimeSystems.md) and trace the current Combat flow, source code and tests.
+- Resolve only the timing/control decisions required for the first playable encounter; update Design before treating those rules as accepted.
+- Keep Academy-life/NPC Issues #78–83 deferred. Do not expand their scope while proving the core combat loop.
+
+Do not begin a parallel Character/NPC framework or broad refactor unless Issue #91 demonstrates a concrete requirement.
 
 ## 5. Learning evidence
 

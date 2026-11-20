@@ -5,6 +5,12 @@
 
 This roadmap is organized around outcomes the player can experience. It is not an implementation task list. Current tasks, blockers and delivery status belong in GitHub Issues/PRs and [WORKFLOW.md](../../WORKFLOW.md).
 
+## Current delivery focus
+
+The current implementation is an earlier Academy/location/Event/Goblin prototype. It does not yet prove the accepted combat-first product direction. The active delivery target is [Issue #91 — Four-Person Tactical Timeline Encounter](https://github.com/TN13007/rpg/issues/91).
+
+Do not treat the archived Version 1 Academy Session plan or the deferred Academy-life Issues as the current implementation queue. Character, NPC, relationship, schedule and event systems remain valuable future work, but should be shaped by the needs demonstrated in playable combat and adventure slices.
+
 ## Phase 1 — Prove core combat
 
 Deliver a complete, understandable encounter with a four-person party, visible Timeline, full player control, distinct enemy behaviors and meaningful victory/defeat outcomes.
@@ -16,6 +22,8 @@ Deliver a complete, understandable encounter with a four-person party, visible T
 - Enemy actions create meaningful pressure.
 - Downed and revival are understandable and consequential.
 - The encounter is challenging without inflated HP or opaque rules.
+
+**Current implementation issue:** [#91 — Four-Person Tactical Timeline Encounter](https://github.com/TN13007/rpg/issues/91).
 
 ## Phase 2 — Prove party progression
 
