@@ -1,3 +1,10 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Xunit;
+
+public sealed class CombatServiceTests
+{
     [Fact]
     public void EncounterStartsAtCombatTimeZeroAndReachesReadyAfterElapsedTime()
     {
@@ -5,15 +12,12 @@
         Assert.True(combat.TryStartEncounter(out string reason));
         Assert.False(combat.IsAwaitingPlayerDecision);
         Assert.Equal(0, combat.CombatTime);
-
         combat.AdvanceCombatTime(12.4);
         Assert.False(combat.IsAwaitingPlayerDecision);
         Assert.Equal(12.4, combat.CombatTime, 3);
-
         combat.AdvanceCombatTime(0.1);
         Assert.True(combat.IsAwaitingPlayerDecision);
         Assert.Equal(12.5, combat.CombatTime, 3);
-
         TimelineCombatantStatus playerEntry = combat.GetSnapshot().Timeline.Single(entry => entry.Id == player.Id);
         TimelineCombatantStatus enemyEntry = combat.GetSnapshot().Timeline.Single(entry => entry.Id == enemy.Id);
         Assert.Equal(0, playerEntry.RemainingProgress, 3);
@@ -26,15 +30,7 @@
         CombatService combat = TestCharacterFactory.CreateCombat(out Character player, out Character enemy);
         StartAtPlayerDecision(combat);
         double decisionTime = combat.CombatTime;
-
         combat.AdvanceCombatTime(2.0);
-
-        Assert.True(combat.IsAwaitingPlayerDecision);
-        Assert.Equal(decisionTime, combat.CombatTime, 6);
-    }
-
-;
-
         Assert.True(combat.IsAwaitingPlayerDecision);
         Assert.Equal(decisionTime, combat.CombatTime, 6);
     }
@@ -49,9 +45,8 @@
         Assert.Equal(32, enemy.Health);
         Assert.DoesNotContain(result.Events, item => item.Type == CombatEventType.EnemyAction);
         Assert.Equal(12.5, combat.CombatTime, 3);
-
-        CombatResult enemyResult = combat.AdvanceCombatTime(1000);
-        Assert.Contains(enemyResult.Events, item => item.Type == CombatEventType.EnemyAction);
+        CombatEvent[] subsequentEvents = AdvanceUntilPlayerDecision(combat);
+        Assert.Contains(subsequentEvents, item => item.Type == CombatEventType.EnemyAction);
         Assert.True(combat.IsAwaitingPlayerDecision);
         Assert.True(combat.CombatTime > 12.5);
     }
@@ -65,8 +60,8 @@
         StartAtPlayerDecision(heavy);
         quick.ExecuteAction(new CombatActionRequest("quick_strike", quickEnemy.Id));
         heavy.ExecuteAction(new CombatActionRequest("heavy_strike", heavyEnemy.Id));
-        quick.AdvanceCombatTime(1000);
-        heavy.AdvanceCombatTime(1000);
+        AdvanceUntilPlayerDecision(quick);
+        AdvanceUntilPlayerDecision(heavy);
         Assert.True(heavy.CombatTime > quick.CombatTime);
     }
 
@@ -100,8 +95,8 @@
         CombatResult result = combat.ExecuteAction(new CombatActionRequest("guard", string.Empty, player.Id));
         Assert.True(result.Success);
         Assert.Equal(7, player.Stamina);
-        CombatResult enemyResult = combat.AdvanceCombatTime(1000);
-        Assert.Contains(enemyResult.Events, item => item.Type == CombatEventType.EnemyAction);
+        CombatEvent[] enemyEvents = AdvanceUntilPlayerDecision(combat);
+        Assert.Contains(enemyEvents, item => item.Type == CombatEventType.EnemyAction);
         Assert.InRange(player.Health, 12, 19);
     }
 
@@ -115,9 +110,8 @@
         Assert.Equal(6, player.Stamina);
         Assert.Contains(result.Events, item => item.Type == CombatEventType.Check);
         Assert.Equal(20, player.Health);
-
-        CombatResult enemyResult = combat.AdvanceCombatTime(1000);
-        Assert.Contains(enemyResult.Events, item => item.Type == CombatEventType.EnemyAction);
+        CombatEvent[] enemyEvents = AdvanceUntilPlayerDecision(combat);
+        Assert.Contains(enemyEvents, item => item.Type == CombatEventType.EnemyAction);
         Assert.Equal(20, player.Health);
     }
 
@@ -129,8 +123,8 @@
         CombatResult result = combat.ExecuteAction(new CombatActionRequest("catch_breath", string.Empty, player.Id));
         Assert.True(result.Success);
         Assert.Equal(4, player.Stamina);
-        CombatResult enemyResult = combat.AdvanceCombatTime(1000);
-        Assert.Contains(enemyResult.Events, item => item.Type == CombatEventType.EnemyAction);
+        CombatEvent[] enemyEvents = AdvanceUntilPlayerDecision(combat);
+        Assert.Contains(enemyEvents, item => item.Type == CombatEventType.EnemyAction);
     }
 
     [Fact]
@@ -153,14 +147,14 @@
         CombatService combat = TestCharacterFactory.CreateCombat(out Character player, out Character enemy, randomSeed: 17);
         StartAtPlayerDecision(combat);
         combat.ExecuteAction(new CombatActionRequest("quick_strike", enemy.Id, player.Id));
-        CombatResult result = combat.AdvanceCombatTime(1000);
+        CombatEvent[] enemyEvents = AdvanceUntilPlayerDecision(combat);
         string[] allowed =
         {
             "The goblin snaps out a quick jab.",
             "The goblin commits to a heavy swing.",
             "The goblin lands a staggering blow."
         };
-        Assert.Contains(result.Events, item => item.Type == CombatEventType.EnemyAction && allowed.Contains(item.Detail));
+        Assert.Contains(enemyEvents, item => item.Type == CombatEventType.EnemyAction && allowed.Contains(item.Detail));
     }
 
     [Fact]
@@ -170,26 +164,23 @@
         CombatActionDefinition[] enemyActions = TestCharacterFactory.CreateEnemyCombatActions();
         Character[] party =
         {
-            CreateRosterCharacter("party-a", "Party A", 20, 30, 20),
-            CreateRosterCharacter("party-b", "Party B", 15, 30, 20),
-            CreateRosterCharacter("party-c", "Party C", 10, 30, 20),
-            CreateRosterCharacter("party-d", "Party D", 5, 30, 20)
+            CreateRosterCharacter("party-a", "Party A", 20, 30, 100),
+            CreateRosterCharacter("party-b", "Party B", 15, 30, 100),
+            CreateRosterCharacter("party-c", "Party C", 10, 30, 100),
+            CreateRosterCharacter("party-d", "Party D", 5, 30, 100)
         };
         Character enemyA = CreateRosterCharacter("enemy-a", "Enemy A", 5, 8, 100);
         Character enemyB = CreateRosterCharacter("enemy-b", "Enemy B", 5, 8, 100);
-
         List<CombatantDefinition> roster = new List<CombatantDefinition>();
         foreach (Character member in party)
         {
             roster.Add(new CombatantDefinition(member, CombatantSide.Party, partyActions));
         }
-
         roster.Add(new CombatantDefinition(enemyA, CombatantSide.Enemy, enemyActions));
         roster.Add(new CombatantDefinition(enemyB, CombatantSide.Enemy, enemyActions));
 
         CombatService combat = new CombatService(roster, new Random(23));
         StartAtPlayerDecision(combat);
-
         CombatSnapshot openingSnapshot = combat.GetSnapshot();
         Assert.Equal(4, openingSnapshot.Party.Length);
         Assert.Equal(2, openingSnapshot.Enemies.Length);
@@ -198,31 +189,21 @@
         Assert.True(openingSnapshot.Timeline.Single(entry => entry.Id == "party-a").IsPrimaryPartyMember);
         Assert.False(openingSnapshot.Timeline.Single(entry => entry.Id == enemyA.Id).IsPrimaryPartyMember);
 
-        CombatResult lastResult = null;
+        List<CombatEvent> enemyEvents = new List<CombatEvent>();
         foreach (Character member in party)
         {
-            if (!combat.IsAwaitingPlayerDecision)
-            {
-                combat.AdvanceCombatTime(1000);
-            }
-
-            CombatSnapshot snapshot = combat.GetSnapshot();
-            Assert.Equal(member.Id, snapshot.ActiveCombatantId);
-
-            CombatActionOption action = Assert.Single(snapshot.AvailableActions.Where(option =>
+            Assert.Equal(member.Id, combat.GetSnapshot().ActiveCombatantId);
+            CombatActionOption action = Assert.Single(combat.GetSnapshot().AvailableActions.Where(option =>
                 option.Id == "quick_strike" && option.TargetId == enemyA.Id));
             Assert.Equal(member.Id, action.ActorId);
-
-            lastResult = combat.ExecuteAction(new CombatActionRequest(
-                action.Id,
-                action.TargetId,
-                action.ActorId));
-            Assert.True(lastResult.Success);
+            CombatResult actionResult = combat.ExecuteAction(new CombatActionRequest(
+                action.Id, action.TargetId, action.ActorId));
+            Assert.True(actionResult.Success);
+            enemyEvents.AddRange(AdvanceUntilPlayerDecision(combat));
         }
 
-        CombatResult enemyResult = combat.AdvanceCombatTime(1000);
-        Assert.Contains(enemyResult.Events, item => item.Type == CombatEventType.EnemyAction);
-        Assert.Contains(enemyResult.Events, item =>
+        Assert.Contains(enemyEvents, item => item.Type == CombatEventType.EnemyAction);
+        Assert.Contains(enemyEvents, item =>
             item.Type == CombatEventType.Damage &&
             party.Any(member => member.Name == item.TargetName));
         Assert.Equal(4, combat.GetSnapshot().Party.Length);
@@ -241,10 +222,10 @@
                 new CombatantDefinition(hiddenEnemy, CombatantSide.Enemy, enemyActions, false)
             },
             new Random(3));
-
-        StartAtPlayerDecision(combat);
+        Assert.True(combat.TryStartEncounter(out string reason));
+        Assert.False(combat.IsAwaitingPlayerDecision);
+        combat.AdvanceCombatTime(6.7);
         Assert.True(party.Health < party.MaxHealth);
-
         CombatSnapshot snapshot = combat.GetSnapshot();
         Assert.False(Assert.Single(snapshot.Enemies).IsVisible);
         TimelineCombatantStatus hiddenEntry = Assert.Single(snapshot.Timeline.Where(entry => entry.Id == hiddenEnemy.Id));
@@ -254,8 +235,22 @@
     private static void StartAtPlayerDecision(CombatService combat)
     {
         Assert.True(combat.TryStartEncounter(out string reason), reason);
-        combat.AdvanceCombatTime(1000);
+        AdvanceUntilPlayerDecision(combat);
         Assert.True(combat.IsAwaitingPlayerDecision);
+    }
+
+    private static CombatEvent[] AdvanceUntilPlayerDecision(CombatService combat)
+    {
+        List<CombatEvent> events = new List<CombatEvent>();
+        for (int frame = 0; frame < 10000 &&
+             !combat.IsAwaitingPlayerDecision &&
+             !combat.IsEncounterOver; frame++)
+        {
+            CombatResult frameResult = combat.AdvanceCombatTime(0.1);
+            events.AddRange(frameResult.Events);
+        }
+        Assert.True(combat.IsAwaitingPlayerDecision || combat.IsEncounterOver);
+        return events.ToArray();
     }
 
     private static Character CreateRosterCharacter(string id, string name, int luck, int agility, int health)
