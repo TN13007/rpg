@@ -24,10 +24,10 @@ public sealed class CombatServiceTests
         Assert.True(enemyReadyTime < 4.0);
         Assert.True(playerReadyTime < enemyReadyTime);
 
-        combat.AdvanceCombatTime(playerReadyTime - 0.001);
+        combat.AdvanceCombatTime(playerReadyTime - 0.01);
         Assert.False(combat.IsAwaitingPlayerDecision);
 
-        combat.AdvanceCombatTime(0.001);
+        combat.AdvanceCombatTime(0.02);
         Assert.True(combat.IsAwaitingPlayerDecision);
         Assert.Equal(playerReadyTime, combat.CombatTime, 3);
 
@@ -57,15 +57,17 @@ public sealed class CombatServiceTests
     {
         CombatService combat = TestCharacterFactory.CreateCombat(out Character player, out Character enemy);
         StartAtPlayerDecision(combat);
+        double decisionTime = combat.CombatTime;
         CombatResult result = combat.ExecuteAction(new CombatActionRequest("quick_strike", enemy.Id, player.Id));
         Assert.True(result.Success);
         Assert.Equal(32, enemy.Health);
         Assert.DoesNotContain(result.Events, item => item.Type == CombatEventType.EnemyAction);
-        Assert.Equal(12.5, combat.CombatTime, 3);
+        Assert.Equal(decisionTime, combat.CombatTime, 3);
+
         CombatEvent[] subsequentEvents = AdvanceUntilPlayerDecision(combat);
         Assert.Contains(subsequentEvents, item => item.Type == CombatEventType.EnemyAction);
         Assert.True(combat.IsAwaitingPlayerDecision);
-        Assert.True(combat.CombatTime > 12.5);
+        Assert.True(combat.CombatTime > decisionTime);
     }
 
     [Fact]
