@@ -232,6 +232,46 @@ Use namespaces only where they provide a useful boundary. Keep namespaces to two
 - Use `PascalCase` for JSON data filenames, assets and Markdown document filenames: `AcademyLocations.json`, `CharacterPortrait.svg`, `ExampleService.md`.
 - Keep intentional repository entry files `README.md`, `CONTRIBUTING.md`, `AGENTS.md` and `WORKFLOW.md`, plus platform/tool-managed names such as `.github` and `.editorconfig`, unchanged.
 
+#### Markdown document names
+
+Active Markdown documents must use descriptive `PascalCase` names. Their names should communicate the subject and, for Implementation documents, make the owning architecture layer apparent without opening the file.
+
+Use this pattern for active Implementation documents:
+
+```text
+<Layer><Subject><DocumentType>.md
+```
+
+Use the layer prefix that owns most of the documented behavior:
+
+| Prefix | Use for |
+|---|---|
+| `Bootstrap` | Application entry point, startup and dependency composition |
+| `Domain` | Authoritative game state, definitions, rules and calculations |
+| `Application` | Use cases, commands, queries, validation and orchestration |
+| `Presentation` | UI, flow controllers, ViewModels, mappers and formatters |
+| `Infrastructure` | Content loading, persistence and engine/platform adapters |
+| `CrossLayer` | Architecture boundaries or runtime flows spanning multiple layers |
+| `Testing` | Test strategy and verification practices |
+
+Choose a specific subject and add a document-type suffix only when it clarifies the content. Use terms such as `System` for a cohesive set of collaborating components, `Flow` for a sequence across components, `Contract` for an interface or data agreement, `Guide` for procedures, `Reference` for lookup material, and `Strategy` for an overall approach.
+
+Examples:
+
+- `DomainCharacterSystem.md`
+- `DomainCombatSystem.md`
+- `ApplicationActionExecutionFlow.md`
+- `PresentationCombatUI.md`
+- `InfrastructureContentLoading.md`
+- `BootstrapComposition.md`
+- `CrossLayerArchitecture.md`
+- `CrossLayerRuntimeFlows.md`
+- `TestingStrategy.md`
+
+Do not use opaque or generic names such as `ASystem.md`, `BSystem.md`, `Core.md`, `Manager.md`, `Utils.md` or unexplained abbreviations. Do not add a layer prefix to Design documents: Design is organized by player-facing subject (for example, `Combat.md`), not by code architecture. Archive filenames may retain their historical names so that the record remains recognizable.
+
+The filename identifies the document's primary ownership; it does not prescribe a new code layer, imply that a proposed system already exists, or require one document per class or feature. Before splitting a document, follow Section 10.2 and confirm that the new document has an independently maintained responsibility. Keep the active indexes and all incoming links synchronized when renaming a document.
+
 ### JSON and game content
 
 | Element | Convention | Example |
