@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Godot;
 
 /*
@@ -42,17 +43,13 @@ public partial class MainController : Control
         AvailableInteractionQuery availableInteractionQuery = new AvailableInteractionQuery();
         ActionChoiceMapper actionChoiceMapper = new ActionChoiceMapper(durationEstimateMapper);
 
-        CombatantDefinition[] encounterCombatants =
-        {
-            new CombatantDefinition(
-                player,
-                CombatantSide.Party,
-                content.GetCombatActionsForCharacter(playerData.Id)),
-            new CombatantDefinition(
-                goblin,
-                CombatantSide.Enemy,
-                content.GetCombatActionsForCharacter(goblinData.Id))
-        };
+        List<CombatantDefinition> encounterCombatants =
+            new List<CombatantDefinition>(StartingParty.CreateCombatants(content, player));
+        encounterCombatants.Add(new CombatantDefinition(
+            goblin,
+            CombatantSide.Enemy,
+            content.GetCombatActionsForCharacter(goblinData.Id)));
+
         CombatService combatService = new CombatService(encounterCombatants);
         CombatPresentationMapper combatPresentationMapper = new CombatPresentationMapper();
         LocationEventService locationEventService = new LocationEventService();
