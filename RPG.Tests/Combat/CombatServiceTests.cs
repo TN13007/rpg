@@ -6,22 +6,39 @@ using Xunit;
 public sealed class CombatServiceTests
 {
     [Fact]
-    public void EncounterStartsAtCombatTimeZeroAndReachesReadyAfterElapsedTime()
+    public void EncounterStartsWithinFourSecondsAndTheSlowestCombatantHasTheLongestWait()
     {
         CombatService combat = TestCharacterFactory.CreateCombat(out Character player, out Character enemy);
         Assert.True(combat.TryStartEncounter(out string reason));
         Assert.False(combat.IsAwaitingPlayerDecision);
         Assert.Equal(0, combat.CombatTime);
-        combat.AdvanceCombatTime(12.4);
+
+        const double slowestSpeed = 5.8;
+        const double fastestSpeed = 8.0;
+        const double largestRecoveryCost = 130.0;
+        const double initialProgress = 100.0;
+        double progressScale = 4.0 * slowestSpeed / largestRecoveryCost;
+        double playerReadyTime = initialProgress * progressScale / fastestSpeed;
+        double enemyReadyTime = initialProgress * progressScale / slowestSpeed;
+
+        Assert.True(enemyReadyTime < 4.0);
+        Assert.True(playerReadyTime < enemyReadyTime);
+
+        combat.AdvanceCombatTime(playerReadyTime - 0.001);
         Assert.False(combat.IsAwaitingPlayerDecision);
-        Assert.Equal(12.4, combat.CombatTime, 3);
-        combat.AdvanceCombatTime(0.1);
+
+        combat.AdvanceCombatTime(0.001);
         Assert.True(combat.IsAwaitingPlayerDecision);
-        Assert.Equal(12.5, combat.CombatTime, 3);
+        Assert.Equal(playerReadyTime, combat.CombatTime, 3);
+
         TimelineCombatantStatus playerEntry = combat.GetSnapshot().Timeline.Single(entry => entry.Id == player.Id);
         TimelineCombatantStatus enemyEntry = combat.GetSnapshot().Timeline.Single(entry => entry.Id == enemy.Id);
         Assert.Equal(0, playerEntry.RemainingProgress, 3);
-        Assert.Equal(27.5, enemyEntry.RemainingProgress, 3);
+        Assert.Equal(
+            initialProgress * progressScale - slowestSpeed * playerReadyTime,
+            enemyEntry.RemainingProgress,
+            3);
+        Assert.True(enemyEntry.RemainingProgress / enemyEntry.Speed < 1.0);
     }
 
     [Fact]
@@ -49,6 +66,41 @@ public sealed class CombatServiceTests
         Assert.Contains(subsequentEvents, item => item.Type == CombatEventType.EnemyAction);
         Assert.True(combat.IsAwaitingPlayerDecision);
         Assert.True(combat.CombatTime > 12.5);
+    }
+
+    [Fact]
+    public void SlowestCombatantTakesExactlyFourSecondsToRecoverFromItsLongestAction()
+    {
+        Character player = TestCharacterFactory.CreatePlayer();
+        Character enemy = TestCharacterFactory.CreateEnemy();
+        CombatActionDefinition heavySwing = TestCharacterFactory.CreateEnemyCombatActions()
+            .Single(action => action.Id == "goblin_heavy_swing");
+
+        CombatService combat = new CombatService(
+            player,
+            enemy,
+            TestCharacterFactory.CreatePlayerCombatActions(),
+            new[] { heavySwing },
+            new Random(7));
+
+        StartAtPlayerDecision(combat);
+        CombatResult playerAction = combat.ExecuteAction(
+            new CombatActionRequest("quick_strike", enemy.Id, player.Id));
+        Assert.True(playerAction.Success);
+
+        TimelineCombatantStatus enemyBeforeAction = combat.GetSnapshot().Timeline
+            .Single(entry => entry.Id == enemy.Id);
+        double enemyTimeToReady = enemyBeforeAction.RemainingProgress / enemyBeforeAction.Speed;
+
+        CombatResult enemyResult = combat.AdvanceCombatTime(enemyTimeToReady);
+        Assert.Contains(enemyResult.Events, item => item.Type == CombatEventType.EnemyAction);
+
+        TimelineCombatantStatus enemyAfterAction = combat.GetSnapshot().Timeline
+            .Single(entry => entry.Id == enemy.Id);
+        Assert.Equal(
+            4.0,
+            enemyAfterAction.RemainingProgress / enemyAfterAction.Speed,
+            3);
     }
 
     [Fact]

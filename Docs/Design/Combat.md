@@ -60,6 +60,12 @@ At encounter start, each active combatant receives the same configured Initial P
 
 The Initial Progress value and all numeric tuning are provisional. They must be tuned in a playable encounter, not treated as permanent design constants.
 
+The current pacing target is that the slowest active combatant takes no more than **4 seconds** to recover from the largest Recovery Cost available in the encounter. Progress values use one shared scale:
+
+`ProgressScale = (4 seconds × SlowestBaseSpeed) / LargestRecoveryCost`
+
+The same scale applies to Initial Progress, Recovery Cost and Delay so their relative timing remains consistent. Stun duration is already measured in Combat Time and is not scaled. This is a tuning target, not a player-facing timer or a limit on how long Stun can prevent an action.
+
 ### 3.3 Action recovery
 
 Actions resolve instantaneously in the first Timeline implementation. Each action defines its own **Recovery Cost**, expressed in progress units rather than seconds.

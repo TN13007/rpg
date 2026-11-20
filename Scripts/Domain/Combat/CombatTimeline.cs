@@ -5,12 +5,29 @@ public sealed class CombatTimeline
 {
     private readonly Dictionary<string, CombatantTimelineState> _combatants =
         new Dictionary<string, CombatantTimelineState>(StringComparer.Ordinal);
+    private readonly double _progressScale;
 
     public double CombatTime { get; private set; }
 
+    public CombatTimeline(double progressScale = 1.0)
+    {
+        if (double.IsNaN(progressScale) ||
+            double.IsInfinity(progressScale) ||
+            progressScale <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(progressScale));
+        }
+
+        _progressScale = progressScale;
+    }
+
     public void AddCombatant(string combatantId, int luck, double baseSpeed, double initialProgress)
     {
-        CombatantTimelineState state = new CombatantTimelineState(combatantId, luck, baseSpeed, initialProgress);
+        CombatantTimelineState state = new CombatantTimelineState(
+            combatantId,
+            luck,
+            baseSpeed,
+            initialProgress * _progressScale);
         if (!_combatants.TryAdd(combatantId, state))
         {
             throw new ArgumentException("Duplicate combatant ID: " + combatantId, nameof(combatantId));
@@ -66,12 +83,12 @@ public sealed class CombatTimeline
             throw new ArgumentOutOfRangeException(nameof(amount));
         }
 
-        GetCombatant(combatantId).AddDelay(amount);
+        GetCombatant(combatantId).AddDelay(amount * _progressScale);
     }
 
     public void ApplyRecovery(string combatantId, double recoveryCost)
     {
-        GetCombatant(combatantId).SetRecoveryCost(recoveryCost);
+        GetCombatant(combatantId).SetRecoveryCost(recoveryCost * _progressScale);
     }
 
     public string GetNextReadyCombatantId()

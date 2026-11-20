@@ -4,6 +4,31 @@ using Xunit;
 public sealed class CombatTimelineTests
 {
     [Fact]
+    public void ProgressScaleAppliesToInitialProgressRecoveryAndDelay()
+    {
+        CombatTimeline timeline = new CombatTimeline(0.25);
+        timeline.AddCombatant("player", 10, 2, 100);
+
+        Assert.Equal(25, timeline.GetCombatant("player").RemainingProgress);
+
+        timeline.ApplyDelay("player", 20);
+        Assert.Equal(30, timeline.GetCombatant("player").RemainingProgress);
+
+        timeline.ApplyRecovery("player", 80);
+        Assert.Equal(20, timeline.GetCombatant("player").RemainingProgress);
+        Assert.Equal(10, timeline.GetTimeUntilNextEvent());
+    }
+
+    [Fact]
+    public void ProgressScaleMustBePositiveAndFinite()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => new CombatTimeline(0));
+        Assert.Throws<ArgumentOutOfRangeException>(() => new CombatTimeline(-1));
+        Assert.Throws<ArgumentOutOfRangeException>(() => new CombatTimeline(double.NaN));
+        Assert.Throws<ArgumentOutOfRangeException>(() => new CombatTimeline(double.PositiveInfinity));
+    }
+
+    [Fact]
     public void AllCombatantsProgressOverTheSameElapsedCombatTime()
     {
         CombatTimeline timeline = new CombatTimeline();

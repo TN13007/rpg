@@ -6,6 +6,7 @@ public sealed class CombatService : ICombatService
 {
     private const int _victoryReward = 25;
     private const double _initialProgress = 100;
+    private const double _maximumRecoveryTimeSeconds = 4.0;
 
     private sealed class CombatantRuntime
     {
@@ -148,7 +149,8 @@ public sealed class CombatService : ICombatService
             return false;
         }
 
-        _timeline = new CombatTimeline();
+        double progressScale = CalculateProgressScale();
+        _timeline = new CombatTimeline(progressScale);
         foreach (CombatantRuntime combatant in _combatants.Values)
         {
             combatant.EffectState.Reset();
@@ -558,6 +560,29 @@ public sealed class CombatService : ICombatService
         return string.IsNullOrWhiteSpace(action.UnavailableReason)
             ? "This action is currently unavailable."
             : action.UnavailableReason;
+    }
+
+    private double CalculateProgressScale()
+    {
+        CombatantRuntime[] activeCombatants = _combatants.Values
+            .Where(combatant => combatant.Character.IsAlive)
+            .ToArray();
+
+        double slowestBaseSpeed = activeCombatants
+            .Min(combatant => GetBaseSpeed(combatant.Character));
+        double largestRecoveryCost = activeCombatants
+            .SelectMany(combatant => combatant.ActionOrder)
+            .Max(action => action.RecoveryCost);
+
+        if (largestRecoveryCost <= 0.0)
+        {
+            throw new InvalidOperationException(
+                "At least one active combat action must have a positive Recovery Cost.");
+        }
+
+        // Normalize Progress units so the slowest combatant's longest authored recovery
+        // takes no longer than the current four-second pacing target.
+        return _maximumRecoveryTimeSeconds * slowestBaseSpeed / largestRecoveryCost;
     }
 
     private static double GetBaseSpeed(Character character)
