@@ -1,6 +1,6 @@
 > **Historical delivery roadmap — superseded.** This plan belongs to the earlier reincarnation life-simulation-first product direction. Current player-facing direction is in [Design/Roadmap](../Design/Roadmap.md). Current implementation status is in [WORKFLOW.md](../../WORKFLOW.md). Retained for traceability to earlier Issues and planning decisions.
 
-> Canonical location: [DeliveryRoadmap.md](DeliveryRoadmap.md). This document describes implementation, architecture, authored content contracts or delivery planning—not the intended player experience.
+ > Historical delivery roadmap — superseded. The current product roadmap is [Design/Roadmap](../Design/Roadmap.md).
 
 # Development Roadmap — Adventurer Academy: Reincarnation RPG
 
