@@ -8,8 +8,8 @@ These instructions are a navigation entry point, not a duplicate specification. 
 
 1. Read the active GitHub Issue and any related open PR. Treat the latest `main` as the implemented baseline; an open PR is only a proposal.
 2. At the beginning/end of a development Session, consult [WORKFLOW.md](WORKFLOW.md) for project status, handoff and the Implementation Brief process. Do not create another status tracker.
-3. For code changes, use [Docs/Architecture.md](Docs/Architecture.md) for canonical layer boundaries and runtime flows, then [Scripts/README.md](Scripts/README.md) as the quick source-code map.
-4. Read only the product/design document relevant to the affected behavior. Use [Docs/Testing.md](Docs/Testing.md) for test and runtime expectations.
+3. For code changes, use [Docs/Implementation/Architecture.md](Docs/Implementation/Architecture.md) for canonical layer boundaries and runtime flows, then [Scripts/README.md](Scripts/README.md) as the quick source-code map.
+4. Read only the relevant document under `Docs/Design/` for intended player experience and rules; use `Docs/Implementation/` for code and verification contracts. Use [Docs/Implementation/Testing.md](Docs/Implementation/Testing.md) for test and runtime expectations.
 5. Consult [CONTRIBUTING.md](CONTRIBUTING.md) when creating branches/commits/PRs or when naming and repository governance rules matter.
 
 Do not read every document or every source file by default. Follow the task's actual dependencies.
@@ -28,7 +28,7 @@ Do not read every document or every source file by default. Follow the task's ac
 | `RPG.Tests/` | Automated tests grouped by feature | Open the matching feature folder before changing behavior |
 | `Docs/` | Product, gameplay, UI and technical contracts | Use the document index in `README.md` |
 
-For the full layer contract, dependency direction and current runtime flows, [Docs/Architecture.md](Docs/Architecture.md) is authoritative. The table above is only a locator.
+For the full layer contract, dependency direction and current runtime flows, [Docs/Implementation/Architecture.md](Docs/Implementation/Architecture.md) is authoritative. The table above is only a locator.
 
 ## Required code-discovery sequence
 
@@ -70,7 +70,7 @@ For documentation-only changes, at minimum run:
 python Tools/CheckMarkdown.py
 ```
 
-For changes affecting scenes, resources, C# project files or runtime behavior, also follow the Godot 4.7.2 .NET build/headless smoke and manual runtime expectations in [Docs/Testing.md](Docs/Testing.md). Automated smoke checks do not prove rendered UI, input wiring or a complete player journey.
+For changes affecting scenes, resources, C# project files or runtime behavior, also follow the Godot 4.7.2 .NET build/headless smoke and manual runtime expectations in [Docs/Implementation/Testing.md](Docs/Implementation/Testing.md). Automated smoke checks do not prove rendered UI, input wiring or a complete player journey.
 
 In the PR or handoff, state exactly which commands/checks ran and their observed results. Separate automated results from manual Godot verification. Never claim a test, build, CI run or runtime check passed unless its result was observed; explicitly list skipped checks and why.
 
