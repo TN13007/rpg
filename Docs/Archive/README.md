@@ -1,17 +1,18 @@
 # Documentation Archive
 
-This directory contains historical records retained for traceability. Archived files are not current specifications and must not be used as implementation authority. Consult the active documents linked from the repository README.
+This directory retains historical material for traceability. Archived files are not current specifications, implementation contracts or delivery plans. Use the active Design and Implementation indexes for current guidance.
 
-| Archived record | Why it is archived | Current source of truth |
+| Archived record | Why it is retained | Current source of truth |
 |---|---|---|
-| [CombatPanelReview.md](CombatPanelReview.md) | Its presentation contract was consolidated; original review and acceptance record retained. | [Ui.md](../Ui.md) |
-| [WorldModelReview.md](WorldModelReview.md) | Review findings were incorporated into the world-model document. | [World.md](../World.md) |
-| [SprintPlayableJourney.md](SprintPlayableJourney.md) | Duplicated the gameplay loop and part of the acceptance scenario; historical checklist retained. | [Gameplay.md](../Gameplay.md), [Testing.md](../Testing.md) |
-| [PlayableJourneyTestReport.md](PlayableJourneyTestReport.md) | Historical owner-reported verification record with explicitly incomplete raw evidence. | [Testing.md](../Testing.md) for current verification instructions |
-| [ProjectNamingAudit.md](ProjectNamingAudit.md) | Initial audit and remediation history; current naming enforcement is automated. | [CONTRIBUTING.md](../../CONTRIBUTING.md) and CI |
-| [OpenDesignQuestions.md](OpenDesignQuestions.md) | Historical snapshot mixing resolved decisions and deferred questions. | Owning domain documents; [Issue #51](https://github.com/TN13007/rpg/issues/51) for deferred UI/Combat decisions |
-| [CombatBalanceV1PrePartyTimeline.md](CombatBalanceV1PrePartyTimeline.md) | Superseded numeric combat proposal predating the current party Timeline design. | [Design/Combat.md](../Design/Combat.md) |
-| [DevelopmentRoadmapV0ReincarnationLifeSim.md](DevelopmentRoadmapV0ReincarnationLifeSim.md) | Superseded life-simulation-first delivery roadmap. | [Design/Roadmap.md](../Design/Roadmap.md) |
-| [GameDesignV0LifeSimulationDirection.md](GameDesignV0LifeSimulationDirection.md) | Superseded life-simulation-first product direction. | [Design/GameVision.md](../Design/GameVision.md) |
+| [Combat Balance V1 — Pre-Party Timeline](CombatBalanceV1PrePartyTimeline.md) | Superseded numeric proposal from before the current four-member Timeline direction | [Design/Combat](../Design/Combat.md) |
+| [Development Roadmap V0 — Reincarnation Life Sim](DevelopmentRoadmapV0ReincarnationLifeSim.md) | Historical roadmap for the earlier life-simulation-first direction | [Design/Roadmap](../Design/Roadmap.md), [WORKFLOW](../../WORKFLOW.md) |
+| [Game Design V0 — Life Simulation Direction](GameDesignV0LifeSimulationDirection.md) | Superseded product vision | [Design/GameVision](../Design/GameVision.md) |
+| [Version 1 Prototype Plan](Version1PrototypePlan.md) | Detailed Session plan for the earlier Academy prototype; no longer current product scope | [Design/Roadmap](../Design/Roadmap.md), [WORKFLOW](../../WORKFLOW.md) |
+| [Combat Panel Review](CombatPanelReview.md) | Historical review and acceptance record | [Implementation/UserInterface](../Implementation/UserInterface.md) |
+| [World Model Review](WorldModelReview.md) | Historical review of NPC, object and Location modeling assumptions | [Implementation/RuntimeSystems](../Implementation/RuntimeSystems.md) |
+| [Sprint Playable Journey](SprintPlayableJourney.md) | Historical sprint checklist; not current acceptance criteria | [Implementation/Testing](../Implementation/Testing.md) |
+| [Playable Journey Test Report](PlayableJourneyTestReport.md) | Historical owner-reported verification with incomplete raw evidence | [Implementation/Testing](../Implementation/Testing.md) |
+| [Open Design Questions](OpenDesignQuestions.md) | Historical snapshot of questions and decisions; current decisions live with their owning topics | Relevant Design and Implementation documents |
+| [Project Naming Audit](ProjectNamingAudit.md) | Initial audit and remediation history | [CONTRIBUTING](../../CONTRIBUTING.md) and CI |
 
-Do not add a new archive file for ordinary Session notes. Archive only superseded records whose historical evidence or rationale is worth retaining.
+Archive only material whose historical evidence or rationale is worth retaining. Do not create permanent files for ordinary Session notes, temporary briefs or superseded status reports.

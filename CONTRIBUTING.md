@@ -225,12 +225,12 @@ Use namespaces only where they provide a useful boundary. Keep namespaces to two
 
 ### Files, folders and Godot resources
 
-- Use `PascalCase` for directory and file names.
+- Use `PascalCase` for directory and file names. Markdown document names use descriptive words rather than unexplained abbreviations; for example, use `UserInterface.md` rather than `UI.md`.
 - A C# file should match its main type, and should generally contain one core type: `CombatService.cs`.
 - Name test methods in `PascalCase`; do not use underscores to divide test-name segments.
 - Use `PascalCase` for Godot scene files, custom node names and resource files: `CombatPanel.tscn`.
 - Use `PascalCase` for JSON data filenames, assets and Markdown document filenames: `AcademyLocations.json`, `CharacterPortrait.svg`, `ExampleService.md`.
-- Keep the conventional repository entry files `README.md` and `CONTRIBUTING.md`, plus platform/tool-managed names such as `.github` and `.editorconfig`, unchanged.
+- Keep intentional repository entry files `README.md`, `CONTRIBUTING.md`, `AGENTS.md` and `WORKFLOW.md`, plus platform/tool-managed names such as `.github` and `.editorconfig`, unchanged.
 
 ### JSON and game content
 
@@ -315,4 +315,4 @@ Every documentation PR must check:
 - Whether the change creates duplicate, contradictory or stale guidance.
 - Whether the implementation and tests still agree with the documented behavior.
 
-The repository should automate internal-link validation and detect orphaned active documents in CI. Until those checks are present, reviewers must perform these checks manually. Do not add a style/lint tool merely for cosmetic consistency; automate checks that prevent broken navigation or conflicting sources of truth.
+The repository's Markdown validation checks internal links, heading anchors and documentation navigation. Every active document must be reachable from the root README or an active parent index. Do not add a style/lint tool merely for cosmetic consistency; automate checks that prevent broken navigation or conflicting sources of truth.

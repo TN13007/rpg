@@ -1,4 +1,4 @@
-> Archived 2026-11-18. This sprint-level record overlaps the current gameplay contract and acceptance scenario in [Gameplay.md](../Gameplay.md) and [Testing.md](../Testing.md). Retained for historical context; unchecked historical checklist items are not current acceptance criteria.
+> Archived 2026-11-18. This sprint-level record overlaps the current gameplay contract and acceptance scenario in [Gameplay.md](../Implementation/RuntimeSystems.md) and [Testing.md](../Implementation/Testing.md). Retained for historical context; unchecked historical checklist items are not current acceptance criteria.
 
 # Sprint — Playable Academy Day and Location Event Loop
 

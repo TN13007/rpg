@@ -1,9 +1,9 @@
- > Canonical location: [Version1Plan.md](Version1Plan.md). This is the historical Version 1 implementation plan for the original Academy prototype; it does not define the current combat-first product scope.
+> **Archived historical plan — not current product scope or implementation status.** This plan belongs to the earlier Academy prototype. Current product direction is in [Design](../Design/README.md); current codebase behavior is in [Implementation](../Implementation/README.md); current status is in [WORKFLOW.md](../../WORKFLOW.md).
 
 # Version 1 — Session-by-Session Implementation Plan
 
-**Parent roadmap:** [Game Development Roadmap](../Archive/DevelopmentRoadmapV0ReincarnationLifeSim.md)  
-**Architecture contract:** [Exploration Action Choice Pipeline](Exploration.md)  
+**Parent roadmap:** [Game Development Roadmap](DevelopmentRoadmapV0ReincarnationLifeSim.md)  
+**Architecture contract:** [Exploration Action Choice Pipeline](../Implementation/RuntimeSystems.md)  
 **Version:** 1 — A Day at the Academy  
 **Engine:** Godot 4.7.2 .NET / C#  
 **Delivery rule:** Every session ends with a runnable feature in the Godot main scene.
