@@ -5,8 +5,8 @@ public partial class CombatPanel : PanelContainer
 {
     public event Action<CombatActionRequest> ActionSelected;
     public event Action ContinueRequested;
-
     private Label _encounterTitle;
+    private Label _mode;
     private Button _continueButton;
     private CombatStatusPanel _statusPanel;
     private CombatMessageLog _messageLog;
@@ -16,6 +16,7 @@ public partial class CombatPanel : PanelContainer
     {
         UiTheme.StylePanel(this);
         _encounterTitle = GetNode<Label>("Margin/Content/Header/EncounterTitle");
+        _mode = GetNode<Label>("Margin/Content/Header/Mode");
         _continueButton = GetNode<Button>("Margin/Content/ContinueButton");
         _statusPanel = GetNode<CombatStatusPanel>("Margin/Content/CombatStatusPanel");
         _messageLog = GetNode<CombatMessageLog>("Margin/Content/CombatMessageLog");
@@ -23,14 +24,16 @@ public partial class CombatPanel : PanelContainer
         _actionPanel.ActionSelected += HandleActionSelected;
         _continueButton.Pressed += HandleContinuePressed;
         _continueButton.Visible = false;
+        _mode.Text = "TACTICAL TIMELINE";
         UiTheme.StyleButton(_continueButton, true);
     }
 
     public void BeginEncounter(string title)
     {
         _encounterTitle.Text = title;
-        _statusPanel.SetTurn(1, "PLAYER TURN");
+        _statusPanel.SetTurn(1, "PLAYER DECISION");
         _statusPanel.SetEnemies(Array.Empty<EnemyCombatStatus>());
+        _statusPanel.SetTimeline(Array.Empty<TimelineCombatantStatus>());
         _statusPanel.SetIntent(null);
         _messageLog.Clear();
         _actionPanel.SetActions(Array.Empty<CombatActionOption>());
@@ -39,27 +42,16 @@ public partial class CombatPanel : PanelContainer
 
     public void ApplyViewData(CombatViewData viewData)
     {
-        if (viewData == null)
-        {
-            GD.PushError("CombatPanel received null view data.");
-            return;
-        }
-
+        if (viewData == null) { GD.PushError("CombatPanel received null view data."); return; }
         _statusPanel.SetTurn(viewData.Round, viewData.ActiveTurnLabel);
         _statusPanel.SetEnemies(viewData.Enemies);
+        _statusPanel.SetTimeline(viewData.Timeline);
         _statusPanel.SetIntent(viewData.Intent);
         _actionPanel.SetActions(viewData.AvailableActions);
-
-        foreach (CombatMessage message in viewData.NewMessages)
-        {
-            _messageLog.Append(message);
-        }
+        foreach (CombatMessage message in viewData.NewMessages) _messageLog.Append(message);
     }
 
-    public void AppendMessage(CombatMessage message)
-    {
-        _messageLog.Append(message);
-    }
+    public void AppendMessage(CombatMessage message) { _messageLog.Append(message); }
 
     public void ShowEncounterComplete(string resultText)
     {
@@ -70,13 +62,6 @@ public partial class CombatPanel : PanelContainer
         _encounterTitle.Text = resultText;
     }
 
-    private void HandleActionSelected(CombatActionRequest request)
-    {
-        ActionSelected?.Invoke(request);
-    }
-
-    private void HandleContinuePressed()
-    {
-        ContinueRequested?.Invoke();
-    }
+    private void HandleActionSelected(CombatActionRequest request) { ActionSelected?.Invoke(request); }
+    private void HandleContinuePressed() { ContinueRequested?.Invoke(); }
 }

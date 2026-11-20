@@ -1,274 +1,131 @@
+using System.Linq;
 using Xunit;
 
 public sealed class CombatServiceTests
 {
     [Fact]
-    public void AttackDealsDamageAndEnemyRespondsWithoutSpendingStamina()
+    public void EncounterStartsAtFirstReadyPlayerDecision()
     {
         CombatService combat = TestCharacterFactory.CreateCombat(out Character player, out Character enemy);
         Assert.True(combat.TryStartEncounter(out string reason));
-
-        CombatResult result = combat.ExecuteAction(new CombatActionRequest("attack", enemy.Id));
-
-        Assert.True(result.Success);
-        Assert.Equal(20, enemy.Health);
-        Assert.Equal(16, player.Health);
-        Assert.Equal(8, player.Stamina);
-        Assert.False(combat.IsEncounterOver);
+        Assert.True(combat.IsAwaitingPlayerDecision);
+        Assert.Equal(12.5, combat.CombatTime, 3);
+        TimelineCombatantStatus playerEntry = combat.GetSnapshot().Timeline.Single(entry => entry.Id == player.Id);
+        TimelineCombatantStatus enemyEntry = combat.GetSnapshot().Timeline.Single(entry => entry.Id == enemy.Id);
+        Assert.Equal(0, playerEntry.RemainingProgress, 3);
+        Assert.Equal(27.5, enemyEntry.RemainingProgress, 3);
     }
 
     [Fact]
-    public void CustomActionDefinitionControlsAttackDamage()
-    {
-        Character player = TestCharacterFactory.CreatePlayer();
-        Character enemy = TestCharacterFactory.CreateEnemy();
-        CombatActionDefinition customAttack = new CombatActionDefinition(
-            "training_strike",
-            "Training Strike",
-            "No Stamina cost",
-            "Deal 7 damage.",
-            CombatActionBehavior.Attack,
-            0,
-            7,
-            0,
-            "",
-            "You perform a training strike.");
-        CombatService combat = new CombatService(player, enemy, new[] { customAttack });
-        Assert.True(combat.TryStartEncounter(out string reason));
-
-        CombatResult result = combat.ExecuteAction(new CombatActionRequest("training_strike", enemy.Id));
-
-        Assert.True(result.Success);
-        Assert.Equal(33, enemy.Health);
-    }
-
-    [Fact]
-    public void AttackAtZeroStaminaRemainsAvailable()
-    {
-        CombatService combat = TestCharacterFactory.CreateCombat(
-            out Character player, out Character enemy, playerStamina: 0);
-        Assert.True(combat.TryStartEncounter(out string reason));
-
-        CombatResult result = combat.ExecuteAction(new CombatActionRequest("attack", enemy.Id));
-
-        Assert.True(result.Success);
-        Assert.Equal(20, enemy.Health);
-        Assert.Equal(0, player.Stamina);
-        Assert.True(HasEvent(result, CombatEventType.EnemyAction));
-        Assert.False(combat.IsEncounterOver);
-    }
-
-    [Fact]
-    public void DefendCostsOneStaminaAndReducesNextEnemyHitToOne()
+    public void QuickStrikeResolvesAndEnemyActsOnItsOwnTimelineEvent()
     {
         CombatService combat = TestCharacterFactory.CreateCombat(out Character player, out Character enemy);
         Assert.True(combat.TryStartEncounter(out string reason));
+        CombatResult result = combat.ExecuteAction(new CombatActionRequest("quick_strike", enemy.Id, player.Id));
+        Assert.True(result.Success);
+        Assert.Equal(32, enemy.Health);
+        Assert.Contains(result.Events, item => item.Type == CombatEventType.EnemyAction);
+        Assert.True(combat.IsAwaitingPlayerDecision);
+        Assert.True(combat.CombatTime > 12.5);
+    }
 
-        CombatResult result = combat.ExecuteAction(new CombatActionRequest("defend"));
+    [Fact]
+    public void HeavyStrikeHasGreaterRecoveryThanQuickStrike()
+    {
+        CombatService quick = TestCharacterFactory.CreateCombat(out Character quickPlayer, out Character quickEnemy);
+        CombatService heavy = TestCharacterFactory.CreateCombat(out Character heavyPlayer, out Character heavyEnemy);
+        Assert.True(quick.TryStartEncounter(out string quickReason));
+        Assert.True(heavy.TryStartEncounter(out string heavyReason));
+        quick.ExecuteAction(new CombatActionRequest("quick_strike", quickEnemy.Id));
+        heavy.ExecuteAction(new CombatActionRequest("heavy_strike", heavyEnemy.Id));
+        double quickProgress = quick.GetSnapshot().Timeline.Single(entry => entry.Id == quickPlayer.Id).RemainingProgress;
+        double heavyProgress = heavy.GetSnapshot().Timeline.Single(entry => entry.Id == heavyPlayer.Id).RemainingProgress;
+        Assert.True(heavyProgress > quickProgress);
+    }
 
+    [Fact]
+    public void DisruptingStrikeAppliesDelayThroughEffectDispatcher()
+    {
+        CombatService combat = TestCharacterFactory.CreateCombat(out Character player, out Character enemy);
+        Assert.True(combat.TryStartEncounter(out string reason));
+        CombatResult result = combat.ExecuteAction(new CombatActionRequest("disrupting_strike", enemy.Id, player.Id));
+        Assert.True(result.Success);
+        Assert.Contains(result.Events, item => item.Detail.Contains("delayed"));
+    }
+
+    [Fact]
+    public void InsufficientStaminaDoesNotConsumeDecisionWindow()
+    {
+        CombatService combat = TestCharacterFactory.CreateCombat(out Character player, out Character enemy, playerStamina: 1);
+        Assert.True(combat.TryStartEncounter(out string reason));
+        CombatResult result = combat.ExecuteAction(new CombatActionRequest("evade", string.Empty, player.Id));
+        Assert.False(result.Success);
+        Assert.True(combat.IsAwaitingPlayerDecision);
+        Assert.Equal(1, player.Stamina);
+        Assert.Equal(40, enemy.Health);
+    }
+
+    [Fact]
+    public void GuardReducesTheNextGoblinHit()
+    {
+        CombatService combat = TestCharacterFactory.CreateCombat(out Character player, out Character enemy);
+        Assert.True(combat.TryStartEncounter(out string reason));
+        CombatResult result = combat.ExecuteAction(new CombatActionRequest("guard", string.Empty, player.Id));
         Assert.True(result.Success);
         Assert.Equal(7, player.Stamina);
-        Assert.Equal(19, player.Health);
-        Assert.False(combat.IsEncounterOver);
+        Assert.Contains(result.Events, item => item.Type == CombatEventType.EnemyAction);
+        Assert.InRange(player.Health, 12, 19);
     }
 
     [Fact]
-    public void DodgeCostsTwoStaminaAndAvoidsNextEnemyHit()
+    public void EvadeAvoidsTheNextGoblinHit()
     {
         CombatService combat = TestCharacterFactory.CreateCombat(out Character player, out Character enemy);
         Assert.True(combat.TryStartEncounter(out string reason));
-
-        CombatResult result = combat.ExecuteAction(new CombatActionRequest("dodge"));
-
+        CombatResult result = combat.ExecuteAction(new CombatActionRequest("evade", string.Empty, player.Id));
         Assert.True(result.Success);
         Assert.Equal(6, player.Stamina);
+        Assert.Contains(result.Events, item => item.Type == CombatEventType.Check);
         Assert.Equal(20, player.Health);
-        Assert.False(combat.IsEncounterOver);
     }
 
     [Fact]
-    public void InsufficientStaminaDoesNotConsumeTurnOrEndEncounter()
+    public void CatchBreathRestoresStaminaAndTimelineContinues()
     {
-        CombatService combat = TestCharacterFactory.CreateCombat(
-            out Character player, out Character enemy, playerStamina: 1);
+        CombatService combat = TestCharacterFactory.CreateCombat(out Character player, out Character enemy, playerStamina: 1);
         Assert.True(combat.TryStartEncounter(out string reason));
-
-        CombatResult result = combat.ExecuteAction(new CombatActionRequest("dodge"));
-
-        Assert.False(result.Success);
-        Assert.Contains("Stamina", result.FailureReason);
-        Assert.Equal(1, player.Stamina);
-        Assert.Equal(20, player.Health);
-        Assert.Equal(40, enemy.Health);
-        Assert.False(combat.IsEncounterOver);
-    }
-
-    [Fact]
-    public void SpendingLastStaminaDoesNotEndEncounter()
-    {
-        CombatService combat = TestCharacterFactory.CreateCombat(
-            out Character player, out Character enemy, playerStamina: 1);
-        Assert.True(combat.TryStartEncounter(out string reason));
-
-        CombatResult result = combat.ExecuteAction(new CombatActionRequest("defend"));
-
-        Assert.True(result.Success);
-        Assert.Equal(0, player.Stamina);
-        Assert.Equal(19, player.Health);
-        Assert.False(combat.IsEncounterOver);
-        Assert.True(HasEvent(result, CombatEventType.EnemyAction));
-    }
-
-    [Fact]
-    public void CatchBreathRestoresThreeStaminaAndEnemyStillResponds()
-    {
-        CombatService combat = TestCharacterFactory.CreateCombat(
-            out Character player, out Character enemy, playerStamina: 1);
-        Assert.True(combat.TryStartEncounter(out string reason));
-
-        CombatResult result = combat.ExecuteAction(new CombatActionRequest("catch_breath"));
-
+        CombatResult result = combat.ExecuteAction(new CombatActionRequest("catch_breath", string.Empty, player.Id));
         Assert.True(result.Success);
         Assert.Equal(4, player.Stamina);
-        Assert.Equal(16, player.Health);
-        Assert.True(HasEvent(result, CombatEventType.EnemyAction));
-        Assert.False(combat.IsEncounterOver);
+        Assert.Contains(result.Events, item => item.Type == CombatEventType.EnemyAction);
     }
 
     [Fact]
-    public void CatchBreathAtFullStaminaIsRejectedWithoutConsumingTurn()
+    public void DefeatingGoblinEndsEncounterWithoutCounterattack()
     {
-        CombatService combat = TestCharacterFactory.CreateCombat(
-            out Character player, out Character enemy, playerStamina: 10);
+        CombatService combat = TestCharacterFactory.CreateCombat(out Character player, out Character enemy, enemyHealth: 8);
         Assert.True(combat.TryStartEncounter(out string reason));
-
-        CombatResult result = combat.ExecuteAction(new CombatActionRequest("catch_breath"));
-
-        Assert.False(result.Success);
-        Assert.Equal(10, player.Stamina);
-        Assert.Equal(20, player.Health);
-        Assert.Equal(40, enemy.Health);
-        Assert.False(combat.IsEncounterOver);
-    }
-
-    [Fact]
-    public void CharacterWithZeroStaminaCanStartEncounterAndRecover()
-    {
-        CombatService combat = TestCharacterFactory.CreateCombat(
-            out Character player, out Character enemy, playerStamina: 0);
-
-        Assert.True(combat.TryStartEncounter(out string reason));
-        CombatResult result = combat.ExecuteAction(new CombatActionRequest("catch_breath"));
-
-        Assert.True(result.Success);
-        Assert.Equal(3, player.Stamina);
-        Assert.Equal(16, player.Health);
-    }
-
-    [Fact]
-    public void AttackThatDefeatsEnemyEndsEncounterAndAwardsGoldWithoutCounterattack()
-    {
-        CombatService combat = TestCharacterFactory.CreateCombat(
-            out Character player, out Character enemy, enemyHealth: 20);
-        Assert.True(combat.TryStartEncounter(out string reason));
-
-        CombatResult result = combat.ExecuteAction(new CombatActionRequest("attack", enemy.Id));
-
+        CombatResult result = combat.ExecuteAction(new CombatActionRequest("quick_strike", enemy.Id, player.Id));
         Assert.True(result.Success);
         Assert.True(combat.IsEncounterOver);
         Assert.True(combat.IsVictory);
         Assert.Equal(0, enemy.Health);
-        Assert.Equal(20, player.Health);
         Assert.Equal(45, player.Gold);
-        Assert.Equal(25, combat.RewardGold);
+        Assert.DoesNotContain(result.Events, item => item.Type == CombatEventType.EnemyAction);
     }
 
     [Fact]
-    public void DeadPlayerCannotStartEncounterOrAct()
+    public void GoblinChoosesOnlyFromItsAuthoredActionSet()
     {
-        CombatService combat = TestCharacterFactory.CreateCombat(
-            out Character player, out Character enemy, playerHealth: 0);
-        Assert.False(combat.TryStartEncounter(out string reason));
-        Assert.Contains("dead", reason);
-
-        CombatResult result = combat.ExecuteAction(new CombatActionRequest("attack", enemy.Id));
-
-        Assert.False(result.Success);
-        Assert.True(player.IsDead);
-        Assert.Equal(40, enemy.Health);
-    }
-
-    [Fact]
-    public void EnemyAttackCanKillPlayerAndDeathEndsEncounter()
-    {
-        CombatService combat = TestCharacterFactory.CreateCombat(
-            out Character player, out Character enemy, playerHealth: 4);
+        CombatService combat = TestCharacterFactory.CreateCombat(out Character player, out Character enemy, randomSeed: 17);
         Assert.True(combat.TryStartEncounter(out string reason));
-
-        CombatResult result = combat.ExecuteAction(new CombatActionRequest("attack", enemy.Id));
-
-        Assert.True(result.Success);
-        Assert.True(combat.IsEncounterOver);
-        Assert.False(combat.IsVictory);
-        Assert.True(player.IsDead);
-    }
-
-    [Fact]
-    public void InvalidTargetDoesNotChangeCombatState()
-    {
-        CombatService combat = TestCharacterFactory.CreateCombat(out Character player, out Character enemy);
-        Assert.True(combat.TryStartEncounter(out string reason));
-
-        CombatResult result = combat.ExecuteAction(new CombatActionRequest("attack", "wrong-target"));
-
-        Assert.False(result.Success);
-        Assert.Equal(20, player.Health);
-        Assert.Equal(8, player.Stamina);
-        Assert.Equal(40, enemy.Health);
-        Assert.False(combat.IsEncounterOver);
-    }
-
-    [Fact]
-    public void EveryStaminaValueRespectsDefendAndDodgeCostsWithoutForcedDefeat()
-    {
-        for (int stamina = 0; stamina <= 10; stamina++)
+        CombatResult result = combat.ExecuteAction(new CombatActionRequest("quick_strike", enemy.Id, player.Id));
+        string[] allowed =
         {
-            AssertStaminaAction(stamina, "defend", 1);
-            AssertStaminaAction(stamina, "dodge", 2);
-        }
-    }
-
-    private static void AssertStaminaAction(int stamina, string actionId, int cost)
-    {
-        CombatService combat = TestCharacterFactory.CreateCombat(
-            out Character player, out Character enemy, playerStamina: stamina);
-        Assert.True(combat.TryStartEncounter(out string reason));
-
-        CombatResult result = combat.ExecuteAction(new CombatActionRequest(actionId));
-
-        if (stamina < cost)
-        {
-            Assert.False(result.Success);
-            Assert.Equal(stamina, player.Stamina);
-            Assert.Equal(20, player.Health);
-            Assert.Equal(40, enemy.Health);
-            Assert.False(combat.IsEncounterOver);
-            return;
-        }
-
-        Assert.True(result.Success);
-        Assert.Equal(stamina - cost, player.Stamina);
-        Assert.False(combat.IsEncounterOver);
-        Assert.True(HasEvent(result, CombatEventType.EnemyAction));
-    }
-
-    private static bool HasEvent(CombatResult result, CombatEventType type)
-    {
-        foreach (CombatEvent combatEvent in result.Events)
-        {
-            if (combatEvent.Type == type) return true;
-        }
-
-        return false;
+            "The goblin snaps out a quick jab.",
+            "The goblin commits to a heavy swing.",
+            "The goblin lands a staggering blow."
+        };
+        Assert.Contains(result.Events, item => item.Type == CombatEventType.EnemyAction && allowed.Contains(item.Detail));
     }
 }

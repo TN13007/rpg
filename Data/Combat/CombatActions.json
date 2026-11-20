@@ -1,43 +1,99 @@
 {
   "actions": [
     {
-      "id": "attack",
-      "label": "Attack",
-      "costLabel": "No Stamina cost",
-      "description": "Deal 20 damage to the enemy.",
+      "id": "quick_strike",
+      "label": "Quick Strike",
+      "costLabel": "No Stamina · 70 Recovery",
+      "description": "Deal 8 damage with a fast attack.",
       "behavior": "Attack",
-      "damage": 20,
-      "actionDetail": "You attack the enemy with a basic strike."
+      "damage": 8,
+      "recoveryCost": 70,
+      "actionDetail": "You perform a quick strike."
     },
     {
-      "id": "defend",
-      "label": "Defend",
-      "costLabel": "1 Stamina",
-      "description": "Reduce the next enemy hit to 1 damage.",
+      "id": "heavy_strike",
+      "label": "Heavy Strike",
+      "costLabel": "No Stamina · 130 Recovery",
+      "description": "Deal 14 damage, but recover more slowly.",
+      "behavior": "Attack",
+      "damage": 14,
+      "recoveryCost": 130,
+      "actionDetail": "You commit to a heavy strike."
+    },
+    {
+      "id": "guard",
+      "label": "Guard",
+      "costLabel": "1 Stamina · 85 Recovery",
+      "description": "Reduce the next incoming hit.",
       "behavior": "Defend",
       "staminaCost": 1,
+      "recoveryCost": 85,
       "unavailableReason": "Not enough Stamina.",
-      "actionDetail": "You take a guarded stance."
+      "actionDetail": "You raise your guard."
     },
     {
-      "id": "dodge",
-      "label": "Dodge",
-      "costLabel": "2 Stamina",
-      "description": "Avoid the next enemy attack.",
+      "id": "evade",
+      "label": "Evade",
+      "costLabel": "2 Stamina · 70 Recovery",
+      "description": "Avoid the next incoming hit.",
       "behavior": "Dodge",
       "staminaCost": 2,
+      "recoveryCost": 70,
       "unavailableReason": "Not enough Stamina.",
-      "actionDetail": "You prepare to evade the next attack."
+      "actionDetail": "You prepare to evade."
     },
     {
       "id": "catch_breath",
       "label": "Catch Breath",
-      "costLabel": "Recover 3 Stamina",
-      "description": "Recover your composure; the enemy still gets its turn.",
+      "costLabel": "Recover 3 Stamina · 100 Recovery",
+      "description": "Recover Stamina; the Timeline continues.",
       "behavior": "RecoverStamina",
       "recoveryAmount": 3,
+      "recoveryCost": 100,
       "unavailableReason": "Stamina is already full.",
-      "actionDetail": "You catch your breath and recover {amount} Stamina."
+      "actionDetail": "You catch your breath."
+    },
+    {
+      "id": "disrupting_strike",
+      "label": "Disrupting Strike",
+      "costLabel": "5 Damage · +35 Target Progress",
+      "description": "Deal 5 damage and delay the enemy.",
+      "behavior": "Delay",
+      "damage": 5,
+      "delayAmount": 35,
+      "recoveryCost": 100,
+      "actionDetail": "You land a disruptive strike."
+    },
+    {
+      "id": "goblin_quick_jab",
+      "label": "Quick Jab",
+      "costLabel": "Enemy Action",
+      "description": "A fast, light attack.",
+      "behavior": "Attack",
+      "damage": 4,
+      "recoveryCost": 75,
+      "actionDetail": "The goblin snaps out a quick jab."
+    },
+    {
+      "id": "goblin_heavy_swing",
+      "label": "Heavy Swing",
+      "costLabel": "Enemy Action",
+      "description": "A slower, harder attack.",
+      "behavior": "Attack",
+      "damage": 8,
+      "recoveryCost": 130,
+      "actionDetail": "The goblin commits to a heavy swing."
+    },
+    {
+      "id": "goblin_staggering_blow",
+      "label": "Staggering Blow",
+      "costLabel": "Enemy Action",
+      "description": "Deal light damage and briefly stun the target.",
+      "behavior": "Stun",
+      "damage": 3,
+      "stunDuration": 0.5,
+      "recoveryCost": 115,
+      "actionDetail": "The goblin lands a staggering blow."
     }
   ]
 }

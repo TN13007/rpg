@@ -12,21 +12,14 @@ public sealed class CombatantTimelineState
     public bool IsStunned(double combatTime) => StunEndTime.HasValue && combatTime < StunEndTime.Value;
     public bool CanAct(double combatTime) => IsReady && !IsStunned(combatTime);
 
-    public CombatantTimelineState(
-        string combatantId,
-        int luck,
-        double baseSpeed,
-        double initialProgress)
+    public CombatantTimelineState(string combatantId, int luck, double baseSpeed, double initialProgress)
     {
-        if (string.IsNullOrWhiteSpace(combatantId))
-            throw new ArgumentException("Combatant ID is required.", nameof(combatantId));
-        if (luck < 0 || luck > 100)
-            throw new ArgumentOutOfRangeException(nameof(luck));
+        if (string.IsNullOrWhiteSpace(combatantId)) throw new ArgumentException("Combatant ID is required.", nameof(combatantId));
+        if (luck < 0 || luck > 100) throw new ArgumentOutOfRangeException(nameof(luck));
         if (double.IsNaN(baseSpeed) || double.IsInfinity(baseSpeed) || baseSpeed <= 0)
             throw new ArgumentOutOfRangeException(nameof(baseSpeed), "Base Speed must be finite and greater than zero.");
         if (double.IsNaN(initialProgress) || double.IsInfinity(initialProgress) || initialProgress < 0)
             throw new ArgumentOutOfRangeException(nameof(initialProgress));
-
         CombatantId = combatantId;
         Luck = luck;
         BaseSpeed = baseSpeed;
@@ -39,10 +32,7 @@ public sealed class CombatantTimelineState
             throw new ArgumentOutOfRangeException(nameof(elapsedCombatTime));
         if (effectiveSpeed <= 0 || double.IsNaN(effectiveSpeed) || double.IsInfinity(effectiveSpeed))
             throw new ArgumentOutOfRangeException(nameof(effectiveSpeed));
-
-        if (RemainingProgress <= 0)
-            return;
-
+        if (RemainingProgress <= 0) return;
         RemainingProgress = Math.Max(0, RemainingProgress - effectiveSpeed * elapsedCombatTime);
     }
 
@@ -53,11 +43,18 @@ public sealed class CombatantTimelineState
         RemainingProgress = recoveryCost;
     }
 
+    internal void AddDelay(double amount)
+    {
+        if (double.IsNaN(amount) || double.IsInfinity(amount) || amount < 0)
+            throw new ArgumentOutOfRangeException(nameof(amount));
+        double nextProgress = RemainingProgress + amount;
+        if (double.IsInfinity(nextProgress)) throw new ArgumentOutOfRangeException(nameof(amount));
+        RemainingProgress = nextProgress;
+    }
+
     internal void ApplyStun(double endTime)
     {
-        if (double.IsNaN(endTime) || double.IsInfinity(endTime))
-            throw new ArgumentOutOfRangeException(nameof(endTime));
-        if (!StunEndTime.HasValue || endTime > StunEndTime.Value)
-            StunEndTime = endTime;
+        if (double.IsNaN(endTime) || double.IsInfinity(endTime)) throw new ArgumentOutOfRangeException(nameof(endTime));
+        if (!StunEndTime.HasValue || endTime > StunEndTime.Value) StunEndTime = endTime;
     }
 }

@@ -28,56 +28,36 @@ public partial class MainController : Control
         ActivityTimeCalculator activityTimeCalculator = new ActivityTimeCalculator();
         ActivityFatigueCalculator activityFatigueCalculator = new ActivityFatigueCalculator();
         ActionExecutionService actionExecutionService = new ActionExecutionService(
-            activityTimeCalculator,
-            new ActionEffectExecutor(),
-            activityFatigueCalculator);
-        ActionDurationEstimateMapper durationEstimateMapper =
-            new ActionDurationEstimateMapper(activityTimeCalculator);
+            activityTimeCalculator, new ActionEffectExecutor(), activityFatigueCalculator);
+        ActionDurationEstimateMapper durationEstimateMapper = new ActionDurationEstimateMapper(activityTimeCalculator);
         AvailableInteractionQuery availableInteractionQuery = new AvailableInteractionQuery();
         ActionChoiceMapper actionChoiceMapper = new ActionChoiceMapper(durationEstimateMapper);
-        CombatService combatService = new CombatService(player, goblin, content.GetCombatActionsForCharacter(playerData.Id));
+        CombatService combatService = new CombatService(
+            player,
+            goblin,
+            content.GetCombatActionsForCharacter(playerData.Id),
+            content.GetCombatActionsForCharacter(goblinData.Id));
         CombatPresentationMapper combatPresentationMapper = new CombatPresentationMapper();
         LocationEventService locationEventService = new LocationEventService();
 
         _gameModeController = new GameModeController(storyPanel, combatPanel);
         CombatSessionService combatSessionService = new CombatSessionService(
-            player,
-            combatService,
-            gameClock,
-            activityTimeCalculator,
-            activityFatigueCalculator,
-            actionExecutionService,
-            content.CombatEncounter);
+            player, combatService, gameClock, activityTimeCalculator,
+            activityFatigueCalculator, actionExecutionService, content.CombatEncounter);
         _combatController = new CombatFlowController(
-            storyPanel,
-            combatPanel,
-            characterPanel,
-            _gameModeController,
-            player,
-            combatSessionService,
-            combatPresentationMapper);
+            storyPanel, combatPanel, characterPanel, _gameModeController,
+            player, combatSessionService, combatPresentationMapper);
         _explorationController = new ExplorationFlowController(
-            storyPanel,
-            characterPanel,
-            _gameModeController,
-            player,
-            playerData.PlayerActions,
-            content.Locations,
-            content.GetLocation,
-            content.Travel,
-            gameClock,
-            actionExecutionService,
-            availableInteractionQuery,
-            actionChoiceMapper,
-            locationEventService,
-            _combatController.StartGoblinEncounter);
+            storyPanel, characterPanel, _gameModeController, player,
+            playerData.PlayerActions, content.Locations, content.GetLocation,
+            content.Travel, gameClock, actionExecutionService, availableInteractionQuery,
+            actionChoiceMapper, locationEventService, _combatController.StartGoblinEncounter);
 
         _sidebar.TabSelected += OpenTab;
         storyPanel.ChoiceSelected += _explorationController.HandleChoice;
         storyPanel.ReturnToLocationRequested += _explorationController.ShowLocation;
         combatPanel.ActionSelected += _combatController.HandleCombatAction;
         combatPanel.ContinueRequested += ReturnToExploration;
-
         characterPanel.SetCharacter(new CharacterViewModel(player));
         _explorationController.ShowLocation();
     }

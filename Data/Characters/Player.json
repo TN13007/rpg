@@ -21,10 +21,12 @@
     "luck": 15
   },
   "combatActionIds": [
-    "attack",
-    "defend",
-    "dodge",
-    "catch_breath"
+    "quick_strike",
+    "heavy_strike",
+    "guard",
+    "evade",
+    "catch_breath",
+    "disrupting_strike"
   ],
   "playerActions": [
     {

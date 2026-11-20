@@ -9,16 +9,14 @@ public sealed class CombatActionRequest
 {
     public string ActionId { get; }
     public string TargetId { get; }
+    public string ActorId { get; }
 
-    public CombatActionRequest(string actionId, string targetId = "")
+    public CombatActionRequest(string actionId, string targetId = "", string actorId = "")
     {
-        if (string.IsNullOrWhiteSpace(actionId))
-        {
-            throw new ArgumentException("Action ID is required.", nameof(actionId));
-        }
-
+        if (string.IsNullOrWhiteSpace(actionId)) throw new ArgumentException("Action ID is required.", nameof(actionId));
         ActionId = actionId;
         TargetId = targetId ?? string.Empty;
+        ActorId = actorId ?? string.Empty;
     }
 }
 
@@ -74,21 +72,37 @@ public sealed class EnemyCombatStatus
 
     public EnemyCombatStatus(string id, string name, int currentHealth, int maxHealth, string condition)
     {
-        if (maxHealth < 1)
-        {
-            throw new ArgumentOutOfRangeException(nameof(maxHealth), "Max health must be positive.");
-        }
-
-        if (currentHealth < 0 || currentHealth > maxHealth)
-        {
-            throw new ArgumentOutOfRangeException(nameof(currentHealth), "Current health must be between zero and max health.");
-        }
-
+        if (maxHealth < 1) throw new ArgumentOutOfRangeException(nameof(maxHealth));
+        if (currentHealth < 0 || currentHealth > maxHealth) throw new ArgumentOutOfRangeException(nameof(currentHealth));
         Id = id ?? string.Empty;
         Name = name ?? string.Empty;
         CurrentHealth = currentHealth;
         MaxHealth = maxHealth;
         Condition = condition ?? string.Empty;
+    }
+}
+
+public sealed class TimelineCombatantStatus
+{
+    public string Id { get; }
+    public string Name { get; }
+    public bool IsEnemy { get; }
+    public double RemainingProgress { get; }
+    public double Speed { get; }
+    public int Luck { get; }
+    public bool IsReady { get; }
+    public bool IsStunned { get; }
+
+    public TimelineCombatantStatus(string id, string name, bool isEnemy, double remainingProgress, double speed, int luck, bool isReady, bool isStunned)
+    {
+        Id = id ?? string.Empty;
+        Name = name ?? string.Empty;
+        IsEnemy = isEnemy;
+        RemainingProgress = remainingProgress;
+        Speed = speed;
+        Luck = luck;
+        IsReady = isReady;
+        IsStunned = isStunned;
     }
 }
 
@@ -112,16 +126,18 @@ public sealed class CombatActionOption
 {
     public string Id { get; }
     public string TargetId { get; }
+    public string ActorId { get; }
     public string Label { get; }
     public string CostLabel { get; }
     public string Description { get; }
     public bool IsAvailable { get; }
     public string UnavailableReason { get; }
 
-    public CombatActionOption(string id, string label, string costLabel, string description, bool isAvailable = true, string unavailableReason = "", string targetId = "")
+    public CombatActionOption(string id, string label, string costLabel, string description, bool isAvailable = true, string unavailableReason = "", string targetId = "", string actorId = "")
     {
         Id = id ?? string.Empty;
         TargetId = targetId ?? string.Empty;
+        ActorId = actorId ?? string.Empty;
         Label = label ?? string.Empty;
         CostLabel = costLabel ?? string.Empty;
         Description = description ?? string.Empty;
@@ -130,7 +146,6 @@ public sealed class CombatActionOption
     }
 }
 
-// Presentation-safe read model. Never place raw enemy AI state in this object.
 public sealed class CombatSnapshot
 {
     public int Round { get; }
@@ -138,14 +153,16 @@ public sealed class CombatSnapshot
     public EnemyCombatStatus[] Enemies { get; }
     public IntentObservation Intent { get; }
     public CombatActionOption[] AvailableActions { get; }
+    public TimelineCombatantStatus[] Timeline { get; }
 
-    public CombatSnapshot(int round, string activeTurnLabel, EnemyCombatStatus[] enemies, IntentObservation intent, CombatActionOption[] availableActions)
+    public CombatSnapshot(int round, string activeTurnLabel, EnemyCombatStatus[] enemies, IntentObservation intent, CombatActionOption[] availableActions, TimelineCombatantStatus[] timeline = null)
     {
         Round = round;
         ActiveTurnLabel = activeTurnLabel ?? string.Empty;
         Enemies = enemies ?? Array.Empty<EnemyCombatStatus>();
         Intent = intent;
         AvailableActions = availableActions ?? Array.Empty<CombatActionOption>();
+        Timeline = timeline ?? Array.Empty<TimelineCombatantStatus>();
     }
 }
 
@@ -162,16 +179,11 @@ public sealed class CombatResult
         Snapshot = snapshot ?? throw new ArgumentNullException(nameof(snapshot));
         Events = events ?? Array.Empty<CombatEvent>();
         FailureReason = failureReason ?? string.Empty;
-
         if (!success && string.IsNullOrWhiteSpace(FailureReason))
-        {
             throw new ArgumentException("A failed combat result must include a failure reason.", nameof(failureReason));
-        }
     }
 }
 
-// The gameplay service owns validation, resolution and state mutation.
-// UI availability is advisory; ExecuteAction must validate again before applying.
 public interface ICombatService
 {
     CombatSnapshot GetSnapshot();
@@ -186,8 +198,9 @@ public sealed class CombatViewData
     public IntentObservation Intent { get; }
     public CombatActionOption[] AvailableActions { get; }
     public CombatMessage[] NewMessages { get; }
+    public TimelineCombatantStatus[] Timeline { get; }
 
-    public CombatViewData(int round, string activeTurnLabel, EnemyCombatStatus[] enemies, IntentObservation intent, CombatActionOption[] availableActions, CombatMessage[] newMessages)
+    public CombatViewData(int round, string activeTurnLabel, EnemyCombatStatus[] enemies, IntentObservation intent, CombatActionOption[] availableActions, CombatMessage[] newMessages, TimelineCombatantStatus[] timeline = null)
     {
         Round = round;
         ActiveTurnLabel = activeTurnLabel ?? string.Empty;
@@ -195,5 +208,6 @@ public sealed class CombatViewData
         Intent = intent;
         AvailableActions = availableActions ?? Array.Empty<CombatActionOption>();
         NewMessages = newMessages ?? Array.Empty<CombatMessage>();
+        Timeline = timeline ?? Array.Empty<TimelineCombatantStatus>();
     }
 }
