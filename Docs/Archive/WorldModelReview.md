@@ -1,9 +1,9 @@
-> Archived 2026-11-18. This review is historical context; current prototype boundaries are summarized in [Runtime Systems](../Implementation/RuntimeSystems.md).
+> Archived 2026-11-18. This review is historical context; current prototype boundaries are summarized in [Runtime Systems](../Implementation/CrossLayerRuntimeSystems.md).
 
 # World Model Review — NPC, Object and Location
 
 **Related issue:** [#12 — Review NPC, Object and Location](https://github.com/TN13007/rpg/issues/12)  
-**Reference documents:** [World Model Foundation](../Implementation/RuntimeSystems.md), [Game Overview](../Design/GameVision.md), [UI Architecture](../Implementation/UserInterface.md), [Gameplay Loop and Location Events](../Implementation/RuntimeSystems.md)  
+**Reference documents:** [World Model Foundation](../Implementation/CrossLayerRuntimeSystems.md), [Game Overview](../Design/GameVision.md), [UI Architecture](../Implementation/PresentationUserInterface.md), [Gameplay Loop and Location Events](../Implementation/CrossLayerRuntimeSystems.md)  
 **Scope:** Design review only. This document records what the current prototype actually models and what remains conceptual.
 
 ## 1. Summary

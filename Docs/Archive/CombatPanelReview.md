@@ -1,4 +1,4 @@
-> Archived 2026-11-18. The active Combat presentation contract is consolidated in [User Interface](../Implementation/UserInterface.md).
+> Archived 2026-11-18. The active Combat presentation contract is consolidated in [User Interface](../Implementation/PresentationUserInterface.md).
 
 # Combat Panel — Design & Implementation Contract
 

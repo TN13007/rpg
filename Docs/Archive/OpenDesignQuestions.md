@@ -51,22 +51,22 @@
 
 | ID | Decision | Source |
 |---|---|---|
-| UI-R01 | Keep the Character, Diary and System Sidebar taxonomy; the Main Panel owns Location exploration. | [UI Architecture](../Implementation/UserInterface.md) |
-| COM-R01 | Keep three message types: Player, Enemy and System. Thoughts and inferences are categorized System messages. | [Combat Panel Contract](../Implementation/UserInterface.md) |
-| COM-R02 | Use visible speaker and category labels; alignment and color are not the only identity cues. | [Combat Panel Contract](../Implementation/UserInterface.md) |
-| COM-R03 | Show exact enemy HP in the current prototype. Status shows current HP; log records damage deltas. | [Combat Panel Contract](../Implementation/UserInterface.md) |
-| COM-R04 | Use a styled System message for round separators; timestamps are not required. | [Combat Panel Contract](../Implementation/UserInterface.md) |
-| COM-R05 | Bound the message log to 60 messages and auto-scroll only when already at the bottom. | [Combat Panel Contract](../Implementation/UserInterface.md) |
-| COM-R06 | UI receives only a presentation-safe snapshot; hidden AI decisions are never passed to UI. | [Combat Panel Contract](../Implementation/UserInterface.md) |
-| COM-R07 | Combat action availability is replaced from the latest snapshot; CombatService revalidates every request. | [Combat Panel Contract](../Implementation/UserInterface.md) |
+| UI-R01 | Keep the Character, Diary and System Sidebar taxonomy; the Main Panel owns Location exploration. | [UI Architecture](../Implementation/PresentationUserInterface.md) |
+| COM-R01 | Keep three message types: Player, Enemy and System. Thoughts and inferences are categorized System messages. | [Combat Panel Contract](../Implementation/PresentationUserInterface.md) |
+| COM-R02 | Use visible speaker and category labels; alignment and color are not the only identity cues. | [Combat Panel Contract](../Implementation/PresentationUserInterface.md) |
+| COM-R03 | Show exact enemy HP in the current prototype. Status shows current HP; log records damage deltas. | [Combat Panel Contract](../Implementation/PresentationUserInterface.md) |
+| COM-R04 | Use a styled System message for round separators; timestamps are not required. | [Combat Panel Contract](../Implementation/PresentationUserInterface.md) |
+| COM-R05 | Bound the message log to 60 messages and auto-scroll only when already at the bottom. | [Combat Panel Contract](../Implementation/PresentationUserInterface.md) |
+| COM-R06 | UI receives only a presentation-safe snapshot; hidden AI decisions are never passed to UI. | [Combat Panel Contract](../Implementation/PresentationUserInterface.md) |
+| COM-R07 | Combat action availability is replaced from the latest snapshot; CombatService revalidates every request. | [Combat Panel Contract](../Implementation/PresentationUserInterface.md) |
 | COM-R08 | A character with 0 HP is dead and cannot start an encounter or perform gameplay actions. | [Playable Journey Sprint](SprintPlayableJourney.md) |
-| LOOP-R01 | The core loop uses Location travel and optional Location Events; no Expedition or Run wrapper is required. | [Gameplay Loop and Location Events](../Implementation/RuntimeSystems.md) |
-| LOOP-R02 | A Location owns its Event Definitions. An Event is not automatically an Encounter or Combat; the player chooses a resolution. | [Gameplay Loop and Location Events](../Implementation/RuntimeSystems.md) |
-| LOOP-R03 | Evaluate a Location's Event pool after successful arrival, at most once per in-game day, only while the Player can act. | [Gameplay Loop and Location Events](../Implementation/RuntimeSystems.md) |
-| LOOP-R04 | Event choices execute through the normal action path or reference an action that starts the relevant Encounter/Combat flow. | [Gameplay Loop and Location Events](../Implementation/RuntimeSystems.md) |
-| ACT-R01 | Exploration choices come from distinct sources (Player, Location, Travel, Target and Event) and are grouped for presentation. | [Exploration Action Choice Pipeline](../Implementation/RuntimeSystems.md) |
-| ACT-R02 | Loaders parse content; Query selects contextually available choices; Mapper creates ViewModels; UI renders them. | [Exploration Action Choice Pipeline](../Implementation/RuntimeSystems.md) |
-| ACT-R03 | Combat Actions and Skills remain separate from the Exploration action-choice pipeline. | [Exploration Action Choice Pipeline](../Implementation/RuntimeSystems.md) |
+| LOOP-R01 | The core loop uses Location travel and optional Location Events; no Expedition or Run wrapper is required. | [Gameplay Loop and Location Events](../Implementation/CrossLayerRuntimeSystems.md) |
+| LOOP-R02 | A Location owns its Event Definitions. An Event is not automatically an Encounter or Combat; the player chooses a resolution. | [Gameplay Loop and Location Events](../Implementation/CrossLayerRuntimeSystems.md) |
+| LOOP-R03 | Evaluate a Location's Event pool after successful arrival, at most once per in-game day, only while the Player can act. | [Gameplay Loop and Location Events](../Implementation/CrossLayerRuntimeSystems.md) |
+| LOOP-R04 | Event choices execute through the normal action path or reference an action that starts the relevant Encounter/Combat flow. | [Gameplay Loop and Location Events](../Implementation/CrossLayerRuntimeSystems.md) |
+| ACT-R01 | Exploration choices come from distinct sources (Player, Location, Travel, Target and Event) and are grouped for presentation. | [Exploration Action Choice Pipeline](../Implementation/CrossLayerRuntimeSystems.md) |
+| ACT-R02 | Loaders parse content; Query selects contextually available choices; Mapper creates ViewModels; UI renders them. | [Exploration Action Choice Pipeline](../Implementation/CrossLayerRuntimeSystems.md) |
+| ACT-R03 | Combat Actions and Skills remain separate from the Exploration action-choice pipeline. | [Exploration Action Choice Pipeline](../Implementation/CrossLayerRuntimeSystems.md) |
 
 ## 6. Review Priorities
 

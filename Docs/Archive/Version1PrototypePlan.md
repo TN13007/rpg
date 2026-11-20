@@ -3,7 +3,7 @@
 # Version 1 — Session-by-Session Implementation Plan
 
 **Parent roadmap:** [Game Development Roadmap](DevelopmentRoadmapV0ReincarnationLifeSim.md)  
-**Architecture contract:** [Exploration Action Choice Pipeline](../Implementation/RuntimeSystems.md)  
+**Architecture contract:** [Exploration Action Choice Pipeline](../Implementation/CrossLayerRuntimeSystems.md)  
 **Version:** 1 — A Day at the Academy  
 **Engine:** Godot 4.7.2 .NET / C#  
 **Delivery rule:** Every session ends with a runnable feature in the Godot main scene.

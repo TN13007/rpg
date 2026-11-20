@@ -128,7 +128,7 @@ The current repository is no longer an empty project. It contains a narrow, inte
 - The current Combat is a small prototype, not the final adventure/party combat system.
 - Soul Identity, Incarnation, cross-life Memory, Life transition and Reincarnation are narrative/design ideas only.
 
-**Baseline evidence:** [WORKFLOW.md](../../WORKFLOW.md), [Architecture](../Implementation/Architecture.md), [Gameplay](../Implementation/RuntimeSystems.md), [Testing](../Implementation/Testing.md), and the current source tree. The last main snapshot reviewed for this roadmap is commit `98c438f32a22ff1b738a58102ca20d000d264a4f` (2026-11-19). Re-check main before each implementation Session.
+**Baseline evidence:** [WORKFLOW.md](../../WORKFLOW.md), [Architecture](../Implementation/CrossLayerArchitecture.md), [Gameplay](../Implementation/CrossLayerRuntimeSystems.md), [Testing](../Implementation/TestingStrategy.md), and the current source tree. The last main snapshot reviewed for this roadmap is commit `98c438f32a22ff1b738a58102ca20d000d264a4f` (2026-11-19). Re-check main before each implementation Session.
 
 ## 4. Version Roadmap
 
@@ -512,10 +512,10 @@ Do not start Soul/Incarnation implementation merely because the idea is exciting
 
 - [WORKFLOW.md](../../WORKFLOW.md) owns current implementation status, verification evidence, learning evidence and handoff.
 - [Version1Plan.md](Version1PrototypePlan.md) owns the accepted Version 1 Session scope and acceptance criteria.
-- [Architecture.md](../Implementation/Architecture.md) owns current layer boundaries and runtime dependency rules.
-- [Gameplay.md](../Implementation/RuntimeSystems.md) owns the implemented Location/Event and Exploration action-choice behavior.
+- [Architecture.md](../Implementation/CrossLayerArchitecture.md) owns current layer boundaries and runtime dependency rules.
+- [Gameplay.md](../Implementation/CrossLayerRuntimeSystems.md) owns the implemented Location/Event and Exploration action-choice behavior.
 - [GameDesign.md](../Design/GameVision.md) owns product concept and long-term world design; accepted narrative canon should be moved there after the narrative prototype is approved.
-- [World.md](../Implementation/RuntimeSystems.md) owns provisional world/location modeling vocabulary.
+- [World.md](../Implementation/CrossLayerRuntimeSystems.md) owns provisional world/location modeling vocabulary.
 - [Issue #11](https://github.com/TN13007/rpg/issues/11) owns long-term system design questions and baseline.
 - [Issue #68](https://github.com/TN13007/rpg/issues/68) owns the reincarnation narrative idea.
 - [Issue #69](https://github.com/TN13007/rpg/issues/69) tracks this end-to-end delivery roadmap.

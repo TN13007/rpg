@@ -1,4 +1,4 @@
-> Archived 2026-11-18. Historical owner-reported verification evidence; its limitations remain explicit. Current test instructions and acceptance scenarios are in [Testing.md](../Implementation/Testing.md).
+> Archived 2026-11-18. Historical owner-reported verification evidence; its limitations remain explicit. Current test instructions and acceptance scenarios are in [Testing.md](../Implementation/TestingStrategy.md).
 
 # Playable Journey — QA Verification Record
 
