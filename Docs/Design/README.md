@@ -12,7 +12,7 @@ This folder is the source of truth for the intended player experience and game r
 | [Progression](Progression.md) | Character growth, equipment, skills and build identity |
 | [World & Narrative](WorldAndNarrative.md) | World structure, story direction, NPCs and consequences |
 | [Roadmap](Roadmap.md) | Player-facing development sequence and product exit criteria |
-| [Historical Combat Balance](../Archive/CombatBalance-v1-pre-party-timeline.md) | Superseded numeric proposal; do not use as current balance |
+| [Historical Combat Balance](../Archive/CombatBalanceV1PrePartyTimeline.md) | Superseded numeric proposal; do not use as current balance |
 
 ## Reading rules
 
