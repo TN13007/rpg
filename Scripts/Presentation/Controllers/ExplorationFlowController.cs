@@ -212,12 +212,6 @@ public sealed class ExplorationFlowController
 
     private void ExecutePlayerAction(string actionId)
     {
-        if (!_player.CanAct)
-        {
-            _storyPanel.ShowFeedback("You cannot perform actions while incapacitated.");
-            return;
-        }
-
         foreach (PlayerActionDefinition playerAction in _playerActions)
         {
             if (playerAction.Action.Id != actionId) continue;

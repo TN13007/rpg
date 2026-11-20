@@ -54,6 +54,16 @@
       "feedback": "You sleep for eight hours and wake feeling restored.",
       "activityMet": 1,
       "availableLocationIds": ["dormitory"]
+    },
+    {
+      "id": "request_rescue",
+      "label": "Request emergency rescue",
+      "durationMinutes": 180,
+      "effects": [
+        { "type": "Revive", "amount": 5 }
+      ],
+      "feedback": "Emergency aid arrives after three hours. You recover with 5 HP.",
+      "activityMet": 0
     }
   ]
 }
