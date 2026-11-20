@@ -3,6 +3,6 @@
 There are two different roadmaps with separate responsibilities:
 
 - [Product Roadmap](Design/Roadmap.md) — player-facing outcomes and product exit criteria.
-- [Delivery Roadmap](Implementation/DeliveryRoadmap.md) — implementation sequence, technical dependencies and linked Issues.
+- [Historical Delivery Roadmap](Archive/DevelopmentRoadmap-v0-reincarnation-life-sim.md) — superseded plan retained for traceability.
 
 Current progress remains exclusively in [WORKFLOW.md](../WORKFLOW.md).
