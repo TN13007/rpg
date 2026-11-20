@@ -68,6 +68,19 @@ public sealed class CombatTimelineTests
     }
 
     [Fact]
+    public void ProgressResumesForThePortionOfAnAdvanceAfterStunExpires()
+    {
+        CombatTimeline timeline = new CombatTimeline();
+        timeline.AddCombatant("goblin", 5, 2, 10);
+        timeline.ApplyStun("goblin", 2);
+
+        timeline.AdvanceTime(5);
+
+        Assert.Equal(4, timeline.GetCombatant("goblin").RemainingProgress);
+        Assert.Equal(5, timeline.CombatTime);
+    }
+
+    [Fact]
     public void StunAppliedToReadyCombatantPreservesReadyProgress()
     {
         CombatTimeline timeline = new CombatTimeline();
