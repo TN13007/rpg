@@ -28,7 +28,7 @@ Do not read every document or every source file by default. Follow the task's ac
 | `RPG.Tests/` | Automated tests grouped by feature | Matching feature folder |
 | `Tools/` | Repository validation and supporting scripts | `Validate.py` |
 
-[Implementation Architecture](Docs/Implementation/CrossLayerArchitecture.md) owns layer boundaries, dependencies and runtime flows. [Scripts/README.md](Scripts/README.md) is a short source-code locator only.
+[Cross-Layer Architecture](Docs/Implementation/CrossLayerArchitecture.md) owns layer boundaries, dependencies and runtime flows. [Scripts/README.md](Scripts/README.md) is a short source-code locator only.
 
 ## Required code-discovery sequence
 
@@ -54,7 +54,7 @@ If documentation and code disagree, report the mismatch and verify against imple
 
 ## Validation and reporting
 
-Follow the validation and manual runtime requirements in [CONTRIBUTING.md](CONTRIBUTING.md) and [Implementation Testing](Docs/Implementation/TestingStrategy.md).
+Follow the validation and manual runtime requirements in [CONTRIBUTING.md](CONTRIBUTING.md) and [Testing Strategy](Docs/Implementation/TestingStrategy.md).
 
 For documentation-only changes, run `python Tools/CheckMarkdown.py`. For code changes, run the repository validation command. For changes affecting scenes, node paths, UI, input or gameplay runtime, also verify the affected journey in Godot 4.7.2 .NET.
 
