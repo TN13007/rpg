@@ -50,7 +50,7 @@ For a combatant that is not Stunned or otherwise prevented from progressing:
 
 `TimeToReady = RemainingProgress / EffectiveSpeed`
 
-The scheduler advances the Combat Clock to the earliest relevant event: a combatant becoming Ready or a timed combat effect reaching its scheduled time. All eligible combatants progress over the same elapsed interval.
+The scheduler advances the Combat Clock to the earliest relevant event: a combatant becoming Ready or a timed combat effect reaching its scheduled time. All eligible combatants progress over the same elapsed interval. Every active, non-Stunned combatant must have a strictly positive Effective Speed; Stun is represented as an eligibility/progress-freeze state, not by assigning zero Speed.
 
 A combatant with zero Remaining Progress is Ready. Ready is not an action by itself; it means the combatant is eligible to be considered for the next action opportunity, subject to statuses and encounter state.
 
@@ -87,11 +87,11 @@ Enemy actions are selected and resolved by enemy behavior when an enemy becomes 
 When multiple combatants reach Ready at the same Combat Time, resolve them in this order:
 
 1. Higher Luck acts first.
-2. If Luck is equal, use a stable, deterministic combatant ID order.
+2. If Luck is equal, use stable combatant ID in ascending ordinal order.
 
 There is no random roll in this tie-break rule and no separate Action Priority in the first implementation.
 
-Resolve one action at a time. After each action, re-evaluate the remaining Ready combatants against the updated combat state. This matters because the first action may Stun, Down, Delay or otherwise affect another combatant that was waiting at the same timestamp.
+Resolve one action at a time. After each action, immediately check encounter terminal conditions; if the encounter has ended, stop processing the timestamp. Otherwise, re-evaluate the remaining Ready combatants against the updated combat state. This matters because the first action may Stun, Down, Delay or otherwise affect another combatant that was waiting at the same timestamp.
 
 A combatant that remains Ready does not receive artificial extra Recovery merely because another combatant acted first.
 
@@ -140,8 +140,8 @@ When the Combat Clock reaches an event timestamp, process the timestamp as one d
 3. Apply resulting HP changes and Downed/removal transitions.
 4. Expire effects whose EndTime is this timestamp.
 5. Re-evaluate readiness and action eligibility.
-6. Resolve eligible Ready combatants using the tie-break rule.
-7. Check encounter victory, defeat and other terminal conditions before continuing.
+6. Resolve the next eligible Ready combatant using the tie-break rule.
+7. Immediately check encounter victory, defeat and other terminal conditions. If the encounter has ended, stop processing this timestamp; otherwise re-evaluate readiness and continue with the next eligible Ready combatant.
 
 This ordering means an effect that expires at the same timestamp as a Ready event is expired before the action eligibility check. Periodic damage due at that timestamp is applied before a character can act; a character reduced to zero HP cannot act afterward.
 
