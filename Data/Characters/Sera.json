@@ -1,0 +1,28 @@
+{
+  "id": "sera",
+  "name": "Sera",
+  "role": "Skirmisher",
+  "level": 1,
+  "maxHealth": 24,
+  "maxFatigue": 100,
+  "maxStamina": 9,
+  "maxMood": 100,
+  "startingHealth": 24,
+  "startingFatigue": 0,
+  "startingStamina": 9,
+  "startingMood": 70,
+  "startingGold": 0,
+  "stats": {
+    "strength": 22,
+    "agility": 28,
+    "intelligence": 10,
+    "endurance": 16,
+    "wisdom": 12,
+    "luck": 12
+  },
+  "combatActionIds": [
+    "quick_strike",
+    "heavy_strike",
+    "evade"
+  ]
+}

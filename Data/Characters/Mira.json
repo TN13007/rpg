@@ -1,0 +1,29 @@
+{
+  "id": "mira",
+  "name": "Mira",
+  "role": "Controller",
+  "level": 1,
+  "maxHealth": 22,
+  "maxFatigue": 100,
+  "maxStamina": 9,
+  "maxMood": 100,
+  "startingHealth": 22,
+  "startingFatigue": 0,
+  "startingStamina": 9,
+  "startingMood": 70,
+  "startingGold": 0,
+  "stats": {
+    "strength": 10,
+    "agility": 24,
+    "intelligence": 28,
+    "endurance": 14,
+    "wisdom": 26,
+    "luck": 25
+  },
+  "combatActionIds": [
+    "quick_strike",
+    "disrupting_strike",
+    "evade",
+    "catch_breath"
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "id": "bram",
+  "name": "Bram",
+  "role": "Vanguard",
+  "level": 1,
+  "maxHealth": 30,
+  "maxFatigue": 100,
+  "maxStamina": 10,
+  "maxMood": 100,
+  "startingHealth": 30,
+  "startingFatigue": 0,
+  "startingStamina": 10,
+  "startingMood": 70,
+  "startingGold": 0,
+  "stats": {
+    "strength": 28,
+    "agility": 10,
+    "intelligence": 8,
+    "endurance": 28,
+    "wisdom": 10,
+    "luck": 8
+  },
+  "combatActionIds": [
+    "heavy_strike",
+    "guard",
+    "catch_breath"
+  ]
+}
