@@ -2,7 +2,7 @@
 
 # Version 1 — Session-by-Session Implementation Plan
 
-**Parent roadmap:** [Game Development Roadmap](DeliveryRoadmap.md)  
+**Parent roadmap:** [Game Development Roadmap](../Archive/DevelopmentRoadmap-v0-reincarnation-life-sim.md)  
 **Architecture contract:** [Exploration Action Choice Pipeline](Exploration.md)  
 **Version:** 1 — A Day at the Academy  
 **Engine:** Godot 4.7.2 .NET / C#  
