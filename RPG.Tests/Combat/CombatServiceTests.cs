@@ -161,6 +161,8 @@ public sealed class CombatServiceTests
         Assert.Equal(2, openingSnapshot.Enemies.Length);
         Assert.Equal(6, openingSnapshot.Timeline.Length);
         Assert.Equal("party-a", openingSnapshot.ActiveCombatantId);
+        Assert.True(openingSnapshot.Timeline.Single(entry => entry.Id == "party-a").IsPrimaryPartyMember);
+        Assert.False(openingSnapshot.Timeline.Single(entry => entry.Id == enemyA.Id).IsPrimaryPartyMember);
 
         CombatResult lastResult = null;
         foreach (Character member in party)

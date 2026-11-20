@@ -4,11 +4,18 @@ using Godot;
 
 public partial class CombatStatusPanel : PanelContainer
 {
-    private const double _timelineWindow = 8.0;
-    private const float _markerWidth = 108.0f;
-    private const float _markerHeight = 20.0f;
-    private const int _timelineLaneCount = 6;
-    private const float _laneSpacing = 22.0f;
+    private const double _initialProgress = 100.0;
+    private const float _markerSize = 14.0f;
+    private const float _laneSpacing = 15.0f;
+    private const float _railY = 138.0f;
+    private const float _leftMargin = 12.0f;
+    private const float _rightMargin = 16.0f;
+    private const double _markerTweenDuration = 0.45;
+
+    private static readonly Color _railColor = new Color("#758397");
+    private static readonly Color _ariColor = new Color("#55a7ff");
+    private static readonly Color _partyColor = new Color("#e8bd55");
+    private static readonly Color _enemyColor = new Color("#e45f68");
 
     private Label _round;
     private Label _turn;
@@ -19,6 +26,9 @@ public partial class CombatStatusPanel : PanelContainer
     private Label _intentDescription;
     private Label _intentConfidence;
     private TimelineCombatantStatus[] _timelineEntries = Array.Empty<TimelineCombatantStatus>();
+    private readonly Dictionary<string, double> _lastProgressByCombatant =
+        new Dictionary<string, double>(StringComparer.Ordinal);
+    private bool _hasRenderedTimeline;
 
     public override void _Ready()
     {
@@ -66,34 +76,9 @@ public partial class CombatStatusPanel : PanelContainer
         ClearChildren(_timelineTrack);
 
         float width = _timelineTrack.Size.X;
-        if (width < 180.0f)
+        if (width < 80.0f)
         {
             return;
-        }
-
-        const float left = 44.0f;
-        const float rightMargin = 16.0f;
-        const float railY = 143.0f;
-        float railWidth = width - left - rightMargin;
-
-        AddRectangle(_timelineTrack, new Vector2(left, railY), new Vector2(railWidth, 3.0f), new Color("#566171"));
-        AddRectangle(_timelineTrack, new Vector2(left, railY - 5.0f), new Vector2(2.0f, 13.0f), UiTheme.Accent);
-
-        for (int tick = 0; tick <= (int)_timelineWindow; tick += 2)
-        {
-            float tickX = left + railWidth * tick / (float)_timelineWindow;
-            AddRectangle(_timelineTrack, new Vector2(tickX - 1.0f, railY - 4.0f), new Vector2(2.0f, 11.0f), new Color("#7b8795"));
-
-            Label tickLabel = new Label
-            {
-                Text = tick == 0 ? "NOW" : tick == (int)_timelineWindow ? "8 CT" : tick.ToString(),
-                Position = new Vector2(tick == 0 ? tickX - 36.0f : tickX - 9.0f, railY + 7.0f),
-                Size = new Vector2(tick == 0 ? 36.0f : 24.0f, 18.0f),
-                MouseFilter = Control.MouseFilterEnum.Ignore
-            };
-            tickLabel.AddThemeFontSizeOverride("font_size", 9);
-            tickLabel.AddThemeColorOverride("font_color", UiTheme.Muted);
-            _timelineTrack.AddChild(tickLabel);
         }
 
         List<TimelineCombatantStatus> visibleEntries = new List<TimelineCombatantStatus>();
@@ -106,114 +91,180 @@ public partial class CombatStatusPanel : PanelContainer
                 continue;
             }
 
+            visibleEntries.Add(entry);
             if (entry.IsStunned)
             {
                 stunnedNames.Add(entry.Name);
-                continue;
             }
-
-            if (entry.Speed <= 0.0)
-            {
-                continue;
-            }
-
-            visibleEntries.Add(entry);
         }
 
-        visibleEntries.Sort(CompareTimelineEntries);
-        float[] laneLastCenter = new float[_timelineLaneCount];
-        for (int lane = 0; lane < _timelineLaneCount; lane++)
+        visibleEntries.Sort(CompareProgress);
+        float railY = Math.Max(_railY, 24.0f + Math.Max(0, visibleEntries.Count - 1) * _laneSpacing);
+        float requiredHeight = railY + 32.0f;
+        if (Math.Abs(_timelineTrack.CustomMinimumSize.Y - requiredHeight) > 1.0f)
+        {
+            _timelineTrack.CustomMinimumSize = new Vector2(_timelineTrack.CustomMinimumSize.X, requiredHeight);
+        }
+
+        float railWidth = Math.Max(1.0f, width - _leftMargin - _rightMargin);
+        AddRectangle(
+            _timelineTrack,
+            new Vector2(_leftMargin, railY),
+            new Vector2(railWidth, 2.0f),
+            _railColor);
+
+        AddRectangle(
+            _timelineTrack,
+            new Vector2(_leftMargin, railY - 4.0f),
+            new Vector2(2.0f, 10.0f),
+            UiTheme.Accent);
+
+        AddRectangle(
+            _timelineTrack,
+            new Vector2(_leftMargin + railWidth - 2.0f, railY - 4.0f),
+            new Vector2(2.0f, 10.0f),
+            UiTheme.Accent);
+
+        AddEndpointLabel("START", new Vector2(_leftMargin, railY + 6.0f), new Vector2(45.0f, 16.0f));
+        AddEndpointLabel("READY", new Vector2(_leftMargin + railWidth - 45.0f, railY + 6.0f), new Vector2(45.0f, 16.0f));
+
+        float[] laneLastCenter = new float[Math.Max(1, visibleEntries.Count)];
+        for (int lane = 0; lane < laneLastCenter.Length; lane++)
         {
             laneLastCenter[lane] = float.NegativeInfinity;
         }
 
+        Dictionary<string, double> currentProgressByCombatant =
+            new Dictionary<string, double>(StringComparer.Ordinal);
+
         foreach (TimelineCombatantStatus entry in visibleEntries)
         {
-            double timeToReady = GetTimeToReady(entry);
-            double clampedTime = Math.Min(timeToReady, _timelineWindow);
-            float markerCenter = left + railWidth * (float)(clampedTime / _timelineWindow);
+            double progress = GetProgressFraction(entry);
+            currentProgressByCombatant[entry.Id] = progress;
+
+            float markerCenter = _leftMargin + railWidth * (float)progress;
             int lane = FindAvailableLane(markerCenter, laneLastCenter);
             laneLastCenter[lane] = markerCenter;
 
-            float markerX = Mathf.Clamp(markerCenter - _markerWidth / 2.0f, 0.0f, width - _markerWidth);
-            float markerY = 2.0f + lane * _laneSpacing;
-            Color markerBackground = entry.IsReady
-                ? new Color("#514735")
-                : entry.IsEnemy ? new Color("#3b2d2d") : new Color("#303744");
-            Color markerText = entry.IsEnemy ? new Color("#e7a69d") : UiTheme.Text;
+            float markerY = 3.0f + lane * _laneSpacing;
+            float markerX = Mathf.Clamp(
+                markerCenter - _markerSize / 2.0f,
+                _leftMargin - _markerSize / 2.0f,
+                _leftMargin + railWidth - _markerSize / 2.0f);
 
-            AddRectangle(
-                _timelineTrack,
-                new Vector2(markerCenter - 1.0f, markerY + _markerHeight),
-                new Vector2(2.0f, Math.Max(0.0f, railY - markerY - _markerHeight)),
-                entry.IsEnemy ? new Color("#a85f55") : UiTheme.Accent);
+            Color markerColor = GetMarkerColor(entry);
+            Color stemColor = new Color(markerColor.R, markerColor.G, markerColor.B, 0.58f);
+            float stemTop = markerY + _markerSize;
+            float stemHeight = Math.Max(0.0f, railY - stemTop);
 
-            PanelContainer marker = new PanelContainer
+            if (stemHeight > 0.0f)
             {
-                Position = new Vector2(markerX, markerY),
-                Size = new Vector2(_markerWidth, _markerHeight),
-                MouseFilter = Control.MouseFilterEnum.Ignore,
-                TooltipText = entry.Name + " · " + (entry.IsReady
-                    ? "Ready now"
-                    : timeToReady.ToString("0.0") + " Combat Time")
-            };
+                AddRectangle(
+                    _timelineTrack,
+                    new Vector2(markerCenter - 1.0f, stemTop),
+                    new Vector2(2.0f, stemHeight),
+                    stemColor);
+            }
 
-            StyleBoxFlat markerStyle = new StyleBoxFlat
+            PanelContainer marker = CreateMarker(entry, markerColor, progress);
+            double previousProgress = 0.0;
+            if (_hasRenderedTimeline &&
+                _lastProgressByCombatant.TryGetValue(entry.Id, out double lastProgress))
             {
-                BgColor = markerBackground,
-                CornerRadiusTopLeft = 4,
-                CornerRadiusTopRight = 4,
-                CornerRadiusBottomLeft = 4,
-                CornerRadiusBottomRight = 4
-            };
-            markerStyle.ContentMarginLeft = 3;
-            markerStyle.ContentMarginRight = 3;
-            markerStyle.ContentMarginTop = 1;
-            markerStyle.ContentMarginBottom = 1;
-            marker.AddThemeStyleboxOverride("panel", markerStyle);
+                previousProgress = lastProgress;
+            }
+            else if (_hasRenderedTimeline)
+            {
+                previousProgress = progress;
+            }
 
-            string timeLabel = entry.IsReady
-                ? "NOW"
-                : timeToReady > _timelineWindow
-                    ? ">8 CT"
-                    : timeToReady.ToString("0.0") + " CT";
-            Label markerLabel = new Label
-            {
-                Text = (entry.IsEnemy ? "E" : "P") + " · " + entry.Name + "  " + timeLabel,
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center,
-                SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
-                MouseFilter = Control.MouseFilterEnum.Ignore
-            };
-            markerLabel.AddThemeFontSizeOverride("font_size", 9);
-            markerLabel.AddThemeColorOverride("font_color", markerText);
-            marker.AddChild(markerLabel);
+            float previousX = _leftMargin + railWidth * (float)previousProgress - _markerSize / 2.0f;
+            marker.Position = new Vector2(previousX, markerY);
             _timelineTrack.AddChild(marker);
+
+            Vector2 targetPosition = new Vector2(markerX, markerY);
+            marker.CreateTween()
+                .TweenProperty(marker, "position", targetPosition, _markerTweenDuration)
+                .SetTrans(Tween.TransitionType.Cubic)
+                .SetEase(Tween.EaseType.Out);
         }
 
+        foreach (TimelineCombatantStatus entry in _timelineEntries)
+        {
+            if (!currentProgressByCombatant.ContainsKey(entry.Id))
+            {
+                _lastProgressByCombatant[entry.Id] = GetProgressFraction(entry);
+            }
+        }
+
+        foreach (KeyValuePair<string, double> current in currentProgressByCombatant)
+        {
+            _lastProgressByCombatant[current.Key] = current.Value;
+        }
+
+        _hasRenderedTimeline = _timelineEntries.Length > 0;
         _stunnedLabel.Text = stunnedNames.Count == 0
             ? string.Empty
             : "STUNNED  ·  " + string.Join("  ·  ", stunnedNames);
         _stunnedLabel.Visible = stunnedNames.Count > 0;
     }
 
-    private static double GetTimeToReady(TimelineCombatantStatus entry)
+    private PanelContainer CreateMarker(
+        TimelineCombatantStatus entry,
+        Color markerColor,
+        double progress)
     {
-        return entry.IsReady ? 0.0 : entry.RemainingProgress / entry.Speed;
+        PanelContainer marker = new PanelContainer
+        {
+            Size = new Vector2(_markerSize, _markerSize),
+            MouseFilter = Control.MouseFilterEnum.Ignore,
+            TooltipText = entry.Name + " · " +
+                (entry.IsStunned
+                    ? "STUNNED"
+                    : entry.IsReady
+                        ? "READY"
+                        : (progress * 100.0).ToString("0") + "% progress")
+        };
+
+        StyleBoxFlat markerStyle = new StyleBoxFlat
+        {
+            BgColor = markerColor,
+            CornerRadiusTopLeft = 7,
+            CornerRadiusTopRight = 7,
+            CornerRadiusBottomLeft = 7,
+            CornerRadiusBottomRight = 7
+        };
+        marker.AddThemeStyleboxOverride("panel", markerStyle);
+        return marker;
     }
 
-    private static int CompareTimelineEntries(TimelineCombatantStatus left, TimelineCombatantStatus right)
+    private static double GetProgressFraction(TimelineCombatantStatus entry)
     {
-        int timeComparison = GetTimeToReady(left).CompareTo(GetTimeToReady(right));
-        if (timeComparison != 0)
+        if (entry.IsReady || entry.RemainingProgress <= 0.0)
         {
-            return timeComparison;
+            return 1.0;
         }
 
-        int luckComparison = right.Luck.CompareTo(left.Luck);
-        if (luckComparison != 0)
+        double remainingFraction = entry.RemainingProgress / _initialProgress;
+        return Math.Clamp(1.0 - remainingFraction, 0.0, 1.0);
+    }
+
+    private static Color GetMarkerColor(TimelineCombatantStatus entry)
+    {
+        if (entry.IsEnemy)
         {
-            return luckComparison;
+            return _enemyColor;
+        }
+
+        return entry.IsPrimaryPartyMember ? _ariColor : _partyColor;
+    }
+
+    private static int CompareProgress(TimelineCombatantStatus left, TimelineCombatantStatus right)
+    {
+        int progressComparison = GetProgressFraction(left).CompareTo(GetProgressFraction(right));
+        if (progressComparison != 0)
+        {
+            return progressComparison;
         }
 
         return string.CompareOrdinal(left.Id, right.Id);
@@ -223,7 +274,7 @@ public partial class CombatStatusPanel : PanelContainer
     {
         for (int lane = 0; lane < laneLastCenter.Length; lane++)
         {
-            if (markerCenter - laneLastCenter[lane] >= _markerWidth + 6.0f)
+            if (markerCenter - laneLastCenter[lane] >= _markerSize + 4.0f)
             {
                 return lane;
             }
@@ -239,6 +290,20 @@ public partial class CombatStatusPanel : PanelContainer
         }
 
         return selectedLane;
+    }
+
+    private void AddEndpointLabel(string text, Vector2 position, Vector2 size)
+    {
+        Label label = new Label
+        {
+            Text = text,
+            Position = position,
+            Size = size,
+            MouseFilter = Control.MouseFilterEnum.Ignore
+        };
+        label.AddThemeFontSizeOverride("font_size", 9);
+        label.AddThemeColorOverride("font_color", UiTheme.Muted);
+        _timelineTrack.AddChild(label);
     }
 
     private static void AddRectangle(Control parent, Vector2 position, Vector2 size, Color color)

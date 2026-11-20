@@ -558,7 +558,8 @@ public sealed class CombatService : ICombatService
                 state.Luck,
                 state.IsReady,
                 state.IsStunned(_timeline.CombatTime),
-                combatant.IsVisible));
+                combatant.IsVisible,
+                combatant.Character.Id == _rewardRecipient.Id));
         }
 
         return entries

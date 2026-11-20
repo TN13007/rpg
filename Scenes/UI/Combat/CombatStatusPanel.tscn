@@ -37,7 +37,29 @@ text = "PLAYER DECISION"
 layout_mode = 2
 theme_override_font_sizes/font_size = 10
 theme_override_colors/font_color = Color(0.608, 0.639, 0.678, 1)
-text = "ACTION TIMELINE  ·  NEXT 8 COMBAT TIME"
+text = "PROGRESS TO READY"
+
+[node name="TimelineLegend" type="HBoxContainer" parent="Margin/Content"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Ari" type="Label" parent="Margin/Content/TimelineLegend"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+theme_override_colors/font_color = Color(0.333, 0.655, 1, 1)
+text = "● Ari"
+
+[node name="Party" type="Label" parent="Margin/Content/TimelineLegend"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+theme_override_colors/font_color = Color(0.91, 0.741, 0.333, 1)
+text = "● Party"
+
+[node name="Enemy" type="Label" parent="Margin/Content/TimelineLegend"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+theme_override_colors/font_color = Color(0.894, 0.373, 0.408, 1)
+text = "● Enemy"
 
 [node name="TimelineTrack" type="Control" parent="Margin/Content"]
 custom_minimum_size = Vector2(0, 170)

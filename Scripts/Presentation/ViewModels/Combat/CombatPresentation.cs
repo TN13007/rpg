@@ -117,6 +117,7 @@ public sealed class TimelineCombatantStatus
     public bool IsReady { get; }
     public bool IsStunned { get; }
     public bool IsVisible { get; }
+    public bool IsPrimaryPartyMember { get; }
 
     public TimelineCombatantStatus(
         string id,
@@ -127,7 +128,8 @@ public sealed class TimelineCombatantStatus
         int luck,
         bool isReady,
         bool isStunned,
-        bool isVisible = true)
+        bool isVisible = true,
+        bool isPrimaryPartyMember = false)
     {
         Id = id ?? string.Empty;
         Name = name ?? string.Empty;
@@ -138,6 +140,7 @@ public sealed class TimelineCombatantStatus
         IsReady = isReady;
         IsStunned = isStunned;
         IsVisible = isVisible;
+        IsPrimaryPartyMember = !isEnemy && isPrimaryPartyMember;
     }
 }
 
