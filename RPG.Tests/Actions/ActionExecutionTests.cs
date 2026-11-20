@@ -239,7 +239,7 @@ public sealed class ActionExecutionTests
         }
 
         Assert.Equal(12, actionCount);
-        Assert.Equal(2, LoadPlayerData().PlayerActions.Length);
+        Assert.Equal(3, LoadPlayerData().PlayerActions.Length);
     }
 
     [Fact]

@@ -9,9 +9,10 @@ public sealed class PlayerActionDataTests
     {
         CharacterData player = LoadPlayerData();
 
-        Assert.Equal(2, player.PlayerActions.Length);
+        Assert.Equal(3, player.PlayerActions.Length);
         PlayerActionDefinition rest = Find(player, "rest");
         PlayerActionDefinition sleep = Find(player, "sleep");
+        PlayerActionDefinition rescue = Find(player, "request_rescue");
 
         Assert.True(rest.IsAvailableAt("dormitory"));
         Assert.True(rest.IsAvailableAt("courtyard"));
@@ -19,6 +20,11 @@ public sealed class PlayerActionDataTests
         Assert.False(sleep.IsAvailableAt("courtyard"));
         Assert.Equal(480, sleep.Action.DurationMinutes);
         Assert.Equal("Sleep for 8 hours", sleep.Action.Label);
+        Assert.True(rescue.IsAvailableAt("courtyard"));
+        Assert.Equal(180, rescue.Action.DurationMinutes);
+        ActionEffectDefinition reviveEffect = Assert.Single(rescue.Action.Effects);
+        Assert.Equal(ActionEffectType.Revive, reviveEffect.Type);
+        Assert.Equal(5, reviveEffect.Amount);
     }
 
     [Fact]

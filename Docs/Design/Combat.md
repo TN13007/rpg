@@ -230,6 +230,7 @@ Rules for the first playable encounter:
 - Each Party member can be revived only once per encounter. A member who is Downed again cannot be revived a second time.
 - The revived member re-enters the Timeline with a Recovery Cost equal to the largest authored Recovery Cost in the active encounter roster. The ally performing Revive pays that same Recovery Cost. This makes revival consequential without allowing the revived character to act immediately.
 - If every Party member is Downed, the party loses the encounter immediately. No bleed-out timer is used in this slice.
+- If the controlled protagonist is still at zero HP after an encounter ends, Exploration offers only **Request emergency rescue**. It advances Game Time by 180 minutes and restores 5 HP; normal Player, Location and Travel interactions become available again afterward. This is a provisional recovery fallback, separate from in-combat Revive, and it does not restore other Party members.
 
 These are provisional encounter rules chosen to prove a finite, understandable revival loop. Downed targeting by special enemies, bleed-out/death and broader revival costs remain open for future encounters.
 

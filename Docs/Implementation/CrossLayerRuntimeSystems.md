@@ -56,6 +56,8 @@ The current prototype uses location-based navigation rather than free-roam movem
 
 The current choice sources include Player Actions, Location Actions, Travel choices and Event choices. Generic target interactions are not a generalized runtime feature.
 
+When the controlled character is at zero Health, the Exploration query suppresses normal Player, Location and Travel choices and exposes only an authored recovery Player Action. The current `Request emergency rescue` action advances GameClock by 180 minutes and revives the character with 5 HP. The action execution service permits this single-effect Revive action only while the character is incapacitated; normal interactions return after recovery.
+
 ## 5. Location Events
 
 Location Events represent configured situations associated with a Location. The current Courtyard Goblin Ambush is a narrow deterministic example with Confront and Sneak choices.

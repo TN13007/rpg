@@ -18,48 +18,15 @@ public sealed class AvailableInteractionQuery
 
         List<AvailableInteraction> interactions = new List<AvailableInteraction>();
 
-        foreach (ActionDefinition action in location.Actions)
+        if (!player.CanAct)
         {
-            if (!IsEventEncounterAction(location, action.Id))
-            {
-                interactions.Add(new AvailableInteraction(
-                    InteractionSourceKind.Location, location.Id, action.Id, string.Empty, action));
-            }
+            AddRecoveryActions(interactions, player, playerActions, location.Id);
+            return interactions;
         }
 
-        if (player.CanAct)
-        {
-            foreach (PlayerActionDefinition playerAction in playerActions)
-            {
-                if (playerAction != null && playerAction.IsAvailableAt(location.Id))
-                {
-                    interactions.Add(new AvailableInteraction(
-                        InteractionSourceKind.Player,
-                        player.Id,
-                        playerAction.Action.Id,
-                        string.Empty,
-                        playerAction.Action));
-                }
-            }
-        }
-
-        foreach (string exitId in location.Exits)
-        {
-            LocationContent destination = locationResolver(exitId);
-            ActionDefinition travel = travelAction;
-            ActionDefinition travelChoice = new ActionDefinition(
-                travel.Id,
-                "Travel to " + destination.Name,
-                travel.DurationMinutes,
-                travel.TimeModifier,
-                travel.Feedback,
-                travel.ActivityMet,
-                travel.Effects,
-                travel.EstimatedDurationMinMinutes,
-                travel.EstimatedDurationMaxMinutes);
-            interactions.Add(new AvailableInteraction(
-                InteractionSourceKind.Travel, location.Id, travel.Id, exitId, travelChoice));
-        }
+        AddLocationActions(interactions, location);
+        AddPlayerActions(interactions, player, playerActions, location.Id);
+        AddTravelActions(interactions, location, locationResolver, travelAction);
 
         return interactions;
     }
@@ -79,6 +46,108 @@ public sealed class AvailableInteractionQuery
                 choice.Action));
         }
         return interactions;
+    }
+
+    private static void AddLocationActions(
+        List<AvailableInteraction> interactions,
+        LocationContent location)
+    {
+        foreach (ActionDefinition action in location.Actions)
+        {
+            if (!IsEventEncounterAction(location, action.Id))
+            {
+                interactions.Add(new AvailableInteraction(
+                    InteractionSourceKind.Location, location.Id, action.Id, string.Empty, action));
+            }
+        }
+    }
+
+    private static void AddPlayerActions(
+        List<AvailableInteraction> interactions,
+        Character player,
+        PlayerActionDefinition[] playerActions,
+        string locationId)
+    {
+        foreach (PlayerActionDefinition playerAction in playerActions)
+        {
+            if (playerAction != null &&
+                playerAction.IsAvailableAt(locationId) &&
+                !HasReviveEffect(playerAction.Action))
+            {
+                interactions.Add(new AvailableInteraction(
+                    InteractionSourceKind.Player,
+                    player.Id,
+                    playerAction.Action.Id,
+                    string.Empty,
+                    playerAction.Action));
+            }
+        }
+    }
+
+    private static void AddRecoveryActions(
+        List<AvailableInteraction> interactions,
+        Character player,
+        PlayerActionDefinition[] playerActions,
+        string locationId)
+    {
+        foreach (PlayerActionDefinition playerAction in playerActions)
+        {
+            if (playerAction != null &&
+                playerAction.IsAvailableAt(locationId) &&
+                IsRecoveryAction(playerAction.Action))
+            {
+                interactions.Add(new AvailableInteraction(
+                    InteractionSourceKind.Player,
+                    player.Id,
+                    playerAction.Action.Id,
+                    string.Empty,
+                    playerAction.Action));
+            }
+        }
+    }
+
+    private static void AddTravelActions(
+        List<AvailableInteraction> interactions,
+        LocationContent location,
+        Func<string, LocationContent> locationResolver,
+        ActionDefinition travelAction)
+    {
+        foreach (string exitId in location.Exits)
+        {
+            LocationContent destination = locationResolver(exitId);
+            ActionDefinition travelChoice = new ActionDefinition(
+                travelAction.Id,
+                "Travel to " + destination.Name,
+                travelAction.DurationMinutes,
+                travelAction.TimeModifier,
+                travelAction.Feedback,
+                travelAction.ActivityMet,
+                travelAction.Effects,
+                travelAction.EstimatedDurationMinMinutes,
+                travelAction.EstimatedDurationMaxMinutes);
+            interactions.Add(new AvailableInteraction(
+                InteractionSourceKind.Travel, location.Id, travelAction.Id, exitId, travelChoice));
+        }
+    }
+
+    private static bool HasReviveEffect(ActionDefinition action)
+    {
+        foreach (ActionEffectDefinition effect in action.Effects)
+        {
+            if (effect.Type == ActionEffectType.Revive)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool IsRecoveryAction(ActionDefinition action)
+    {
+        return action.Effects.Length == 1
+            && action.Effects[0].Type == ActionEffectType.Revive
+            && action.Effects[0].Amount > 0;
     }
 
     private static bool IsEventEncounterAction(LocationContent location, string actionId)

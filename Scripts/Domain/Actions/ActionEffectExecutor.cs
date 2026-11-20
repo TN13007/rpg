@@ -38,6 +38,10 @@ public sealed class ActionEffectExecutor
                     target.AddGold(effect.Amount);
                     break;
 
+                case ActionEffectType.Revive:
+                    target.Revive(effect.Amount);
+                    break;
+
                 default:
                     throw new ArgumentOutOfRangeException(nameof(effect.Type));
             }

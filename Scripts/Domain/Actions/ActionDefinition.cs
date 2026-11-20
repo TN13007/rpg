@@ -6,7 +6,8 @@ public enum ActionEffectType
     RestoreFatigue,
     RestoreStamina,
     ChangeMood,
-    AddGold
+    AddGold,
+    Revive
 }
 
 public sealed class ActionEffectDefinition
