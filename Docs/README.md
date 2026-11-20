@@ -14,6 +14,20 @@ Contains the player experience, ideas, accepted gameplay decisions, combat rules
 
 Contains codebase navigation, architecture, current runtime behavior, data/domain model, UI contracts, tests and implementation plans.
 
+## Legacy document paths
+
+These compatibility pages preserve older links and redirect readers to the canonical documentation:
+
+- [Architecture](Architecture.md)
+- [Combat Balance](CombatBalance.md)
+- [Game Design](GameDesign.md)
+- [Gameplay](Gameplay.md)
+- [Roadmap](Roadmap.md)
+- [Testing](Testing.md)
+- [UI](Ui.md)
+- [Version 1 Plan](Version1Plan.md)
+- [World](World.md)
+
 ## Project status and workflow
 
 [WORKFLOW.md](../WORKFLOW.md) is the only project-status and session-handoff tracker. [CONTRIBUTING.md](../CONTRIBUTING.md) defines the GitHub workflow.
