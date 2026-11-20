@@ -17,7 +17,8 @@
     "agility": 30,
     "intelligence": 25,
     "endurance": 20,
-    "wisdom": 20
+    "wisdom": 20,
+    "luck": 15
   },
   "combatActionIds": [
     "attack",
