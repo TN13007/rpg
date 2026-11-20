@@ -1,6 +1,6 @@
 # Presentation User Interface and Contracts
 
-**Status:** Describes the current main-screen and Combat presentation on latest `main`  
+**Status:** Describes the current repository UI composition and presentation contracts  
 **Boundary:** This document owns current UI composition and presentation contracts. Product experience goals belong in [Design](../Design/README.md).
 
 ## 1. Main screen composition
@@ -46,17 +46,26 @@ The presentation pipeline is:
 
 ```text
 CombatService
-  -> CombatResult + presentation-safe CombatSnapshot
+  -> CombatResult + CombatSnapshot
   -> CombatPresentationMapper
-  -> CombatViewData
-  -> CombatPanel
+      -> CombatViewData
+          -> CombatPanel
+              -> CombatStatusPanel
+                  -> TimelineTrack.tscn
+                      -> TimelineMarker.tscn instances
 ```
 
 The current panel separates:
-- Encounter context.
-- Current combat status.
+- Encounter context and Party roster.
+- Expected action timing on a shared Time-to-Ready axis.
 - Ordered message history.
 - Available Combat Actions.
+
+`CombatPresentationMapper` converts each combatant's Remaining Progress, Speed and remaining Stun duration into `TimelineMarkerViewData.TimeToReadySeconds`. The UI consumes this presentation value; it does not calculate combat timing from Domain state.
+
+`TimelineTrack` owns marker instances and their horizontal positions. Its default display horizon is 10 seconds and is configurable in the Inspector. NOW is on the left; the right edge represents the end of the display horizon. Actors beyond the horizon are clamped to the right edge. Markers with nearly identical times are separated vertically without changing their horizontal timing.
+
+`TimelineMarker` owns one combatant's visual presentation: faction color, tooltip and Stunned indicator. Its `TextureRect` is ready to display an icon, but the current combat content does not yet supply portrait textures, so markers remain color-coded circles. Hidden enemies are omitted by the presentation layer while remaining in combat simulation.
 
 ### Ownership
 
@@ -89,6 +98,6 @@ MainController composes the screen and top-level signals. ExplorationFlowControl
 
 ## 6. Current limitations
 
-The current UI is a prototype, not a final interface specification. Multiple party members, Timeline presentation, Downed/revival, broad skill selection, inventory, relationships, diary, responsive narrow-screen behavior and full assistive-technology verification are not complete.
+The current UI is a prototype, not a final interface specification. The combat service and Party roster presentation support multiple members, but the playable MainController encounter is still wired with Ari and one Goblin. Portrait textures are not yet supplied to Timeline markers. Downed/revival, broad skill selection, inventory, relationships, diary, responsive narrow-screen behavior and full assistive-technology verification remain incomplete.
 
 When the intended UI changes, first update the relevant Design document if the player experience changes; update this document only when the current presentation contract changes.

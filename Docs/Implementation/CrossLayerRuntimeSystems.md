@@ -1,6 +1,6 @@
 # Cross-Layer Runtime Systems
 
-**Status:** Describes the current prototype on latest `main`  
+**Status:** Describes the current repository runtime behavior  
 **Boundary:** This document records implemented runtime behavior and the limits of the current model. Desired future behavior belongs in [Design](../Design/README.md).
 
 ## 1. Current prototype overview
@@ -66,15 +66,20 @@ Do not treat the current event selection rules as a finalized world-event schedu
 
 ## 6. Current Combat implementation
 
-The current integrated Combat prototype is a deterministic single-Goblin encounter. Its supported actions include Attack, Defend, Dodge and Catch Breath. It uses the existing player resource model and returns to the same Exploration Location after resolution.
+Combat now uses a shared Continuous Timeline. `CombatService` registers a roster of Party members and Enemies, advances all eligible combatants over the same Combat Time, and pauses when a player-controlled Party member becomes Ready. Every party member is player-controlled. Enemy actions are selected from the actions authored for that enemy.
+
+Each combatant has Remaining Progress and Speed. An action applies its Recovery Cost as the actor's next Remaining Progress. The simulation supports Delay and Stun through the combat effect resolver/dispatcher. Stun preserves progress while freezing the target; its duration is measured in Combat Time.
+
+The presentation pipeline maps combat timing into `TimelineMarkerViewData.TimeToReadySeconds`. For normal combatants this is `RemainingProgress / Speed`; for Stunned combatants it also includes the remaining Stun duration. `TimelineTrack.tscn` displays the next 10 seconds by default, with NOW at the left and the future horizon at the right. It creates and reuses `TimelineMarker.tscn` instances by combatant ID. Hidden enemies are filtered from the UI but remain registered in the simulation.
 
 Current limitations:
-- One player-controlled Character and one deterministic Goblin, not a four-member party.
-- No visible action Timeline or action-time manipulation.
-- No general Delay, Stun, Interrupt, Downed/revival or party-synergy system.
-- No advanced enemy AI, broad skill system, equipment progression or multiple enemy archetypes.
+- The service and roster tests support a four-member Party, but the playable `MainController` encounter is still wired with Ari and one Goblin.
+- Current Timeline markers use faction-colored circles. The marker scene has an icon slot, but no combatant portrait textures are currently supplied.
+- Downed/revival is not implemented. A character reaching zero HP is removed from the active Timeline and encounter terminal conditions are evaluated.
+- Speed modifiers, Acceleration, Interrupt, casting/channeling and Cooldowns are not implemented.
+- Enemy behavior remains limited to the currently authored Goblin actions; distinct enemy behavior archetypes and multi-enemy playable encounters remain incomplete.
 
-The intended future rules are defined only in [Design/Combat](../Design/Combat.md). Do not extend this prototype by assuming the target design has already been implemented.
+The intended rules and open decisions are defined in [Design/Combat](../Design/Combat.md). Do not treat numeric balance or explicitly open design decisions as finalized implementation contracts.
 
 ## 7. Content and identity constraints
 
