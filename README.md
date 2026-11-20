@@ -2,13 +2,13 @@
 
 Godot 4.7.2 .NET / C# project.
 
-Adventurer Academy is a fantasy life-simulation RPG prototype about daily life, character wellbeing, academy activities, location-based exploration and occasional encounters.
+Adventurer Academy is a fantasy combat-first RPG prototype. The player commands a four-character party through Timeline-based tactical battles, while the Academy supports preparation, progression, relationships and a deeper narrative.
 
 ## Start here
 
 - [AGENTS.md](AGENTS.md) — repository navigation and working instructions for coding agents.
 - [WORKFLOW.md](WORKFLOW.md) — current implementation snapshot, Session progress, Learning evidence, blockers and handoff.
-- [Version 1 Plan](Docs/Version1Plan.md) — detailed product and Learning-first plan for Version 1. It describes intended scope; it does not mean every Session is implemented.
+- [Version 1 Plan](Docs/Implementation/Version1Plan.md) — detailed product and Learning-first plan for Version 1. It describes intended scope; it does not mean every Session is implemented.
 - [CONTRIBUTING.md](CONTRIBUTING.md) — Issue → Branch → Validate → Pull Request workflow, naming and documentation governance.
 
 ## Run the project
@@ -25,17 +25,14 @@ python Tools/Validate.py --base origin/main --head HEAD --branch $branch --check
 
 This runs the Python validator tests, project naming checks, changed-file C# naming checks and the .NET test suite. Godot runtime/UI checks remain manual and must be recorded separately in `WORKFLOW.md`.
 
-## Active design and technical documents
+## Documentation
 
-- [Game Design](Docs/GameDesign.md) — product vision and long-term world direction.
-- [Roadmap](Docs/Roadmap.md) — version sequence, player-facing outcomes and exit criteria.
-- [World Model](Docs/World.md) — domain vocabulary, modeling constraints and review findings.
-- [Gameplay](Docs/Gameplay.md) — Location/Event loop and Exploration action-choice pipeline.
-- [UI Architecture](Docs/Ui.md) — main interface and Combat presentation contracts.
-- [Application Architecture](Docs/Architecture.md) — MainController and application responsibility boundaries.
-- [Testing and Acceptance](Docs/Testing.md) — automated tests, manual Godot checks and Day 1 scenario.
+- [Documentation Hub](Docs/README.md) — choose Design or Implementation.
+- [Design](Docs/Design/README.md) — game vision, player experience, gameplay rules, combat, progression, world and product roadmap.
+- [Implementation](Docs/Implementation/README.md) — codebase guide, architecture, runtime flows, UI contracts, testing and delivery plan.
+- [WORKFLOW.md](WORKFLOW.md) — the single project-status, Session progress and handoff tracker.
 
-Historical records are retained under `Docs/Archive/` and are not current implementation guidance.
+Historical or superseded material is retained under `Docs/Archive/`; it is not current authority.
 
 ## Working with AI
 

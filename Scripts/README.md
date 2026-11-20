@@ -54,4 +54,4 @@ CombatPanel
 - Infrastructure loads/adapts external data; it does not decide gameplay outcomes.
 - Bootstrap composes the application graph and connects top-level Godot signals.
 
-For the full architecture contract and current implementation notes, see [Docs/Architecture.md](../Docs/Architecture.md).
+For the full architecture contract and current implementation notes, see [Docs/Implementation/Architecture.md](../Docs/Implementation/Architecture.md).
