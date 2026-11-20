@@ -10,6 +10,7 @@ public partial class MainController : Control
     private GameModeController _gameModeController;
     private ExplorationFlowController _explorationController;
     private CombatFlowController _combatController;
+    private ActionDefinition _debugGoblinEncounterAction;
 
     public override void _Ready()
     {
@@ -23,6 +24,14 @@ public partial class MainController : Control
         CharacterData goblinData = content.GetCharacter("goblin-a");
         Character player = new Character(playerData);
         Character goblin = new Character(goblinData);
+        _debugGoblinEncounterAction = FindAction(
+            content.GetLocation("courtyard").Actions,
+            "encounter_goblin");
+
+        if (_debugGoblinEncounterAction == null)
+        {
+            throw new System.InvalidOperationException("Debug Goblin encounter action is missing from courtyard content.");
+        }
 
         GameClock gameClock = new GameClock();
         ActivityTimeCalculator activityTimeCalculator = new ActivityTimeCalculator();
@@ -54,6 +63,7 @@ public partial class MainController : Control
             actionChoiceMapper, locationEventService, _combatController.StartGoblinEncounter);
 
         _sidebar.TabSelected += OpenTab;
+        _sidebar.DebugGoblinEncounterRequested += StartDebugGoblinEncounter;
         storyPanel.ChoiceSelected += _explorationController.HandleChoice;
         storyPanel.ReturnToLocationRequested += _explorationController.ShowLocation;
         combatPanel.ActionSelected += _combatController.HandleCombatAction;
@@ -66,6 +76,29 @@ public partial class MainController : Control
     {
         if (_gameModeController.IsCombatMode) return;
         _explorationController.ShowPage(tab);
+    }
+
+    private void StartDebugGoblinEncounter()
+    {
+        if (_explorationController == null || _debugGoblinEncounterAction == null)
+        {
+            return;
+        }
+
+        _explorationController.StartDebugGoblinEncounter(_debugGoblinEncounterAction);
+    }
+
+    private static ActionDefinition FindAction(ActionDefinition[] actions, string actionId)
+    {
+        foreach (ActionDefinition action in actions)
+        {
+            if (action.Id == actionId)
+            {
+                return action;
+            }
+        }
+
+        return null;
     }
 
     private void ReturnToExploration()

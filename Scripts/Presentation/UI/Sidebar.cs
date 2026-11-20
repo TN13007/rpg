@@ -4,6 +4,7 @@ using Godot;
 public partial class Sidebar : PanelContainer
 {
     public event Action<string> TabSelected;
+    public event Action DebugGoblinEncounterRequested;
 
     private VBoxContainer _characterSection;
     private VBoxContainer _diarySection;
@@ -11,6 +12,8 @@ public partial class Sidebar : PanelContainer
     private VBoxContainer _enemySection;
     private VBoxContainer _enemyList;
     private Control _navigationSpacer;
+    private VBoxContainer _debugSection;
+    private bool _showDebugTools;
 
     public override void _Ready()
     {
@@ -22,6 +25,13 @@ public partial class Sidebar : PanelContainer
         _enemySection = GetNode<VBoxContainer>("Margin/Content/Enemies");
         _enemyList = GetNode<VBoxContainer>("Margin/Content/Enemies/EnemyScroll/EnemyList");
         _navigationSpacer = GetNode<Control>("Margin/Content/Spacer");
+        _debugSection = GetNode<VBoxContainer>("Margin/Content/Debug");
+        _showDebugTools = OS.IsDebugBuild();
+        _debugSection.Visible = _showDebugTools;
+
+        Button debugButton = GetNode<Button>("Margin/Content/Debug/ForceGoblinEncounter");
+        UiTheme.StyleButton(debugButton, true);
+        debugButton.Pressed += HandleDebugGoblinEncounterRequested;
 
         Bind("Margin/Content/Character/Profile", "Profile");
         Bind("Margin/Content/Character/Skills", "Skills");
@@ -38,6 +48,7 @@ public partial class Sidebar : PanelContainer
         _diarySection.Visible = false;
         _systemSection.Visible = false;
         _navigationSpacer.Visible = false;
+        _debugSection.Visible = false;
         _enemySection.Visible = true;
         UpdateCombatEnemies(enemies);
     }
@@ -78,6 +89,7 @@ public partial class Sidebar : PanelContainer
         _diarySection.Visible = true;
         _systemSection.Visible = true;
         _navigationSpacer.Visible = true;
+        _debugSection.Visible = _showDebugTools;
     }
 
     private void Bind(string path, string tab)
@@ -91,6 +103,11 @@ public partial class Sidebar : PanelContainer
     private void HandleTabSelected(string tab)
     {
         TabSelected?.Invoke(tab);
+    }
+
+    private void HandleDebugGoblinEncounterRequested()
+    {
+        DebugGoblinEncounterRequested?.Invoke();
     }
 
     private Control CreateEnemyCard(EnemyCombatStatus enemy)
