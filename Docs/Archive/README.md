@@ -10,8 +10,8 @@ This directory retains historical material for traceability. Archived files are 
 | [Version 1 Prototype Plan](Version1PrototypePlan.md) | Detailed Session plan for the earlier Academy prototype; no longer current product scope | [Design/Roadmap](../Design/Roadmap.md), [WORKFLOW](../../WORKFLOW.md) |
 | [Combat Panel Review](CombatPanelReview.md) | Historical review and acceptance record | [Implementation/PresentationUserInterface](../Implementation/PresentationUserInterface.md) |
 | [World Model Review](WorldModelReview.md) | Historical review of NPC, object and Location modeling assumptions | [Implementation/CrossLayerRuntimeSystems](../Implementation/CrossLayerRuntimeSystems.md) |
-| [Sprint Playable Journey](SprintPlayableJourney.md) | Historical sprint checklist; not current acceptance criteria | [Implementation/TestingStrategy](../Implementation/TestingStrategyStrategy.md) |
-| [Playable Journey Test Report](PlayableJourneyTestReport.md) | Historical owner-reported verification with incomplete raw evidence | [Implementation/TestingStrategy](../Implementation/TestingStrategyStrategy.md) |
+| [Sprint Playable Journey](SprintPlayableJourney.md) | Historical sprint checklist; not current acceptance criteria | [Implementation/TestingStrategy](../Implementation/TestingStrategy.md) |
+| [Playable Journey Test Report](PlayableJourneyTestReport.md) | Historical owner-reported verification with incomplete raw evidence | [Implementation/TestingStrategy](../Implementation/TestingStrategy.md) |
 | [Open Design Questions](OpenDesignQuestions.md) | Historical snapshot of questions and decisions; current decisions live with their owning topics | Relevant Design and Implementation documents |
 | [Project Naming Audit](ProjectNamingAudit.md) | Initial audit and remediation history | [CONTRIBUTING](../../CONTRIBUTING.md) and CI |
 
