@@ -40,8 +40,10 @@ public sealed class CombatantTimelineState
         if (effectiveSpeed <= 0 || double.IsNaN(effectiveSpeed) || double.IsInfinity(effectiveSpeed))
             throw new ArgumentOutOfRangeException(nameof(effectiveSpeed));
 
-        if (RemainingProgress > 0)
-            RemainingProgress = Math.Max(0, RemainingProgress - effectiveSpeed * elapsedCombatTime);
+        if (RemainingProgress <= 0)
+            return;
+
+        RemainingProgress = Math.Max(0, RemainingProgress - effectiveSpeed * elapsedCombatTime);
     }
 
     internal void SetRecoveryCost(double recoveryCost)
