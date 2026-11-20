@@ -25,17 +25,14 @@ python Tools/Validate.py --base origin/main --head HEAD --branch $branch --check
 
 This runs the Python validator tests, project naming checks, changed-file C# naming checks and the .NET test suite. Godot runtime/UI checks remain manual and must be recorded separately in `WORKFLOW.md`.
 
-## Active design and technical documents
+## Documentation
 
-- [Game Design](Docs/GameDesign.md) — product vision and long-term world direction.
-- [Roadmap](Docs/Roadmap.md) — version sequence, player-facing outcomes and exit criteria.
-- [World Model](Docs/World.md) — domain vocabulary, modeling constraints and review findings.
-- [Gameplay](Docs/Gameplay.md) — Location/Event loop and Exploration action-choice pipeline.
-- [UI Architecture](Docs/Ui.md) — main interface and Combat presentation contracts.
-- [Application Architecture](Docs/Architecture.md) — MainController and application responsibility boundaries.
-- [Testing and Acceptance](Docs/Testing.md) — automated tests, manual Godot checks and Day 1 scenario.
+- [Documentation Hub](Docs/README.md) — choose Design or Implementation.
+- [Design](Docs/Design/README.md) — game vision, player experience, gameplay rules, combat, progression, world and product roadmap.
+- [Implementation](Docs/Implementation/README.md) — codebase guide, architecture, runtime flows, UI contracts, testing and delivery plan.
+- [WORKFLOW.md](WORKFLOW.md) — the single project-status, Session progress and handoff tracker.
 
-Historical records are retained under `Docs/Archive/` and are not current implementation guidance.
+Historical or superseded material is retained under `Docs/Archive/`; it is not current authority.
 
 ## Working with AI
 
