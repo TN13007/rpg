@@ -219,17 +219,19 @@ An encounter should combine behaviors to create competing priorities. There shou
 
 ## 10. Downed and revival
 
-When HP reaches zero, a character enters **Downed** rather than immediately causing total party defeat.
+When HP reaches zero, a Party member enters **Downed** rather than immediately causing total party defeat. Enemies at zero HP are defeated in this first implementation.
 
-Design intent:
+Rules for the first playable encounter:
 
-- A Downed character cannot take normal actions and leaves the normal action order.
-- An ally skill or limited-use item may revive them.
-- Revival returns the character with limited HP and/or a temporary drawback, making recovery consequential.
-- If all four party members are Downed, the party loses the encounter.
-- Some enemies or bosses may threaten Downed characters as a special encounter rule.
+- A Downed Party member remains in the Party roster at zero HP but is removed from the Timeline and cannot take normal actions.
+- Enemy actions cannot target a Downed Party member.
+- Any active ally can use the built-in **Revive** action on a Downed ally. Revival costs 4 Stamina.
+- Revival restores 25% of maximum HP, rounded up to at least 1 HP.
+- Each Party member can be revived only once per encounter. A member who is Downed again cannot be revived a second time.
+- The revived member re-enters the Timeline with a Recovery Cost equal to the largest authored Recovery Cost in the active encounter roster. The ally performing Revive pays that same Recovery Cost. This makes revival consequential without allowing the revived character to act immediately.
+- If every Party member is Downed, the party loses the encounter immediately. No bleed-out timer is used in this slice.
 
-Whether Downed characters can be targeted, how bleed-out/death is handled, revival costs and post-revival timing remain open and require playtesting.
+These are provisional encounter rules chosen to prove a finite, understandable revival loop. Downed targeting by special enemies, bleed-out/death and broader revival costs remain open for future encounters.
 
 ## 11. Resource persistence
 
@@ -277,7 +279,7 @@ The following are intentionally not finalized:
 - Enemy intent / telegraph disclosure.
 - Casting, channeling, Interrupt and Cooldown rules.
 - Luck range, growth and whether any future effect modifies tie-break Luck.
-- Downed targeting, bleed-out/death, revival costs and post-revival timing.
+- Bleed-out/death and special enemy rules for targeting Downed characters.
 - Resource types and regeneration, escape rules, final party roles, character identities and skill lists.
 - Whether Stagger is universal or encounter-specific.
 

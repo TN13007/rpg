@@ -68,6 +68,21 @@ public sealed class CharacterTests
     }
 
     [Fact]
+    public void ReviveRestoresLimitedHealthOnlyWhenCharacterIsNotAlive()
+    {
+        Character character = TestCharacterFactory.CreatePlayer(health: 0, maxHealth: 20);
+
+        Assert.Equal(0, character.RestoreHealth(10));
+        Assert.Equal(0, character.Revive(0));
+        Assert.Equal(0, character.Revive(-5));
+        Assert.Equal(5, character.Revive(5));
+        Assert.True(character.IsAlive);
+        Assert.True(character.CanAct);
+        Assert.Equal(0, character.Revive(10));
+        Assert.Equal(5, character.Health);
+    }
+
+    [Fact]
     public void FatigueAccumulationAndRecoveryRespectBoundaries()
     {
         Character character = TestCharacterFactory.CreatePlayer(fatigue: 95);

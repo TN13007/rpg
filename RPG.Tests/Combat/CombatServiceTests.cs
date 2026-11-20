@@ -264,6 +264,152 @@ public sealed class CombatServiceTests
     }
 
     [Fact]
+    public void DownedPartyMemberLeavesTimelineAndCanBeRevivedOnlyOncePerEncounter()
+    {
+        Character downed = CreateRosterCharacter("party-downed", "Downed Scout", 10, 30, 5);
+        Character medic = CreateRosterCharacter("party-medic", "Medic", 20, 30, 100);
+        Character enemy = CreateRosterCharacter("enemy-revive", "Enemy", 5, 8, 200);
+        CombatActionDefinition lethalAttack = new CombatActionDefinition(
+            "lethal_attack",
+            "Lethal Attack",
+            "Enemy Action",
+            "A damaging attack.",
+            CombatActionBehavior.Attack,
+            0,
+            10,
+            0,
+            string.Empty,
+            "The enemy strikes.",
+            130);
+        CombatService combat = new CombatService(
+            new[]
+            {
+                new CombatantDefinition(downed, CombatantSide.Party, TestCharacterFactory.CreatePlayerCombatActions()),
+                new CombatantDefinition(medic, CombatantSide.Party, TestCharacterFactory.CreatePlayerCombatActions()),
+                new CombatantDefinition(enemy, CombatantSide.Enemy, new[] { lethalAttack })
+            },
+            new FirstIndexRandom());
+
+        StartAtPlayerDecision(combat);
+        Assert.Equal(medic.Id, combat.ActiveCombatantId);
+        Assert.True(combat.ExecuteAction(new CombatActionRequest("quick_strike", enemy.Id, medic.Id)).Success);
+        AdvanceUntilPlayerDecision(combat);
+
+        Assert.Equal(downed.Id, combat.ActiveCombatantId);
+        Assert.True(combat.ExecuteAction(new CombatActionRequest("quick_strike", enemy.Id, downed.Id)).Success);
+        CombatEvent[] downedEvents = AdvanceUntilPlayerDecision(combat);
+
+        Assert.Contains(downedEvents, item =>
+            item.Type == CombatEventType.StatusChanged &&
+            item.Detail.Contains("Downed", StringComparison.Ordinal));
+        Assert.False(combat.IsEncounterOver);
+        Assert.Equal(medic.Id, combat.ActiveCombatantId);
+
+        CombatSnapshot downedSnapshot = combat.GetSnapshot();
+        PartyCombatStatus downedStatus = Assert.Single(downedSnapshot.Party.Where(item => item.Id == downed.Id));
+        Assert.Equal("Downed", downedStatus.Condition);
+        Assert.Equal(0, downedStatus.CurrentHealth);
+        Assert.DoesNotContain(downedSnapshot.Timeline, item => item.Id == downed.Id);
+
+        CombatActionOption reviveOption = Assert.Single(downedSnapshot.AvailableActions.Where(item =>
+            item.Id == "revive_ally" && item.TargetId == downed.Id));
+        Assert.True(reviveOption.IsAvailable);
+
+        CombatResult reviveResult = combat.ExecuteAction(
+            new CombatActionRequest("revive_ally", downed.Id, medic.Id));
+        Assert.True(reviveResult.Success);
+        Assert.Equal(2, downed.Health);
+        Assert.Equal(6, medic.Stamina);
+
+        TimelineCombatantStatus revivedTimelineEntry = Assert.Single(
+            combat.GetSnapshot().Timeline.Where(item => item.Id == downed.Id));
+        Assert.True(revivedTimelineEntry.RemainingProgress > 0);
+        Assert.Equal("Wounded", Assert.Single(
+            combat.GetSnapshot().Party.Where(item => item.Id == downed.Id)).Condition);
+
+        AdvanceUntilPlayerDecision(combat);
+        Assert.Equal(medic.Id, combat.ActiveCombatantId);
+        Assert.True(combat.ExecuteAction(new CombatActionRequest("quick_strike", enemy.Id, medic.Id)).Success);
+        AdvanceUntilPlayerDecision(combat);
+        Assert.Equal(downed.Id, combat.ActiveCombatantId);
+        Assert.True(combat.ExecuteAction(new CombatActionRequest("quick_strike", enemy.Id, downed.Id)).Success);
+        AdvanceUntilPlayerDecision(combat);
+
+        Assert.Equal(medic.Id, combat.ActiveCombatantId);
+        PartyCombatStatus downedAgain = Assert.Single(
+            combat.GetSnapshot().Party.Where(item => item.Id == downed.Id));
+        Assert.Equal("Downed", downedAgain.Condition);
+        Assert.DoesNotContain(combat.GetSnapshot().AvailableActions, item =>
+            item.Id == "revive_ally" && item.TargetId == downed.Id);
+
+        CombatResult repeatedRevive = combat.ExecuteAction(
+            new CombatActionRequest("revive_ally", downed.Id, medic.Id));
+        Assert.False(repeatedRevive.Success);
+        Assert.Equal(6, medic.Stamina);
+        Assert.Equal(0, downed.Health);
+    }
+
+    [Fact]
+    public void AllPartyMembersDownedEndsEncounterInDefeat()
+    {
+        Character downed = CreateRosterCharacter("party-first", "First", 10, 30, 5);
+        Character medic = CreateRosterCharacter("party-second", "Second", 20, 30, 5);
+        Character enemy = CreateRosterCharacter("enemy-defeat", "Enemy", 5, 8, 200);
+        CombatActionDefinition lethalAttack = new CombatActionDefinition(
+            "lethal_attack",
+            "Lethal Attack",
+            "Enemy Action",
+            "A damaging attack.",
+            CombatActionBehavior.Attack,
+            0,
+            10,
+            0,
+            string.Empty,
+            "The enemy strikes.",
+            130);
+        CombatService combat = new CombatService(
+            new[]
+            {
+                new CombatantDefinition(downed, CombatantSide.Party, TestCharacterFactory.CreatePlayerCombatActions()),
+                new CombatantDefinition(medic, CombatantSide.Party, TestCharacterFactory.CreatePlayerCombatActions()),
+                new CombatantDefinition(enemy, CombatantSide.Enemy, new[] { lethalAttack })
+            },
+            new FirstIndexRandom());
+
+        StartAtPlayerDecision(combat);
+        int safetyCounter = 0;
+        while (!combat.IsEncounterOver && safetyCounter < 300)
+        {
+            safetyCounter++;
+            if (combat.IsAwaitingPlayerDecision)
+            {
+                string actorId = combat.ActiveCombatantId;
+                CombatResult action = combat.ExecuteAction(
+                    new CombatActionRequest("quick_strike", enemy.Id, actorId));
+                Assert.True(action.Success);
+            }
+            else
+            {
+                combat.AdvanceCombatTime(0.1);
+            }
+        }
+
+        Assert.True(combat.IsEncounterOver);
+        Assert.False(combat.IsVictory);
+        Assert.All(combat.GetSnapshot().Party, item => Assert.Equal("Downed", item.Condition));
+        Assert.DoesNotContain(combat.GetSnapshot().Timeline, item => !item.IsEnemy);
+        Assert.Empty(combat.GetSnapshot().AvailableActions);
+    }
+
+    private sealed class FirstIndexRandom : Random
+    {
+        public override int Next(int maxValue)
+        {
+            return 0;
+        }
+    }
+
+    [Fact]
     public void HiddenEnemyRemainsInSimulationButIsMarkedInvisibleForPresentation()
     {
         Character party = CreateRosterCharacter("party-hidden-test", "Scout", 15, 0, 500);

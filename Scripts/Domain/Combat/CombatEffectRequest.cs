@@ -5,7 +5,8 @@ public enum CombatEffectType
     Evade,
     RestoreStamina,
     Delay,
-    Stun
+    Stun,
+    Revive
 }
 
 public sealed class CombatEffectRequest

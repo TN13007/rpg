@@ -30,6 +30,9 @@ public sealed class CombatActionResolver
                 if (action.Damage > 0) effects.Add(new CombatEffectRequest(CombatEffectType.Damage, targetId, action.Damage));
                 effects.Add(new CombatEffectRequest(CombatEffectType.Stun, targetId, duration: action.StunDuration));
                 break;
+            case CombatActionBehavior.Revive:
+                effects.Add(new CombatEffectRequest(CombatEffectType.Revive, targetId));
+                break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(action.Behavior));
         }

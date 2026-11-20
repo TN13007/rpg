@@ -34,7 +34,7 @@ Do not infer that the repository already contains a generalized NPC presence, ob
 
 The current prototype exposes Health, Fatigue, Stamina, Mood and Gold.
 
-- Health reaching zero means Dead; the current resource model has no Downed/revival state.
+- Outside Combat, zero Health prevents ordinary Character actions. During Combat, CombatService tracks Party members at zero Health as Downed, removes them from the Timeline and retains them in the Party roster for possible revival.
 - Fatigue is a cumulative daily-life exertion value. It does not currently cause unconsciousness or block ordinary actions.
 - Stamina is a separate Combat resource used by defensive actions. Insufficient Stamina rejects the requested action; it does not end Combat.
 - Mood is a tracked character value; current effects may change it, but it is not the future party progression system.
@@ -75,7 +75,7 @@ The presentation pipeline maps combat timing into `TimelineMarkerViewData.TimeTo
 Current limitations:
 - The service and roster tests support a four-member Party, but the playable `MainController` encounter is still wired with Ari and one Goblin.
 - Current Timeline markers use faction-colored circles. The marker scene has an icon slot, but no combatant portrait textures are currently supplied.
-- Downed/revival is not implemented. A character reaching zero HP is removed from the active Timeline and encounter terminal conditions are evaluated.
+- A Party member reaching zero HP enters Downed, remains visible in the Party roster and leaves the Timeline. Any active ally can spend 4 Stamina to revive that member once per encounter at 25% maximum HP (rounded up). The revived member and the reviving actor both receive the largest authored Recovery Cost in the encounter; the revived member is re-registered on the Timeline. If every Party member is Downed, the encounter ends in defeat. Enemies at zero HP are defeated rather than Downed.
 - Speed modifiers, Acceleration, Interrupt, casting/channeling and Cooldowns are not implemented.
 - Enemy behavior remains limited to the currently authored Goblin actions; distinct enemy behavior archetypes and multi-enemy playable encounters remain incomplete.
 

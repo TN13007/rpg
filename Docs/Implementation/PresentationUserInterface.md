@@ -59,10 +59,10 @@ MainController._Process(delta)
 ```
 
 The current panel separates:
-- Encounter context and Party roster.
+- Encounter context and Party roster, including a visible Downed condition.
 - Expected action timing on a shared Time-to-Ready axis.
 - Ordered message history.
-- Available Combat Actions.
+- Available Combat Actions, including contextual Revive targets when a Party member is Downed.
 
 `CombatPresentationMapper` converts each combatant's Remaining Progress, Speed and remaining Stun duration into `TimelineMarkerViewData.TimeToReadySeconds`. The UI consumes this presentation value; it does not calculate combat timing from Domain state.
 
@@ -101,6 +101,6 @@ MainController composes the screen and top-level signals. ExplorationFlowControl
 
 ## 6. Current limitations
 
-The current UI is a prototype, not a final interface specification. The combat service and Party roster presentation support multiple members, but the playable MainController encounter is still wired with Ari and one Goblin. Portrait textures are not yet supplied to Timeline markers. Downed/revival, broad skill selection, inventory, relationships, diary, responsive narrow-screen behavior and full assistive-technology verification remain incomplete.
+The current UI is a prototype, not a final interface specification. The combat service and Party roster presentation support multiple members, but the playable MainController encounter is still wired with Ari and one Goblin. Portrait textures are not yet supplied to Timeline markers. Broad skill selection, inventory, relationships, diary, responsive narrow-screen behavior and full assistive-technology verification remain incomplete.
 
 When the intended UI changes, first update the relevant Design document if the player experience changes; update this document only when the current presentation contract changes.

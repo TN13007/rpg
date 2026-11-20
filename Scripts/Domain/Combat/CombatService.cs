@@ -5,6 +5,8 @@ using System.Linq;
 public sealed class CombatService : ICombatService
 {
     private const int _victoryReward = 25;
+    private const int _revivalStaminaCost = 4;
+    private const string _reviveActionId = "revive_ally";
     private const double _initialProgress = 100;
     private const double _maximumRecoveryTimeSeconds = 4.0;
 
@@ -16,6 +18,8 @@ public sealed class CombatService : ICombatService
         public List<CombatActionDefinition> ActionOrder { get; }
         public Dictionary<string, CombatActionDefinition> Actions { get; }
         public CombatantEffectState EffectState { get; }
+        public bool IsDowned { get; set; }
+        public bool HasBeenRevived { get; set; }
 
         public CombatantRuntime(CombatantDefinition definition)
         {
@@ -30,6 +34,7 @@ public sealed class CombatService : ICombatService
             }
 
             EffectState = new CombatantEffectState();
+            IsDowned = Side == CombatantSide.Party && !Character.IsAlive;
         }
 
         public bool IsEnemy => Side == CombatantSide.Enemy;
@@ -46,6 +51,8 @@ public sealed class CombatService : ICombatService
     private readonly Character _rewardRecipient;
 
     private CombatTimeline _timeline;
+    private CombatActionDefinition _reviveAction;
+    private double _revivalRecoveryCost;
     private string _activeCombatantId = string.Empty;
     private int _round;
     private bool _encounterOver;
@@ -55,7 +62,9 @@ public sealed class CombatService : ICombatService
     public bool IsAwaitingPlayerDecision =>
         !_encounterOver &&
         _combatants.TryGetValue(_activeCombatantId, out CombatantRuntime active) &&
-        active.IsPartyMember;
+        active.IsPartyMember &&
+        !active.IsDowned &&
+        active.Character.CanAct;
     public string ActiveCombatantId => _activeCombatantId;
     public double CombatTime => _timeline == null ? 0 : _timeline.CombatTime;
     public int RewardGold => IsVictory ? _victoryReward : 0;
@@ -136,9 +145,16 @@ public sealed class CombatService : ICombatService
             return false;
         }
 
-        foreach (CombatantRuntime enemy in _enemies)
+        foreach (CombatantRuntime combatant in _combatants.Values)
         {
-            enemy.Character.Reset();
+            if (combatant.IsEnemy)
+            {
+                combatant.Character.Reset();
+            }
+
+            combatant.EffectState.Reset();
+            combatant.IsDowned = combatant.IsPartyMember && !combatant.Character.IsAlive;
+            combatant.HasBeenRevived = false;
         }
 
         if (!_enemies.Any(item => item.Character.IsAlive))
@@ -149,12 +165,12 @@ public sealed class CombatService : ICombatService
             return false;
         }
 
-        double progressScale = CalculateProgressScale();
+        double progressScale = CalculateProgressScale(out _revivalRecoveryCost);
+        _reviveAction = CreateReviveAction(_revivalRecoveryCost);
         _timeline = new CombatTimeline(progressScale);
         foreach (CombatantRuntime combatant in _combatants.Values)
         {
-            combatant.EffectState.Reset();
-            if (!combatant.Character.IsAlive)
+            if (!combatant.Character.IsAlive || combatant.IsDowned)
             {
                 continue;
             }
@@ -230,14 +246,33 @@ public sealed class CombatService : ICombatService
             }
         }
 
+        if (active != null && active.IsPartyMember && active.Character.CanAct && !active.IsDowned)
+        {
+            foreach (CombatantRuntime downed in _party.Where(item =>
+                item.Character.Id != active.Character.Id &&
+                item.IsDowned &&
+                !item.HasBeenRevived))
+            {
+                bool available = IsActionAvailable(_reviveAction, active.Character);
+                availableActions.Add(new CombatActionOption(
+                    _reviveAction.Id,
+                    _reviveAction.Label + " → " + downed.Character.Name,
+                    _reviveAction.CostLabel,
+                    _reviveAction.Description,
+                    available,
+                    available ? string.Empty : GetUnavailableReason(_reviveAction),
+                    downed.Character.Id,
+                    active.Character.Id));
+            }
+        }
+
         PartyCombatStatus[] partyStatuses = _party
-            .Where(item => item.Character.IsAlive)
             .Select(item => new PartyCombatStatus(
                 item.Character.Id,
                 item.Character.Name,
                 item.Character.Health,
                 item.Character.MaxHealth,
-                GetCharacterCondition(item.Character),
+                GetCharacterCondition(item),
                 item.Character.Id == _activeCombatantId))
             .ToArray();
 
@@ -294,6 +329,11 @@ public sealed class CombatService : ICombatService
         if (!actor.Character.CanAct)
         {
             return Failure("This party member cannot act.");
+        }
+
+        if (_reviveAction != null && request.ActionId == _reviveAction.Id)
+        {
+            return ExecuteReviveAction(actor, request.TargetId);
         }
 
         if (!actor.Actions.TryGetValue(request.ActionId, out CombatActionDefinition action))
@@ -437,6 +477,56 @@ public sealed class CombatService : ICombatService
         return Success(events);
     }
 
+    private CombatResult ExecuteReviveAction(CombatantRuntime actor, string targetId)
+    {
+        if (string.IsNullOrWhiteSpace(targetId) ||
+            !_combatants.TryGetValue(targetId, out CombatantRuntime target) ||
+            !target.IsPartyMember ||
+            !target.IsDowned ||
+            target.HasBeenRevived ||
+            target.Character.Id == actor.Character.Id)
+        {
+            return Failure("Choose an ally who is Downed and has not already been revived this encounter.");
+        }
+
+        if (!IsActionAvailable(_reviveAction, actor.Character))
+        {
+            return Failure(GetUnavailableReason(_reviveAction));
+        }
+
+        if (!actor.Character.SpendStamina(_reviveAction.StaminaCost))
+        {
+            return Failure(GetUnavailableReason(_reviveAction));
+        }
+
+        List<CombatEvent> events = new List<CombatEvent>
+        {
+            new CombatEvent(
+                CombatEventType.PlayerAction,
+                _round,
+                actorName: actor.Character.Name,
+                targetName: target.Character.Name,
+                detail: _reviveAction.ActionDetail)
+        };
+
+        ApplyAction(_reviveAction, actor, target, events);
+        ResolveTerminalConditions(events);
+
+        if (!_encounterOver &&
+            actor.Character.IsAlive &&
+            _timeline.ContainsCombatant(actor.Character.Id))
+        {
+            _timeline.ApplyRecovery(actor.Character.Id, _reviveAction.RecoveryCost);
+        }
+
+        if (!_encounterOver)
+        {
+            _activeCombatantId = string.Empty;
+        }
+
+        return Success(events);
+    }
+
     private double ResolveEnemyAction(CombatantRuntime actor, List<CombatEvent> events)
     {
         List<CombatActionDefinition> availableActions = actor.ActionOrder
@@ -512,9 +602,30 @@ public sealed class CombatService : ICombatService
                 events,
                 _round);
 
-            if (!effectTarget.Character.IsAlive)
+            if (effectTarget.IsPartyMember && effectTarget.IsDowned && effectTarget.Character.IsAlive)
+            {
+                effectTarget.IsDowned = false;
+                effectTarget.HasBeenRevived = true;
+                effectTarget.EffectState.Reset();
+                _timeline.AddCombatant(
+                    effectTarget.Character.Id,
+                    effectTarget.Character.Stats.Luck,
+                    GetBaseSpeed(effectTarget.Character),
+                    _revivalRecoveryCost);
+            }
+            else if (!effectTarget.Character.IsAlive)
             {
                 _timeline.RemoveCombatant(effectTarget.Character.Id);
+                if (effectTarget.IsPartyMember && !effectTarget.IsDowned)
+                {
+                    effectTarget.IsDowned = true;
+                    effectTarget.EffectState.Reset();
+                    events.Add(new CombatEvent(
+                        CombatEventType.StatusChanged,
+                        _round,
+                        targetName: effectTarget.Character.Name,
+                        detail: effectTarget.Character.Name + " is Downed and leaves the Timeline."));
+                }
             }
         }
     }
@@ -526,7 +637,7 @@ public sealed class CombatService : ICombatService
             return;
         }
 
-        if (!_party.Any(item => item.Character.IsAlive))
+        if (!_party.Any(item => item.Character.IsAlive && !item.IsDowned))
         {
             CompleteDefeat(events);
             return;
@@ -552,7 +663,8 @@ public sealed class CombatService : ICombatService
     {
         return action.Behavior == CombatActionBehavior.Attack ||
                action.Behavior == CombatActionBehavior.Delay ||
-               action.Behavior == CombatActionBehavior.Stun;
+               action.Behavior == CombatActionBehavior.Stun ||
+               action.Behavior == CombatActionBehavior.Revive;
     }
 
     private static string GetUnavailableReason(CombatActionDefinition action)
@@ -562,15 +674,15 @@ public sealed class CombatService : ICombatService
             : action.UnavailableReason;
     }
 
-    private double CalculateProgressScale()
+    private double CalculateProgressScale(out double largestRecoveryCost)
     {
         CombatantRuntime[] activeCombatants = _combatants.Values
-            .Where(combatant => combatant.Character.IsAlive)
+            .Where(combatant => combatant.Character.IsAlive && !combatant.IsDowned)
             .ToArray();
 
         double slowestBaseSpeed = activeCombatants
             .Min(combatant => GetBaseSpeed(combatant.Character));
-        double largestRecoveryCost = activeCombatants
+        largestRecoveryCost = activeCombatants
             .SelectMany(combatant => combatant.ActionOrder)
             .Max(action => action.RecoveryCost);
 
@@ -583,6 +695,22 @@ public sealed class CombatService : ICombatService
         // Normalize Progress units so the slowest combatant's longest authored recovery
         // takes no longer than the current four-second pacing target.
         return _maximumRecoveryTimeSeconds * slowestBaseSpeed / largestRecoveryCost;
+    }
+
+    private static CombatActionDefinition CreateReviveAction(double recoveryCost)
+    {
+        return new CombatActionDefinition(
+            _reviveActionId,
+            "Revive",
+            _revivalStaminaCost + " Stamina · Recovery",
+            "Revive one Downed ally who has not already been revived this encounter.",
+            CombatActionBehavior.Revive,
+            _revivalStaminaCost,
+            0,
+            0,
+            "Not enough Stamina.",
+            "You bring your ally back into the fight.",
+            recoveryCost);
     }
 
     private static double GetBaseSpeed(Character character)
@@ -600,7 +728,9 @@ public sealed class CombatService : ICombatService
         List<TimelineCombatantStatus> entries = new List<TimelineCombatantStatus>();
         foreach (CombatantRuntime combatant in _combatants.Values)
         {
-            if (!combatant.Character.IsAlive || !_timeline.ContainsCombatant(combatant.Character.Id))
+            if (!combatant.Character.IsAlive ||
+                combatant.IsDowned ||
+                !_timeline.ContainsCombatant(combatant.Character.Id))
             {
                 continue;
             }
@@ -629,9 +759,16 @@ public sealed class CombatService : ICombatService
             .ToArray();
     }
 
-    private static string GetCharacterCondition(Character character)
+    private static string GetCharacterCondition(CombatantRuntime combatant)
     {
-        return character.Health <= character.MaxHealth / 2 ? "Wounded" : "Healthy";
+        if (combatant.IsDowned)
+        {
+            return "Downed";
+        }
+
+        return combatant.Character.Health <= combatant.Character.MaxHealth / 2
+            ? "Wounded"
+            : "Healthy";
     }
 
     private static string GetEnemyCondition(Character character)

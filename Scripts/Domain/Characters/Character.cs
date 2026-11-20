@@ -56,6 +56,17 @@ public sealed class Character
         return restored;
     }
 
+    public int Revive(int healthAmount)
+    {
+        if (IsAlive || healthAmount <= 0)
+        {
+            return 0;
+        }
+
+        Health = System.Math.Min(MaxHealth, healthAmount);
+        return Health;
+    }
+
     public double AddFatigue(double amount)
     {
         if (double.IsNaN(amount) || double.IsInfinity(amount) || amount <= 0)

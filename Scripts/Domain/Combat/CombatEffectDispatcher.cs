@@ -54,6 +54,20 @@ public sealed class CombatEffectDispatcher
                     events.Add(new CombatEvent(CombatEventType.StatusChanged, round, targetName: target.Name, detail: target.Name + " is stunned."));
                 }
                 break;
+            case CombatEffectType.Revive:
+                int revivalHealth = System.Math.Max(1, (int)System.Math.Ceiling(target.MaxHealth * 0.25));
+                int restoredHealth = target.Revive(revivalHealth);
+                if (restoredHealth > 0)
+                {
+                    events.Add(new CombatEvent(
+                        CombatEventType.StatusChanged,
+                        round,
+                        actorName: actor.Name,
+                        targetName: target.Name,
+                        amount: restoredHealth,
+                        detail: target.Name + " is revived with " + restoredHealth + " HP."));
+                }
+                break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(request.Type));
         }

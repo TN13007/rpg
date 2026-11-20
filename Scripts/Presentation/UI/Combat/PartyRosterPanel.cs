@@ -94,7 +94,9 @@ public partial class PartyRosterPanel : PanelContainer
             SizeFlagsHorizontal = Control.SizeFlags.ExpandFill
         };
         condition.AddThemeFontSizeOverride("font_size", 9);
-        condition.AddThemeColorOverride("font_color", UiTheme.Muted);
+        condition.AddThemeColorOverride(
+            "font_color",
+            member.Condition == "Downed" ? new Color("#E07A70") : UiTheme.Muted);
         content.AddChild(condition);
 
         return card;

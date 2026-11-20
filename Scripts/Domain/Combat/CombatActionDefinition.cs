@@ -7,7 +7,8 @@ public enum CombatActionBehavior
     Dodge,
     RecoverStamina,
     Delay,
-    Stun
+    Stun,
+    Revive
 }
 
 public sealed class CombatActionDefinition
@@ -55,6 +56,8 @@ public sealed class CombatActionDefinition
                 throw new ArgumentOutOfRangeException(nameof(delayAmount), "Delay actions must add positive progress.");
             case CombatActionBehavior.Stun when stunDuration <= 0:
                 throw new ArgumentOutOfRangeException(nameof(stunDuration), "Stun actions must have a positive duration.");
+            case CombatActionBehavior.Revive when staminaCost < 1:
+                throw new ArgumentOutOfRangeException(nameof(staminaCost), "Revive actions must cost Stamina.");
         }
 
         Id = id;
