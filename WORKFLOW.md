@@ -63,7 +63,7 @@ The Git workflow, commit granularity and PR requirements are defined only in [CO
 **Next implementation task:** [Issue #91 — Four-Person Tactical Timeline Encounter](https://github.com/TN13007/rpg/issues/91).
 
 Before implementation:
-- Read [Game Vision](Docs/Design/GameVision.md), [Combat Design](Docs/Design/Combat.md) and [Roadmap Phase 1](Docs/Design/Roadmap.md#phase-1--prove-core-combat).
+- Read [Game Vision](Docs/Design/GameVision.md), [Combat Design](Docs/Design/Combat.md) and [Roadmap Phase 1](Docs/Design/Roadmap.md).
 - Read [Cross-Layer Runtime Systems](Docs/Implementation/CrossLayerRuntimeSystems.md) and trace the current Combat flow, source code and tests.
 - Resolve only the timing/control decisions required for the first playable encounter; update Design before treating those rules as accepted.
 - Keep Academy-life/NPC Issues #78–83 deferred. Do not expand their scope while proving the core combat loop.
