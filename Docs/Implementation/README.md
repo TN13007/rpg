@@ -6,10 +6,10 @@ This folder is the authoritative guide to **how the current repository works**. 
 
 | Document | Owns |
 |---|---|
-| [Architecture](Architecture.md) | Repository map, layers, dependency direction, composition root, runtime flows and code-discovery method |
-| [Runtime Systems](RuntimeSystems.md) | Current domain vocabulary, authored content, Location/Event/Action behavior and the implemented Combat slice |
-| [User Interface](UserInterface.md) | Current screen composition, presentation data flow and UI/service boundaries |
-| [Testing](Testing.md) | Automated test strategy, Godot runtime verification and evidence requirements |
+| [Cross-Layer Architecture](CrossLayerArchitecture.md) | Repository map, layers, dependency direction, composition root, runtime flows and code-discovery method |
+| [Cross-Layer Runtime Systems](CrossLayerRuntimeSystems.md) | Current domain vocabulary, authored content, Location/Event/Action behavior and the implemented Combat slice |
+| [Presentation User Interface](PresentationUserInterface.md) | Current screen composition, presentation data flow and UI/service boundaries |
+| [Testing Strategy](TestingStrategy.md) | Automated test strategy, Godot runtime verification and evidence requirements |
 
 ## How to use these documents
 

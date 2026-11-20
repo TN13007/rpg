@@ -1,4 +1,4 @@
-# Testing and Runtime Verification
+# Testing Strategy and Runtime Verification
 
 This document describes how to verify the current repository. Stable Git workflow and the unified validation command are owned by [CONTRIBUTING.md](../../CONTRIBUTING.md).
 

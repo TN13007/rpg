@@ -1,4 +1,4 @@
-# Runtime Systems
+# Cross-Layer Runtime Systems
 
 **Status:** Describes the current prototype on latest `main`  
 **Boundary:** This document records implemented runtime behavior and the limits of the current model. Desired future behavior belongs in [Design](../Design/README.md).
@@ -84,4 +84,4 @@ The intended future rules are defined only in [Design/Combat](../Design/Combat.m
 - Definitions may reference other definitions by stable ID; loaders/catalogs validate duplicate IDs and unresolved references.
 - Content can select only behavior already supported by the runtime. JSON is not an arbitrary scripting language.
 
-For exact file locations and ownership, see [Architecture](Architecture.md). For current screen and ViewData boundaries, see [User Interface](UserInterface.md).
+For exact file locations and ownership, see [Cross-Layer Architecture](CrossLayerArchitecture.md). For current screen and ViewData boundaries, see [Presentation User Interface](PresentationUserInterface.md).

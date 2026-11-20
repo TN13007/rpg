@@ -1,4 +1,4 @@
-# Application Architecture
+# Cross-Layer Architecture
 
 **Engine:** Godot 4.7.2 .NET / C#  
 **Main scene:** `Scenes/Main.tscn`  

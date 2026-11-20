@@ -1,6 +1,6 @@
 # Scripts Source Map
 
-The codebase is organized **layer-first, then by feature**. This file is a quick locator only; architecture rules and runtime flows are owned by [Implementation Architecture](../Docs/Implementation/Architecture.md).
+The codebase is organized **layer-first, then by feature**. This file is a quick locator only; architecture rules and runtime flows are owned by [Cross-Layer Architecture](../Docs/Implementation/CrossLayerArchitecture.md).
 
 | Layer | Responsibility | Start here |
 |---|---|---|

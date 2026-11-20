@@ -1,4 +1,4 @@
-# User Interface and Presentation Contracts
+# Presentation User Interface and Contracts
 
 **Status:** Describes the current main-screen and Combat presentation on latest `main`  
 **Boundary:** This document owns current UI composition and presentation contracts. Product experience goals belong in [Design](../Design/README.md).
