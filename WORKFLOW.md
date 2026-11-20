@@ -2,7 +2,7 @@
 
 **Repository:** [TN13007/rpg](https://github.com/TN13007/rpg)  
 **Engine:** Godot 4.7.2 .NET / C#  
-**Last reviewed:** 2026-11-19  
+**Last reviewed:** 2026-11-20  
 **Official implementation baseline:** latest `main` — consult the current branch head rather than a copied commit hash.
 
 > Start here at the beginning and end of every Session. This is the single project-status and handoff tracker. Do not create separate project-state, decision, learning or per-session tracking files.
@@ -114,9 +114,9 @@ After the Session, update the correct durable owner: Issue for scope/acceptance 
 
 ### Product direction
 
-The long-term product direction is a Reincarnation Life-Simulation RPG: the player lives through distinct lives, meets familiar souls in changed circumstances, faces the consequences of past choices and eventually may seek a final life beyond the reincarnation cycle. The narrative combines reunion across lives, redemption/responsibility and the meaning of a finite life. The player must have a reason to care about the current life before the larger reincarnation mystery takes over. See [Docs/Roadmap.md](Docs/Roadmap.md), [Issue #68](https://github.com/TN13007/rpg/issues/68) and [roadmap tracking Issue #69](https://github.com/TN13007/rpg/issues/69).
+The current intended product direction is a **combat-first Tactical Timeline RPG**. The player commands four active party members with full control, no battlefield positioning, and a visible action timeline. The Academy is a supporting hub for preparation, progression, recovery and relationships; adventures and combat are the primary gameplay. The story should be deep and consequential, with optional personal-interest content remaining secondary. See [Design/Game Vision](Docs/Design/GameVision.md), [Design/Gameplay Loop](Docs/Design/GameplayLoop.md), [Design/Combat](Docs/Design/Combat.md) and [Design/World & Narrative](Docs/Design/WorldAndNarrative.md).
 
-This is the accepted long-term direction, not implemented gameplay and not a change to Version 1 scope. The current official implementation remains a narrow Academy/Goblin life-simulation prototype.
+The current `main` implementation does **not** yet realize this direction. It remains the existing Academy/location/event/Goblin prototype described below. Treat the Design documents as intended experience and the Implementation documents plus verified `main` code as implementation truth. The earlier life-simulation-first overview is retained only as historical context in `Docs/Archive/GameDesign-v0-life-simulation-direction.md`.
 
 ### Implemented capabilities
 
