@@ -123,7 +123,7 @@ These are automated domain/content tests. GitHub Actions run [#43](https://githu
 
 #### Runtime verification record
 
-[Issue #10](https://github.com/TN13007/rpg/issues/10) was closed by the project owner with all five playable-journey acceptance criteria marked complete for the Godot 4.7.2 .NET runtime check. The retrospective [QA record](Archive/PlayableJourneyTestReport.md) records the verified scope and its audit limitations. The Issue did not retain Godot Output logs, screenshots/video, exact per-action values or the exact local build revision; therefore the result is owner-confirmed, not independently reproducible from attached evidence.
+[Issue #10](https://github.com/TN13007/rpg/issues/10) was closed by the project owner with all five playable-journey acceptance criteria marked complete for the Godot 4.7.2 .NET runtime check. The retrospective [QA record](../Archive/PlayableJourneyTestReport.md) records the verified scope and its audit limitations. The Issue did not retain Godot Output logs, screenshots/video, exact per-action values or the exact local build revision; therefore the result is owner-confirmed, not independently reproducible from attached evidence.
 
 ### 8. Deliberately Not Implemented Yet
 
