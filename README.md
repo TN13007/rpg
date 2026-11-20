@@ -2,13 +2,13 @@
 
 Godot 4.7.2 .NET / C# project.
 
-Adventurer Academy is a fantasy life-simulation RPG prototype about daily life, character wellbeing, academy activities, location-based exploration and occasional encounters.
+Adventurer Academy is a fantasy combat-first RPG prototype. The player commands a four-character party through Timeline-based tactical battles, while the Academy supports preparation, progression, relationships and a deeper narrative.
 
 ## Start here
 
 - [AGENTS.md](AGENTS.md) — repository navigation and working instructions for coding agents.
 - [WORKFLOW.md](WORKFLOW.md) — current implementation snapshot, Session progress, Learning evidence, blockers and handoff.
-- [Version 1 Plan](Docs/Version1Plan.md) — detailed product and Learning-first plan for Version 1. It describes intended scope; it does not mean every Session is implemented.
+- [Version 1 Plan](Docs/Implementation/Version1Plan.md) — detailed product and Learning-first plan for Version 1. It describes intended scope; it does not mean every Session is implemented.
 - [CONTRIBUTING.md](CONTRIBUTING.md) — Issue → Branch → Validate → Pull Request workflow, naming and documentation governance.
 
 ## Run the project
