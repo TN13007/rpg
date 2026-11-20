@@ -32,7 +32,6 @@ public partial class CombatPanel : PanelContainer
     {
         _encounterTitle.Text = title;
         _statusPanel.SetTurn(1, "PLAYER DECISION");
-        _statusPanel.SetEnemies(Array.Empty<EnemyCombatStatus>());
         _statusPanel.SetTimeline(Array.Empty<TimelineCombatantStatus>());
         _statusPanel.SetIntent(null);
         _messageLog.Clear();
@@ -44,7 +43,6 @@ public partial class CombatPanel : PanelContainer
     {
         if (viewData == null) { GD.PushError("CombatPanel received null view data."); return; }
         _statusPanel.SetTurn(viewData.Round, viewData.ActiveTurnLabel);
-        _statusPanel.SetEnemies(viewData.Enemies);
         _statusPanel.SetTimeline(viewData.Timeline);
         _statusPanel.SetIntent(viewData.Intent);
         _actionPanel.SetActions(viewData.AvailableActions);

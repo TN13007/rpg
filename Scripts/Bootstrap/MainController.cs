@@ -45,7 +45,7 @@ public partial class MainController : Control
             player, combatService, gameClock, activityTimeCalculator,
             activityFatigueCalculator, actionExecutionService, content.CombatEncounter);
         _combatController = new CombatFlowController(
-            storyPanel, combatPanel, characterPanel, _gameModeController,
+            storyPanel, combatPanel, characterPanel, _sidebar, _gameModeController,
             player, combatSessionService, combatPresentationMapper);
         _explorationController = new ExplorationFlowController(
             storyPanel, characterPanel, _gameModeController, player,
