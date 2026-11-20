@@ -172,10 +172,6 @@ public sealed class CombatService : ICombatService
 
         List<CombatEvent> startEvents = new List<CombatEvent>();
         ResolveTerminalConditions(startEvents);
-        if (!_encounterOver)
-        {
-            AdvanceUntilPlayerDecision(startEvents);
-        }
 
         return !_encounterOver;
     }
@@ -257,7 +253,7 @@ public sealed class CombatService : ICombatService
             ? "ENCOUNTER COMPLETE"
             : active != null && active.IsPartyMember
                 ? "PARTY DECISION · " + active.Character.Name.ToUpperInvariant()
-                : "ENEMY ACTION";
+                : "TIMELINE RUNNING";
 
         return new CombatSnapshot(
             _round,
@@ -340,15 +336,34 @@ public sealed class CombatService : ICombatService
         if (!_encounterOver && actor.Character.IsAlive && _timeline.ContainsCombatant(actor.Character.Id))
         {
             _timeline.ApplyRecovery(actor.Character.Id, action.RecoveryCost);
-            AdvanceUntilPlayerDecision(events);
+        }
+
+        if (!_encounterOver)
+        {
+            _activeCombatantId = string.Empty;
         }
 
         return Success(events);
     }
 
-    private void AdvanceUntilPlayerDecision(List<CombatEvent> events)
+    public CombatResult AdvanceCombatTime(double elapsedCombatTime)
     {
+        if (double.IsNaN(elapsedCombatTime) ||
+            double.IsInfinity(elapsedCombatTime) ||
+            elapsedCombatTime < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(elapsedCombatTime));
+        }
+
+        List<CombatEvent> events = new List<CombatEvent>();
+        if (_timeline == null || _encounterOver || IsAwaitingPlayerDecision)
+        {
+            return Success(events);
+        }
+
+        double remainingElapsed = elapsedCombatTime;
         int safetyCounter = 0;
+
         while (!_encounterOver)
         {
             safetyCounter++;
@@ -360,47 +375,64 @@ public sealed class CombatService : ICombatService
             ResolveTerminalConditions(events);
             if (_encounterOver)
             {
-                return;
+                break;
             }
 
             string readyId = _timeline.GetNextReadyCombatantId();
-            if (string.IsNullOrEmpty(readyId))
+            if (!string.IsNullOrEmpty(readyId))
             {
-                if (!_timeline.AdvanceToNextEvent())
+                if (!_combatants.TryGetValue(readyId, out CombatantRuntime readyCombatant) ||
+                    !readyCombatant.Character.IsAlive)
                 {
-                    throw new InvalidOperationException("Combat Timeline has no future event.");
+                    _timeline.RemoveCombatant(readyId);
+                    continue;
                 }
 
+                if (readyCombatant.IsPartyMember)
+                {
+                    _activeCombatantId = readyCombatant.Character.Id;
+                    break;
+                }
+
+                double recoveryCost = ResolveEnemyAction(readyCombatant, events);
+                ResolveTerminalConditions(events);
+                if (_encounterOver)
+                {
+                    break;
+                }
+
+                if (readyCombatant.Character.IsAlive &&
+                    _timeline.ContainsCombatant(readyCombatant.Character.Id))
+                {
+                    _timeline.ApplyRecovery(readyCombatant.Character.Id, recoveryCost);
+                }
+
+                _round++;
                 continue;
             }
 
-            if (!_combatants.TryGetValue(readyId, out CombatantRuntime readyCombatant) ||
-                !readyCombatant.Character.IsAlive)
+            if (remainingElapsed <= 0.0)
             {
-                _timeline.RemoveCombatant(readyId);
-                continue;
+                break;
             }
 
-            if (readyCombatant.IsPartyMember)
+            double? timeUntilNextEvent = _timeline.GetTimeUntilNextEvent();
+            if (!timeUntilNextEvent.HasValue)
             {
-                _activeCombatantId = readyCombatant.Character.Id;
-                return;
+                throw new InvalidOperationException("Combat Timeline has no future event.");
             }
 
-            double recoveryCost = ResolveEnemyAction(readyCombatant, events);
-            ResolveTerminalConditions(events);
-            if (_encounterOver)
+            double elapsedToAdvance = Math.Min(remainingElapsed, timeUntilNextEvent.Value);
+            if (elapsedToAdvance <= 0.0)
             {
-                return;
+                throw new InvalidOperationException("Combat Timeline returned a non-positive future event.");
             }
 
-            if (readyCombatant.Character.IsAlive && _timeline.ContainsCombatant(readyCombatant.Character.Id))
-            {
-                _timeline.ApplyRecovery(readyCombatant.Character.Id, recoveryCost);
-            }
-
-            _round++;
+            _timeline.AdvanceTime(elapsedToAdvance);
+            remainingElapsed = Math.Max(0.0, remainingElapsed - elapsedToAdvance);
         }
+
+        return Success(events);
     }
 
     private double ResolveEnemyAction(CombatantRuntime actor, List<CombatEvent> events)

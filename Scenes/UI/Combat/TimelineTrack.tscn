@@ -4,7 +4,7 @@
 [ext_resource type="PackedScene" path="res://Scenes/UI/Combat/TimelineMarker.tscn" id="2"]
 
 [node name="TimelineTrack" type="Control"]
-custom_minimum_size = Vector2(0, 52)
+custom_minimum_size = Vector2(0, 90)
 clip_contents = true
 script = ExtResource("1")
 MarkerScene = ExtResource("2")

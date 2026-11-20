@@ -24,6 +24,7 @@ public sealed class CombatSessionServiceTests
 
         Assert.True(session.TryStartEncounter(entryAction, out string failureReason));
         Assert.Empty(failureReason);
+        session.AdvanceCombatTime(1000);
         CombatResult result = session.ExecuteAction(new CombatActionRequest("quick_strike", enemy.Id));
         Assert.NotNull(result);
         Assert.True(result.Success);

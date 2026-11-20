@@ -45,9 +45,12 @@ Combat uses a dedicated Combat Panel rather than reusing the Exploration choice 
 The presentation pipeline is:
 
 ```text
-CombatService
-  -> CombatResult + CombatSnapshot
-  -> CombatPresentationMapper
+MainController._Process(delta)
+  -> CombatFlowController.AdvanceCombatTime(delta)
+  -> CombatSessionService.AdvanceCombatTime(delta)
+  -> CombatService.AdvanceCombatTime(delta)
+      -> CombatSnapshot
+          -> CombatPresentationMapper
       -> CombatViewData
           -> CombatPanel
               -> CombatStatusPanel
@@ -63,7 +66,7 @@ The current panel separates:
 
 `CombatPresentationMapper` converts each combatant's Remaining Progress, Speed and remaining Stun duration into `TimelineMarkerViewData.TimeToReadySeconds`. The UI consumes this presentation value; it does not calculate combat timing from Domain state.
 
-`TimelineTrack` owns marker instances and their horizontal positions. Its default display horizon is 10 seconds and is configurable in the Inspector. NOW is on the left; the right edge represents the end of the display horizon. Actors beyond the horizon are clamped to the right edge. Markers with nearly identical times are separated vertically without changing their horizontal timing.
+`TimelineTrack` owns marker instances and their positions. Its default display horizon is 10 seconds and is configurable in the Inspector. NOW is on the left; the right edge represents the end of the display horizon. Actors beyond the horizon are clamped to the right edge. Party markers appear above the shared rail and Enemy markers below it. Markers that overlap within the same side are stacked into additional vertical lanes without changing their horizontal timing. The track is refreshed each runtime frame from the Domain snapshot, so at the current 1.0x speed a marker takes the same real-world time as its Time-to-Ready value to reach NOW; no fixed-duration marker Tween is used.
 
 `TimelineMarker` owns one combatant's visual presentation: faction color, tooltip and Stunned indicator. Its `TextureRect` is ready to display an icon, but the current combat content does not yet supply portrait textures, so markers remain color-coded circles. Hidden enemies are omitted by the presentation layer while remaining in combat simulation.
 

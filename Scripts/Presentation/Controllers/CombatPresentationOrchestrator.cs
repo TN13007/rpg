@@ -74,6 +74,17 @@ public sealed class CombatPresentationOrchestrator
         Present(_mapper.Map(result));
     }
 
+    public void UpdateTimeline(CombatSnapshot snapshot)
+    {
+        if (snapshot == null)
+        {
+            throw new ArgumentNullException(nameof(snapshot));
+        }
+
+        CombatViewData viewData = _mapper.Map(snapshot);
+        _combatPanel.SetTimeline(viewData.Timeline);
+    }
+
     public void CompleteEncounter(bool isVictory)
     {
         _combatPanel.ShowEncounterComplete(isVictory ? "VICTORY" : "DEFEAT");

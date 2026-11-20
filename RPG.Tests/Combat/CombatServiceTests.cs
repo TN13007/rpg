@@ -1,17 +1,19 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Xunit;
-
-public sealed class CombatServiceTests
-{
     [Fact]
-    public void EncounterStartsAtFirstReadyPlayerDecision()
+    public void EncounterStartsAtCombatTimeZeroAndReachesReadyAfterElapsedTime()
     {
         CombatService combat = TestCharacterFactory.CreateCombat(out Character player, out Character enemy);
         Assert.True(combat.TryStartEncounter(out string reason));
+        Assert.False(combat.IsAwaitingPlayerDecision);
+        Assert.Equal(0, combat.CombatTime);
+
+        combat.AdvanceCombatTime(12.4);
+        Assert.False(combat.IsAwaitingPlayerDecision);
+        Assert.Equal(12.4, combat.CombatTime, 3);
+
+        combat.AdvanceCombatTime(0.1);
         Assert.True(combat.IsAwaitingPlayerDecision);
         Assert.Equal(12.5, combat.CombatTime, 3);
+
         TimelineCombatantStatus playerEntry = combat.GetSnapshot().Timeline.Single(entry => entry.Id == player.Id);
         TimelineCombatantStatus enemyEntry = combat.GetSnapshot().Timeline.Single(entry => entry.Id == enemy.Id);
         Assert.Equal(0, playerEntry.RemainingProgress, 3);
@@ -19,14 +21,37 @@ public sealed class CombatServiceTests
     }
 
     [Fact]
+    public void CombatClockDoesNotAdvanceWhilePlayerDecisionIsOpen()
+    {
+        CombatService combat = TestCharacterFactory.CreateCombat(out Character player, out Character enemy);
+        StartAtPlayerDecision(combat);
+        double decisionTime = combat.CombatTime;
+
+        combat.AdvanceCombatTime(2.0);
+
+        Assert.True(combat.IsAwaitingPlayerDecision);
+        Assert.Equal(decisionTime, combat.CombatTime, 6);
+    }
+
+;
+
+        Assert.True(combat.IsAwaitingPlayerDecision);
+        Assert.Equal(decisionTime, combat.CombatTime, 6);
+    }
+
+    [Fact]
     public void QuickStrikeResolvesAndEnemyActsOnItsOwnTimelineEvent()
     {
         CombatService combat = TestCharacterFactory.CreateCombat(out Character player, out Character enemy);
-        Assert.True(combat.TryStartEncounter(out string reason));
+        StartAtPlayerDecision(combat);
         CombatResult result = combat.ExecuteAction(new CombatActionRequest("quick_strike", enemy.Id, player.Id));
         Assert.True(result.Success);
         Assert.Equal(32, enemy.Health);
-        Assert.Contains(result.Events, item => item.Type == CombatEventType.EnemyAction);
+        Assert.DoesNotContain(result.Events, item => item.Type == CombatEventType.EnemyAction);
+        Assert.Equal(12.5, combat.CombatTime, 3);
+
+        CombatResult enemyResult = combat.AdvanceCombatTime(1000);
+        Assert.Contains(enemyResult.Events, item => item.Type == CombatEventType.EnemyAction);
         Assert.True(combat.IsAwaitingPlayerDecision);
         Assert.True(combat.CombatTime > 12.5);
     }
@@ -36,10 +61,12 @@ public sealed class CombatServiceTests
     {
         CombatService quick = TestCharacterFactory.CreateCombat(out Character quickPlayer, out Character quickEnemy);
         CombatService heavy = TestCharacterFactory.CreateCombat(out Character heavyPlayer, out Character heavyEnemy);
-        Assert.True(quick.TryStartEncounter(out string quickReason));
-        Assert.True(heavy.TryStartEncounter(out string heavyReason));
+        StartAtPlayerDecision(quick);
+        StartAtPlayerDecision(heavy);
         quick.ExecuteAction(new CombatActionRequest("quick_strike", quickEnemy.Id));
         heavy.ExecuteAction(new CombatActionRequest("heavy_strike", heavyEnemy.Id));
+        quick.AdvanceCombatTime(1000);
+        heavy.AdvanceCombatTime(1000);
         Assert.True(heavy.CombatTime > quick.CombatTime);
     }
 
@@ -47,7 +74,7 @@ public sealed class CombatServiceTests
     public void DisruptingStrikeAppliesDelayThroughEffectDispatcher()
     {
         CombatService combat = TestCharacterFactory.CreateCombat(out Character player, out Character enemy);
-        Assert.True(combat.TryStartEncounter(out string reason));
+        StartAtPlayerDecision(combat);
         CombatResult result = combat.ExecuteAction(new CombatActionRequest("disrupting_strike", enemy.Id, player.Id));
         Assert.True(result.Success);
         Assert.Contains(result.Events, item => item.Detail.Contains("delayed"));
@@ -57,7 +84,7 @@ public sealed class CombatServiceTests
     public void InsufficientStaminaDoesNotConsumeDecisionWindow()
     {
         CombatService combat = TestCharacterFactory.CreateCombat(out Character player, out Character enemy, playerStamina: 1);
-        Assert.True(combat.TryStartEncounter(out string reason));
+        StartAtPlayerDecision(combat);
         CombatResult result = combat.ExecuteAction(new CombatActionRequest("evade", string.Empty, player.Id));
         Assert.False(result.Success);
         Assert.True(combat.IsAwaitingPlayerDecision);
@@ -69,11 +96,12 @@ public sealed class CombatServiceTests
     public void GuardSpendsStaminaAndReducesTheNextGoblinHit()
     {
         CombatService combat = TestCharacterFactory.CreateCombat(out Character player, out Character enemy);
-        Assert.True(combat.TryStartEncounter(out string reason));
+        StartAtPlayerDecision(combat);
         CombatResult result = combat.ExecuteAction(new CombatActionRequest("guard", string.Empty, player.Id));
         Assert.True(result.Success);
         Assert.Equal(7, player.Stamina);
-        Assert.Contains(result.Events, item => item.Type == CombatEventType.EnemyAction);
+        CombatResult enemyResult = combat.AdvanceCombatTime(1000);
+        Assert.Contains(enemyResult.Events, item => item.Type == CombatEventType.EnemyAction);
         Assert.InRange(player.Health, 12, 19);
     }
 
@@ -81,11 +109,15 @@ public sealed class CombatServiceTests
     public void EvadeSpendsStaminaAndAvoidsTheNextGoblinHit()
     {
         CombatService combat = TestCharacterFactory.CreateCombat(out Character player, out Character enemy);
-        Assert.True(combat.TryStartEncounter(out string reason));
+        StartAtPlayerDecision(combat);
         CombatResult result = combat.ExecuteAction(new CombatActionRequest("evade", string.Empty, player.Id));
         Assert.True(result.Success);
         Assert.Equal(6, player.Stamina);
         Assert.Contains(result.Events, item => item.Type == CombatEventType.Check);
+        Assert.Equal(20, player.Health);
+
+        CombatResult enemyResult = combat.AdvanceCombatTime(1000);
+        Assert.Contains(enemyResult.Events, item => item.Type == CombatEventType.EnemyAction);
         Assert.Equal(20, player.Health);
     }
 
@@ -93,18 +125,19 @@ public sealed class CombatServiceTests
     public void CatchBreathRestoresStaminaAndTimelineContinues()
     {
         CombatService combat = TestCharacterFactory.CreateCombat(out Character player, out Character enemy, playerStamina: 1);
-        Assert.True(combat.TryStartEncounter(out string reason));
+        StartAtPlayerDecision(combat);
         CombatResult result = combat.ExecuteAction(new CombatActionRequest("catch_breath", string.Empty, player.Id));
         Assert.True(result.Success);
         Assert.Equal(4, player.Stamina);
-        Assert.Contains(result.Events, item => item.Type == CombatEventType.EnemyAction);
+        CombatResult enemyResult = combat.AdvanceCombatTime(1000);
+        Assert.Contains(enemyResult.Events, item => item.Type == CombatEventType.EnemyAction);
     }
 
     [Fact]
     public void DefeatingGoblinEndsEncounterWithoutCounterattack()
     {
         CombatService combat = TestCharacterFactory.CreateCombat(out Character player, out Character enemy, enemyHealth: 8);
-        Assert.True(combat.TryStartEncounter(out string reason));
+        StartAtPlayerDecision(combat);
         CombatResult result = combat.ExecuteAction(new CombatActionRequest("quick_strike", enemy.Id, player.Id));
         Assert.True(result.Success);
         Assert.True(combat.IsEncounterOver);
@@ -118,8 +151,9 @@ public sealed class CombatServiceTests
     public void GoblinChoosesOnlyFromItsAuthoredActionSet()
     {
         CombatService combat = TestCharacterFactory.CreateCombat(out Character player, out Character enemy, randomSeed: 17);
-        Assert.True(combat.TryStartEncounter(out string reason));
-        CombatResult result = combat.ExecuteAction(new CombatActionRequest("quick_strike", enemy.Id, player.Id));
+        StartAtPlayerDecision(combat);
+        combat.ExecuteAction(new CombatActionRequest("quick_strike", enemy.Id, player.Id));
+        CombatResult result = combat.AdvanceCombatTime(1000);
         string[] allowed =
         {
             "The goblin snaps out a quick jab.",
@@ -154,7 +188,7 @@ public sealed class CombatServiceTests
         roster.Add(new CombatantDefinition(enemyB, CombatantSide.Enemy, enemyActions));
 
         CombatService combat = new CombatService(roster, new Random(23));
-        Assert.True(combat.TryStartEncounter(out string reason));
+        StartAtPlayerDecision(combat);
 
         CombatSnapshot openingSnapshot = combat.GetSnapshot();
         Assert.Equal(4, openingSnapshot.Party.Length);
@@ -167,6 +201,11 @@ public sealed class CombatServiceTests
         CombatResult lastResult = null;
         foreach (Character member in party)
         {
+            if (!combat.IsAwaitingPlayerDecision)
+            {
+                combat.AdvanceCombatTime(1000);
+            }
+
             CombatSnapshot snapshot = combat.GetSnapshot();
             Assert.Equal(member.Id, snapshot.ActiveCombatantId);
 
@@ -181,8 +220,9 @@ public sealed class CombatServiceTests
             Assert.True(lastResult.Success);
         }
 
-        Assert.Contains(lastResult.Events, item => item.Type == CombatEventType.EnemyAction);
-        Assert.Contains(lastResult.Events, item =>
+        CombatResult enemyResult = combat.AdvanceCombatTime(1000);
+        Assert.Contains(enemyResult.Events, item => item.Type == CombatEventType.EnemyAction);
+        Assert.Contains(enemyResult.Events, item =>
             item.Type == CombatEventType.Damage &&
             party.Any(member => member.Name == item.TargetName));
         Assert.Equal(4, combat.GetSnapshot().Party.Length);
@@ -202,13 +242,20 @@ public sealed class CombatServiceTests
             },
             new Random(3));
 
-        Assert.True(combat.TryStartEncounter(out string reason));
+        StartAtPlayerDecision(combat);
         Assert.True(party.Health < party.MaxHealth);
 
         CombatSnapshot snapshot = combat.GetSnapshot();
         Assert.False(Assert.Single(snapshot.Enemies).IsVisible);
         TimelineCombatantStatus hiddenEntry = Assert.Single(snapshot.Timeline.Where(entry => entry.Id == hiddenEnemy.Id));
         Assert.False(hiddenEntry.IsVisible);
+    }
+
+    private static void StartAtPlayerDecision(CombatService combat)
+    {
+        Assert.True(combat.TryStartEncounter(out string reason), reason);
+        combat.AdvanceCombatTime(1000);
+        Assert.True(combat.IsAwaitingPlayerDecision);
     }
 
     private static Character CreateRosterCharacter(string id, string name, int luck, int agility, int health)

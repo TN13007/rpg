@@ -50,7 +50,7 @@ For a combatant that is not Stunned or otherwise prevented from progressing:
 
 `TimeToReady = RemainingProgress / EffectiveSpeed`
 
-The scheduler advances the Combat Clock to the earliest relevant event: a combatant becoming Ready or a timed combat effect reaching its scheduled time. All eligible combatants progress over the same elapsed interval. Every active, non-Stunned combatant must have a strictly positive Effective Speed; Stun is represented as an eligibility/progress-freeze state, not by assigning zero Speed.
+The Combat Clock advances in real time at **1.0x** in the current implementation: one real-world second contributes one Combat second. The runtime supplies elapsed frame time to the simulation. Each frame's elapsed time is clamped at the earliest relevant event: a combatant becoming Ready or a timed combat effect reaching its scheduled time. This preserves event ordering without jumping over Ready events. There is no time-acceleration control in this slice. All eligible combatants progress over the same elapsed interval. Every active, non-Stunned combatant must have a strictly positive Effective Speed; Stun is represented as an eligibility/progress-freeze state, not by assigning zero Speed.
 
 A combatant with zero Remaining Progress is Ready. Ready is not an action by itself; it means the combatant is eligible to be considered for the next action opportunity, subject to statuses and encounter state.
 
@@ -78,7 +78,7 @@ Casting time, channeling and interruptible action execution are not part of the 
 
 When a player-controlled party member becomes Ready, the Combat Clock pauses and the player chooses an action. No combatant progresses and no Combat-Time-based effect advances while the player is deciding. There is no real-world decision timer.
 
-After the action is confirmed and resolved, the scheduler processes any other combatants already Ready at that same Combat Time before advancing the clock again.
+After the action is confirmed and resolved, the actor receives its Recovery Cost. The Combat Clock resumes on the next runtime frame. Any other combatants already Ready at that same Combat Time are resolved before elapsed time advances again.
 
 Enemy actions are selected and resolved by enemy behavior when an enemy becomes Ready. They do not require the player to wait through a real-time decision timer.
 

@@ -88,6 +88,11 @@ public partial class MainController : Control
         _explorationController.ShowLocation();
     }
 
+    public override void _Process(double delta)
+    {
+        _combatController?.AdvanceCombatTime(delta);
+    }
+
     private void OpenTab(string tab)
     {
         if (_gameModeController.IsCombatMode) return;

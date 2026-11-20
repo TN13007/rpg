@@ -37,6 +37,34 @@ public sealed class CombatFlowController
         return true;
     }
 
+    public void AdvanceCombatTime(double elapsedCombatTime)
+    {
+        if (_combatSession.IsEncounterOver || _combatSession.IsAwaitingPlayerDecision)
+        {
+            return;
+        }
+
+        CombatResult result = _combatSession.AdvanceCombatTime(elapsedCombatTime);
+        if (result == null)
+        {
+            return;
+        }
+
+        if (result.Events.Length > 0 || !string.IsNullOrWhiteSpace(result.Snapshot.ActiveCombatantId))
+        {
+            _presentation.Present(result);
+        }
+        else
+        {
+            _presentation.UpdateTimeline(result.Snapshot);
+        }
+
+        if (_combatSession.IsEncounterOver)
+        {
+            _presentation.CompleteEncounter(_combatSession.IsVictory);
+        }
+    }
+
     public void HandleCombatAction(CombatActionRequest request)
     {
         if (_combatSession.IsEncounterOver)

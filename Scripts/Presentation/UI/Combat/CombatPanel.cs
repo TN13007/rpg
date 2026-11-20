@@ -61,6 +61,11 @@ public partial class CombatPanel : PanelContainer
         }
     }
 
+    public void SetTimeline(TimelineMarkerViewData[] entries)
+    {
+        _statusPanel.SetTimeline(entries);
+    }
+
     public void AppendMessage(CombatMessage message)
     {
         _messageLog.Append(message);
