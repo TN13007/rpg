@@ -96,12 +96,14 @@ public static class CharacterDataLoader
 
     private static CharacterStats ReadStats(JsonElement data)
     {
-        if (!data.TryGetProperty("stats", out JsonElement stats)) return new CharacterStats(0, 0, 0, 0, 0);
+        if (!data.TryGetProperty("stats", out JsonElement stats)) return new CharacterStats(0, 0, 0, 0, 0, 0);
+        int luck = stats.TryGetProperty("luck", out JsonElement luckData) ? luckData.GetInt32() : 0;
         return new CharacterStats(
             stats.GetProperty("strength").GetInt32(),
             stats.GetProperty("agility").GetInt32(),
             stats.GetProperty("intelligence").GetInt32(),
             stats.GetProperty("endurance").GetInt32(),
-            stats.GetProperty("wisdom").GetInt32());
+            stats.GetProperty("wisdom").GetInt32(),
+            luck);
     }
 }
