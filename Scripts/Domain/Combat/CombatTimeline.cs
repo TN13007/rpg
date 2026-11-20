@@ -111,8 +111,15 @@ public sealed class CombatTimeline
 
         foreach (CombatantTimelineState state in _combatants.Values)
         {
-            if (!state.IsStunned(CombatTime))
-                state.AdvanceProgress(elapsedCombatTime, state.BaseSpeed);
+            double activeElapsed = elapsedCombatTime;
+            if (state.IsStunned(CombatTime))
+            {
+                double stunnedElapsed = state.StunEndTime.Value - CombatTime;
+                activeElapsed = Math.Max(0, elapsedCombatTime - stunnedElapsed);
+            }
+
+            if (activeElapsed > 0)
+                state.AdvanceProgress(activeElapsed, state.BaseSpeed);
         }
 
         CombatTime += elapsedCombatTime;
