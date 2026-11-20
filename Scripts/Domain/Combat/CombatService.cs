@@ -6,7 +6,6 @@ public sealed class CombatService : ICombatService
 {
     private const int _victoryReward = 25;
     private const double _initialProgress = 100;
-
     private readonly Character _player;
     private readonly Character _enemy;
     private readonly Dictionary<string, CombatActionDefinition> _playerActions;
@@ -17,7 +16,6 @@ public sealed class CombatService : ICombatService
     private readonly CombatEffectDispatcher _effectDispatcher = new CombatEffectDispatcher();
     private readonly CombatantEffectState _playerEffectState = new CombatantEffectState();
     private readonly CombatantEffectState _enemyEffectState = new CombatantEffectState();
-
     private CombatTimeline _timeline;
     private string _activeCombatantId = string.Empty;
     private int _round;
@@ -30,15 +28,10 @@ public sealed class CombatService : ICombatService
     public int RewardGold => IsVictory ? _victoryReward : 0;
 
     public CombatService(Character player, Character enemy, IEnumerable<CombatActionDefinition> playerActions)
-        : this(player, enemy, playerActions, CreateDefaultEnemyActions(), null)
-    {
-    }
+        : this(player, enemy, playerActions, CreateDefaultEnemyActions(), null) { }
 
-    public CombatService(
-        Character player, Character enemy,
-        IEnumerable<CombatActionDefinition> playerActions,
-        IEnumerable<CombatActionDefinition> enemyActions,
-        Random enemyRandom = null)
+    public CombatService(Character player, Character enemy, IEnumerable<CombatActionDefinition> playerActions,
+        IEnumerable<CombatActionDefinition> enemyActions, Random enemyRandom = null)
     {
         _player = player ?? throw new ArgumentNullException(nameof(player));
         _enemy = enemy ?? throw new ArgumentNullException(nameof(enemy));
@@ -104,18 +97,13 @@ public sealed class CombatService : ICombatService
                     requiresTarget ? _enemy.Id : string.Empty, _player.Id));
             }
         }
-
         EnemyCombatStatus[] enemies =
         {
             new EnemyCombatStatus(_enemy.Id, _enemy.Name, _enemy.Health, _enemy.MaxHealth, GetEnemyCondition())
         };
-        return new CombatSnapshot(
-            _round,
+        return new CombatSnapshot(_round,
             IsAwaitingPlayerDecision ? "PLAYER DECISION" : _encounterOver ? "ENCOUNTER COMPLETE" : "ENEMY ACTION",
-            enemies,
-            null,
-            availableActions.ToArray(),
-            GetTimelineEntries());
+            enemies, null, availableActions.ToArray(), GetTimelineEntries());
     }
 
     public CombatResult ExecuteAction(CombatActionRequest request)
@@ -129,18 +117,16 @@ public sealed class CombatService : ICombatService
         if (!_playerActions.TryGetValue(request.ActionId, out CombatActionDefinition action))
             return Failure("That action is not available.");
         if (!IsActionAvailable(action, _player)) return Failure(GetUnavailableReason(action));
-
         bool requiresTarget = action.Behavior == CombatActionBehavior.Attack ||
                               action.Behavior == CombatActionBehavior.Delay ||
                               action.Behavior == CombatActionBehavior.Stun;
-        if (requiresTarget && request.TargetId != _enemy.Id)
-            return Failure("Choose the enemy as your target.");
+        if (requiresTarget && request.TargetId != _enemy.Id) return Failure("Choose the enemy as your target.");
+        if (!_player.SpendStamina(action.StaminaCost)) return Failure(GetUnavailableReason(action));
 
         List<CombatEvent> events = new List<CombatEvent>();
         events.Add(new CombatEvent(CombatEventType.PlayerAction, _round, actorName: _player.Name, detail: action.ActionDetail));
         ApplyAction(action, _player, _enemy, _playerEffectState, _enemyEffectState, _player.Id, _enemy.Id, events);
         _timeline.ApplyRecovery(_player.Id, action.RecoveryCost);
-
         if (!_enemy.IsAlive) CompleteVictory(events);
         else AdvanceUntilPlayerDecision(events);
         return Success(events);
@@ -159,24 +145,11 @@ public sealed class CombatService : ICombatService
                 if (!_timeline.AdvanceToNextEvent()) throw new InvalidOperationException("Combat Timeline has no future event.");
                 continue;
             }
-            if (readyId == _player.Id)
-            {
-                _activeCombatantId = _player.Id;
-                return;
-            }
+            if (readyId == _player.Id) { _activeCombatantId = _player.Id; return; }
             if (readyId != _enemy.Id) throw new InvalidOperationException("Unknown ready combatant: " + readyId);
-
             double recoveryCost = ResolveEnemyAction(events);
-            if (!_player.IsAlive)
-            {
-                CompleteDefeat(events);
-                return;
-            }
-            if (!_enemy.IsAlive)
-            {
-                CompleteVictory(events);
-                return;
-            }
+            if (!_player.IsAlive) { CompleteDefeat(events); return; }
+            if (!_enemy.IsAlive) { CompleteVictory(events); return; }
             _timeline.ApplyRecovery(_enemy.Id, recoveryCost);
             _round++;
         }
@@ -184,20 +157,17 @@ public sealed class CombatService : ICombatService
 
     private double ResolveEnemyAction(List<CombatEvent> events)
     {
-        List<CombatActionDefinition> available = _enemyActions
-            .Where(action => IsActionAvailable(action, _enemy))
-            .ToList();
+        List<CombatActionDefinition> available = _enemyActions.Where(action => IsActionAvailable(action, _enemy)).ToList();
         if (available.Count == 0) available.Add(_enemyActions[0]);
         CombatActionDefinition action = available[_enemyRandom.Next(available.Count)];
-        events.Add(new CombatEvent(
-            CombatEventType.EnemyAction, _round,
+        _enemy.SpendStamina(action.StaminaCost);
+        events.Add(new CombatEvent(CombatEventType.EnemyAction, _round,
             actorName: _enemy.Name.ToUpperInvariant(), detail: action.ActionDetail));
         ApplyAction(action, _enemy, _player, _enemyEffectState, _playerEffectState, _enemy.Id, _player.Id, events);
         return action.RecoveryCost;
     }
 
-    private void ApplyAction(
-        CombatActionDefinition action, Character actor, Character target,
+    private void ApplyAction(CombatActionDefinition action, Character actor, Character target,
         CombatantEffectState actorState, CombatantEffectState targetState,
         string actorId, string targetId, List<CombatEvent> events)
     {
@@ -207,30 +177,23 @@ public sealed class CombatService : ICombatService
             bool targetsActor = request.TargetId == actorId;
             Character effectTarget = targetsActor ? actor : target;
             CombatantEffectState effectTargetState = targetsActor ? actorState : targetState;
-            _effectDispatcher.Apply(
-                request, actor, effectTarget, _timeline,
+            _effectDispatcher.Apply(request, actor, effectTarget, _timeline,
                 actorState, effectTargetState, events, _round);
         }
     }
 
     private bool IsActionAvailable(CombatActionDefinition action, Character actor)
     {
-        if (action.Behavior == CombatActionBehavior.RecoverStamina)
-            return actor.Stamina < actor.MaxStamina;
+        if (action.Behavior == CombatActionBehavior.RecoverStamina) return actor.Stamina < actor.MaxStamina;
         return actor.Stamina >= action.StaminaCost;
     }
 
     private static string GetUnavailableReason(CombatActionDefinition action)
     {
-        return string.IsNullOrWhiteSpace(action.UnavailableReason)
-            ? "This action is currently unavailable."
-            : action.UnavailableReason;
+        return string.IsNullOrWhiteSpace(action.UnavailableReason) ? "This action is currently unavailable." : action.UnavailableReason;
     }
 
-    private static double GetBaseSpeed(Character character)
-    {
-        return 5.0 + (character.Stats.Agility / 10.0);
-    }
+    private static double GetBaseSpeed(Character character) { return 5.0 + (character.Stats.Agility / 10.0); }
 
     private TimelineCombatantStatus[] GetTimelineEntries()
     {
@@ -238,21 +201,16 @@ public sealed class CombatService : ICombatService
         List<TimelineCombatantStatus> entries = new List<TimelineCombatantStatus>();
         AddTimelineEntry(entries, _player, false);
         AddTimelineEntry(entries, _enemy, true);
-        return entries
-            .OrderBy(entry => entry.IsStunned ? double.MaxValue : entry.RemainingProgress / entry.Speed)
-            .ThenByDescending(entry => entry.Luck)
-            .ThenBy(entry => entry.Id, StringComparer.Ordinal)
-            .ToArray();
+        return entries.OrderBy(entry => entry.IsStunned ? double.MaxValue : entry.RemainingProgress / entry.Speed)
+            .ThenByDescending(entry => entry.Luck).ThenBy(entry => entry.Id, StringComparer.Ordinal).ToArray();
     }
 
     private void AddTimelineEntry(List<TimelineCombatantStatus> entries, Character character, bool isEnemy)
     {
         if (!character.IsAlive) return;
         CombatantTimelineState state = _timeline.GetCombatant(character.Id);
-        entries.Add(new TimelineCombatantStatus(
-            character.Id, character.Name, isEnemy,
-            state.RemainingProgress, state.BaseSpeed, state.Luck,
-            state.IsReady, state.IsStunned(_timeline.CombatTime)));
+        entries.Add(new TimelineCombatantStatus(character.Id, character.Name, isEnemy,
+            state.RemainingProgress, state.BaseSpeed, state.Luck, state.IsReady, state.IsStunned(_timeline.CombatTime)));
     }
 
     private void CompleteVictory(List<CombatEvent> events)
@@ -273,15 +231,8 @@ public sealed class CombatService : ICombatService
         events.Add(new CombatEvent(CombatEventType.StatusChanged, _round, detail: "You have been defeated. The encounter is over."));
     }
 
-    private CombatResult Success(List<CombatEvent> events)
-    {
-        return new CombatResult(true, GetSnapshot(), events.ToArray());
-    }
-
-    private CombatResult Failure(string reason)
-    {
-        return new CombatResult(false, GetSnapshot(), Array.Empty<CombatEvent>(), reason);
-    }
+    private CombatResult Success(List<CombatEvent> events) { return new CombatResult(true, GetSnapshot(), events.ToArray()); }
+    private CombatResult Failure(string reason) { return new CombatResult(false, GetSnapshot(), Array.Empty<CombatEvent>(), reason); }
 
     private string GetEnemyCondition()
     {

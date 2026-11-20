@@ -38,9 +38,7 @@ public sealed class CombatServiceTests
         Assert.True(heavy.TryStartEncounter(out string heavyReason));
         quick.ExecuteAction(new CombatActionRequest("quick_strike", quickEnemy.Id));
         heavy.ExecuteAction(new CombatActionRequest("heavy_strike", heavyEnemy.Id));
-        double quickProgress = quick.GetSnapshot().Timeline.Single(entry => entry.Id == quickPlayer.Id).RemainingProgress;
-        double heavyProgress = heavy.GetSnapshot().Timeline.Single(entry => entry.Id == heavyPlayer.Id).RemainingProgress;
-        Assert.True(heavyProgress > quickProgress);
+        Assert.True(heavy.CombatTime > quick.CombatTime);
     }
 
     [Fact]
@@ -66,7 +64,7 @@ public sealed class CombatServiceTests
     }
 
     [Fact]
-    public void GuardReducesTheNextGoblinHit()
+    public void GuardSpendsStaminaAndReducesTheNextGoblinHit()
     {
         CombatService combat = TestCharacterFactory.CreateCombat(out Character player, out Character enemy);
         Assert.True(combat.TryStartEncounter(out string reason));
@@ -78,7 +76,7 @@ public sealed class CombatServiceTests
     }
 
     [Fact]
-    public void EvadeAvoidsTheNextGoblinHit()
+    public void EvadeSpendsStaminaAndAvoidsTheNextGoblinHit()
     {
         CombatService combat = TestCharacterFactory.CreateCombat(out Character player, out Character enemy);
         Assert.True(combat.TryStartEncounter(out string reason));
