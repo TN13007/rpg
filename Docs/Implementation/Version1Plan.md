@@ -1,4 +1,4 @@
-> Canonical location: [Version1Plan.md](Version1Plan.md). This document describes implementation, architecture, authored content contracts or delivery planning—not the intended player experience.
+ > Canonical location: [Version1Plan.md](Version1Plan.md). This is the historical Version 1 implementation plan for the original Academy prototype; it does not define the current combat-first product scope.
 
 # Version 1 — Session-by-Session Implementation Plan
 
