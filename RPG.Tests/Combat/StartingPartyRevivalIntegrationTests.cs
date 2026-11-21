@@ -47,9 +47,9 @@ public sealed class StartingPartyRevivalIntegrationTests
         Assert.Equal("sera", context.Combat.ActiveCombatantId);
 
         CombatActionOption reviveOption = Assert.Single(
-            context.Combat.GetSnapshot().AvailableActions.Where(option =>
-                option.Id == "revive_ally" &&
-                option.TargetId == context.Player.Id));
+            context.Combat.GetSnapshot().AvailableActions,
+            option => option.Id == "revive_ally");
+        Assert.Contains(reviveOption.Targets, target => target.Id == context.Player.Id);
 
         Assert.True(reviveOption.IsAvailable);
 
@@ -168,9 +168,9 @@ public sealed class StartingPartyRevivalIntegrationTests
 
         AdvanceUntilPlayerDecision(context.Combat);
         CombatActionOption secondEncounterRevive = Assert.Single(
-            context.Combat.GetSnapshot().AvailableActions.Where(option =>
-                option.Id == "revive_ally" &&
-                option.TargetId == context.Player.Id));
+            context.Combat.GetSnapshot().AvailableActions,
+            option => option.Id == "revive_ally");
+        Assert.Contains(secondEncounterRevive.Targets, target => target.Id == context.Player.Id);
 
         CombatResult secondRevive = context.Combat.ExecuteAction(
             new CombatActionRequest(
@@ -244,7 +244,7 @@ public sealed class StartingPartyRevivalIntegrationTests
         CombatActionOption action = context.Combat.GetSnapshot().AvailableActions
             .Where(option =>
                 option.IsAvailable &&
-                option.TargetId == context.Enemy.Id &&
+                option.Targets.Any(target => target.Id == context.Enemy.Id) &&
                 (option.Id == "quick_strike" || option.Id == "heavy_strike"))
             .OrderBy(option => option.Id == "quick_strike" ? 0 : 1)
             .First();

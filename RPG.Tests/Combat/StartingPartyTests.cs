@@ -86,7 +86,7 @@ public sealed class StartingPartyTests
             Assert.Contains(
                 snapshot.AvailableActions,
                 action => action.Id == actionId
-                    && action.TargetId == "hostile_presence"
+                    && action.Targets.Any(target => target.Id == "hostile_presence")
                     && action.IsAvailable);
 
             CombatResult result = combat.ExecuteAction(
