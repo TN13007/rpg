@@ -2,7 +2,7 @@ using Godot;
 
 public partial class TimelineMarker : Panel
 {
-    private static readonly Color _ariColor = new Color("#55a7ff");
+    private static readonly Color _primaryPartyColor = new Color("#55a7ff");
     private static readonly Color _partyColor = new Color("#e8bd55");
     private static readonly Color _enemyColor = new Color("#e45f68");
     private static readonly Color _borderColor = new Color("#20252d");
@@ -74,7 +74,7 @@ public partial class TimelineMarker : Panel
             return _enemyColor;
         }
 
-        return combatant.IsPrimaryPartyMember ? _ariColor : _partyColor;
+        return combatant.IsPrimaryPartyMember ? _primaryPartyColor : _partyColor;
     }
 
     private static string GetTooltip(TimelineMarkerViewData combatant, double displayWindowSeconds)

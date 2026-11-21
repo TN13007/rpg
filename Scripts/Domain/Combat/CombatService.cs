@@ -822,12 +822,12 @@ public sealed class CombatService : ICombatService
     {
         return new[]
         {
-            new CombatActionDefinition("goblin_quick_jab", "Quick Jab", "", "A fast, light attack.",
-                CombatActionBehavior.Attack, 0, 4, 0, "", "The goblin snaps out a quick jab.", 75),
-            new CombatActionDefinition("goblin_heavy_swing", "Heavy Swing", "", "A slower, harder attack.",
-                CombatActionBehavior.Attack, 0, 8, 0, "", "The goblin commits to a heavy swing.", 130),
-            new CombatActionDefinition("goblin_staggering_blow", "Staggering Blow", "", "A brief stun.",
-                CombatActionBehavior.Stun, 0, 3, 0, "", "The goblin lands a staggering blow.", 115, 0, 0.5)
+            new CombatActionDefinition("presence_quick_jab", "Quick Jab", "", "A fast, light attack.",
+                CombatActionBehavior.Attack, 0, 4, 0, "", "The presence lunges forward without warning.", 75),
+            new CombatActionDefinition("presence_heavy_swing", "Heavy Swing", "", "A slower, harder attack.",
+                CombatActionBehavior.Attack, 0, 8, 0, "", "The presence slams into its target.", 130),
+            new CombatActionDefinition("presence_staggering_blow", "Staggering Blow", "", "A brief stun.",
+                CombatActionBehavior.Stun, 0, 3, 0, "", "A pulse of pressure leaves its target momentarily disoriented.", 115, 0, 0.5)
         };
     }
 }
