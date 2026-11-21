@@ -1,11 +1,16 @@
 using System;
 
+/// <summary>Coordinates combat flow flow and user interactions.</summary>
 public sealed class CombatFlowController
 {
     private readonly StoryPanel _storyPanel;
     private readonly CombatPresentationOrchestrator _presentation;
     private readonly CombatSessionService _combatSession;
 
+    /// <summary>Initializes a new instance of <see cref="CombatFlowController"/>.</summary>
+    /// <param name="storyPanel">The story panel used to initialize the instance.</param>
+    /// <param name="presentation">The presentation used to initialize the instance.</param>
+    /// <param name="combatSession">The combat session used to initialize the instance.</param>
     public CombatFlowController(
         StoryPanel storyPanel,
         CombatPresentationOrchestrator presentation,
@@ -16,6 +21,11 @@ public sealed class CombatFlowController
         _combatSession = combatSession ?? throw new ArgumentNullException(nameof(combatSession));
     }
 
+    /// <summary>Starts encounter and initializes its presentation flow.</summary>
+    /// <param name="action">The action used by this operation.</param>
+    /// <param name="title">The title used by this operation.</param>
+    /// <param name="openingMessage">The opening message used by this operation.</param>
+    /// <returns><see langword="true"/> when the operation succeeds; otherwise, <see langword="false"/>.</returns>
     public bool StartEncounter(ActionDefinition action, string title, string openingMessage)
     {
         if (!_combatSession.TryStartEncounter(action, out string failureReason))
@@ -29,6 +39,8 @@ public sealed class CombatFlowController
         return true;
     }
 
+    /// <summary>Advances combat time by the supplied elapsed time.</summary>
+    /// <param name="elapsedCombatTime">The elapsed combat time used by this operation.</param>
     public void AdvanceCombatTime(double elapsedCombatTime)
     {
         if (_combatSession.IsEncounterOver || _combatSession.IsAwaitingPlayerDecision)
@@ -57,6 +69,8 @@ public sealed class CombatFlowController
         }
     }
 
+    /// <summary>Handles combat action from the presentation layer.</summary>
+    /// <param name="request">The request used by this operation.</param>
     public void HandleCombatAction(CombatActionRequest request)
     {
         if (_combatSession.IsEncounterOver)
@@ -78,6 +92,8 @@ public sealed class CombatFlowController
         }
     }
 
+    /// <summary>Returns from to exploration and invokes the supplied navigation callback.</summary>
+    /// <param name="showLocation">The show location used by this operation.</param>
     public void ReturnToExploration(Action showLocation)
     {
         if (showLocation == null)
