@@ -5,7 +5,7 @@ using Xunit;
 
 public sealed class ExplorationInteractionQueryTests
 {
-    private readonly AcademyContent _academy = new AcademyContent();
+    private readonly LocationCatalog _locations = new LocationCatalog();
     [Fact]
     public void Query_OffersRestEverywhereAndSleepOnlyInDormitory()
     {
@@ -14,15 +14,15 @@ public sealed class ExplorationInteractionQueryTests
         CharacterData playerData = LoadPlayerData();
         AvailableInteractionQuery query = new AvailableInteractionQuery();
 
-        IReadOnlyList<AvailableInteraction> dormitory = query.Query(
-            player, playerData.PlayerActions, _academy.Get("dormitory"), _academy.Get, _academy.Travel);
-        IReadOnlyList<AvailableInteraction> courtyard = query.Query(
-            player, playerData.PlayerActions, _academy.Get("courtyard"), _academy.Get, _academy.Travel);
+        IReadOnlyList<AvailableInteraction> studentApartmentChoices = query.Query(
+            player, playerData.PlayerActions, _locations.Get("student_apartment"), _locations.Get, _locations.Travel);
+        IReadOnlyList<AvailableInteraction> campus = query.Query(
+            player, playerData.PlayerActions, _locations.Get("student_apartment"), _locations.Get, _locations.Travel);
 
-        Assert.Contains(dormitory, item => item.SourceKind == InteractionSourceKind.Player && item.ActionId == "rest");
-        Assert.Contains(dormitory, item => item.SourceKind == InteractionSourceKind.Player && item.ActionId == "sleep");
-        Assert.Contains(courtyard, item => item.SourceKind == InteractionSourceKind.Player && item.ActionId == "rest");
-        Assert.DoesNotContain(courtyard, item => item.SourceKind == InteractionSourceKind.Player && item.ActionId == "sleep");
+        Assert.Contains(studentApartment, item => item.SourceKind == InteractionSourceKind.Player && item.ActionId == "rest");
+        Assert.Contains(studentApartment, item => item.SourceKind == InteractionSourceKind.Player && item.ActionId == "sleep");
+        Assert.Contains(campus, item => item.SourceKind == InteractionSourceKind.Player && item.ActionId == "rest");
+        Assert.DoesNotContain(campus, item => item.SourceKind == InteractionSourceKind.Player && item.ActionId == "sleep");
     }
 
     [Fact]
@@ -32,13 +32,13 @@ public sealed class ExplorationInteractionQueryTests
         Character player = TestCharacterFactory.CreatePlayer();
         CharacterData playerData = LoadPlayerData();
         IReadOnlyList<AvailableInteraction> interactions = new AvailableInteractionQuery().Query(
-            player, playerData.PlayerActions, _academy.Get("courtyard"), _academy.Get, _academy.Travel);
+            player, playerData.PlayerActions, _locations.Get("university_campus"), _locations.Get, _locations.Travel);
 
-        Assert.DoesNotContain(interactions, item => item.SourceKind == InteractionSourceKind.Location && item.ActionId == "encounter_goblin");
+        Assert.DoesNotContain(interactions, item => item.SourceKind == InteractionSourceKind.Location && item.ActionId == "enter_unit_213");
         Assert.Contains(interactions, item =>
             item.SourceKind == InteractionSourceKind.Travel &&
-            item.SourceId == "courtyard" &&
-            item.TargetId == "dormitory");
+            item.SourceId == "apartment_block" &&
+            item.TargetId == "east_district");
     }
 
     [Fact]
@@ -47,19 +47,19 @@ public sealed class ExplorationInteractionQueryTests
         LoadContent();
         Character player = TestCharacterFactory.CreatePlayer();
         CharacterData playerData = LoadPlayerData();
-        LocationContent infirmary = _academy.Get("infirmary");
+        LocationContent clinic = _locations.Get("campus_clinic");
 
         IReadOnlyList<AvailableInteraction> interactions = new AvailableInteractionQuery().Query(
-            player, playerData.PlayerActions, infirmary, _academy.Get, _academy.Travel);
+            player, playerData.PlayerActions, clinic, _locations.Get, _locations.Travel);
 
         Assert.Contains(interactions, item =>
             item.SourceKind == InteractionSourceKind.Location &&
-            item.SourceId == "infirmary" &&
-            item.ActionId == "infirmary_treatment");
+            item.SourceId == "campus_clinic" &&
+            item.ActionId == "clinic_treatment");
         Assert.Contains(interactions, item =>
             item.SourceKind == InteractionSourceKind.Travel &&
-            item.SourceId == "infirmary" &&
-            item.TargetId == "courtyard");
+            item.SourceId == "campus_clinic" &&
+            item.TargetId == "east_district");
     }
 
     [Fact]
@@ -69,7 +69,7 @@ public sealed class ExplorationInteractionQueryTests
         Character player = TestCharacterFactory.CreatePlayer(fatigue: 45, stamina: 3);
         CharacterData playerData = LoadPlayerData();
 
-        new AvailableInteractionQuery().Query(player, playerData.PlayerActions, _academy.Get("dormitory"), _academy.Get, _academy.Travel);
+        new AvailableInteractionQuery().Query(player, playerData.PlayerActions, _locations.Get("student_apartment"), _locations.Get, _locations.Travel);
 
         Assert.Equal(45, player.Fatigue);
         Assert.Equal(3, player.Stamina);
@@ -82,7 +82,7 @@ public sealed class ExplorationInteractionQueryTests
         Character player = TestCharacterFactory.CreatePlayer();
         CharacterData playerData = LoadPlayerData();
         IReadOnlyList<AvailableInteraction> interactions = new AvailableInteractionQuery().Query(
-            player, playerData.PlayerActions, _academy.Get("dormitory"), _academy.Get, _academy.Travel);
+            player, playerData.PlayerActions, _locations.Get("student_apartment"), _locations.Get, _locations.Travel);
         ActionChoiceMapper mapper = new ActionChoiceMapper(
             new ActionDurationEstimateMapper(new ActivityTimeCalculator()));
 
@@ -99,11 +99,11 @@ public sealed class ExplorationInteractionQueryTests
     }
 
     [Fact]
-    public void EventChoices_UseSharedSelectionContractAndKeepEncounterTarget()
+    public void EventChoices_UseSharedSelectionContractWithoutForcingCombat()
     {
         LoadContent();
         Character player = TestCharacterFactory.CreatePlayer();
-        LocationEventDefinition locationEvent = _academy.Get("courtyard").Events[0];
+        LocationEventDefinition locationEvent = _locations.Get("campus_cafe").Events[0];
         IReadOnlyList<AvailableInteraction> interactions =
             new AvailableInteractionQuery().Query(locationEvent);
         List<ActionChoiceViewData> choices = new ActionChoiceMapper(
@@ -116,21 +116,21 @@ public sealed class ExplorationInteractionQueryTests
             request.SourceKind == InteractionSourceKind.Event &&
             request.SourceId == locationEvent.Id &&
             request.ActionId == "event_goblin_attack" &&
-            request.TargetId == "encounter_goblin");
+            request.TargetId == "enter_unit_213");
     }
 
     [Fact]
     public void SelectionRequest_RoundTripsAndRejectsMalformedValues()
     {
         ActionSelectionRequest request = new ActionSelectionRequest(
-            InteractionSourceKind.Travel, "courtyard", "travel", "guild_hall");
+            InteractionSourceKind.Travel, "university_campus", "travel", "student_union");
 
         Assert.True(ActionSelectionRequest.TryParse(request.Encode(), out ActionSelectionRequest parsed));
         Assert.Equal(request.SourceKind, parsed.SourceKind);
         Assert.Equal(request.SourceId, parsed.SourceId);
         Assert.Equal(request.ActionId, parsed.ActionId);
         Assert.Equal(request.TargetId, parsed.TargetId);
-        Assert.False(ActionSelectionRequest.TryParse("travel:courtyard", out _));
+        Assert.False(ActionSelectionRequest.TryParse("travel:campus", out _));
     }
 
     [Fact]
@@ -141,9 +141,9 @@ public sealed class ExplorationInteractionQueryTests
             "talk_to_mira", "Talk with Mira", 10, requiredNpcId: "mira");
         LocationContent location = new LocationContent(
             "canteen",
-            "Canteen",
+            "Campus Café",
             "ACADEMY",
-            "A canteen.",
+            "A campus café.",
             Array.Empty<string>(),
             new[] { talkToMira });
         AvailableInteractionQuery query = new AvailableInteractionQuery();
@@ -175,9 +175,9 @@ public sealed class ExplorationInteractionQueryTests
             "join_mira", "Join Mira", 10, requiredNpcId: "mira");
         ActionDefinition joinStudents = new ActionDefinition("join_students", "Join other students", 10);
         LocationEventDefinition locationEvent = new LocationEventDefinition(
-            "canteen_arrival",
+            "campus_cafe_conversation",
             "A place to sit",
-            "CANTEEN",
+            "CAMPUS CAFÉ",
             "Students are looking for seats.",
             1.0,
             new[]
@@ -199,8 +199,8 @@ public sealed class ExplorationInteractionQueryTests
 
     private void LoadContent()
     {
-        _academy.LoadJson(File.ReadAllText(
-            Path.Combine(AppContext.BaseDirectory, "Data", "AcademyLocations.json")));
+        _locations.LoadJson(File.ReadAllText(
+            Path.Combine(AppContext.BaseDirectory, "Data", "Locations.json")));
     }
 
     private static CharacterData LoadPlayerData()
