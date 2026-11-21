@@ -396,7 +396,8 @@ public sealed class CombatService : ICombatService
             _round,
             actorName: actor.Character.Name,
             targetName: target.Character.Id == actor.Character.Id ? string.Empty : target.Character.Name,
-            detail: action.ActionDetail));
+            detail: action.ActionDetail,
+            actionId: action.Id));
 
         ApplyAction(action, actor, target, events);
         ResolveTerminalConditions(events);
@@ -532,7 +533,8 @@ public sealed class CombatService : ICombatService
                 _round,
                 actorName: actor.Character.Name,
                 targetName: target.Character.Name,
-                detail: _reviveAction.ActionDetail)
+                detail: _reviveAction.ActionDetail,
+                actionId: _reviveAction.Id)
         };
 
         ApplyAction(_reviveAction, actor, target, events);
