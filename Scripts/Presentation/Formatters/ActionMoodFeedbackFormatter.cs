@@ -1,7 +1,12 @@
 using System;
 
+/// <summary>Formats action mood feedback information for display.</summary>
 public static class ActionMoodFeedbackFormatter
 {
+    /// <summary>Formats the action feedback using the action definition and actual mood change.</summary>
+    /// <param name="action">The action used by this operation.</param>
+    /// <param name="actualMoodChange">The actual mood change used by this operation.</param>
+    /// <returns>The resulting string.</returns>
     public static string Format(ActionDefinition action, int actualMoodChange)
     {
         if (action == null)
