@@ -336,9 +336,10 @@ public sealed class CombatServiceTests
         AdvanceUntilPlayerDecision(combat);
 
         Assert.Equal(medic.Id, combat.ActiveCombatantId);
-        PartyCombatStatus downedAgain = Assert.Single(
-            combat.GetSnapshot().Party.Where(item => item.Id == downed.Id));
-        Assert.Equal("Downed", downedAgain.Condition);
+        PartyCombatStatus revivedPartyMember = Assert.Single(
+            combat.GetSnapshot().Party, item => item.Id == downed.Id);
+        Assert.Equal("Wounded", revivedPartyMember.Condition);
+        Assert.Equal(2, revivedPartyMember.CurrentHealth);
         Assert.DoesNotContain(combat.GetSnapshot().AvailableActions, item =>
             item.Id == "revive_ally" && item.TargetId == downed.Id);
 
@@ -346,7 +347,7 @@ public sealed class CombatServiceTests
             new CombatActionRequest("revive_ally", downed.Id, medic.Id));
         Assert.False(repeatedRevive.Success);
         Assert.Equal(6, medic.Stamina);
-        Assert.Equal(0, downed.Health);
+        Assert.Equal(2, downed.Health);
     }
 
     [Fact]
