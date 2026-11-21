@@ -24,21 +24,20 @@ Design decisions do not imply implementation. If the desired experience and curr
 
 ### Product direction
 
-The intended product is a combat-first Tactical Timeline RPG:
-- Four active party members with full player control.
-- No battlefield grid or front/back positioning.
-- A visible Timeline that makes action order and timing tactically meaningful.
-- Challenging encounters built around party synergy, control, resource decisions and enemy behavior.
-- The Academy is a supporting hub for preparation, growth, recovery and relationships.
-- Adventures and combat are the primary repeatable gameplay; narrative gives the journey meaning.
+The intended product is a player-directed fantasy life-simulation RPG set in a connected world:
+- Daily life, social interaction, exploration, adventures and tactical combat are different interaction contexts within the same continuing world.
+- The Academy is an important place to live, study, train, rest and meet people; it is not merely a supporting menu for Combat.
+- Combat remains a specialized four-person Tactical Timeline experience with its own rules and execution flow.
+- Relevant choices and outcomes should affect character/world state and may change later opportunities across contexts.
+- The player is not forced into one fixed Academy → Adventure → Combat loop; personal goals and interests shape the journey.
 
-The accepted direction and unresolved design questions are owned by [Design](Docs/Design/README.md), especially [Combat](Docs/Design/Combat.md) and the [Product Roadmap](Docs/Design/Roadmap.md). Do not copy detailed rules or provisional balance values into this status file.
+The accepted direction and unresolved design questions are owned by [Design](Docs/Design/README.md), especially [Game Vision](Docs/Design/GameVision.md), [World and Narrative](Docs/Design/WorldAndNarrative.md), [Combat](Docs/Design/Combat.md) and the [Product Roadmap](Docs/Design/Roadmap.md). Do not copy detailed rules or provisional balance values into this status file.
 
 ### Implementation reality on main
 
-The current build combines the Academy/location Exploration prototype with the first integrated four-person Tactical Timeline encounter. Exploration supports Location travel, context-sensitive actions, a narrow Courtyard Goblin Event, GameClock/Sleep and recovery actions. Combat composes Ari, Bram, Mira and Sera against one Goblin archetype; it has a shared real-time Timeline, player decision pauses, action-specific Recovery Cost, Delay/Stun, Downed/Revive, Victory/Defeat and the post-encounter rescue path.
+The current build contains an authored Opening Day location-based Exploration slice and a four-person Tactical Timeline Combat prototype. Exploration supports Location travel, context-sensitive Actions, authored Location Events, GameClock/Sleep and recovery actions. Combat composes Ari, Bram, Mira and Sera against one Goblin archetype; it has a shared real-time Combat Timeline, player decision pauses, action-specific Recovery Cost, Delay/Stun, Downed/Revive, Victory/Defeat and the post-encounter rescue path.
 
-This is a meaningful combat foundation, not yet a complete combat-first game loop. The playable encounter still has only one enemy behavior archetype, enemy intent is not presented, party progression and multi-encounter adventures are not implemented, and the full interactive Godot journey has not yet been manually accepted. Read [Implementation](Docs/Implementation/README.md) for verified code structure and runtime behavior. The archived Academy Session plan is not the current product roadmap.
+These are specialized runtime flows that coexist in the same game; the code does not yet provide a universal Interaction executor or a complete autonomous world simulation. The full Opening Day Godot journey and the complete interactive Combat encounter still require their documented runtime verification. Relevant outcomes should be connected across contexts through concrete player-facing requirements, not by assuming a generalized simulation framework already exists. Read [Implementation](Docs/Implementation/README.md) for verified code structure and runtime behavior.
 
 ## 3. Session protocol
 
@@ -62,14 +61,15 @@ The Git workflow, commit granularity and PR requirements are defined only in [CO
 
 **Immediate implementation priority:** [Issue #91 — Four-Person Tactical Timeline Encounter](https://github.com/TN13007/rpg/issues/91).
 
-The next player-facing increment is Enemy Intent plus a second enemy behavior pattern, used in one encounter that creates competing threats and meaningful player responses. Before implementation:
+The immediate Combat increment remains Enemy Intent plus a second enemy behavior pattern, used in one encounter that creates competing threats and meaningful player responses. This completes the dedicated Combat context; it does not make the whole game Combat-first. Before implementation:
 - Read [Game Vision](Docs/Design/GameVision.md), [Combat Design](Docs/Design/Combat.md) and [Roadmap Phase 1](Docs/Design/Roadmap.md).
 - Read [Cross-Layer Runtime Systems](Docs/Implementation/CrossLayerRuntimeSystems.md) and trace the current Combat flow, source code and tests.
 - Keep intent presentation separate from authoritative enemy action resolution; visible intent must not silently change.
-- Retain [Issue #62](https://github.com/TN13007/rpg/issues/62) for manual Sleep/GameClock runtime verification; this QA task does not block Combat implementation.
-- Keep [Issue #79](https://github.com/TN13007/rpg/issues/79) as the Phase 2 progression backlog; do not start it before Issue #91 reaches its playable exit criteria.
+- Keep [Issue #103 — Opening Day](https://github.com/TN13007/rpg/issues/103) for the complete manual journey from carriage through the Academy day and Sleep; the content is merged in PR #105, but runtime acceptance remains tracked by that Issue.
+- Retain [Issue #62](https://github.com/TN13007/rpg/issues/62) for manual Sleep/GameClock runtime verification.
+- Keep [Issue #79](https://github.com/TN13007/rpg/issues/79) as a later progression backlog item; sequence it according to the updated Roadmap rather than assuming it is automatically the next phase after Combat.
 
-Do not begin NPC simulation, broad Character abstractions or a general refactor unless a demonstrated player-facing requirement needs them.
+Do not begin autonomous NPC simulation, broad Character abstractions or a general refactor unless a demonstrated player-facing requirement needs them.
 
 ## 5. Learning evidence
 

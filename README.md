@@ -2,7 +2,7 @@
 
 Godot 4.7.2 .NET / C# project.
 
-Adventurer Academy is a fantasy RPG in which challenging party combat and expeditions are the primary gameplay. The Academy supports preparation, character growth, relationships and a deeper narrative.
+Adventurer Academy is a player-directed fantasy life-simulation RPG. Daily life, relationships, exploration, adventures and tactical combat are connected ways of interacting with one continuing world. Combat has its own specialized tactical rules; its outcomes belong to the wider character and world experience.
 
 ## Start here
 
