@@ -15,6 +15,7 @@ public sealed class CombatService : ICombatService
         public Character Character { get; }
         public CombatantSide Side { get; }
         public bool IsVisible { get; }
+        public EnemyBehaviorProfile BehaviorProfile { get; }
         public List<CombatActionDefinition> ActionOrder { get; }
         public Dictionary<string, CombatActionDefinition> Actions { get; }
         public CombatantEffectState EffectState { get; }
@@ -28,6 +29,7 @@ public sealed class CombatService : ICombatService
             Character = definition.Character;
             Side = definition.Side;
             IsVisible = definition.IsVisible;
+            BehaviorProfile = definition.BehaviorProfile;
             ActionOrder = definition.Actions.ToList();
             Actions = new Dictionary<string, CombatActionDefinition>(StringComparer.Ordinal);
             foreach (CombatActionDefinition action in ActionOrder)
@@ -591,9 +593,33 @@ public sealed class CombatService : ICombatService
             .Where(action => IsActionAvailable(action, enemy.Character))
             .ToList();
 
-        return availableActions.Count == 0
-            ? enemy.ActionOrder[0]
-            : availableActions[_enemyRandom.Next(availableActions.Count)];
+        if (availableActions.Count == 0)
+        {
+            return enemy.ActionOrder[0];
+        }
+
+        if (enemy.BehaviorProfile == null)
+        {
+            return availableActions[_enemyRandom.Next(availableActions.Count)];
+        }
+
+        int totalWeight = availableActions.Sum(action => enemy.BehaviorProfile.GetWeight(action.Id));
+        if (totalWeight <= 0)
+        {
+            return availableActions[0];
+        }
+
+        int selection = _enemyRandom.Next(totalWeight);
+        foreach (CombatActionDefinition action in availableActions)
+        {
+            selection -= enemy.BehaviorProfile.GetWeight(action.Id);
+            if (selection < 0)
+            {
+                return action;
+            }
+        }
+
+        return availableActions[availableActions.Count - 1];
     }
 
     private void PlanEnemyIntent(CombatantRuntime enemy)
