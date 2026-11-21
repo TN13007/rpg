@@ -3,8 +3,12 @@ using System.Collections.Generic;
 using System.Text.Json;
 using Godot;
 
+/// <summary>Loads character data data from files or serialized content.</summary>
 public static class CharacterDataLoader
 {
+    /// <summary>Loads load from the specified content source.</summary>
+    /// <param name="path">The path used by this operation.</param>
+    /// <returns>The resulting character data.</returns>
     public static CharacterData Load(string path)
     {
         if (string.IsNullOrWhiteSpace(path)) throw new ArgumentException("Character data path is required.", nameof(path));
@@ -12,6 +16,10 @@ public static class CharacterDataLoader
         return LoadJson(FileAccess.GetFileAsString(path), path);
     }
 
+    /// <summary>Loads json from the specified content source.</summary>
+    /// <param name="json">The json used by this operation.</param>
+    /// <param name="source">The source used by this operation.</param>
+    /// <returns>The resulting character data.</returns>
     public static CharacterData LoadJson(string json, string source = "Player.json")
     {
         if (string.IsNullOrWhiteSpace(json)) throw new ArgumentException("Character data JSON is required.", nameof(json));
