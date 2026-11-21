@@ -16,6 +16,8 @@ public partial class EnemyCard : Button
     private bool _selected;
     private bool _targetSelectionActive;
 
+    public string EnemyName => _nameLabel?.Text ?? string.Empty;
+
     public override void _Ready()
     {
         _nameLabel = GetNode<Label>("Margin/Content/Header/Name");
@@ -79,6 +81,21 @@ public partial class EnemyCard : Button
         _selectable = selectionActive && selectable;
         _selected = _selectable && selected;
         UpdateVisualState();
+    }
+
+    public void PlayFeedback(CombatFeedbackType feedbackType)
+    {
+        Color feedbackColor = feedbackType switch
+        {
+            CombatFeedbackType.Hit => new Color("#e07870"),
+            CombatFeedbackType.Attack => new Color("#e7a45d"),
+            _ => Colors.White
+        };
+
+        Modulate = feedbackColor;
+        CreateTween()
+            .TweenProperty(this, "modulate", Colors.White, 0.28)
+            .SetDelay(0.12);
     }
 
     private void HandlePressed()
