@@ -42,6 +42,7 @@ public sealed class MixedEnemyEncounterTests
         Assert.True(combat.TryStartEncounter(out string failureReason), failureReason);
 
         CombatSnapshot snapshot = combat.GetSnapshot();
+        Assert.Equal(4, snapshot.Party.Length);
         Assert.Equal(3, snapshot.Enemies.Length);
         Assert.Equal(7, snapshot.Timeline.Length);
 
