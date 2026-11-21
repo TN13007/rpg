@@ -275,7 +275,6 @@ public sealed class CombatSnapshot
         AvailableActions = availableActions ?? Array.Empty<CombatActionOption>();
         Timeline = timeline ?? Array.Empty<TimelineCombatantStatus>();
         ActiveCombatantId = activeCombatantId ?? string.Empty;
-        Feedback = feedback ?? Array.Empty<CombatFeedbackViewData>();
     }
 }
 
@@ -382,5 +381,6 @@ public sealed class CombatViewData
         NewMessages = newMessages ?? Array.Empty<CombatMessage>();
         Timeline = timeline ?? Array.Empty<TimelineMarkerViewData>();
         ActiveCombatantId = activeCombatantId ?? string.Empty;
+        Feedback = feedback ?? Array.Empty<CombatFeedbackViewData>();
     }
 }
