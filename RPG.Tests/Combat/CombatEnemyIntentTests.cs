@@ -58,7 +58,7 @@ public sealed class CombatEnemyIntentTests
             combat.GetSnapshot().Timeline,
             entry => entry.Id == presence.Id);
 
-        Assert.StartsWith("Quick Jab", intent.IntentDescription);
+        Assert.StartsWith("Quick Lunge", intent.IntentDescription);
         Assert.Contains(player.Name, intent.IntentDescription);
     }
 }
