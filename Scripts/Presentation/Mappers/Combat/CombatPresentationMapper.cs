@@ -74,7 +74,8 @@ public sealed class CombatPresentationMapper
                 entry.IsReady,
                 entry.IsStunned,
                 entry.Luck,
-                timeToReady);
+                timeToReady,
+                entry.IntentDescription);
         }
 
         return mapped;
