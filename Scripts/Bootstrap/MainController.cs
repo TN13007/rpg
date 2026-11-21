@@ -11,7 +11,7 @@ public partial class MainController : Control
     private GameModeController _gameModeController;
     private ExplorationFlowController _explorationController;
     private CombatFlowController _combatController;
-    private ActionDefinition _debugGoblinEncounterAction;
+    private ActionDefinition _debugEncounterAction;
 
     public override void _Ready()
     {
@@ -21,15 +21,13 @@ public partial class MainController : Control
         CharacterPanel characterPanel = GetNode<CharacterPanel>("SafeArea/Layout/CharacterPanel");
 
         GameContentCatalog content = GameContentLoader.Load("res://Data");
-        CharacterData playerData = content.GetCharacter("player-ari");
-        CharacterData goblinData = content.GetCharacter("goblin-a");
+        CharacterData playerData = content.GetCharacter("player_student");
+        CharacterData goblinData = content.GetCharacter("hostile_presence");
         Character player = new Character(playerData);
-        Character goblin = new Character(goblinData);
-        _debugGoblinEncounterAction = FindAction(
-            content.GetLocation("courtyard").Actions,
-            "encounter_goblin");
+        Character enemy = new Character(goblinData);
+        _debugEncounterAction = content.CombatEncounter;
 
-        if (_debugGoblinEncounterAction == null)
+        if (_debugEncounterAction == null)
         {
             throw new System.InvalidOperationException("Debug Goblin encounter action is missing from courtyard content.");
         }
@@ -46,7 +44,7 @@ public partial class MainController : Control
         List<CombatantDefinition> encounterCombatants =
             new List<CombatantDefinition>(StartingParty.CreateCombatants(content, player));
         encounterCombatants.Add(new CombatantDefinition(
-            goblin,
+            enemy,
             CombatantSide.Enemy,
             content.GetCombatActionsForCharacter(goblinData.Id)));
 
@@ -78,10 +76,10 @@ public partial class MainController : Control
             playerData.PlayerActions, content.Locations, content.GetLocation,
             content.Travel, gameClock, actionExecutionService, availableInteractionQuery,
             actionChoiceMapper, locationEventService, npcPresenceQuery, npcInteractionQuery,
-            _combatController.StartGoblinEncounter);
+            action => _combatController.StartEncounter(action, "Unit 213 Incident", "An unstable presence emerges from the dark apartment."));
 
         _sidebar.TabSelected += OpenTab;
-        _sidebar.DebugGoblinEncounterRequested += StartDebugGoblinEncounter;
+        _sidebar.DebugEncounterRequested += StartDebugEncounter;
         storyPanel.ChoiceSelected += _explorationController.HandleChoice;
         storyPanel.ReturnToLocationRequested += _explorationController.ShowLocation;
         combatPanel.ActionSelected += _combatController.HandleCombatAction;
@@ -101,27 +99,14 @@ public partial class MainController : Control
         _explorationController.ShowPage(tab);
     }
 
-    private void StartDebugGoblinEncounter()
+    private void StartDebugEncounter()
     {
-        if (_explorationController == null || _debugGoblinEncounterAction == null)
+        if (_explorationController == null || _debugEncounterAction == null)
         {
             return;
         }
 
-        _explorationController.StartDebugGoblinEncounter(_debugGoblinEncounterAction);
-    }
-
-    private static ActionDefinition FindAction(ActionDefinition[] actions, string actionId)
-    {
-        foreach (ActionDefinition action in actions)
-        {
-            if (action.Id == actionId)
-            {
-                return action;
-            }
-        }
-
-        return null;
+        _combatController.StartEncounter(_debugEncounterAction, "Debug Encounter", "An unstable presence appears.");
     }
 
     private void ReturnToExploration()

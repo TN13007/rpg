@@ -3,25 +3,25 @@ using System.Collections.Generic;
 
 public sealed class GameContentCatalog
 {
-    private readonly AcademyContent _academy;
+    private readonly LocationCatalog _locations;
 
     public CharacterCatalog Characters { get; }
     public CombatActionCatalog CombatActions { get; }
     public NpcScheduleCatalog NpcSchedules { get; }
     public NpcInteractionCatalog NpcInteractions { get; }
 
-    public IEnumerable<LocationContent> Locations => _academy.All;
-    public ActionDefinition Travel => _academy.Travel;
-    public ActionDefinition CombatEncounter => _academy.CombatEncounter;
+    public IEnumerable<LocationContent> Locations => _locations.All;
+    public ActionDefinition Travel => _locations.Travel;
+    public ActionDefinition CombatEncounter => _locations.CombatEncounter;
 
     public GameContentCatalog(
-        AcademyContent academy,
+        LocationCatalog locations,
         CharacterCatalog characters,
         CombatActionCatalog combatActions,
         NpcScheduleCatalog npcSchedules,
         NpcInteractionCatalog npcInteractions = null)
     {
-        _academy = academy ?? throw new ArgumentNullException(nameof(academy));
+        _locations = locations ?? throw new ArgumentNullException(nameof(locations));
         Characters = characters ?? throw new ArgumentNullException(nameof(characters));
         CombatActions = combatActions ?? throw new ArgumentNullException(nameof(combatActions));
         NpcSchedules = npcSchedules ?? throw new ArgumentNullException(nameof(npcSchedules));
@@ -39,7 +39,7 @@ public sealed class GameContentCatalog
 
     public LocationContent GetLocation(string id)
     {
-        return _academy.Get(id);
+        return _locations.Get(id);
     }
 
     public CharacterData GetCharacter(string id)
@@ -60,7 +60,7 @@ public sealed class GameContentCatalog
             Characters.Get(schedule.CharacterId);
             foreach (NpcScheduleEntryDefinition entry in schedule.Entries)
             {
-                _academy.Get(entry.LocationId);
+                _locations.Get(entry.LocationId);
             }
         }
     }
@@ -79,7 +79,7 @@ public sealed class GameContentCatalog
 
             foreach (string locationId in interaction.AvailableLocationIds)
             {
-                _academy.Get(locationId);
+                _locations.Get(locationId);
             }
         }
     }
