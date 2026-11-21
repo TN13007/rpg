@@ -41,11 +41,17 @@ theme_override_font_sizes/font_size = 11
 theme_override_colors/font_color = Color(0.776, 0.647, 0.416, 1)
 text = "CHOOSE TARGET"
 
+[node name="ConfirmButton" type="Button" parent="Margin/Content/TargetSelection"]
+layout_mode = 2
+text = "Confirm Target"
+disabled = true
+
 [node name="BackButton" type="Button" parent="Margin/Content/TargetSelection"]
 layout_mode = 2
 text = "Back to Actions"
 
 [node name="TargetGrid" type="GridContainer" parent="Margin/Content/TargetSelection"]
+visible = false
 layout_mode = 2
 size_flags_horizontal = 3
 columns = 2
