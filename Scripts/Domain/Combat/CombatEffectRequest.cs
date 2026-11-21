@@ -1,12 +1,19 @@
 /// <summary>Identifies the kind of effect produced by a combat action.</summary>
 public enum CombatEffectType
 {
+    /// <summary>Applies damage to a target combatant.</summary>
     Damage,
+    /// <summary>Enables the target's guard state.</summary>
     Guard,
+    /// <summary>Enables the target's evade state.</summary>
     Evade,
+    /// <summary>Restores Stamina to the target combatant.</summary>
     RestoreStamina,
+    /// <summary>Adds progress delay to the target's timeline.</summary>
     Delay,
+    /// <summary>Applies a timed stun to the target combatant.</summary>
     Stun,
+    /// <summary>Revives the target party member.</summary>
     Revive
 }
 
