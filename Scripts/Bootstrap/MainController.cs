@@ -23,8 +23,8 @@ public partial class MainController : Control
         GameContentCatalog content = GameContentLoader.Load("res://Data");
         CharacterData playerData = content.GetCharacter("player-ari");
         CharacterData goblinData = content.GetCharacter("goblin-a");
-        CharacterData bruteData = content.GetCharacter("brute-a");
-        CharacterData disruptorData = content.GetCharacter("disruptor-a");
+        CharacterData bruteData = content.GetCharacter("brute_a");
+        CharacterData disruptorData = content.GetCharacter("disruptor_a");
         Character player = new Character(playerData);
         _debugGoblinEncounterAction = FindAction(
             content.GetLocation("courtyard").Actions,
