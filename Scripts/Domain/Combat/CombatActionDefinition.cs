@@ -3,12 +3,19 @@ using System;
 /// <summary>Identifies the behavior performed when a combat action is executed.</summary>
 public enum CombatActionBehavior
 {
+    /// <summary>Deals damage to a selected target.</summary>
     Attack,
+    /// <summary>Guards against incoming damage.</summary>
     Defend,
+    /// <summary>Evades the next incoming attack.</summary>
     Dodge,
+    /// <summary>Restores the acting combatant's Stamina.</summary>
     RecoverStamina,
+    /// <summary>Adds progress delay to a selected target's timeline.</summary>
     Delay,
+    /// <summary>Prevents a selected target from acting for a duration.</summary>
     Stun,
+    /// <summary>Revives a downed party member.</summary>
     Revive
 }
 
