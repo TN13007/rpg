@@ -13,10 +13,131 @@
   },
   "locations": [
     {
+      "id": "carriage",
+      "name": "Horse Carriage",
+      "region": "ROAD TO THE ACADEMY",
+      "description": "The carriage rolls along a broad country road. Morning light falls across fields and distant rooftops. Ahead, the towers and domes of the Academy rise above the trees. Other carriages carrying new students travel in the same direction.",
+      "exits": [
+        "academy_gate"
+      ],
+      "actions": []
+    },
+    {
+      "id": "academy_gate",
+      "name": "Academy Entrance",
+      "region": "ASTERIA ACADEMY",
+      "description": "The carriage stops before the Academy's monumental gates. Students arrive from every direction, some carrying luggage, others already greeting friends. Beyond the gates, the main walkway leads toward the opening ceremony.",
+      "exits": [
+        "student_walkway",
+        "mira_meeting_point",
+        "academy_carriage_stop"
+      ],
+      "actions": []
+    },
+    {
+      "id": "student_walkway",
+      "name": "Main Walkway",
+      "region": "ASTERIA ACADEMY",
+      "description": "You follow the stream of new students beneath the Academy's stone arches. Older students point newcomers toward the assembly hall, while banners hang from the balconies above.",
+      "exits": [
+        "academy_gate",
+        "assembly_hall"
+      ],
+      "actions": []
+    },
+    {
+      "id": "mira_meeting_point",
+      "name": "Fountain Courtyard",
+      "region": "ASTERIA ACADEMY",
+      "description": "A small fountain stands beside the main walkway. Students pass by in groups, but the sound of the water makes this corner feel calmer than the busy entrance.",
+      "exits": [
+        "academy_gate",
+        "assembly_hall"
+      ],
+      "actions": [],
+      "events": [
+        {
+          "id": "first_meeting_mira",
+          "title": "A familiar face?",
+          "region": "ASTERIA ACADEMY",
+          "description": "A girl carrying a neatly packed bag looks around, trying to find the right building. She notices that you are also looking for directions and gives you a small, slightly uncertain smile. \"Are you heading to the opening ceremony too? I think it is this way.\"",
+          "chance": 1,
+          "choices": [
+            {
+              "id": "introduce_yourself_to_mira",
+              "label": "Introduce yourself and walk with her",
+              "durationMinutes": 5,
+              "effects": [
+                {
+                  "type": "ChangeMood",
+                  "amount": 2
+                }
+              ],
+              "feedback": "You exchange names. Mira seems relieved to have someone to walk with, and the two of you head toward the assembly hall.",
+              "activityMet": 1
+            },
+            {
+              "id": "thank_mira_and_continue",
+              "label": "Thank her for the directions",
+              "durationMinutes": 2,
+              "effects": [],
+              "feedback": "Mira points you toward the assembly hall. You thank her and continue on your own.",
+              "activityMet": 0.5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "assembly_hall",
+      "name": "Grand Assembly Hall",
+      "region": "ASTERIA ACADEMY",
+      "description": "The opening ceremony has concluded. Students begin to leave the hall and make plans for the rest of the day. The canteen is open, and the courtyard connects to the other Academy buildings.",
+      "exits": [
+        "student_walkway",
+        "mira_meeting_point",
+        "canteen",
+        "courtyard"
+      ],
+      "actions": [],
+      "events": [
+        {
+          "id": "academy_opening_ceremony",
+          "title": "The Opening Ceremony",
+          "region": "GRAND ASSEMBLY HALL",
+          "description": "The assembly hall opens into a vast chamber of pale stone and stained glass. Tall windows cast colored patterns across the floor, while banners bearing the Academy crest hang from the upper balconies. Hundreds of students fill the rows of seats, their voices blending into a restless murmur.\\n\\nA bell rings three times. The conversations gradually fade as the faculty enter from the side doors. At the center of the procession walks the headmaster, an older figure in a dark ceremonial coat, carrying a slender staff crowned with a softly glowing crystal.\\n\\nThe headmaster takes the stage and surveys the room. After welcoming the new students, they speak about curiosity, responsibility and the many paths that life at the Academy can offer. There is no single path every student must follow; what each of you makes of this opportunity is your own choice.",
+          "chance": 1,
+          "choices": [
+            {
+              "id": "listen_to_headmaster",
+              "label": "Listen carefully to the headmaster's address",
+              "durationMinutes": 45,
+              "effects": [
+                {
+                  "type": "ChangeMood",
+                  "amount": 1
+                }
+              ],
+              "feedback": "You listen to the address and learn the basic expectations for new students. The ceremony ends with applause.",
+              "activityMet": 0.5
+            },
+            {
+              "id": "look_around_the_hall",
+              "label": "Look around and observe the other students",
+              "durationMinutes": 45,
+              "effects": [],
+              "feedback": "You take in the hall, the faculty and the students around you. By the time the applause begins, the room feels a little less unfamiliar.",
+              "activityMet": 0.5
+            }
+          ]
+        }
+      ]
+    },
+    {
       "id": "dormitory",
       "name": "Dormitory",
       "region": "STUDENT QUARTERS",
-      "description": "Morning light slips through the curtains. Your room is quiet, and the academy day is about to begin.",
+      "description": "Your room in the student dormitory is quiet and modest. A bed, a desk and a small wardrobe leave enough space to settle in. You can return here whenever you need to rest.",
       "exits": [
         "courtyard"
       ],
@@ -37,13 +158,19 @@
       "id": "courtyard",
       "name": "Academy Courtyard",
       "region": "ASTERIA ACADEMY",
-      "description": "Students cross the courtyard beneath old trees. A rustling comes from the gate. Something small is moving in the bushes.",
+      "description": "The Academy courtyard connects its main buildings. Students cross the open square, talk beneath the trees and move between lessons. From here you can reach the classrooms, canteen, garden and other campus facilities.",
       "exits": [
         "dormitory",
         "classroom",
         "guild_hall",
         "infirmary",
-        "canteen"
+        "canteen",
+        "assembly_hall",
+        "academy_garden",
+        "library",
+        "practice_yard",
+        "academy_carriage_stop",
+        "academy_gate"
       ],
       "actions": [
         {
@@ -89,15 +216,16 @@
           "title": "Movement in the bushes",
           "region": "COURTYARD EVENT",
           "description": "A goblin is rummaging through a student's dropped bag near the gate. It has not noticed you yet. What will you do?",
-          "chance": 0.5,
+          "chance": 0,
           "choices": [
             {
               "id": "event_goblin_attack",
               "label": "Confront the goblin",
               "durationMinutes": 0,
               "effects": [],
-              "encounterActionId": "encounter_goblin",
-              "activityMet": 1
+              "feedback": "You step forward to confront the goblin.",
+              "activityMet": 1,
+              "encounterActionId": "encounter_goblin"
             },
             {
               "id": "event_goblin_sneak",
@@ -107,8 +235,108 @@
               "feedback": "You move quietly around the bushes. The goblin does not notice you.",
               "activityMet": 2
             }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "canteen",
+      "name": "Academy Canteen",
+      "region": "STUDENT QUARTERS",
+      "description": "The canteen is already lively. Long tables fill the hall, students compare their first impressions of the Academy, and the smell of freshly prepared food drifts from the serving counter.",
+      "exits": [
+        "courtyard",
+        "library",
+        "academy_carriage_stop"
+      ],
+      "actions": [
+        {
+          "id": "eat_meal",
+          "label": "Eat a simple meal",
+          "durationMinutes": 20,
+          "effects": [
+            {
+              "type": "RestoreStamina",
+              "amount": 3
+            },
+            {
+              "type": "ChangeMood",
+              "amount": 2
+            }
           ],
-          "activityMet": 1
+          "feedback": "You finish a warm meal. Your energy returns and the noise of the canteen feels a little less overwhelming.",
+          "activityMet": 1.5
+        },
+        {
+          "id": "talk_mira_canteen",
+          "label": "Talk with Mira",
+          "durationMinutes": 10,
+          "effects": [
+            {
+              "type": "ChangeMood",
+              "amount": 2
+            }
+          ],
+          "feedback": "Mira makes room at the table and tells you about the places she wants to see around the Academy.",
+          "activityMet": 1.2
+        },
+        {
+          "id": "talk_first_years",
+          "label": "Talk with other first-year students",
+          "durationMinutes": 10,
+          "effects": [
+            {
+              "type": "ChangeMood",
+              "amount": 1
+            }
+          ],
+          "feedback": "You exchange names and first impressions with a few students sitting nearby.",
+          "activityMet": 1.2
+        }
+      ],
+      "events": [
+        {
+          "id": "canteen_first_arrival",
+          "title": "A place to sit",
+          "region": "ACADEMY CANTEEN",
+          "description": "The canteen is crowded with new students. Near the windows, Mira is talking with a small group. She notices you and gives a friendly wave. There are other open seats if you would rather meet someone else or take a quiet break.",
+          "chance": 1,
+          "choices": [
+            {
+              "id": "join_mira_for_lunch",
+              "label": "Join Mira's table",
+              "durationMinutes": 15,
+              "effects": [
+                {
+                  "type": "ChangeMood",
+                  "amount": 2
+                }
+              ],
+              "feedback": "Mira introduces you to the students at her table. Conversation turns to the ceremony and what everyone hopes to explore.",
+              "activityMet": 1.2
+            },
+            {
+              "id": "join_other_students",
+              "label": "Sit with another group",
+              "durationMinutes": 15,
+              "effects": [
+                {
+                  "type": "ChangeMood",
+                  "amount": 1
+                }
+              ],
+              "feedback": "You join a nearby table and exchange a few stories with other first-year students.",
+              "activityMet": 1.2
+            },
+            {
+              "id": "find_quiet_seat",
+              "label": "Find a quiet seat",
+              "durationMinutes": 5,
+              "effects": [],
+              "feedback": "You find a seat near the wall and take a moment to settle in.",
+              "activityMet": 0.5
+            }
+          ]
         }
       ]
     },
@@ -148,6 +376,72 @@
           "effects": [],
           "feedback": "You spend the hour studying the fundamentals of adventuring and field safety.",
           "activityMet": 2
+        }
+      ]
+    },
+    {
+      "id": "library",
+      "name": "Academy Library",
+      "region": "EAST WING",
+      "description": "Shelves rise across several floors of the library. Students browse introductory texts while a librarian organizes books at the front desk.",
+      "exits": [
+        "courtyard",
+        "canteen",
+        "classroom"
+      ],
+      "actions": [
+        {
+          "id": "browse_library",
+          "label": "Browse the introductory shelves",
+          "durationMinutes": 20,
+          "effects": [],
+          "feedback": "You skim a few books about the Academy and its subjects. There is much more to discover here.",
+          "activityMet": 1
+        }
+      ]
+    },
+    {
+      "id": "academy_garden",
+      "name": "Academy Garden",
+      "region": "ASTERIA ACADEMY",
+      "description": "The garden is a quiet patch of green between the Academy buildings. Carefully trimmed hedges surround a small pond, and a few students sit beneath the trees.",
+      "exits": [
+        "courtyard",
+        "practice_yard"
+      ],
+      "actions": [
+        {
+          "id": "relax_in_garden",
+          "label": "Relax by the pond",
+          "durationMinutes": 20,
+          "effects": [
+            {
+              "type": "ChangeMood",
+              "amount": 2
+            }
+          ],
+          "feedback": "You spend a little time beside the pond. The quiet helps you relax.",
+          "activityMet": 0.5
+        }
+      ]
+    },
+    {
+      "id": "practice_yard",
+      "name": "Practice Yard",
+      "region": "WEST GROUNDS",
+      "description": "Wooden training dummies and practice equipment are arranged around the yard. A few students are learning basic movements under an instructor's supervision.",
+      "exits": [
+        "courtyard",
+        "academy_garden"
+      ],
+      "actions": [
+        {
+          "id": "watch_practice",
+          "label": "Watch the practice session",
+          "durationMinutes": 15,
+          "effects": [],
+          "feedback": "You watch the students repeat their drills and begin to recognize the rhythm of the training.",
+          "activityMet": 1
         }
       ]
     },
@@ -208,26 +502,54 @@
       ]
     },
     {
-      "id": "canteen",
-      "name": "Academy Canteen",
-      "region": "STUDENT QUARTERS",
-      "description": "The canteen is warm and busy. Students gather here between lessons to eat and exchange news.",
+      "id": "academy_carriage_stop",
+      "name": "Academy Carriage Stop",
+      "region": "ACADEMY ROAD",
+      "description": "Carriages wait along the road outside the Academy grounds. A short ride connects the campus with the nearby town.",
       "exits": [
-        "courtyard"
+        "courtyard",
+        "canteen",
+        "town_square",
+        "academy_gate"
+      ],
+      "actions": []
+    },
+    {
+      "id": "town_square",
+      "name": "Town Square",
+      "region": "NEARBY TOWN",
+      "description": "The town square is surrounded by shops, workshops and narrow streets. Carriages arrive and depart while residents go about their daily business.",
+      "exits": [
+        "academy_carriage_stop",
+        "market_street"
       ],
       "actions": [
         {
-          "id": "eat_meal",
-          "label": "Have a meal",
+          "id": "look_over_town_square",
+          "label": "Take in the town square",
+          "durationMinutes": 10,
+          "effects": [],
+          "feedback": "You watch the flow of residents and notice several streets worth exploring.",
+          "activityMet": 0.5
+        }
+      ]
+    },
+    {
+      "id": "market_street",
+      "name": "Market Street",
+      "region": "NEARBY TOWN",
+      "description": "Stalls and small shops line the street. Merchants display food, clothing, tools and curious items brought in from other regions.",
+      "exits": [
+        "town_square"
+      ],
+      "actions": [
+        {
+          "id": "browse_market",
+          "label": "Browse the market stalls",
           "durationMinutes": 20,
-          "effects": [
-            {
-              "type": "ChangeMood",
-              "amount": 2
-            }
-          ],
-          "feedback": "You take a quiet break over a simple meal. The pause lifts your spirits.",
-          "activityMet": 1.5
+          "effects": [],
+          "feedback": "You spend time looking over the stalls and learning what the town has to offer.",
+          "activityMet": 1
         }
       ]
     }
