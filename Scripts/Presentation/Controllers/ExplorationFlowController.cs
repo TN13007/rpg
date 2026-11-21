@@ -18,7 +18,7 @@ public sealed class ExplorationFlowController
     private readonly LocationEventService _locationEventService;
     private readonly Func<ActionDefinition, bool> _startEncounter;
 
-    private string _currentLocationId = "dormitory";
+    private string _currentLocationId = "carriage";
     private LocationEventDefinition _activeLocationEvent;
 
     public ExplorationFlowController(
