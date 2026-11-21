@@ -4,6 +4,21 @@ public enum CombatMessageType { Player, Enemy, System }
 public enum CombatMessageCategory { None, Damage, Check, Turn, Environment, Inference, Emotion, StatusChange, Round }
 public enum IntentConfidence { Suspected, Recognized }
 public enum CombatEventType { PlayerAction, EnemyAction, Damage, Check, TurnChanged, EnvironmentChanged, Inference, Emotion, StatusChanged, RoundStarted }
+public enum CombatFeedbackType { Attack, Guard, Evade, Recover, Revive, Hit }
+
+public sealed class CombatFeedbackViewData
+{
+    public string ActorName { get; }
+    public string TargetName { get; }
+    public CombatFeedbackType Type { get; }
+
+    public CombatFeedbackViewData(string actorName, string targetName, CombatFeedbackType type)
+    {
+        ActorName = actorName ?? string.Empty;
+        TargetName = targetName ?? string.Empty;
+        Type = type;
+    }
+}
 
 public sealed class CombatActionRequest
 {
@@ -29,8 +44,9 @@ public sealed class CombatEvent
     public string TargetName { get; }
     public int Amount { get; }
     public string Detail { get; }
+    public string ActionId { get; }
 
-    public CombatEvent(CombatEventType type, int round, string actorName = "", string targetName = "", int amount = 0, string detail = "", string id = "")
+    public CombatEvent(CombatEventType type, int round, string actorName = "", string targetName = "", int amount = 0, string detail = "", string id = "", string actionId = "")
     {
         Id = string.IsNullOrWhiteSpace(id) ? Guid.NewGuid().ToString("N") : id;
         Round = round;
@@ -39,6 +55,7 @@ public sealed class CombatEvent
         TargetName = targetName ?? string.Empty;
         Amount = amount;
         Detail = detail ?? string.Empty;
+        ActionId = actionId ?? string.Empty;
     }
 }
 
@@ -258,6 +275,7 @@ public sealed class CombatSnapshot
         AvailableActions = availableActions ?? Array.Empty<CombatActionOption>();
         Timeline = timeline ?? Array.Empty<TimelineCombatantStatus>();
         ActiveCombatantId = activeCombatantId ?? string.Empty;
+        Feedback = feedback ?? Array.Empty<CombatFeedbackViewData>();
     }
 }
 
@@ -341,6 +359,7 @@ public sealed class CombatViewData
     public CombatMessage[] NewMessages { get; }
     public TimelineMarkerViewData[] Timeline { get; }
     public string ActiveCombatantId { get; }
+    public CombatFeedbackViewData[] Feedback { get; }
 
     public CombatViewData(
         int round,
@@ -351,7 +370,8 @@ public sealed class CombatViewData
         CombatMessage[] newMessages,
         TimelineMarkerViewData[] timeline = null,
         PartyCombatStatus[] party = null,
-        string activeCombatantId = "")
+        string activeCombatantId = "",
+        CombatFeedbackViewData[] feedback = null)
     {
         Round = round;
         ActiveTurnLabel = activeTurnLabel ?? string.Empty;
