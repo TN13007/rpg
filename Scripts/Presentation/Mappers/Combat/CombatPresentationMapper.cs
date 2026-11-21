@@ -73,6 +73,19 @@ public sealed class CombatPresentationMapper
                 continue;
             }
 
+            if (combatEvent.Type == CombatEventType.EnemyAction)
+            {
+                if (!string.IsNullOrWhiteSpace(combatEvent.TargetName))
+                {
+                    feedback.Add(new CombatFeedbackViewData(
+                        combatEvent.ActorName,
+                        string.Empty,
+                        CombatFeedbackType.Attack));
+                }
+
+                continue;
+            }
+
             if (combatEvent.Type != CombatEventType.PlayerAction)
             {
                 continue;
