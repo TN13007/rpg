@@ -8,6 +8,8 @@ public partial class PartyMemberCard : PanelContainer
     private Label _conditionLabel;
     private string _memberId = string.Empty;
 
+    public string MemberName => _nameLabel?.Text ?? string.Empty;
+
     public override void _Ready()
     {
         _nameLabel = GetNode<Label>("Margin/Content/Name");
