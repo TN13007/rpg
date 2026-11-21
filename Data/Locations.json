@@ -1,0 +1,442 @@
+{
+  "travel": {
+    "durationMinutes": 10,
+    "timeModifier": {
+      "stat": "Agility",
+      "maxReduction": 0.5
+    },
+    "activityMet": 2.8
+  },
+  "combatEncounter": {
+    "durationMinutes": 30,
+    "activityMet": 5
+  },
+  "locations": [
+    {
+      "id": "university_campus",
+      "name": "University Campus",
+      "region": "NORTH CAMPUS",
+      "description": {
+        "firstVisit": "The university is already awake when you arrive. Students cross the open plaza with coffee cups, backpacks and half-finished conversations. Bicycles are chained along the railings, a campus shuttle pulls away from the curb, and the glass-fronted lecture buildings reflect the pale morning light. You have a full day ahead, but nothing is demanding your attention yet.",
+        "returnVisit": "Students move between the lecture buildings and the central plaza. The campus notice board is covered with class updates, club announcements and flyers for events around the city."
+      },
+      "exits": [
+        "lecture_hall",
+        "campus_library",
+        "campus_cafe",
+        "student_union",
+        "sports_field",
+        "east_district"
+      ],
+      "actions": [
+        {
+          "id": "inspect_board",
+          "label": "Check the campus notice board",
+          "durationMinutes": 10,
+          "effects": [],
+          "feedback": "You scan class announcements, club recruitment posts and a few neighborhood notices. Most of it can wait.",
+          "activityMet": 1.3
+        }
+      ]
+    },
+    {
+      "id": "lecture_hall",
+      "name": "Lecture Hall",
+      "region": "NORTH CAMPUS",
+      "description": {
+        "firstVisit": "Rows of tiered seats face a wide projection screen. Students settle in, open laptops and compare notes before the lecturer arrives. A few seats near the aisle are still free.",
+        "returnVisit": "The lecture hall fills and empties between classes. The projector hums softly while students get their notes ready."
+      },
+      "exits": [
+        "university_campus"
+      ],
+      "actions": [
+        {
+          "id": "attend_lesson",
+          "label": "Attend the lecture",
+          "durationMinutes": 60,
+          "effects": [
+            {
+              "type": "ChangeMood",
+              "amount": 1
+            }
+          ],
+          "feedback": "You follow the lecture, take a few notes and leave with a clearer understanding of the topic.",
+          "activityMet": 2
+        }
+      ]
+    },
+    {
+      "id": "campus_library",
+      "name": "Campus Library",
+      "region": "NORTH CAMPUS",
+      "description": {
+        "firstVisit": "The library is quiet without feeling empty. Long shared desks sit beneath rows of warm lights, charging outlets are built into the tables, and the upper floor is lined with study rooms that students reserve online. A printer rattles near the front desk.",
+        "returnVisit": "The library remains a steady refuge from the noise outside. Students work at the shared desks while the printer occasionally interrupts the silence."
+      },
+      "exits": [
+        "university_campus",
+        "campus_cafe"
+      ],
+      "actions": [
+        {
+          "id": "browse_library",
+          "label": "Find a place to study",
+          "durationMinutes": 30,
+          "effects": [],
+          "feedback": "You find a quiet desk, open your notes and spend some time catching up on coursework.",
+          "activityMet": 1.2
+        }
+      ]
+    },
+    {
+      "id": "campus_cafe",
+      "name": "Campus Café",
+      "region": "NORTH CAMPUS",
+      "description": {
+        "firstVisit": "The campus café smells of espresso and toasted bread. A queue forms near the counter while students occupy nearly every table, some chatting between classes and others staring at laptops over cooling drinks.",
+        "returnVisit": "The café is busy as usual. The queue shifts slowly and familiar groups have claimed their preferred tables."
+      },
+      "exits": [
+        "university_campus",
+        "campus_library",
+        "student_union"
+      ],
+      "actions": [
+        {
+          "id": "eat_meal",
+          "label": "Get something to eat",
+          "durationMinutes": 20,
+          "effects": [
+            {
+              "type": "RestoreStamina",
+              "amount": 3
+            },
+            {
+              "type": "ChangeMood",
+              "amount": 2
+            }
+          ],
+          "feedback": "You finish a warm meal. Your energy returns and the noise of the café feels a little less overwhelming.",
+          "activityMet": 1.5
+        },
+        {
+          "id": "talk_first_years",
+          "label": "Chat with other students",
+          "durationMinutes": 10,
+          "effects": [
+            {
+              "type": "ChangeMood",
+              "amount": 1
+            }
+          ],
+          "feedback": "You exchange a few stories about classes, deadlines and what everyone plans to do after campus.",
+          "activityMet": 1.2
+        }
+      ],
+      "events": [
+        {
+          "id": "lunch_table_conversation",
+          "title": "A Seat at the Table",
+          "region": "CAMPUS CAFÉ",
+          "description": "A few students at the window table are discussing a strange post from the East District community board. One of them recognizes you and makes room. The conversation is casual, but the details do not quite add up.",
+          "chance": 1,
+          "choices": [
+            {
+              "id": "join_the_conversation",
+              "label": "Join the conversation",
+              "durationMinutes": 10,
+              "effects": [
+                {
+                  "type": "ChangeMood",
+                  "amount": 1
+                }
+              ],
+              "feedback": "You join in. The post describes a vacant apartment where someone hears a child crying at the same time every night. Mira says the address is in the East District.",
+              "activityMet": 1.2
+            },
+            {
+              "id": "keep_to_yourself",
+              "label": "Take your food and find a quiet seat",
+              "durationMinutes": 5,
+              "effects": [],
+              "feedback": "You leave the conversation alone and enjoy a quiet meal.",
+              "activityMet": 0.5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "student_apartment",
+      "name": "Student Apartment",
+      "region": "RESIDENTIAL DISTRICT",
+      "description": {
+        "firstVisit": "Your apartment is small but comfortable: a bed, a desk crowded with notebooks, a kitchenette and a window facing the neighboring buildings. Your laptop is still open where you left it last night. It is not much space, but it is yours.",
+        "returnVisit": "Your apartment is quiet and familiar. The desk is waiting for your coursework and the bed is an easy place to disappear for a while."
+      },
+      "exits": [
+        "east_district"
+      ],
+      "actions": [
+        {
+          "id": "inspect_letter",
+          "label": "Check the mail by the door",
+          "durationMinutes": 5,
+          "effects": [],
+          "feedback": "There is a utility bill and a flyer for a neighborhood event. Nothing urgent.",
+          "activityMet": 0.8
+        }
+      ]
+    },
+    {
+      "id": "east_district",
+      "name": "East District",
+      "region": "EAST DISTRICT",
+      "description": {
+        "firstVisit": "The East District is a mix of apartment blocks, small shops and narrow side streets. Delivery riders weave through traffic while residents stop at convenience stores on their way home. Community notices and local business ads cover the glass panels at the bus stop.",
+        "returnVisit": "Traffic moves through the district while shopkeepers prepare for the evening rush. The apartment block is a short walk from the main road."
+      },
+      "exits": [
+        "university_campus",
+        "student_apartment",
+        "corner_cafe",
+        "apartment_block",
+        "response_office",
+        "campus_clinic",
+        "riverside_park"
+      ],
+      "actions": [
+        {
+          "id": "browse_forum",
+          "label": "Browse the neighborhood forum",
+          "durationMinutes": 10,
+          "effects": [],
+          "feedback": "Several posts mention Unit 213 in the old apartment block. The reports disagree, but multiple people describe hearing a child crying at 2:13 a.m.",
+          "activityMet": 1
+        }
+      ]
+    },
+    {
+      "id": "corner_cafe",
+      "name": "Corner Café",
+      "region": "EAST DISTRICT",
+      "description": {
+        "firstVisit": "A narrow café sits between a laundromat and a convenience store. The counter is crowded with takeaway cups, and a handwritten shift roster is pinned beside the staff entrance. It is a familiar place for students looking for a part-time job.",
+        "returnVisit": "The café is busy with its usual mix of regulars, delivery orders and students taking a break from work or study."
+      },
+      "exits": [
+        "east_district"
+      ],
+      "actions": [
+        {
+          "id": "work_shift",
+          "label": "Work a café shift",
+          "durationMinutes": 180,
+          "effects": [
+            {
+              "type": "AddGold",
+              "amount": 30
+            }
+          ],
+          "feedback": "You finish your shift, wipe down the counter and collect your pay. It is tiring, but the extra money helps.",
+          "activityMet": 2.5
+        }
+      ]
+    },
+    {
+      "id": "apartment_block",
+      "name": "Old Apartment Block",
+      "region": "EAST DISTRICT",
+      "description": {
+        "firstVisit": "The apartment block stands behind a row of shuttered shops. Several windows are boarded up, and the entry intercom has a handwritten note saying the building is awaiting renovation. The lobby smells of damp concrete. A stairwell light flickers above the directory; Unit 213 is still listed, though the name beside it has been scratched away.",
+        "returnVisit": "The old apartment block is as quiet as before. The entry light flickers and the directory still lists Unit 213 without a resident's name."
+      },
+      "exits": [
+        "east_district"
+      ],
+      "actions": [
+        {
+          "id": "inspect_building_notice",
+          "label": "Read the renovation notice",
+          "durationMinutes": 5,
+          "effects": [],
+          "feedback": "The notice says the upper floors have been closed for months. Unit 213 is not listed among the apartments cleared for renovation.",
+          "activityMet": 0.8
+        }
+      ],
+      "events": [
+        {
+          "id": "apartment_213_incident",
+          "title": "The Crying Apartment",
+          "region": "OLD APARTMENT BLOCK",
+          "description": "A faint child's sob comes from somewhere above you. It stops as soon as you reach the second-floor landing. A moment later, three soft knocks come from behind the door marked 213. Your phone shows 2:13 a.m. in an old forum screenshot, but it is not that late now. The building is otherwise silent.",
+          "chance": 1,
+          "choices": [
+            {
+              "id": "listen_from_hallway",
+              "label": "Stay in the hallway and listen",
+              "durationMinutes": 10,
+              "effects": [],
+              "feedback": "The crying returns in short bursts, each separated by the same interval. You notice that the sound seems to come from inside the bedroom, not the hallway.",
+              "activityMet": 1
+            },
+            {
+              "id": "enter_unit_213",
+              "label": "Open the door to Unit 213",
+              "durationMinutes": 5,
+              "effects": [
+                {
+                  "type": "ChangeMood",
+                  "amount": -3
+                }
+              ],
+              "feedback": "The door gives way with a dry click. Inside, a child's voice repeats the same unfinished sentence. When you step toward the bedroom, it calls your name. You back out before it can come closer.",
+              "activityMet": 1.5
+            },
+            {
+              "id": "leave_the_building",
+              "label": "Leave the building",
+              "durationMinutes": 1,
+              "effects": [],
+              "feedback": "You decide not to take the risk. The street noise feels unusually comforting after the silence inside.",
+              "activityMet": 0.5
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "response_office",
+      "name": "Paranormal Response Office",
+      "region": "EAST DISTRICT",
+      "description": {
+        "firstVisit": "A modest office occupies the second floor above a repair shop. The reception area has a few chairs, a stack of incident forms and a notice explaining that the company assesses unusual reports before accepting a case. Nothing about the place looks mysterious; it feels like an ordinary service business.",
+        "returnVisit": "The office is open during business hours. A small sign directs visitors to the reception desk."
+      },
+      "exits": [
+        "east_district"
+      ],
+      "actions": []
+    },
+    {
+      "id": "student_union",
+      "name": "Student Union",
+      "region": "NORTH CAMPUS",
+      "description": {
+        "firstVisit": "The student union is full of club posters, event sign-ups and groups planning their next activity. A few students are rehearsing a presentation near the windows while someone tries to recruit passers-by for a weekend trip.",
+        "returnVisit": "Club members come and go throughout the day. New posters appear beside the familiar announcements."
+      },
+      "exits": [
+        "university_campus",
+        "campus_cafe"
+      ],
+      "actions": [
+        {
+          "id": "join_club",
+          "label": "Ask about student clubs",
+          "durationMinutes": 15,
+          "effects": [
+            {
+              "type": "ChangeMood",
+              "amount": 1
+            }
+          ],
+          "feedback": "You speak with a few club members and take a flyer for an upcoming campus event.",
+          "activityMet": 1.2
+        },
+        {
+          "id": "inspect_requests",
+          "label": "Look through the volunteer board",
+          "durationMinutes": 10,
+          "effects": [
+            {
+              "type": "ChangeMood",
+              "amount": -2
+            }
+          ],
+          "feedback": "Most listings are routine errands and event staffing. You leave the board feeling that none of them is quite what you are looking for.",
+          "activityMet": 1
+        }
+      ]
+    },
+    {
+      "id": "sports_field",
+      "name": "Sports Field",
+      "region": "NORTH CAMPUS",
+      "description": {
+        "firstVisit": "The sports field sits behind the gym. Students run laps, practice drills and gather near the equipment shed. The noise of the campus feels far away here.",
+        "returnVisit": "The field is busy with practice sessions and casual games. Someone is always using the track."
+      },
+      "exits": [
+        "university_campus",
+        "riverside_park"
+      ],
+      "actions": [
+        {
+          "id": "practice",
+          "label": "Practice for a while",
+          "durationMinutes": 45,
+          "effects": [],
+          "feedback": "You repeat a few basic drills until your movements feel less clumsy.",
+          "activityMet": 3
+        }
+      ]
+    },
+    {
+      "id": "campus_clinic",
+      "name": "Campus Clinic",
+      "region": "EAST DISTRICT",
+      "description": {
+        "firstVisit": "The campus clinic is clean and practical. A receptionist checks appointments while a nurse organizes supplies behind the counter. The place is quiet apart from the printer and the occasional phone call.",
+        "returnVisit": "The clinic continues to handle routine appointments and minor injuries."
+      },
+      "exits": [
+        "east_district"
+      ],
+      "actions": [
+        {
+          "id": "infirmary_treatment",
+          "label": "Receive treatment",
+          "durationMinutes": 60,
+          "effects": [
+            {
+              "type": "RestoreHealth",
+              "amount": 5
+            }
+          ],
+          "feedback": "You rest while the clinic staff tend to your injuries.",
+          "activityMet": 1.3
+        }
+      ]
+    },
+    {
+      "id": "riverside_park",
+      "name": "Riverside Park",
+      "region": "EAST DISTRICT",
+      "description": {
+        "firstVisit": "A paved path follows the river past a row of trees and outdoor exercise equipment. Joggers pass in both directions, and a few people sit on the low wall watching the water. It is a good place to clear your head.",
+        "returnVisit": "The river keeps moving past the park. Joggers and students drift along the path as the light changes."
+      },
+      "exits": [
+        "east_district",
+        "sports_field"
+      ],
+      "actions": [
+        {
+          "id": "relax_in_park",
+          "label": "Take a quiet break",
+          "durationMinutes": 20,
+          "effects": [
+            {
+              "type": "ChangeMood",
+              "amount": 2
+            }
+          ],
+          "feedback": "You sit by the river for a while. The noise of the city fades into the background.",
+          "activityMet": 0.5
+        }
+      ]
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 {
-  "id": "player-ari",
-  "name": "Ari",
-  "role": "First-year adventurer",
+  "id": "player_student",
+  "name": "Alex",
+  "role": "University student",
   "level": 1,
   "maxHealth": 20,
   "maxFatigue": 100,
@@ -31,12 +31,21 @@
   "playerActions": [
     {
       "id": "rest",
-      "label": "Take a short rest",
+      "label": "Take a short break",
       "durationMinutes": 30,
       "effects": [
-        { "type": "RestoreFatigue", "amount": 5 },
-        { "type": "RestoreStamina", "amount": 3 },
-        { "type": "ChangeMood", "amount": 2 }
+        {
+          "type": "RestoreFatigue",
+          "amount": 5
+        },
+        {
+          "type": "RestoreStamina",
+          "amount": 3
+        },
+        {
+          "type": "ChangeMood",
+          "amount": 2
+        }
       ],
       "feedback": "You pause, catch your breath and let the fatigue ease.",
       "activityMet": 1
@@ -46,23 +55,40 @@
       "label": "Sleep for 8 hours",
       "durationMinutes": 480,
       "effects": [
-        { "type": "RestoreHealth", "amount": 20 },
-        { "type": "ChangeMood", "amount": 10 },
-        { "type": "RestoreFatigue", "amount": 100 },
-        { "type": "RestoreStamina", "amount": 10 }
+        {
+          "type": "RestoreHealth",
+          "amount": 20
+        },
+        {
+          "type": "ChangeMood",
+          "amount": 10
+        },
+        {
+          "type": "RestoreFatigue",
+          "amount": 100
+        },
+        {
+          "type": "RestoreStamina",
+          "amount": 10
+        }
       ],
       "feedback": "You sleep for eight hours and wake feeling restored.",
       "activityMet": 1,
-      "availableLocationIds": ["dormitory"]
+      "availableLocationIds": [
+        "student_apartment"
+      ]
     },
     {
       "id": "request_rescue",
-      "label": "Request emergency rescue",
+      "label": "Call for emergency assistance",
       "durationMinutes": 180,
       "effects": [
-        { "type": "Revive", "amount": 5 }
+        {
+          "type": "Revive",
+          "amount": 5
+        }
       ],
-      "feedback": "Emergency aid arrives after three hours. You recover with 5 HP.",
+      "feedback": "Emergency assistance arrives after three hours. You recover with 5 HP.",
       "activityMet": 0
     }
   ]

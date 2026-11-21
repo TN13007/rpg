@@ -1,7 +1,7 @@
 {
-  "id": "goblin-a",
-  "name": "Goblin",
-  "role": "Training enemy",
+  "id": "hostile_presence",
+  "name": "Unstable Presence",
+  "role": "Paranormal anomaly",
   "level": 1,
   "maxHealth": 40,
   "maxFatigue": 0,
@@ -21,8 +21,8 @@
     "luck": 5
   },
   "combatActionIds": [
-    "goblin_quick_jab",
-    "goblin_heavy_swing",
-    "goblin_staggering_blow"
+    "presence_quick_jab",
+    "presence_heavy_swing",
+    "presence_staggering_blow"
   ]
 }

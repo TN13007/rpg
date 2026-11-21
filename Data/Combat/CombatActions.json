@@ -65,35 +65,35 @@
       "actionDetail": "You land a disruptive strike."
     },
     {
-      "id": "goblin_quick_jab",
-      "label": "Quick Jab",
+      "id": "presence_quick_jab",
+      "label": "Quick Lunge",
       "costLabel": "Enemy Action",
-      "description": "A fast, light attack.",
+      "description": "A sudden close-range attack.",
       "behavior": "Attack",
       "damage": 4,
       "recoveryCost": 75,
-      "actionDetail": "The goblin snaps out a quick jab."
+      "actionDetail": "The presence lunges forward without warning."
     },
     {
-      "id": "goblin_heavy_swing",
-      "label": "Heavy Swing",
+      "id": "presence_heavy_swing",
+      "label": "Heavy Impact",
       "costLabel": "Enemy Action",
-      "description": "A slower, harder attack.",
+      "description": "A slower, forceful strike.",
       "behavior": "Attack",
       "damage": 8,
       "recoveryCost": 130,
-      "actionDetail": "The goblin commits to a heavy swing."
+      "actionDetail": "The presence slams into its target."
     },
     {
-      "id": "goblin_staggering_blow",
-      "label": "Staggering Blow",
+      "id": "presence_staggering_blow",
+      "label": "Disorienting Pulse",
       "costLabel": "Enemy Action",
       "description": "Deal light damage and briefly stun the target.",
       "behavior": "Stun",
       "damage": 3,
       "stunDuration": 0.5,
       "recoveryCost": 115,
-      "actionDetail": "The goblin lands a staggering blow."
+      "actionDetail": "A pulse of pressure leaves its target momentarily disoriented."
     }
   ]
 }
