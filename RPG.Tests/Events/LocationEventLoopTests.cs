@@ -8,18 +8,7 @@ public sealed class LocationEventLoopTests
     [Fact]
     public void AcademyContent_LoadsFirstAndReturnVisitDescriptions()
     {
-        const string json = "{"
-            + "\\"locations\\":[{"
-            + "\\"id\\":\\"gate\\","
-            + "\\"name\\":\\"Gate\\","
-            + "\\"region\\":\\"REGION\\","
-            + "\\"description\\":{"
-            + "\\"first_visit\\":\\"A long first introduction.\\","
-            + "\\"return_visit\\":\\"A short familiar description.\\"},"
-            + "\\"exits\\":[],"
-            + "\\"actions\\":[]"
-            + "}]"
-            + "}";
+        const string json = @"{""locations"":[{""id"":""gate"",""name"":""Gate"",""region"":""REGION"",""description"":{""first_visit"":""A long first introduction."",""return_visit"":""A short familiar description.""},""exits"":[],""actions"":[]}]}";
 
         _academy.LoadJson(json);
 
@@ -31,16 +20,7 @@ public sealed class LocationEventLoopTests
     [Fact]
     public void AcademyContent_LegacyStringDescriptionRemainsCompatible()
     {
-        const string json = "{"
-            + "\\"locations\\":[{"
-            + "\\"id\\":\\"gate\\","
-            + "\\"name\\":\\"Gate\\","
-            + "\\"region\\":\\"REGION\\","
-            + "\\"description\\":\\"The old single description.\\","
-            + "\\"exits\\":[],"
-            + "\\"actions\\":[]"
-            + "}]"
-            + "}";
+        const string json = @"{""locations"":[{""id"":""gate"",""name"":""Gate"",""region"":""REGION"",""description"":""The old single description."",""exits"":[],""actions"":[]}]}";
 
         _academy.LoadJson(json);
 
@@ -48,6 +28,7 @@ public sealed class LocationEventLoopTests
         Assert.Equal("The old single description.", location.GetDescription(true));
         Assert.Equal("The old single description.", location.GetDescription(false));
     }
+
     [Fact]
     public void AcademyContent_LoadsCourtyardEventAndItsChoices()
     {
