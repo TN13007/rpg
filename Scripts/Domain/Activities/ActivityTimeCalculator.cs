@@ -1,7 +1,12 @@
 using System;
 
+/// <summary>Calculates activity time values from gameplay data.</summary>
 public sealed class ActivityTimeCalculator
 {
+    /// <summary>Calculates calculate from the supplied values.</summary>
+    /// <param name="activity">The activity used by this operation.</param>
+    /// <param name="character">The character used by this operation.</param>
+    /// <returns>The resulting int.</returns>
     public int Calculate(ActionDefinition activity, Character character)
     {
         if (activity == null)
