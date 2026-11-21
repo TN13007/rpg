@@ -75,6 +75,62 @@ public sealed class CombatPresentationMapperTests
         Assert.True(marker.IsStunned);
     }
 
+    [Theory]
+    [InlineData("quick_strike", CombatFeedbackType.Attack)]
+    [InlineData("heavy_strike", CombatFeedbackType.Attack)]
+    [InlineData("disrupting_strike", CombatFeedbackType.Attack)]
+    [InlineData("guard", CombatFeedbackType.Guard)]
+    [InlineData("evade", CombatFeedbackType.Evade)]
+    [InlineData("catch_breath", CombatFeedbackType.Recover)]
+    [InlineData("revive_ally", CombatFeedbackType.Revive)]
+    public void MapsPlayerActionIdsToSpecificPresentationFeedback(
+        string actionId,
+        CombatFeedbackType expectedFeedback)
+    {
+        CombatPresentationMapper mapper = new CombatPresentationMapper();
+        CombatSnapshot snapshot = new CombatSnapshot(
+            1,
+            "PLAYER DECISION",
+            System.Array.Empty<EnemyCombatStatus>(),
+            null,
+            System.Array.Empty<CombatActionOption>());
+        CombatEvent actionEvent = new CombatEvent(
+            CombatEventType.PlayerAction,
+            1,
+            actorName: "Alex",
+            targetName: "Unstable Presence",
+            actionId: actionId);
+        CombatResult result = new CombatResult(true, snapshot, new[] { actionEvent });
+
+        CombatFeedbackViewData feedback = Assert.Single(mapper.Map(result).Feedback);
+
+        Assert.Equal("Alex", feedback.ActorName);
+        Assert.Equal(expectedFeedback, feedback.Type);
+    }
+
+    [Fact]
+    public void MapsDamageEventsToHitFeedbackOnTheTarget()
+    {
+        CombatPresentationMapper mapper = new CombatPresentationMapper();
+        CombatSnapshot snapshot = new CombatSnapshot(
+            1,
+            "PLAYER DECISION",
+            System.Array.Empty<EnemyCombatStatus>(),
+            null,
+            System.Array.Empty<CombatActionOption>());
+        CombatEvent damageEvent = new CombatEvent(
+            CombatEventType.Damage,
+            1,
+            targetName: "Unstable Presence",
+            amount: 8);
+        CombatResult result = new CombatResult(true, snapshot, new[] { damageEvent });
+
+        CombatFeedbackViewData feedback = Assert.Single(mapper.Map(result).Feedback);
+
+        Assert.Equal("Unstable Presence", feedback.TargetName);
+        Assert.Equal(CombatFeedbackType.Hit, feedback.Type);
+    }
+
     private static CombatSnapshot CreateSnapshot(TimelineCombatantStatus entry)
     {
         return new CombatSnapshot(
