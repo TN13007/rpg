@@ -24,20 +24,25 @@ Design decisions do not imply implementation. If the desired experience and curr
 
 ### Product direction
 
-The intended product is a player-directed fantasy life-simulation RPG set in a connected world:
-- Daily life, social interaction, exploration, adventures and tactical combat are different interaction contexts within the same continuing world.
-- The Academy is an important place to live, study, train, rest and meet people; it is not merely a supporting menu for Combat.
-- Combat remains a specialized four-person Tactical Timeline experience with its own rules and execution flow.
-- Relevant choices and outcomes should affect character/world state and may change later opportunities across contexts.
-- The player is not forced into one fixed Academy → Adventure → Combat loop; personal goals and interests shape the journey.
+The accepted product direction is a player-directed modern student-life RPG:
+- The protagonist is an ordinary university student in a contemporary city.
+- Classes, studying, friends, part-time work, money and personal routines remain the everyday foundation.
+- Paranormal incidents exist as optional opportunities discovered through rumors, conversations and local information.
+- The player may investigate, ignore, leave or seek professional help; combat is not mandatory for every anomaly.
+- Phones, laptops and the Internet are ordinary tools, not magical artifacts.
+- Tactical Timeline combat remains a specialized rules domain for situations that justify confrontation.
 
-The accepted direction and unresolved design questions are owned by [Design](Docs/Design/README.md), especially [Game Vision](Docs/Design/GameVision.md), [World and Narrative](Docs/Design/WorldAndNarrative.md), [Combat](Docs/Design/Combat.md) and the [Product Roadmap](Docs/Design/Roadmap.md). Do not copy detailed rules or provisional balance values into this status file.
+The former fantasy Academy setting is superseded. New player-facing content must use the modern setting. The design source of truth is [Game Vision](Docs/Design/GameVision.md), [World and Narrative](Docs/Design/WorldAndNarrative.md), [Combat](Docs/Design/Combat.md) and [Product Roadmap](Docs/Design/Roadmap.md).
 
-### Implementation reality on main
+### Implementation reality
 
-The current build contains an authored Opening Day location-based Exploration slice and a four-person Tactical Timeline Combat prototype. Exploration supports Location travel, context-sensitive Actions, authored Location Events, GameClock/Sleep and recovery actions. Combat composes Ari, Bram, Mira and Sera against one Goblin archetype; it has a shared real-time Combat Timeline, player decision pauses, action-specific Recovery Cost, Delay/Stun, Downed/Revive, Victory/Defeat and the post-encounter rescue path.
+The refactor branch replaces the Academy content with a modern city graph in `Data/Locations.json`, renames the location catalog to `LocationCatalog`, and updates the startup path. The authored setting includes university, student housing, campus facilities, a part-time café, East District locations, a paranormal response office and the Unit 213 incident.
 
-These are specialized runtime flows that coexist in the same game. NPC presence is resolved from authored daily schedules and GameClock; the code still does not provide a universal Interaction executor or a complete autonomous world simulation. The full Opening Day Godot journey and the complete interactive Combat encounter still require their documented runtime verification. Relevant outcomes should be connected across contexts through concrete player-facing requirements, not by assuming a generalized simulation framework already exists. Read [Implementation](Docs/Implementation/README.md) for verified code structure and runtime behavior.
+The four-person combat party is now Alex, Noah, Mira and Sera, with an Unstable Presence as the authored enemy. Daily schedules and interactions are authored for Mira, Noah, Sera and Ms. An. The Unit 213 event supports observation, cautious entry and retreat without forcing combat.
+
+This branch has not yet been merged; latest `main` remains the previous Academy build until the refactor PR is accepted. The refactor has not yet received Godot runtime verification. Do not describe the new player journey as runtime-tested until it has been opened and played in Godot.
+
+The runtime still does not provide durable incident flags, delayed incident progression, a social-feed interface or actual professional dispatch/payment behavior. Do not add a generic Quest, Incident, Social Network or World Simulation framework without a concrete player-facing requirement.
 
 ## 3. Session protocol
 
@@ -59,15 +64,19 @@ The Git workflow, commit granularity and PR requirements are defined only in [CO
 
 ## 4. Current handoff
 
-**Immediate implementation priority:** [Issue #108 — Data-driven daily NPC schedules](https://github.com/TN13007/rpg/issues/108).
+**Immediate implementation priority:** [Issue #110 — Modern student life and paranormal incident](https://github.com/TN13007/rpg/issues/110).
 
-The first NPC schedule slice should prove that authored daily time ranges change who is present at a Location and which NPC-required interactions are available. Keep it bounded: no pathfinding, needs, memory, relationship simulation or general autonomous AI. [Issue #91 — Four-Person Tactical Timeline Encounter](https://github.com/TN13007/rpg/issues/91) remains open as the next specialized Combat delivery target; its remaining increment is Enemy Intent plus a second enemy behavior pattern, used in one encounter that creates competing threats and meaningful player responses. This completes the dedicated Combat context; it does not make the whole game Combat-first. Before implementation:
-- Read [Game Vision](Docs/Design/GameVision.md), [Combat Design](Docs/Design/Combat.md) and [Roadmap Phase 1](Docs/Design/Roadmap.md).
-- Read [Cross-Layer Runtime Systems](Docs/Implementation/CrossLayerRuntimeSystems.md) and trace the current Combat flow, source code and tests.
-- Keep intent presentation separate from authoritative enemy action resolution; visible intent must not silently change.
-- Keep [Issue #103 — Opening Day](https://github.com/TN13007/rpg/issues/103) for the complete manual journey from carriage through the Academy day and Sleep; the content is merged in PR #105, but runtime acceptance remains tracked by that Issue.
-- Retain [Issue #62](https://github.com/TN13007/rpg/issues/62) for manual Sleep/GameClock runtime verification.
-- Keep [Issue #79](https://github.com/TN13007/rpg/issues/79) as a later progression backlog item; sequence it according to the updated Roadmap rather than assuming it is automatically the next phase after Combat.
+Review the refactor PR for these outcomes:
+- No active game content or runtime startup path depends on the fantasy Academy.
+- The modern campus/city graph loads with valid exits and content references.
+- Daily-life actions, NPC schedules and NPC interactions use the existing supported contracts.
+- The Unit 213 incident is optional and provides non-combat responses.
+- The four-person Tactical Timeline remains a separate system and existing combat tests remain valid.
+- Active documentation describes the modern setting and current runtime accurately.
+
+After the PR is merged, manually run `Scenes/Main.tscn` in Godot 4.7.2 .NET and verify the campus start, travel, NPC presence, daily actions, Unit 213 event, retreat and debug Combat encounter.
+
+[Issue #91 — Four-Person Tactical Timeline Encounter](https://github.com/TN13007/rpg/issues/91) remains a separate Combat backlog item. Keep its Enemy Intent and second enemy behavior work independent from the setting migration. [Issue #79](https://github.com/TN13007/rpg/issues/79) remains a later progression backlog item.
 
 Do not begin autonomous NPC simulation, broad Character abstractions or a general refactor unless a demonstrated player-facing requirement needs them.
 

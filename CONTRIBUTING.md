@@ -229,7 +229,7 @@ Use namespaces only where they provide a useful boundary. Keep namespaces to two
 - A C# file should match its main type, and should generally contain one core type: `CombatService.cs`.
 - Name test methods in `PascalCase`; do not use underscores to divide test-name segments.
 - Use `PascalCase` for Godot scene files, custom node names and resource files: `CombatPanel.tscn`.
-- Use `PascalCase` for JSON data filenames, assets and Markdown document filenames: `AcademyLocations.json`, `CharacterPortrait.svg`, `ExampleService.md`.
+- Use `PascalCase` for JSON data filenames, assets and Markdown document filenames: `Locations.json`, `CharacterPortrait.svg`, `ExampleService.md`.
 - Keep intentional repository entry files `README.md`, `CONTRIBUTING.md`, `AGENTS.md` and `WORKFLOW.md`, plus platform/tool-managed names such as `.github` and `.editorconfig`, unchanged.
 
 #### Markdown document names
@@ -277,7 +277,7 @@ The filename identifies the document's primary ownership; it does not prescribe 
 | Element | Convention | Example |
 |---|---|---|
 | JSON property | `camelCase` | `startingFatigue`, `maxHealth` |
-| Game content ID | `snake_case` | `player_ari`, `inspect_letter`, `courtyard_goblin_ambush` |
+| Game content ID | `snake_case` | `player_student`, `inspect_letter`, `apartment_213_incident` |
 | Serialized enum-like value | `PascalCase` | `RestoreFatigue`, `NextDay`, `Agility` |
 | Player-facing label/text | Natural language | `"Read the letter on your desk"` |
 
