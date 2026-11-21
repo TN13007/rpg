@@ -1,8 +1,18 @@
 using System;
 using System.Collections.Generic;
 
+/// <summary>Applies resolved combat effects to their target combatants.</summary>
 public sealed class CombatEffectDispatcher
 {
+    /// <summary>Applies apply to the target combatant.</summary>
+    /// <param name="request">The request used by this operation.</param>
+    /// <param name="actor">The actor used by this operation.</param>
+    /// <param name="target">The target used by this operation.</param>
+    /// <param name="timeline">The timeline used by this operation.</param>
+    /// <param name="actorState">The actor state used by this operation.</param>
+    /// <param name="targetState">The target state used by this operation.</param>
+    /// <param name="events">The events used by this operation.</param>
+    /// <param name="round">The round used by this operation.</param>
     public void Apply(
         CombatEffectRequest request, Character actor, Character target,
         CombatTimeline timeline, CombatantEffectState actorState,
