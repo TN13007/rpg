@@ -12,8 +12,8 @@ public sealed class ModernStudentContentTests
 
         Assert.Equal(13, content.Locations.Count());
         Assert.Equal("University Campus", content.GetLocation("university_campus").Name);
-        Assert.Equal("The Crying Apartment", content.GetLocation("apartment_block").Events.Single().Title);
-        Assert.Equal("Response coordinator", content.GetCharacter("ms_an").Role);
+        Assert.Equal("The 2:13 AM Incident", content.GetLocation("apartment_block").Events.Single().Title);
+        Assert.Equal("Response coordinator", content.GetCharacter("ms_carter").Role);
 
         foreach (LocationContent location in content.Locations)
         {

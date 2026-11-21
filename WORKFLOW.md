@@ -38,7 +38,7 @@ The former fantasy Academy setting is superseded. New player-facing content must
 
 The refactor branch replaces the Academy content with a modern city graph in `Data/Locations.json`, renames the location catalog to `LocationCatalog`, and updates the startup path. The authored setting includes university, student housing, campus facilities, a part-time café, East District locations, a paranormal response office and the Unit 213 incident.
 
-The four-person combat party is now Alex, Noah, Mira and Sera, with an Unstable Presence as the authored enemy. Daily schedules and interactions are authored for Mira, Noah, Sera and Ms. An. The Unit 213 event supports observation, cautious entry and retreat without forcing combat.
+The four-person combat party is now Alex, Noah, Mira and Sera, with an Unstable Presence as the authored enemy. Daily schedules and interactions are authored for Mira, Noah, Sera and Ms. Carter. The Unit 213 event supports observation, cautious entry and retreat without forcing combat.
 
 This branch has not yet been merged; latest `main` remains the previous Academy build until the refactor PR is accepted. The refactor has not yet received Godot runtime verification. Do not describe the new player journey as runtime-tested until it has been opened and played in Godot.
 

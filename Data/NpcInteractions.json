@@ -63,7 +63,7 @@
       "activityMet": 1.2
     },
     {
-      "characterId": "ms_an",
+      "characterId": "ms_carter",
       "id": "ask_about_services",
       "label": "Ask about response services",
       "availableLocationIds": [
@@ -71,7 +71,7 @@
       ],
       "durationMinutes": 10,
       "effects": [],
-      "feedback": "Ms. An explains that the company verifies reports before dispatching a field team. She gives you a public contact card and advises you not to enter an unsafe building alone.",
+      "feedback": "Ms. Carter explains that the company verifies reports before dispatching a field team. She gives you a public contact card and advises you not to enter an unsafe building alone.",
       "activityMet": 0.8
     }
   ]
