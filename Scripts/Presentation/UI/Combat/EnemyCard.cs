@@ -10,6 +10,7 @@ public partial class EnemyCard : Button
     private ProgressBar _healthBar;
     private Label _conditionLabel;
     private Label _intentLabel;
+    private CombatCardVfx _vfx;
 
     private string _enemyId = string.Empty;
     private bool _selectable;
@@ -25,6 +26,7 @@ public partial class EnemyCard : Button
         _healthBar = GetNode<ProgressBar>("Margin/Content/HealthBar");
         _conditionLabel = GetNode<Label>("Margin/Content/Condition");
         _intentLabel = GetNode<Label>("Margin/Content/Intent");
+        _vfx = GetNode<CombatCardVfx>("Vfx");
 
         Pressed += HandlePressed;
         FocusMode = FocusModeEnum.All;
@@ -85,17 +87,7 @@ public partial class EnemyCard : Button
 
     public void PlayFeedback(CombatFeedbackType feedbackType)
     {
-        Color feedbackColor = feedbackType switch
-        {
-            CombatFeedbackType.Hit => new Color("#e07870"),
-            CombatFeedbackType.Attack => new Color("#e7a45d"),
-            _ => Colors.White
-        };
-
-        Modulate = feedbackColor;
-        CreateTween()
-            .TweenProperty(this, "modulate", Colors.White, 0.28)
-            .SetDelay(0.12);
+        _vfx.PlayFeedback(feedbackType);
     }
 
     private void HandlePressed()
@@ -105,6 +97,7 @@ public partial class EnemyCard : Button
             return;
         }
 
+        _vfx.PlayTargetSelected();
         Selected?.Invoke(_enemyId);
     }
 
