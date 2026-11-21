@@ -76,9 +76,9 @@ public partial class CombatPanel : PanelContainer
         _partyRosterPanel.PlayFeedback(characterName, feedbackType);
     }
 
-    public void SetSelectedEnemyTarget(string enemyId)
+    public bool SetSelectedEnemyTarget(string enemyId)
     {
-        _actionPanel.SetSelectedEnemyTarget(enemyId);
+        return _actionPanel.SetSelectedEnemyTarget(enemyId);
     }
 
     public void ClearTargetSelection()
