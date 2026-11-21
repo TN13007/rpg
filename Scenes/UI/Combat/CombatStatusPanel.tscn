@@ -48,7 +48,7 @@ theme_override_constants/separation = 12
 layout_mode = 2
 theme_override_font_sizes/font_size = 10
 theme_override_colors/font_color = Color(0.333, 0.655, 1, 1)
-text = "● Ari"
+text = "● Alex"
 
 [node name="Party" type="Label" parent="Margin/Content/TimelineLegend"]
 layout_mode = 2
@@ -85,7 +85,7 @@ theme_override_constants/separation = 3
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 theme_override_colors/font_color = Color(0.86, 0.69, 0.43, 1)
-text = "Goblin"
+text = "Unstable Presence"
 
 [node name="Description" type="Label" parent="Margin/Content/IntentCard/Margin/Content"]
 layout_mode = 2
