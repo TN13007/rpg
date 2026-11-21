@@ -473,6 +473,17 @@ public sealed class ExplorationFlowController
             return;
         }
 
+        if (!string.IsNullOrWhiteSpace(selectedChoice.Action.RequiredNpcId) &&
+            !_npcPresenceQuery.IsPresent(
+                selectedChoice.Action.RequiredNpcId,
+                _currentLocationId,
+                _gameClock.MinutesOfDay))
+        {
+            _storyPanel.ShowFeedback("That character is no longer here.");
+            ShowLocationEvent(_activeLocationEvent);
+            return;
+        }
+
         if (selectedChoice.EncounterActionId != null)
         {
             ActionDefinition encounterAction = FindChoice(

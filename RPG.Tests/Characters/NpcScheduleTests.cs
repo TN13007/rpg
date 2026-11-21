@@ -106,6 +106,8 @@ public sealed class NpcScheduleTests
 
         Assert.Equal(8, miraSchedule.Entries.Length);
         Assert.Equal("mira_meeting_point", miraSchedule.GetEntryAt(450).LocationId);
+        Assert.Equal("assembly_hall", miraSchedule.GetEntryAt(474).LocationId);
+        Assert.Equal("assembly_hall", miraSchedule.GetEntryAt(475).LocationId);
         Assert.Equal("canteen", miraSchedule.GetEntryAt(600).LocationId);
         Assert.Equal("library", miraSchedule.GetEntryAt(780).LocationId);
         Assert.Equal("courtyard", miraSchedule.GetEntryAt(880).LocationId);

@@ -5,12 +5,12 @@
       "entries": [
         {
           "startMinute": 420,
-          "endMinute": 510,
+          "endMinute": 475,
           "locationId": "mira_meeting_point",
           "activityDescription": "She waits beside the fountain and greets students arriving for the opening day."
         },
         {
-          "startMinute": 510,
+          "startMinute": 475,
           "endMinute": 570,
           "locationId": "assembly_hall",
           "activityDescription": "She attends the opening ceremony from a seat near the front."
