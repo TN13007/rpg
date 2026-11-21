@@ -23,6 +23,9 @@ public sealed class CombatEnemyIntentTests
         Assert.Equal(enemy.Id, snapshot.Intent.EnemyId);
         Assert.Equal("Heavy Swing → " + player.Name, snapshot.Intent.Description);
         Assert.Equal(IntentConfidence.Recognized, snapshot.Intent.Confidence);
+
+        CombatViewData viewData = new CombatPresentationMapper().Map(snapshot);
+        Assert.Equal("Heavy Swing → " + player.Name, Assert.Single(viewData.Timeline).IntentDescription);
     }
 
     [Fact]
@@ -101,6 +104,32 @@ public sealed class CombatEnemyIntentTests
 
         Assert.Equal("Heavy Swing → " + player.Name, heavyIntent.IntentDescription);
         Assert.Equal("Staggering Blow → " + player.Name, disruptorIntent.IntentDescription);
+    }
+
+
+    [Fact]
+    public void EnemyExecutesTheActionAndTargetShownByItsCommittedIntent()
+    {
+        Character player = TestCharacterFactory.CreatePlayer();
+        Character enemy = TestCharacterFactory.CreateEnemy();
+        CombatActionDefinition heavySwing = CreateEnemyAttack("heavy_swing", "Heavy Swing", 12);
+        CombatService combat = CreateCombat(player, enemy, heavySwing);
+
+        Assert.True(combat.TryStartEncounter(out string failureReason), failureReason);
+        combat.AdvanceCombatTime(10.0);
+        Assert.True(combat.IsAwaitingPlayerDecision);
+
+        CombatResult playerAction = combat.ExecuteAction(
+            new CombatActionRequest("quick_strike", enemy.Id, player.Id));
+        Assert.True(playerAction.Success);
+
+        CombatResult enemyResult = combat.AdvanceCombatTime(10.0);
+        CombatEvent enemyAction = Assert.Single(
+            enemyResult.Events.Where(item => item.Type == CombatEventType.EnemyAction));
+
+        Assert.Equal("TEST ENEMY", enemyAction.ActorName);
+        Assert.Equal(player.Name, enemyAction.TargetName);
+        Assert.Equal("The enemy performs Heavy Swing.", enemyAction.Detail);
     }
 
     private static CombatService CreateCombat(
