@@ -1,6 +1,6 @@
 # C# XML Documentation and VS Code IntelliSense
 
-**Applies to:** Godot 4.7.2 .NET / C# source in `Scripts/` and public contracts consumed by `RPG.Tests/`.
+**Applies to:** Godot 4.7.2 .NET / C# runtime source in `Scripts/`.
 
 This guide defines how source code explains its public API. It complements, rather than replaces, the layer and feature documentation in [Cross-Layer Architecture](CrossLayerArchitecture.md).
 
@@ -29,7 +29,7 @@ The exact available Code Actions depend on the C# language server and the code c
 5. In VS Code, open a C# file and wait for the C# language service to finish loading. If IntelliSense is not ready, use the Command Palette and run the C# project/solution reload command exposed by the installed C# extension.
 6. Test by hovering over `Character.TakeDamage` or `CombatSessionService.TryStartEncounter`.
 
-The project emits an XML documentation file for its compiled assembly so documentation can also be consumed across project boundaries. Missing-documentation warning CS1591 is temporarily suppressed while existing public APIs are documented incrementally; this does not suppress XML parsing errors or other compiler diagnostics.
+The project emits an XML documentation file for its compiled assembly so documentation can also be consumed across project boundaries. Missing-documentation warning CS1591 is enabled so undocumented public runtime APIs remain visible during builds. This does not suppress XML parsing errors or other compiler diagnostics.
 
 ## 3. XML documentation syntax
 
