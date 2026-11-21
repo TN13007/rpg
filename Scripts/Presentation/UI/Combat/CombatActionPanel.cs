@@ -2,10 +2,14 @@ using System;
 using System.Collections.Generic;
 using Godot;
 
+/// <summary>Presents combat action information and exposes its UI interactions.</summary>
 public partial class CombatActionPanel : PanelContainer
 {
+    /// <summary>Raised when action selected occurs.</summary>
     public event Action<CombatActionRequest> ActionSelected;
+    /// <summary>Raised when enemy target selection requested occurs.</summary>
     public event Action<string[]> EnemyTargetSelectionRequested;
+    /// <summary>Raised when enemy target selection cancelled occurs.</summary>
     public event Action EnemyTargetSelectionCancelled;
 
     private GridContainer _actionGrid;
@@ -18,6 +22,7 @@ public partial class CombatActionPanel : PanelContainer
     private readonly HashSet<string> _validEnemyTargetIds =
         new HashSet<string>(StringComparer.Ordinal);
 
+    /// <summary>Initializes the Godot control and connects its UI signals.</summary>
     public override void _Ready()
     {
         UiTheme.StylePanel(this);
@@ -32,6 +37,8 @@ public partial class CombatActionPanel : PanelContainer
         _targetGrid.Visible = false;
     }
 
+    /// <summary>Sets actions.</summary>
+    /// <param name="actions">The actions used by this operation.</param>
     public void SetActions(CombatActionOption[] actions)
     {
         ClearChildren(_actionGrid);
@@ -58,6 +65,9 @@ public partial class CombatActionPanel : PanelContainer
         }
     }
 
+    /// <summary>Sets selected enemy target.</summary>
+    /// <param name="enemyId">The enemy id used by this operation.</param>
+    /// <returns><see langword="true"/> when the operation succeeds; otherwise, <see langword="false"/>.</returns>
     public bool SetSelectedEnemyTarget(string enemyId)
     {
         if (_pendingAction == null ||
@@ -79,6 +89,7 @@ public partial class CombatActionPanel : PanelContainer
         return true;
     }
 
+    /// <summary>Clears target selection from the current UI state.</summary>
     public void ClearTargetSelection()
     {
         ClearPendingTarget();
