@@ -7,6 +7,7 @@ using Godot;
  * MainController is the Godot composition root.
  * It discovers scene nodes, constructs the application graph and connects top-level signals.
  */
+/// <summary>Acts as the Godot composition root: builds the application dependency graph and connects top-level scene signals.</summary>
 public partial class MainController : Control
 {
     private Sidebar _sidebar;
@@ -16,6 +17,7 @@ public partial class MainController : Control
     private ActionDefinition _debugEncounterAction;
     private string[] _pendingEnemyTargetIds = Array.Empty<string>();
 
+    /// <summary>Performs the  ready operation for main controller.</summary>
     public override void _Ready()
     {
         _sidebar = GetNode<Sidebar>("SafeArea/Layout/Sidebar");
@@ -90,6 +92,8 @@ public partial class MainController : Control
         _explorationController.ShowLocation();
     }
 
+    /// <summary>Performs the  process operation for main controller.</summary>
+    /// <param name="delta">The delta used by this operation.</param>
     public override void _Process(double delta)
     {
         _combatController?.AdvanceCombatTime(delta);
