@@ -170,27 +170,50 @@ public sealed class IntentObservation
     }
 }
 
+public sealed class CombatActionTargetOption
+{
+    public string Id { get; }
+    public string Name { get; }
+
+    public CombatActionTargetOption(string id, string name)
+    {
+        if (string.IsNullOrWhiteSpace(id))
+            throw new ArgumentException("Target ID is required.", nameof(id));
+
+        Id = id;
+        Name = name ?? string.Empty;
+    }
+}
+
 public sealed class CombatActionOption
 {
     public string Id { get; }
-    public string TargetId { get; }
     public string ActorId { get; }
     public string Label { get; }
     public string CostLabel { get; }
     public string Description { get; }
     public bool IsAvailable { get; }
     public string UnavailableReason { get; }
+    public CombatActionTargetOption[] Targets { get; }
 
-    public CombatActionOption(string id, string label, string costLabel, string description, bool isAvailable = true, string unavailableReason = "", string targetId = "", string actorId = "")
+    public CombatActionOption(
+        string id,
+        string label,
+        string costLabel,
+        string description,
+        bool isAvailable = true,
+        string unavailableReason = "",
+        string actorId = "",
+        CombatActionTargetOption[] targets = null)
     {
         Id = id ?? string.Empty;
-        TargetId = targetId ?? string.Empty;
         ActorId = actorId ?? string.Empty;
         Label = label ?? string.Empty;
         CostLabel = costLabel ?? string.Empty;
         Description = description ?? string.Empty;
         IsAvailable = isAvailable;
         UnavailableReason = unavailableReason ?? string.Empty;
+        Targets = targets ?? Array.Empty<CombatActionTargetOption>();
     }
 }
 

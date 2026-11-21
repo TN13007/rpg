@@ -248,10 +248,13 @@ public sealed class CombatServiceTests
         {
             Assert.Equal(member.Id, combat.GetSnapshot().ActiveCombatantId);
             CombatActionOption action = Assert.Single(combat.GetSnapshot().AvailableActions.Where(option =>
-                option.Id == "quick_strike" && option.TargetId == enemyA.Id));
+                option.Id == "quick_strike"));
+            Assert.Equal(2, action.Targets.Length);
             Assert.Equal(member.Id, action.ActorId);
+            CombatActionTargetOption selectedTarget = Assert.Single(
+                action.Targets.Where(target => target.Id == enemyA.Id));
             CombatResult actionResult = combat.ExecuteAction(new CombatActionRequest(
-                action.Id, action.TargetId, action.ActorId));
+                action.Id, selectedTarget.Id, action.ActorId));
             Assert.True(actionResult.Success);
             enemyEvents.AddRange(AdvanceUntilPlayerDecision(combat));
         }
@@ -312,11 +315,13 @@ public sealed class CombatServiceTests
         Assert.DoesNotContain(downedSnapshot.Timeline, item => item.Id == downed.Id);
 
         CombatActionOption reviveOption = Assert.Single(downedSnapshot.AvailableActions.Where(item =>
-            item.Id == "revive_ally" && item.TargetId == downed.Id));
+            item.Id == "revive_ally"));
+        CombatActionTargetOption reviveTarget = Assert.Single(
+            reviveOption.Targets.Where(target => target.Id == downed.Id));
         Assert.True(reviveOption.IsAvailable);
 
         CombatResult reviveResult = combat.ExecuteAction(
-            new CombatActionRequest("revive_ally", downed.Id, medic.Id));
+            new CombatActionRequest("revive_ally", reviveTarget.Id, medic.Id));
         Assert.True(reviveResult.Success);
         Assert.Equal(2, downed.Health);
         Assert.Equal(6, medic.Stamina);
@@ -340,7 +345,7 @@ public sealed class CombatServiceTests
             combat.GetSnapshot().Party.Where(item => item.Id == downed.Id));
         Assert.Equal("Downed", downedAgain.Condition);
         Assert.DoesNotContain(combat.GetSnapshot().AvailableActions, item =>
-            item.Id == "revive_ally" && item.TargetId == downed.Id);
+            item.Id == "revive_ally" && item.Targets.Any(target => target.Id == downed.Id));
 
         CombatResult repeatedRevive = combat.ExecuteAction(
             new CombatActionRequest("revive_ally", downed.Id, medic.Id));

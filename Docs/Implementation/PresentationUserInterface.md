@@ -62,7 +62,7 @@ The current panel separates:
 - Encounter context and Party roster, including a visible Downed condition.
 - Expected action timing on a shared Time-to-Ready axis.
 - Ordered message history.
-- Available Combat Actions, including contextual Revive targets when a Party member is Downed.
+- Available Combat Actions are listed once per action, regardless of the number of valid targets. Selecting a target-requiring action opens a separate list of valid targets; contextual Revive appears once with currently revivable Party members in that list.
 
 `CombatPresentationMapper` converts each combatant's Remaining Progress, Speed and remaining Stun duration into `TimelineMarkerViewData.TimeToReadySeconds`. The UI consumes this presentation value; it does not calculate combat timing from Domain state.
 

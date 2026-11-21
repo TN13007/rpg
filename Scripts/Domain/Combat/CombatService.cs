@@ -210,26 +210,27 @@ public sealed class CombatService : ICombatService
                 bool available = IsActionAvailable(action, active.Character);
                 if (RequiresTarget(action))
                 {
-                    CombatantRuntime[] targets = _enemies
+                    CombatActionTargetOption[] targets = _enemies
                         .Where(item => item.Character.IsAlive && item.IsVisible)
+                        .Select(item => new CombatActionTargetOption(
+                            item.Character.Id,
+                            item.Character.Name))
                         .ToArray();
 
-                    foreach (CombatantRuntime enemy in targets)
+                    if (targets.Length == 0)
                     {
-                        string label = targets.Length > 1
-                            ? action.Label + " → " + enemy.Character.Name
-                            : action.Label;
-
-                        availableActions.Add(new CombatActionOption(
-                            action.Id,
-                            label,
-                            action.CostLabel,
-                            action.Description,
-                            available,
-                            available ? string.Empty : GetUnavailableReason(action),
-                            enemy.Character.Id,
-                            active.Character.Id));
+                        continue;
                     }
+
+                    availableActions.Add(new CombatActionOption(
+                        action.Id,
+                        action.Label,
+                        action.CostLabel,
+                        action.Description,
+                        available,
+                        available ? string.Empty : GetUnavailableReason(action),
+                        active.Character.Id,
+                        targets));
                 }
                 else
                 {
@@ -240,7 +241,6 @@ public sealed class CombatService : ICombatService
                         action.Description,
                         available,
                         available ? string.Empty : GetUnavailableReason(action),
-                        string.Empty,
                         active.Character.Id));
                 }
             }
@@ -248,21 +248,28 @@ public sealed class CombatService : ICombatService
 
         if (active != null && active.IsPartyMember && active.Character.CanAct && !active.IsDowned)
         {
-            foreach (CombatantRuntime downed in _party.Where(item =>
-                item.Character.Id != active.Character.Id &&
-                item.IsDowned &&
-                !item.HasBeenRevived))
+            CombatActionTargetOption[] reviveTargets = _party
+                .Where(item =>
+                    item.Character.Id != active.Character.Id &&
+                    item.IsDowned &&
+                    !item.HasBeenRevived)
+                .Select(item => new CombatActionTargetOption(
+                    item.Character.Id,
+                    item.Character.Name))
+                .ToArray();
+
+            if (reviveTargets.Length > 0)
             {
                 bool available = IsActionAvailable(_reviveAction, active.Character);
                 availableActions.Add(new CombatActionOption(
                     _reviveAction.Id,
-                    _reviveAction.Label + " → " + downed.Character.Name,
+                    _reviveAction.Label,
                     _reviveAction.CostLabel,
                     _reviveAction.Description,
                     available,
                     available ? string.Empty : GetUnavailableReason(_reviveAction),
-                    downed.Character.Id,
-                    active.Character.Id));
+                    active.Character.Id,
+                    reviveTargets));
             }
         }
 
