@@ -294,6 +294,11 @@ public sealed class CombatService : ICombatService
                 item.Character.Id == _activeCombatantId))
             .ToArray();
 
+        TimelineCombatantStatus[] timelineEntries = GetTimelineEntries();
+        Dictionary<string, string> enemyIntents = timelineEntries
+            .Where(entry => entry.IsEnemy && !string.IsNullOrWhiteSpace(entry.IntentDescription))
+            .ToDictionary(entry => entry.Id, entry => entry.IntentDescription, StringComparer.Ordinal);
+
         EnemyCombatStatus[] enemyStatuses = _enemies
             .Select(item => new EnemyCombatStatus(
                 item.Character.Id,
@@ -301,7 +306,10 @@ public sealed class CombatService : ICombatService
                 item.Character.Health,
                 item.Character.MaxHealth,
                 GetEnemyCondition(item.Character),
-                item.IsVisible))
+                item.IsVisible,
+                enemyIntents.TryGetValue(item.Character.Id, out string intentDescription)
+                    ? intentDescription
+                    : string.Empty))
             .ToArray();
 
         string turnLabel = _encounterOver
@@ -316,7 +324,7 @@ public sealed class CombatService : ICombatService
             enemyStatuses,
             GetPrimaryEnemyIntent(),
             availableActions.ToArray(),
-            GetTimelineEntries(),
+            timelineEntries,
             partyStatuses,
             _activeCombatantId);
     }
