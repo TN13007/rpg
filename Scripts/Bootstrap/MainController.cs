@@ -42,7 +42,8 @@ public partial class MainController : Control
         encounterCombatants.Add(new CombatantDefinition(
             enemy,
             CombatantSide.Enemy,
-            content.GetCombatActionsForCharacter(enemyData.Id)));
+            content.GetCombatActionsForCharacter(enemyData.Id),
+            behaviorProfile: EnemyBehaviorProfiles.CreateUnstablePresence()));
 
         CombatService combatService = new CombatService(encounterCombatants);
         CombatPresentationMapper combatPresentationMapper = new CombatPresentationMapper();
