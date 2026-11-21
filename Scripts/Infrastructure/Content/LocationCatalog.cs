@@ -264,7 +264,7 @@ public sealed class LocationCatalog
             string legacyDescription = data.GetString();
             if (string.IsNullOrWhiteSpace(legacyDescription))
             {
-                throw new InvalidOperationException("Academy location description cannot be empty.");
+                throw new InvalidOperationException("Location description cannot be empty.");
             }
 
             firstVisitDescription = legacyDescription;
@@ -328,11 +328,11 @@ public sealed class LocationCatalog
         return actions.ToArray();
     }
 
-    
 
-    
 
-    
 
-    
+
+
+
+
 }
