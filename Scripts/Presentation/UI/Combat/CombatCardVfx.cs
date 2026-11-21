@@ -1,9 +1,11 @@
 using Godot;
 
+/// <summary>Plays visual feedback for combat card interactions.</summary>
 public partial class CombatCardVfx : Node
 {
     private CanvasItem _visual;
 
+    /// <summary>Initializes the Godot control and connects its UI signals.</summary>
     public override void _Ready()
     {
         _visual = GetParent() as CanvasItem;
@@ -13,6 +15,8 @@ public partial class CombatCardVfx : Node
         }
     }
 
+    /// <summary>Plays feedback feedback in the UI.</summary>
+    /// <param name="feedbackType">The feedback type used by this operation.</param>
     public void PlayFeedback(CombatFeedbackType feedbackType)
     {
         Color color = feedbackType switch
@@ -29,6 +33,7 @@ public partial class CombatCardVfx : Node
         PlayPulse(color, 0.28, 0.12);
     }
 
+    /// <summary>Plays target selected feedback in the UI.</summary>
     public void PlayTargetSelected()
     {
         PlayPulse(new Color("#f0c56e"), 0.22, 0.0);
