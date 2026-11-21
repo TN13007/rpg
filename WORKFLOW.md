@@ -25,20 +25,20 @@ Design decisions do not imply implementation. If the desired experience and curr
 ### Product direction
 
 The intended product is an open-ended Life Simulation RPG set in a Science-Fantasy world with Renaissance-era civilization and common magic:
-- The player creates a character and chooses how to spend time.
-- The Academy and nearby town provide the initial social and exploration space.
-- NPCs offer relationships, routines and activities without forcing a single story route.
-- Content is discovered through places, people, activities and events.
+- The player chooses activities and personal goals rather than following a mandatory central story.
+- The Academy and nearby town provide the initial exploration and social space.
+- Authored Locations, Actions, Effects and Events are the main content-building tools for the first slice.
+- NPC autonomy and more advanced simulation are added only when a playable scenario needs them.
 - Combat and other challenging activities may exist as optional content; they are not the immediate product priority.
 - The world scale and larger lore remain open.
 
-The first player-facing target is **Opening Day**: character creation, horse-carriage arrival around 07:00–08:00, reaching the opening ceremony by following students or meeting Mira, a concise introduction, free afternoon exploration and returning to the dormitory to sleep. The authoritative direction is in [Game Vision](Docs/Design/GameVision.md), [World and Narrative](Docs/Design/WorldAndNarrative.md) and [Roadmap](Docs/Design/Roadmap.md).
+The first player-facing target is **Opening Day**: begin at a horse-carriage location around 07:00–08:00, travel to the Academy, follow the students or meet Mira, attend the opening ceremony, eat at the canteen, explore a small set of Academy/town locations and return to the Dormitory to sleep. Use the existing protagonist data; character creation is not in this slice. See [Game Vision](Docs/Design/GameVision.md), [World and Narrative](Docs/Design/WorldAndNarrative.md), [Roadmap](Docs/Design/Roadmap.md) and [Issue #103](https://github.com/TN13007/rpg/issues/103).
 
 ### Implementation reality on main
 
 The current build has a location-based Exploration prototype, GameClock day/minute tracking, Sleep/recovery actions and a four-person Tactical Timeline combat prototype. The current Exploration flow uses authored Location Actions, Travel choices and a narrow Courtyard Goblin Event. Combat includes Ari, Bram, Mira and Sera against one Goblin archetype, with Timeline, player decision pauses, Recovery Cost, Delay/Stun, Downed/Revive and Victory/Defeat.
 
-Do not infer that character creation, horse-carriage arrival, a crowd of students, dialogue, general NPC presence, schedules, relationships, free-roam movement or a complete Academy/town day already exist. Verify source and tests before treating any of these as implemented. See [Implementation](Docs/Implementation/README.md) for current code contracts.
+The existing Action Effect types include RestoreHealth, RestoreFatigue, RestoreStamina, ChangeMood, AddGold and Revive. The existing Location Event presents one authored description and a set of choices; it does not yet provide a multi-page narrative sequence. The player currently starts from hardcoded protagonist data and the Dormitory. Do not infer that a horse-carriage opening, Academy arrival routes, dialogue system, multi-page ceremony, general NPC presence or a complete town already exist. Verify source and tests before treating any of these as implemented.
 
 ## 3. Session protocol
 
@@ -62,21 +62,20 @@ The Git workflow, commit granularity and PR requirements are defined only in [CO
 
 **Immediate implementation priority:** [Issue #103 — Deliver the first playable Academy day](https://github.com/TN13007/rpg/issues/103).
 
-Start by inspecting the current character, GameClock, Location/Travel/Action, content loading, save/persistence and presentation flows. Map each Opening Day requirement to existing code, missing behavior and manual verification. Do not assume JSON alone can implement new runtime behavior.
+Start by reshaping the existing Academy content and Location graph, not by building new universal systems. Trace the current travel, action/effect, event and sleep paths, then deliver:
+1. Start the game at a horse-carriage Location around 07:00–08:00.
+2. Add Academy arrival and two connected routes: follow the crowd or meet Mira; both reach the ceremony.
+3. Author the ceremony using the existing event description and choices. Add only a small sequential-passage behavior if the current one-description event is insufficient.
+4. Add the canteen meal using RestoreStamina and simple authored interactions with Mira/students.
+5. Add a small set of Academy/town Locations and connect evening travel back to the existing Dormitory.
+6. Reuse the existing eight-hour Sleep action; verify rollover and the complete journey in Godot.
 
-Deliver in small increments:
-1. Character creation and opening-day start.
-2. Horse-carriage arrival, student/crowd context, route choice and ceremony convergence.
-3. Free exploration of a deliberately small Academy/town location set.
-4. Dormitory return, Sleep, next-day transition and persistence.
-5. Full interactive Godot acceptance from character creation to sleeping.
-
-Keep the scope narrow. Do not introduce universal NPC simulation, broad relationship frameworks, new combat content or a full world model unless the playable journey proves a dependency.
+Do not add a ChangeLocation Effect when existing Travel already changes Location. Do not build crowd simulation, character creator, general dialogue/quest frameworks, universal NPC schedules or a new Energy resource for this slice unless a concrete runtime limitation requires it.
 
 Deferred work:
 - [Issue #91](https://github.com/TN13007/rpg/issues/91): four-person Tactical Timeline encounter.
 - [Issue #79](https://github.com/TN13007/rpg/issues/79): party progression backlog.
-- [Issue #62](https://github.com/TN13007/rpg/issues/62): manual Sleep/GameClock runtime verification; reuse its checks when validating the daily-life loop.
+- [Issue #62](https://github.com/TN13007/rpg/issues/62): manual Sleep/GameClock runtime verification; reuse its checks for the Opening Day end state.
 
 ## 5. Learning evidence
 
