@@ -37,7 +37,7 @@ The accepted direction and unresolved design questions are owned by [Design](Doc
 
 The current build contains an authored Opening Day location-based Exploration slice and a four-person Tactical Timeline Combat prototype. Exploration supports Location travel, context-sensitive Actions, authored Location Events, GameClock/Sleep and recovery actions. Combat composes Ari, Bram, Mira and Sera against one Goblin archetype; it has a shared real-time Combat Timeline, player decision pauses, action-specific Recovery Cost, Delay/Stun, Downed/Revive, Victory/Defeat and the post-encounter rescue path.
 
-These are specialized runtime flows that coexist in the same game; the code does not yet provide a universal Interaction executor or a complete autonomous world simulation. The full Opening Day Godot journey and the complete interactive Combat encounter still require their documented runtime verification. Relevant outcomes should be connected across contexts through concrete player-facing requirements, not by assuming a generalized simulation framework already exists. Read [Implementation](Docs/Implementation/README.md) for verified code structure and runtime behavior.
+These are specialized runtime flows that coexist in the same game. NPC presence is resolved from authored daily schedules and GameClock; the code still does not provide a universal Interaction executor or a complete autonomous world simulation. The full Opening Day Godot journey and the complete interactive Combat encounter still require their documented runtime verification. Relevant outcomes should be connected across contexts through concrete player-facing requirements, not by assuming a generalized simulation framework already exists. Read [Implementation](Docs/Implementation/README.md) for verified code structure and runtime behavior.
 
 ## 3. Session protocol
 
@@ -59,9 +59,9 @@ The Git workflow, commit granularity and PR requirements are defined only in [CO
 
 ## 4. Current handoff
 
-**Immediate implementation priority:** [Issue #91 — Four-Person Tactical Timeline Encounter](https://github.com/TN13007/rpg/issues/91).
+**Immediate implementation priority:** [Issue #108 — Data-driven daily NPC schedules](https://github.com/TN13007/rpg/issues/108).
 
-The immediate Combat increment remains Enemy Intent plus a second enemy behavior pattern, used in one encounter that creates competing threats and meaningful player responses. This completes the dedicated Combat context; it does not make the whole game Combat-first. Before implementation:
+The first NPC schedule slice should prove that authored daily time ranges change who is present at a Location and which NPC-required interactions are available. Keep it bounded: no pathfinding, needs, memory, relationship simulation or general autonomous AI. [Issue #91 — Four-Person Tactical Timeline Encounter](https://github.com/TN13007/rpg/issues/91) remains open as the next specialized Combat delivery target; its remaining increment is Enemy Intent plus a second enemy behavior pattern, used in one encounter that creates competing threats and meaningful player responses. This completes the dedicated Combat context; it does not make the whole game Combat-first. Before implementation:
 - Read [Game Vision](Docs/Design/GameVision.md), [Combat Design](Docs/Design/Combat.md) and [Roadmap Phase 1](Docs/Design/Roadmap.md).
 - Read [Cross-Layer Runtime Systems](Docs/Implementation/CrossLayerRuntimeSystems.md) and trace the current Combat flow, source code and tests.
 - Keep intent presentation separate from authoritative enemy action resolution; visible intent must not silently change.

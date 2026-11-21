@@ -294,6 +294,7 @@
         {
           "id": "talk_mira_canteen",
           "label": "Talk with Mira",
+          "requiredNpcId": "mira",
           "durationMinutes": 10,
           "effects": [
             {
@@ -323,12 +324,13 @@
           "id": "canteen_first_arrival",
           "title": "A place to sit",
           "region": "ACADEMY CANTEEN",
-          "description": "The canteen is crowded with new students. Near the windows, a girl with a neatly packed bag notices you and gives a friendly wave. If you met her by the fountain, you recognize Mira; otherwise, she introduces herself with a warm smile. There are other open seats if you would rather meet someone else or take a quiet break.",
+          "description": "The canteen is crowded with new students. Near the windows, a few tables have already filled with first-year students comparing their first impressions of the Academy. Other seats remain open: you can join a group, look for someone you know, or take a quiet break on your own.",
           "chance": 1,
           "choices": [
             {
               "id": "join_mira_for_lunch",
               "label": "Join Mira's table",
+              "requiredNpcId": "mira",
               "durationMinutes": 15,
               "effects": [
                 {

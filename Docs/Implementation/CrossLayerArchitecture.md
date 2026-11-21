@@ -64,6 +64,22 @@ Data / content loaders
 
 The query discovers choices for the current context without mutating state. The mapper converts query results into presentation-safe data. StoryPanel renders the choices and emits a stable source/action/target identity. The flow controller coordinates the request; the owning service revalidates it.
 
+### NPC presence
+
+```text
+Data/NpcSchedules.json
+  -> Infrastructure NpcScheduleDataLoader / NpcScheduleCatalog
+  -> GameContentCatalog reference validation
+  -> Application NpcPresenceQuery
+       <- CharacterData + current Location + GameClock minute
+  -> ExplorationFlowController
+       -> Location/Event description
+       -> AvailableInteractionQuery NPC requirement filtering
+       -> revalidate required NPC presence before action execution
+```
+
+Schedules are read-only content. The query does not move NPCs or mutate state; it resolves the active authored time interval when the current Location context is shown. The owning action flow still executes the selected Action.
+
 ### Combat
 
 ```text
@@ -84,7 +100,7 @@ CombatService owns turn validation, resolution, enemy response and combat-state 
 ```text
 Data/*.json
   -> Infrastructure GameContentLoader
-      -> schema-specific readers
+      -> schema-specific readers (including NPC schedules)
       -> Domain definitions
       -> ID/reference validation
   -> GameContentCatalog

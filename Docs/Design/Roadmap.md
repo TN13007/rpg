@@ -37,6 +37,7 @@ Turn important authored interactions from fixed choices into context-sensitive c
 **Exit criteria**
 
 - At least one authored choice changes a later available interaction or response.
+- At least one NPC's visible Location/activity changes with GameClock time and changes what the player can see or do there.
 - At least one important character or Location reacts differently to a prior player action.
 - The player can understand why an option is available, unavailable or changed.
 - State changes are validated and tested through the owning gameplay domain.

@@ -43,6 +43,7 @@ public sealed class ActionDefinition
     public ActionEffectDefinition[] Effects { get; }
     public int? EstimatedDurationMinMinutes { get; }
     public int? EstimatedDurationMaxMinutes { get; }
+    public string RequiredNpcId { get; }
 
     public ActionDefinition(
         string id,
@@ -53,7 +54,8 @@ public sealed class ActionDefinition
         double activityMet = 1.0,
         ActionEffectDefinition[] effects = null,
         int? estimatedDurationMinMinutes = null,
-        int? estimatedDurationMaxMinutes = null)
+        int? estimatedDurationMaxMinutes = null,
+        string requiredNpcId = null)
     {
         if (string.IsNullOrWhiteSpace(id)) throw new ArgumentException("Action ID is required.", nameof(id));
         if (string.IsNullOrWhiteSpace(label)) throw new ArgumentException("Action label is required.", nameof(label));
@@ -82,5 +84,6 @@ public sealed class ActionDefinition
         Feedback = feedback ?? string.Empty;
         EstimatedDurationMinMinutes = estimatedDurationMinMinutes;
         EstimatedDurationMaxMinutes = estimatedDurationMaxMinutes;
+        RequiredNpcId = string.IsNullOrWhiteSpace(requiredNpcId) ? null : requiredNpcId;
     }
 }

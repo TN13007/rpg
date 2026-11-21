@@ -47,7 +47,8 @@ public static class GameContentLoader
         CombatActionCatalog combatActions = new CombatActionCatalog(
             CombatActionJsonReader.Read(FileAccess.GetFileAsString(combatActionsPath)));
         CharacterCatalog characterCatalog = new CharacterCatalog(characters);
+        NpcScheduleCatalog npcSchedules = NpcScheduleDataLoader.Load(normalizedRoot + "/NpcSchedules.json");
 
-        return new GameContentCatalog(academy, characterCatalog, combatActions);
+        return new GameContentCatalog(academy, characterCatalog, combatActions, npcSchedules);
     }
 }

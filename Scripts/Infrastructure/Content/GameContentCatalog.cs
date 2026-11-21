@@ -7,6 +7,7 @@ public sealed class GameContentCatalog
 
     public CharacterCatalog Characters { get; }
     public CombatActionCatalog CombatActions { get; }
+    public NpcScheduleCatalog NpcSchedules { get; }
 
     public IEnumerable<LocationContent> Locations => _academy.All;
     public ActionDefinition Travel => _academy.Travel;
@@ -15,17 +16,21 @@ public sealed class GameContentCatalog
     public GameContentCatalog(
         AcademyContent academy,
         CharacterCatalog characters,
-        CombatActionCatalog combatActions)
+        CombatActionCatalog combatActions,
+        NpcScheduleCatalog npcSchedules)
     {
         _academy = academy ?? throw new ArgumentNullException(nameof(academy));
         Characters = characters ?? throw new ArgumentNullException(nameof(characters));
         CombatActions = combatActions ?? throw new ArgumentNullException(nameof(combatActions));
+        NpcSchedules = npcSchedules ?? throw new ArgumentNullException(nameof(npcSchedules));
 
-        // Resolve every character reference during loading, before gameplay starts.
         foreach (CharacterData character in Characters.All)
         {
             CombatActions.Resolve(character.CombatActionIds);
         }
+
+        ValidateNpcScheduleReferences();
+        ValidateRequiredNpcReferences();
     }
 
     public LocationContent GetLocation(string id)
@@ -42,5 +47,51 @@ public sealed class GameContentCatalog
     {
         CharacterData character = Characters.Get(characterId);
         return CombatActions.Resolve(character.CombatActionIds);
+    }
+
+    private void ValidateNpcScheduleReferences()
+    {
+        foreach (NpcScheduleDefinition schedule in NpcSchedules.All)
+        {
+            Characters.Get(schedule.CharacterId);
+            foreach (NpcScheduleEntryDefinition entry in schedule.Entries)
+            {
+                _academy.Get(entry.LocationId);
+            }
+        }
+    }
+
+    private void ValidateRequiredNpcReferences()
+    {
+        foreach (LocationContent location in Locations)
+        {
+            foreach (ActionDefinition action in location.Actions)
+            {
+                ValidateRequiredNpcReference(action);
+            }
+
+            foreach (LocationEventDefinition locationEvent in location.Events)
+            {
+                foreach (LocationEventChoiceDefinition choice in locationEvent.Choices)
+                {
+                    ValidateRequiredNpcReference(choice.Action);
+                }
+            }
+        }
+    }
+
+    private void ValidateRequiredNpcReference(ActionDefinition action)
+    {
+        if (string.IsNullOrWhiteSpace(action.RequiredNpcId))
+        {
+            return;
+        }
+
+        if (!NpcSchedules.TryGet(action.RequiredNpcId, out _))
+        {
+            throw new InvalidOperationException(
+                "Action '" + action.Id + "' requires NPC '" + action.RequiredNpcId
+                + "', but no schedule is defined for that Character ID.");
+        }
     }
 }

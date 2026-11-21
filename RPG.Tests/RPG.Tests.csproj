@@ -17,6 +17,7 @@
   <ItemGroup>
     <ProjectReference Include="../RPG.csproj" />
     <None Include="../Data/AcademyLocations.json" Link="Data/AcademyLocations.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../Data/NpcSchedules.json" Link="Data/NpcSchedules.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="../Data/Characters/Player.json" Link="Data/Player.json" CopyToOutputDirectory="PreserveNewest" />
     <None Include="../Data/Characters/*.json" Link="Data/Characters/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
     <None Include="../Data/Combat/CombatActions.json" Link="Data/Combat/CombatActions.json" CopyToOutputDirectory="PreserveNewest" />

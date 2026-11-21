@@ -1,0 +1,51 @@
+{
+  "schedules": [
+    {
+      "characterId": "mira",
+      "entries": [
+        {
+          "startMinute": 420,
+          "endMinute": 510,
+          "locationId": "mira_meeting_point",
+          "activityDescription": "She waits beside the fountain and greets students arriving for the opening day."
+        },
+        {
+          "startMinute": 510,
+          "endMinute": 570,
+          "locationId": "assembly_hall",
+          "activityDescription": "She attends the opening ceremony from a seat near the front."
+        },
+        {
+          "startMinute": 570,
+          "endMinute": 750,
+          "locationId": "canteen",
+          "activityDescription": "She shares an early lunch with other first-year students."
+        },
+        {
+          "startMinute": 750,
+          "endMinute": 900,
+          "locationId": "library",
+          "activityDescription": "She reviews the Academy's introductory materials at a reading table."
+        },
+        {
+          "startMinute": 900,
+          "endMinute": 1020,
+          "locationId": "practice_yard",
+          "activityDescription": "She watches the afternoon training session."
+        },
+        {
+          "startMinute": 1020,
+          "endMinute": 1140,
+          "locationId": "academy_garden",
+          "activityDescription": "She takes a quiet break near the pond."
+        },
+        {
+          "startMinute": 1140,
+          "endMinute": 1290,
+          "locationId": "dormitory",
+          "activityDescription": "She returns to the dormitory for the evening."
+        }
+      ]
+    }
+  ]
+}
