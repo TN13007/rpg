@@ -3,11 +3,17 @@ using System;
 /// <summary>Identifies the kind of effect an action applies to a character.</summary>
 public enum ActionEffectType
 {
+    /// <summary>Restores the target character's Health.</summary>
     RestoreHealth,
+    /// <summary>Reduces the target character's Fatigue.</summary>
     RestoreFatigue,
+    /// <summary>Restores the target character's Stamina.</summary>
     RestoreStamina,
+    /// <summary>Changes the target character's Mood.</summary>
     ChangeMood,
+    /// <summary>Adds Gold to the target character.</summary>
     AddGold,
+    /// <summary>Revives a defeated character with the configured Health amount.</summary>
     Revive
 }
 
