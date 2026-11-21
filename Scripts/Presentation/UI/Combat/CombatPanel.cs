@@ -71,6 +71,11 @@ public partial class CombatPanel : PanelContainer
         _statusPanel.SetTimeline(entries);
     }
 
+    public void PlayPartyFeedback(string characterName, CombatFeedbackType feedbackType)
+    {
+        _partyRosterPanel.PlayFeedback(characterName, feedbackType);
+    }
+
     public void SetSelectedEnemyTarget(string enemyId)
     {
         _actionPanel.SetSelectedEnemyTarget(enemyId);
