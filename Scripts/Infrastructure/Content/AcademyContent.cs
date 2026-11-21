@@ -62,7 +62,7 @@ public sealed class AcademyContent
                 string id = ReadString(locationData, "id");
                 string name = ReadString(locationData, "name");
                 string region = ReadString(locationData, "region");
-                string description = ReadString(locationData, "description");
+                ReadLocationDescriptions(locationData.GetProperty("description"), out string firstVisitDescription, out string returnVisitDescription);
                 string[] exits = ReadStringArray(locationData.GetProperty("exits"));
                 ActionDefinition[] actions = ReadActions(locationData.GetProperty("actions"));
                 LocationEventDefinition[] events = locationData.TryGetProperty("events", out JsonElement eventsData)
@@ -76,7 +76,15 @@ public sealed class AcademyContent
 
                 ValidateActionIds(id, actions);
                 ValidateLocationEvents(id, actions, events);
-                loadedLocations.Add(id, new LocationContent(id, name, region, description, exits, actions, events));
+                loadedLocations.Add(id, new LocationContent(
+                    id,
+                    name,
+                    region,
+                    firstVisitDescription,
+                    returnVisitDescription,
+                    exits,
+                    actions,
+                    events));
             }
 
             if (loadedLocations.Count == 0)
@@ -240,6 +248,34 @@ public sealed class AcademyContent
                 }
             }
         }
+    }
+
+    private static void ReadLocationDescriptions(
+        JsonElement data,
+        out string firstVisitDescription,
+        out string returnVisitDescription)
+    {
+        if (data.ValueKind == JsonValueKind.String)
+        {
+            string legacyDescription = data.GetString();
+            if (string.IsNullOrWhiteSpace(legacyDescription))
+            {
+                throw new InvalidOperationException("Academy location description cannot be empty.");
+            }
+
+            firstVisitDescription = legacyDescription;
+            returnVisitDescription = legacyDescription;
+            return;
+        }
+
+        if (data.ValueKind != JsonValueKind.Object)
+        {
+            throw new InvalidOperationException(
+                "Location description must be a string or an object with first_visit and return_visit.");
+        }
+
+        firstVisitDescription = ReadString(data, "first_visit");
+        returnVisitDescription = ReadString(data, "return_visit");
     }
 
     private static string ReadString(JsonElement data, string propertyName)
