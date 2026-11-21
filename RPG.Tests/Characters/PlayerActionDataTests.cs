@@ -5,7 +5,7 @@ using Xunit;
 public sealed class PlayerActionDataTests
 {
     [Fact]
-    public void PlayerData_LoadsRestGloballyAndSleepOnlyInDormitory()
+    public void PlayerData_LoadsRestGloballyAndSleepOnlyInStudentApartment()
     {
         CharacterData player = LoadPlayerData();
 
@@ -14,13 +14,13 @@ public sealed class PlayerActionDataTests
         PlayerActionDefinition sleep = Find(player, "sleep");
         PlayerActionDefinition rescue = Find(player, "request_rescue");
 
-        Assert.True(rest.IsAvailableAt("dormitory"));
-        Assert.True(rest.IsAvailableAt("courtyard"));
-        Assert.True(sleep.IsAvailableAt("dormitory"));
-        Assert.False(sleep.IsAvailableAt("courtyard"));
+        Assert.True(rest.IsAvailableAt("student_apartment"));
+        Assert.True(rest.IsAvailableAt("university_campus"));
+        Assert.True(sleep.IsAvailableAt("student_apartment"));
+        Assert.False(sleep.IsAvailableAt("university_campus"));
         Assert.Equal(480, sleep.Action.DurationMinutes);
         Assert.Equal("Sleep for 8 hours", sleep.Action.Label);
-        Assert.True(rescue.IsAvailableAt("courtyard"));
+        Assert.True(rescue.IsAvailableAt("university_campus"));
         Assert.Equal(180, rescue.Action.DurationMinutes);
         ActionEffectDefinition reviveEffect = Assert.Single(rescue.Action.Effects);
         Assert.Equal(ActionEffectType.Revive, reviveEffect.Type);
@@ -30,7 +30,7 @@ public sealed class PlayerActionDataTests
     [Fact]
     public void PlayerData_DoesNotLoadLegacySelfActions()
     {
-        string path = Path.Combine(AppContext.BaseDirectory, "Data", "AcademyLocations.json");
+        string path = Path.Combine(AppContext.BaseDirectory, "Data", "Locations.json");
         string json = File.ReadAllText(path);
 
         Assert.DoesNotContain("\"selfActions\"", json, StringComparison.Ordinal);

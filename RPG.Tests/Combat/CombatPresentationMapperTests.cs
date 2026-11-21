@@ -7,8 +7,8 @@ public sealed class CombatPresentationMapperTests
     {
         CombatPresentationMapper mapper = new CombatPresentationMapper();
         TimelineCombatantStatus ari = new TimelineCombatantStatus(
-            "ari",
-            "Ari",
+            "player_student",
+            "Alex",
             false,
             20.0,
             10.0,
@@ -30,9 +30,9 @@ public sealed class CombatPresentationMapperTests
     public void IncludesRemainingStunDurationInExpectedReadyTime()
     {
         CombatPresentationMapper mapper = new CombatPresentationMapper();
-        TimelineCombatantStatus stunnedGoblin = new TimelineCombatantStatus(
-            "goblin",
-            "Goblin",
+        TimelineCombatantStatus stunnedPresence = new TimelineCombatantStatus(
+            "hostile_presence",
+            "Unstable Presence",
             true,
             20.0,
             10.0,
@@ -41,7 +41,7 @@ public sealed class CombatPresentationMapperTests
             true,
             remainingStunTime: 3.0);
 
-        CombatSnapshot snapshot = CreateSnapshot(stunnedGoblin);
+        CombatSnapshot snapshot = CreateSnapshot(stunnedPresence);
         CombatViewData viewData = mapper.Map(snapshot);
 
         TimelineMarkerViewData marker = Assert.Single(viewData.Timeline);
@@ -54,8 +54,8 @@ public sealed class CombatPresentationMapperTests
     {
         CombatPresentationMapper mapper = new CombatPresentationMapper();
         TimelineCombatantStatus stunnedReadyPartyMember = new TimelineCombatantStatus(
-            "ari",
-            "Ari",
+            "player_student",
+            "Alex",
             false,
             0.0,
             10.0,

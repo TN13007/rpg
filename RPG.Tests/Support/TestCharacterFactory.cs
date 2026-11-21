@@ -34,12 +34,12 @@ internal static class TestCharacterFactory
 
     public static CombatActionDefinition[] CreatePlayerCombatActions()
     {
-        return CreateCombatActions().Where(action => !action.Id.StartsWith("goblin_", StringComparison.Ordinal)).ToArray();
+        return CreateCombatActions().Where(action => !action.Id.StartsWith("presence_", StringComparison.Ordinal)).ToArray();
     }
 
     public static CombatActionDefinition[] CreateEnemyCombatActions()
     {
-        return CreateCombatActions().Where(action => action.Id.StartsWith("goblin_", StringComparison.Ordinal)).ToArray();
+        return CreateCombatActions().Where(action => action.Id.StartsWith("presence_", StringComparison.Ordinal)).ToArray();
     }
 
     public static CombatService CreateCombat(

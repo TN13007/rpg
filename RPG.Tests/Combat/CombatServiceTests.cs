@@ -76,7 +76,7 @@ public sealed class CombatServiceTests
         Character player = TestCharacterFactory.CreatePlayer();
         Character enemy = TestCharacterFactory.CreateEnemy();
         CombatActionDefinition heavySwing = TestCharacterFactory.CreateEnemyCombatActions()
-            .Single(action => action.Id == "goblin_heavy_swing");
+            .Single(action => action.Id == "presence_heavy_swing");
 
         CombatService combat = new CombatService(
             player,
@@ -142,7 +142,7 @@ public sealed class CombatServiceTests
     }
 
     [Fact]
-    public void GuardSpendsStaminaAndReducesTheNextGoblinHit()
+    public void GuardSpendsStaminaAndReducesTheNextPresenceHit()
     {
         CombatService combat = TestCharacterFactory.CreateCombat(out Character player, out Character enemy);
         StartAtPlayerDecision(combat);
@@ -155,7 +155,7 @@ public sealed class CombatServiceTests
     }
 
     [Fact]
-    public void EvadeSpendsStaminaAndAvoidsTheNextGoblinHit()
+    public void EvadeSpendsStaminaAndAvoidsTheNextPresenceHit()
     {
         CombatService combat = TestCharacterFactory.CreateCombat(out Character player, out Character enemy);
         StartAtPlayerDecision(combat);
@@ -182,7 +182,7 @@ public sealed class CombatServiceTests
     }
 
     [Fact]
-    public void DefeatingGoblinEndsEncounterWithoutCounterattack()
+    public void DefeatingPresenceEndsEncounterWithoutCounterattack()
     {
         CombatService combat = TestCharacterFactory.CreateCombat(out Character player, out Character enemy, enemyHealth: 8);
         StartAtPlayerDecision(combat);
@@ -196,7 +196,7 @@ public sealed class CombatServiceTests
     }
 
     [Fact]
-    public void GoblinChoosesOnlyFromItsAuthoredActionSet()
+    public void PresenceChoosesOnlyFromItsAuthoredActionSet()
     {
         CombatService combat = TestCharacterFactory.CreateCombat(out Character player, out Character enemy, randomSeed: 17);
         StartAtPlayerDecision(combat);
@@ -204,9 +204,9 @@ public sealed class CombatServiceTests
         CombatEvent[] enemyEvents = AdvanceUntilPlayerDecision(combat);
         string[] allowed =
         {
-            "The goblin snaps out a quick jab.",
-            "The goblin commits to a heavy swing.",
-            "The goblin lands a staggering blow."
+            "The presence lunges forward without warning.",
+            "The presence slams into its target.",
+            "A pulse of pressure leaves its target momentarily disoriented."
         };
         Assert.Contains(enemyEvents, item => item.Type == CombatEventType.EnemyAction && allowed.Contains(item.Detail));
     }
