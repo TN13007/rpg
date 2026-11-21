@@ -4,14 +4,14 @@ using System.Collections.Generic;
 /// <summary>Retrieves available interaction information from the current game state.</summary>
 public sealed class AvailableInteractionQuery
 {
-    /// <summary>Returns the interactions or presence records matching the supplied criteria.</summary>
-    /// <param name="player">The player used by this operation.</param>
-    /// <param name="playerActions">The player actions used by this operation.</param>
-    /// <param name="location">The location used by this operation.</param>
-    /// <param name="locationResolver">The location resolver used by this operation.</param>
-    /// <param name="travelAction">The travel action used by this operation.</param>
-    /// <param name="presentNpcIds">The present npc ids used by this operation.</param>
-    /// <returns>The resulting i read only list available interaction.</returns>
+    /// <summary>Builds the currently available Player, Location and Travel choices for the supplied Exploration context.</summary>
+    /// <param name="player">The controlled Character whose current state determines which actions are available.</param>
+    /// <param name="playerActions">The authored Player Actions to consider for the current Location.</param>
+    /// <param name="location">The current Location, including its Actions and exits.</param>
+    /// <param name="locationResolver">Resolves each exit ID to the destination Location used to label a Travel choice.</param>
+    /// <param name="travelAction">The shared Action definition that supplies Travel duration and effects.</param>
+    /// <param name="presentNpcIds">NPC Character IDs currently present; actions with unmet NPC requirements are omitted.</param>
+    /// <returns>A read-only list of available interactions. When the Player cannot act, only eligible recovery actions are returned.</returns>
     public IReadOnlyList<AvailableInteraction> Query(
         Character player,
         PlayerActionDefinition[] playerActions,
@@ -42,9 +42,9 @@ public sealed class AvailableInteractionQuery
     }
 
     /// <summary>Returns the interactions or presence records matching the supplied criteria.</summary>
-    /// <param name="locationEvent">The location event used by this operation.</param>
+    /// <param name="locationEvent">The Event whose choices should be filtered by their NPC requirements.</param>
     /// <param name="presentNpcIds">The present npc ids used by this operation.</param>
-    /// <returns>The resulting i read only list available interaction.</returns>
+    /// <returns>A read-only list containing the Event choices whose NPC requirements are currently satisfied.</returns>
     public IReadOnlyList<AvailableInteraction> Query(
         LocationEventDefinition locationEvent,
         ISet<string> presentNpcIds = null)
