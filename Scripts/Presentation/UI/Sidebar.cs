@@ -146,7 +146,7 @@ public partial class Sidebar : PanelContainer
     {
         foreach (EnemyCard card in _enemyCards.Values)
         {
-            if (card.EnemyName == enemyName)
+            if (string.Equals(card.EnemyName, enemyName, StringComparison.OrdinalIgnoreCase))
             {
                 card.PlayFeedback(feedbackType);
             }
