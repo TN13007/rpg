@@ -88,10 +88,20 @@ public sealed class GameContentCatalog
             return;
         }
 
-        if (!NpcSchedules.TryGet(action.RequiredNpcId, out _))
+        ValidateRequiredNpcReference(action.RequiredNpcId, "Action '" + action.Id + "'");
+    }
+
+    private void ValidateRequiredNpcReference(string requiredNpcId, string sourceDescription)
+    {
+        if (string.IsNullOrWhiteSpace(requiredNpcId))
+        {
+            return;
+        }
+
+        if (!NpcSchedules.TryGet(requiredNpcId, out _))
         {
             throw new InvalidOperationException(
-                "Action '" + action.Id + "' requires NPC '" + action.RequiredNpcId
+                sourceDescription + " requires NPC '" + requiredNpcId
                 + "', but no schedule is defined for that Character ID.");
         }
     }
