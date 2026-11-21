@@ -57,13 +57,13 @@ The current prototype uses location-based navigation rather than free-roam movem
 - Travel changes the current Location; the destination's configured Event pool may then be evaluated.
 - The current implementation does not retain a general persistent Interaction Context for arbitrary NPCs or objects.
 
-The current choice sources include Player Actions, Location Actions, Travel choices and Event choices. A Location or Event Action may declare `requiredNpcId`; the choice is offered only while that Character is present at the current Location and is revalidated when selected. Generic target interactions are not a generalized runtime feature.
+The current choice sources include Player Actions, Location Actions, Travel choices and Event choices. A Location or Event Action may declare `requiredNpcId`; an Event may also declare an event-level `requiredNpcId` to prevent it from triggering when its subject NPC is absent. Choices are offered only while their required Character is present at the current Location and NPC requirements are revalidated when selected. Generic target interactions are not a generalized runtime feature.
 
 ### NPC presence and daily schedules
 
 `GameContentLoader` loads `Data/NpcSchedules.json` into `NpcScheduleCatalog`. Each schedule references an existing Character ID and contains non-overlapping half-open time intervals (`startMinute` inclusive, `endMinute` exclusive), a Location ID and an authored activity description. `GameContentCatalog` validates Character, Location and required-NPC references before the runtime starts.
 
-`NpcPresenceQuery` combines the current Location, `GameClock.MinutesOfDay`, schedule definitions and Character data. `ExplorationFlowController` uses the result to append present NPCs and their activities to the Location or Event description, and passes the same IDs to `AvailableInteractionQuery` to filter NPC-required choices. Presence is evaluated when the current context is shown; there is no per-frame NPC movement simulation.
+`NpcPresenceQuery` combines the current Location, `GameClock.MinutesOfDay`, schedule definitions and Character data. `ExplorationFlowController` uses the result to append present NPCs and their activities to the Location or Event description, filter NPC-required choices and pass current presence into `LocationEventService`. Events with an event-level NPC requirement are not triggered while that NPC is absent; an unavailable NPC-specific Event does not consume the Location's daily event attempt. NPC requirements are checked again when a selected Action executes. Presence is evaluated when the current context is shown; there is no per-frame NPC movement simulation.
 
 The current schedule repeats every in-game day because `GameClock` has a day index but no weekday calendar. An unscheduled time range means the NPC is not present at a player-facing Location. The first authored schedule is Mira's; other Characters need an explicit schedule before they can satisfy an NPC-required Action.
 

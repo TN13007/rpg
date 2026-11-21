@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Xunit;
 
 public sealed class LocationEventLoopTests
@@ -63,6 +64,40 @@ public sealed class LocationEventLoopTests
         Assert.Null(secondEvent);
         Assert.True(nextDayResult);
         Assert.Same(locationEvent, nextDayEvent);
+    }
+
+    [Fact]
+    public void EventService_RequiredNpcMustBePresentAndAbsenceDoesNotConsumeDailyAttempt()
+    {
+        LocationEventDefinition locationEvent = CreateEvent("mira_arrival", 1, "mira");
+        LocationContent location = CreateLocation("mira_meeting_point", locationEvent);
+        LocationEventService service = new LocationEventService(new Random(1));
+
+        bool absent = service.TryTrigger(
+            location, 1, true, out LocationEventDefinition absentEvent,
+            new HashSet<string>(StringComparer.Ordinal));
+        bool present = service.TryTrigger(
+            location, 1, true, out LocationEventDefinition presentEvent,
+            new HashSet<string>(StringComparer.Ordinal) { "mira" });
+
+        Assert.False(absent);
+        Assert.Null(absentEvent);
+        Assert.True(present);
+        Assert.Same(locationEvent, presentEvent);
+    }
+
+    [Fact]
+    public void AcademyContent_LoadsEventNpcRequirement()
+    {
+        string events = "[{ \"id\": \"mira_arrival\", \"title\": \"Mira arrives\","
+            + " \"region\": \"REGION\", \"description\": \"Mira is here.\","
+            + " \"chance\": 1, \"requiredNpcId\": \"mira\","
+            + " \"choices\": [{ \"id\": \"say_hello\", \"label\": \"Say hello\","
+            + " \"durationMinutes\": 1 }] }]";
+
+        _academy.LoadJson(CreateContentJson(events));
+
+        Assert.Equal("mira", _academy.Get("courtyard").Events[0].RequiredNpcId);
     }
 
     [Fact]
@@ -404,13 +439,17 @@ public sealed class LocationEventLoopTests
         throw new InvalidOperationException("Location action was not found: " + actionId);
     }
 
-    private static LocationEventDefinition CreateEvent(string id, double chance)
+    private static LocationEventDefinition CreateEvent(
+        string id,
+        double chance,
+        string requiredNpcId = null)
     {
         string choiceId = id + "_choice";
         LocationEventChoiceDefinition choice = new LocationEventChoiceDefinition(
             choiceId,
             new ActionDefinition(choiceId, "Action", 0));
-        return new LocationEventDefinition(id, "Event", "REGION", "Description", chance, new[] { choice });
+        return new LocationEventDefinition(
+            id, "Event", "REGION", "Description", chance, new[] { choice }, requiredNpcId);
     }
 
     private static LocationContent CreateLocation(string id, params LocationEventDefinition[] events)

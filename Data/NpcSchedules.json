@@ -23,9 +23,15 @@
         },
         {
           "startMinute": 750,
-          "endMinute": 900,
+          "endMinute": 870,
           "locationId": "library",
           "activityDescription": "She reviews the Academy's introductory materials at a reading table."
+        },
+        {
+          "startMinute": 870,
+          "endMinute": 900,
+          "locationId": "courtyard",
+          "activityDescription": "She meets classmates in the courtyard before the afternoon training session."
         },
         {
           "startMinute": 900,

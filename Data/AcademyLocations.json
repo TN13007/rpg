@@ -72,12 +72,14 @@
           "id": "first_meeting_mira",
           "title": "A Friendly Introduction",
           "region": "ASTERIA ACADEMY",
+          "requiredNpcId": "mira",
           "description": "A girl carrying a neatly packed bag looks around, trying to find the right building. She notices that you are also looking for directions and gives you a small, slightly uncertain smile. \"Are you heading to the opening ceremony too? I think it is this way.\"",
           "chance": 1,
           "choices": [
             {
               "id": "introduce_yourself_to_mira",
               "label": "Introduce yourself and walk with her",
+              "requiredNpcId": "mira",
               "durationMinutes": 5,
               "effects": [
                 {
@@ -91,6 +93,7 @@
             {
               "id": "thank_mira_and_continue",
               "label": "Thank her for the directions",
+              "requiredNpcId": "mira",
               "durationMinutes": 2,
               "effects": [],
               "feedback": "Mira points you toward the assembly hall. You thank her and continue on your own.",
@@ -197,6 +200,7 @@
         {
           "id": "talk_mira",
           "label": "Talk to Mira",
+          "requiredNpcId": "mira",
           "durationMinutes": 15,
           "effects": [
             {
@@ -204,7 +208,7 @@
               "amount": 3
             }
           ],
-          "feedback": "Mira smiles. “Morning! Are you heading to practical training too?”",
+          "feedback": "Mira smiles. “Are you heading to practical training too? The afternoon session is about to begin.”",
           "activityMet": 1.5
         },
         {

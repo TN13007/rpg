@@ -182,6 +182,9 @@ public sealed class AcademyContent
             string region = ReadString(item, "region");
             string description = ReadString(item, "description");
             double chance = item.GetProperty("chance").GetDouble();
+            string requiredNpcId = item.TryGetProperty("requiredNpcId", out JsonElement requiredNpcData)
+                ? requiredNpcData.GetString()
+                : null;
             JsonElement choicesData = item.GetProperty("choices");
 
             if (choicesData.ValueKind != JsonValueKind.Array)
@@ -207,7 +210,8 @@ public sealed class AcademyContent
                 region,
                 description,
                 chance,
-                choices.ToArray()));
+                choices.ToArray(),
+                requiredNpcId));
         }
 
         return events.ToArray();

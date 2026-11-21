@@ -413,11 +413,15 @@ public sealed class ExplorationFlowController
     {
         LocationContent location = _getLocation(_currentLocationId);
 
+        HashSet<string> presentNpcIds = _npcPresenceQuery.GetPresentCharacterIds(
+            location.Id,
+            _gameClock.MinutesOfDay);
         if (!_locationEventService.TryTrigger(
             location,
             _gameClock.Day,
             _player.CanAct,
-            out LocationEventDefinition triggeredEvent))
+            out LocationEventDefinition triggeredEvent,
+            presentNpcIds))
         {
             return;
         }

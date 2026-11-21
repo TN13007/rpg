@@ -72,6 +72,7 @@ public sealed class GameContentCatalog
 
             foreach (LocationEventDefinition locationEvent in location.Events)
             {
+                ValidateRequiredNpcReference(locationEvent.RequiredNpcId, "Event '" + locationEvent.Id + "'");
                 foreach (LocationEventChoiceDefinition choice in locationEvent.Choices)
                 {
                     ValidateRequiredNpcReference(choice.Action);
