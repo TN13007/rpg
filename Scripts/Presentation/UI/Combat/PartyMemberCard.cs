@@ -8,6 +8,7 @@ public partial class PartyMemberCard : PanelContainer
     private Label _conditionLabel;
     private string _memberId = string.Empty;
     private string _displayName = string.Empty;
+    private CombatCardVfx _vfx;
 
     public string MemberName => _displayName;
 
@@ -17,6 +18,7 @@ public partial class PartyMemberCard : PanelContainer
         _healthLabel = GetNode<Label>("Margin/Content/Health");
         _healthBar = GetNode<ProgressBar>("Margin/Content/HealthBar");
         _conditionLabel = GetNode<Label>("Margin/Content/Condition");
+        _vfx = GetNode<CombatCardVfx>("Vfx");
         UpdateStyle(false);
     }
 
@@ -49,21 +51,7 @@ public partial class PartyMemberCard : PanelContainer
 
     public void PlayFeedback(CombatFeedbackType feedbackType)
     {
-        Color feedbackColor = feedbackType switch
-        {
-            CombatFeedbackType.Attack => new Color("#e7a45d"),
-            CombatFeedbackType.Guard => new Color("#78a9d2"),
-            CombatFeedbackType.Evade => new Color("#79c9d2"),
-            CombatFeedbackType.Recover => new Color("#8bc78d"),
-            CombatFeedbackType.Revive => new Color("#a5d68d"),
-            CombatFeedbackType.Hit => new Color("#e07870"),
-            _ => Colors.White
-        };
-
-        Modulate = feedbackColor;
-        CreateTween()
-            .TweenProperty(this, "modulate", Colors.White, 0.28)
-            .SetDelay(0.12);
+        _vfx.PlayFeedback(feedbackType);
     }
 
     private void UpdateStyle(bool isActive)
