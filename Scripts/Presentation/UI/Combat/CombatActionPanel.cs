@@ -14,6 +14,7 @@ public partial class CombatActionPanel : PanelContainer
     private GridContainer _targetGrid;
     private Button _backButton;
     private Button _confirmButton;
+    private PackedScene _actionCardScene;
     private CombatActionOption _pendingAction;
     private readonly HashSet<string> _validEnemyTargetIds =
         new HashSet<string>(StringComparer.Ordinal);
@@ -28,6 +29,7 @@ public partial class CombatActionPanel : PanelContainer
         _targetGrid = GetNode<GridContainer>("Margin/Content/TargetSelection/TargetGrid");
         _backButton = GetNode<Button>("Margin/Content/TargetSelection/BackButton");
         _confirmButton = GetNode<Button>("Margin/Content/TargetSelection/ConfirmButton");
+        _actionCardScene = GD.Load<PackedScene>("res://Scenes/UI/Combat/CombatActionCard.tscn");
         _backButton.Pressed += CancelTargetSelection;
         _confirmButton.Pressed += ConfirmTargetSelection;
         UiTheme.StyleButton(_backButton);
@@ -54,7 +56,11 @@ public partial class CombatActionPanel : PanelContainer
 
         foreach (CombatActionOption action in actions)
         {
-            _actionGrid.AddChild(CreateActionButton(action));
+            CombatActionCard card = CreateActionCard(action);
+            if (card != null)
+            {
+                _actionGrid.AddChild(card);
+            }
         }
     }
 
@@ -80,30 +86,19 @@ public partial class CombatActionPanel : PanelContainer
         _actionGrid.Visible = true;
     }
 
-    private Button CreateActionButton(CombatActionOption action)
+    private CombatActionCard CreateActionCard(CombatActionOption action)
     {
-        string cost = string.IsNullOrWhiteSpace(action.CostLabel)
-            ? string.Empty
-            : "  ·  " + action.CostLabel;
-        string detail = string.IsNullOrWhiteSpace(action.Description)
-            ? string.Empty
-            : "\n" + action.Description;
-        string unavailableReason = action.IsAvailable || string.IsNullOrWhiteSpace(action.UnavailableReason)
-            ? string.Empty
-            : "\n" + action.UnavailableReason;
-
-        Button button = new Button
+        if (_actionCardScene == null)
         {
-            Text = action.Label + cost + detail + unavailableReason,
-            CustomMinimumSize = new Vector2(0, 62),
-            Disabled = !action.IsAvailable,
-            Alignment = HorizontalAlignment.Left,
-            FocusMode = FocusModeEnum.All,
-            MouseDefaultCursorShape = CursorShape.PointingHand
-        };
-        UiTheme.StyleButton(button);
-        button.Pressed += () => SelectAction(action);
-        return button;
+            GD.PushError("CombatActionCard.tscn could not be loaded.");
+            return null;
+        }
+
+        CombatActionCard card = _actionCardScene.Instantiate<CombatActionCard>();
+        card.SetAction(action);
+        UiTheme.StyleButton(card);
+        card.Selected += SelectAction;
+        return card;
     }
 
     private void SelectAction(CombatActionOption action)
