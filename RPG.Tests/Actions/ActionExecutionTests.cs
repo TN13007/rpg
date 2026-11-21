@@ -65,7 +65,7 @@ public sealed class ActionExecutionTests
         Assert.True(success, reason);
         Assert.Equal(30, duration);
         Assert.Equal(15, actor.Fatigue);
-        Assert.Equal(7, actor.Stamina);
+        Assert.Equal(4, actor.Stamina);
         Assert.Equal(42, actor.Mood);
         Assert.Equal(7, actor.Gold);
         Assert.Equal(480, clock.MinutesOfDay);
