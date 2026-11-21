@@ -1,11 +1,13 @@
 using Godot;
 
+/// <summary>Displays one formatted combat message.</summary>
 public partial class CombatMessageEntry : HBoxContainer
 {
     private PanelContainer _bubble;
     private Label _heading;
     private Label _body;
 
+    /// <summary>Initializes the Godot control and connects its UI signals.</summary>
     public override void _Ready()
     {
         _bubble = GetNode<PanelContainer>("Bubble");
@@ -13,6 +15,8 @@ public partial class CombatMessageEntry : HBoxContainer
         _body = GetNode<Label>("Bubble/Margin/Content/Body");
     }
 
+    /// <summary>Sets message.</summary>
+    /// <param name="message">The message used by this operation.</param>
     public void SetMessage(CombatMessage message)
     {
         string category = message.Category == CombatMessageCategory.None
