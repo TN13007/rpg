@@ -1,5 +1,6 @@
 using Godot;
 
+/// <summary>Presents character information and exposes its UI interactions.</summary>
 public partial class CharacterPanel : PanelContainer
 {
     private Label _name;
@@ -15,6 +16,7 @@ public partial class CharacterPanel : PanelContainer
     private ProgressBar _staminaBar;
     private ProgressBar _moodBar;
 
+    /// <summary>Initializes the Godot control and connects its UI signals.</summary>
     public override void _Ready()
     {
         UiTheme.StylePanel(this);
@@ -32,6 +34,8 @@ public partial class CharacterPanel : PanelContainer
         _moodBar = GetNode<ProgressBar>("Margin/Content/MoodBar");
     }
 
+    /// <summary>Sets character.</summary>
+    /// <param name="character">The character used by this operation.</param>
     public void SetCharacter(CharacterViewModel character)
     {
         if (character == null)
