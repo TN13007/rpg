@@ -1,12 +1,16 @@
 using System;
 using System.Collections.Generic;
 
+/// <summary>Provides indexed access to the configured combat action definitions.</summary>
 public sealed class CombatActionCatalog
 {
     private readonly Dictionary<string, CombatActionDefinition> _actions;
 
+    /// <summary>Gets the all.</summary>
     public IEnumerable<CombatActionDefinition> All => _actions.Values;
 
+    /// <summary>Initializes a new instance of <see cref="CombatActionCatalog"/>.</summary>
+    /// <param name="actions">The actions used to initialize the instance.</param>
     public CombatActionCatalog(IEnumerable<CombatActionDefinition> actions)
     {
         if (actions == null) throw new ArgumentNullException(nameof(actions));
@@ -22,6 +26,9 @@ public sealed class CombatActionCatalog
         }
     }
 
+    /// <summary>Returns get.</summary>
+    /// <param name="id">The id used by this operation.</param>
+    /// <returns>The resulting combat action definition.</returns>
     public CombatActionDefinition Get(string id)
     {
         if (string.IsNullOrWhiteSpace(id)) throw new ArgumentException("Combat action ID is required.", nameof(id));
@@ -32,6 +39,9 @@ public sealed class CombatActionCatalog
         return action;
     }
 
+    /// <summary>Resolves resolve against the available catalog entries.</summary>
+    /// <param name="ids">The ids used by this operation.</param>
+    /// <returns>The resulting combat action definition.</returns>
     public CombatActionDefinition[] Resolve(IEnumerable<string> ids)
     {
         if (ids == null) throw new ArgumentNullException(nameof(ids));
