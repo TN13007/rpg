@@ -1,12 +1,20 @@
 using System;
 using System.Collections.Generic;
 
+/// <summary>Defines the location event choice data and its validation rules.</summary>
 public sealed class LocationEventChoiceDefinition
 {
+    /// <summary>Gets the id.</summary>
     public string Id { get; }
+    /// <summary>Gets the action.</summary>
     public ActionDefinition Action { get; }
+    /// <summary>Gets the encounter action id.</summary>
     public string EncounterActionId { get; }
 
+    /// <summary>Initializes a new instance of <see cref="LocationEventChoiceDefinition"/>.</summary>
+    /// <param name="id">The id used to initialize the instance.</param>
+    /// <param name="action">The action used to initialize the instance.</param>
+    /// <param name="encounterActionId">The encounter action id used to initialize the instance.</param>
     public LocationEventChoiceDefinition(string id, ActionDefinition action, string encounterActionId = null)
     {
         if (string.IsNullOrWhiteSpace(id))
@@ -31,16 +39,32 @@ public sealed class LocationEventChoiceDefinition
     }
 }
 
+/// <summary>Defines the location event data and its validation rules.</summary>
 public sealed class LocationEventDefinition
 {
+    /// <summary>Gets the id.</summary>
     public string Id { get; }
+    /// <summary>Gets the title.</summary>
     public string Title { get; }
+    /// <summary>Gets the region.</summary>
     public string Region { get; }
+    /// <summary>Gets the description.</summary>
     public string Description { get; }
+    /// <summary>Gets the chance.</summary>
     public double Chance { get; }
+    /// <summary>Gets the choices.</summary>
     public LocationEventChoiceDefinition[] Choices { get; }
+    /// <summary>Gets the required npc id.</summary>
     public string RequiredNpcId { get; }
 
+    /// <summary>Initializes a new instance of <see cref="LocationEventDefinition"/>.</summary>
+    /// <param name="id">The id used to initialize the instance.</param>
+    /// <param name="title">The title used to initialize the instance.</param>
+    /// <param name="region">The region used to initialize the instance.</param>
+    /// <param name="description">The description used to initialize the instance.</param>
+    /// <param name="chance">The chance used to initialize the instance.</param>
+    /// <param name="choices">The choices used to initialize the instance.</param>
+    /// <param name="requiredNpcId">The required npc id used to initialize the instance.</param>
     public LocationEventDefinition(
         string id,
         string title,

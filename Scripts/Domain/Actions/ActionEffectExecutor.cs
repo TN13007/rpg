@@ -1,7 +1,11 @@
 using System;
 
+/// <summary>Applies the configured action effect effects to a target.</summary>
 public sealed class ActionEffectExecutor
 {
+    /// <summary>Applies apply to the target character.</summary>
+    /// <param name="action">The action used by this operation.</param>
+    /// <param name="target">The target used by this operation.</param>
     public void Apply(ActionDefinition action, Character target)
     {
         if (action == null)

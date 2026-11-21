@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
+/// <summary>Coordinates exploration flow flow and user interactions.</summary>
 public sealed class ExplorationFlowController
 {
     private readonly StoryPanel _storyPanel;
@@ -32,6 +33,23 @@ public sealed class ExplorationFlowController
     private const string _selectNpcActionId = "select";
     private string _currentLocationDescription;
 
+    /// <summary>Initializes a new instance of <see cref="ExplorationFlowController"/>.</summary>
+    /// <param name="storyPanel">The story panel used to initialize the instance.</param>
+    /// <param name="characterPanel">The character panel used to initialize the instance.</param>
+    /// <param name="gameModeController">The game mode controller used to initialize the instance.</param>
+    /// <param name="player">The player used to initialize the instance.</param>
+    /// <param name="playerActions">The player actions used to initialize the instance.</param>
+    /// <param name="locations">The locations used to initialize the instance.</param>
+    /// <param name="getLocation">Resolves a location ID to its location content.</param>
+    /// <param name="travelAction">The travel action used to initialize the instance.</param>
+    /// <param name="gameClock">The game clock used to initialize the instance.</param>
+    /// <param name="actionExecutionService">The action execution service used to initialize the instance.</param>
+    /// <param name="availableInteractionQuery">The available interaction query used to initialize the instance.</param>
+    /// <param name="actionChoiceMapper">The action choice mapper used to initialize the instance.</param>
+    /// <param name="locationEventService">The location event service used to initialize the instance.</param>
+    /// <param name="npcPresenceQuery">The npc presence query used to initialize the instance.</param>
+    /// <param name="npcInteractionQuery">The npc interaction query used to initialize the instance.</param>
+    /// <param name="startEncounter">Attempts to start an encounter using the supplied entry action.</param>
     public ExplorationFlowController(
         StoryPanel storyPanel,
         CharacterPanel characterPanel,
@@ -70,6 +88,7 @@ public sealed class ExplorationFlowController
         ValidatePlayerActions();
     }
 
+    /// <summary>Displays location in the current game mode.</summary>
     public void ShowLocation()
     {
         if (_activeLocationEvent != null)
@@ -228,6 +247,8 @@ public sealed class ExplorationFlowController
         return _currentLocationDescription;
     }
 
+    /// <summary>Displays page in the current game mode.</summary>
+    /// <param name="tab">The tab used by this operation.</param>
     public void ShowPage(string tab)
     {
         string description = tab switch
@@ -252,6 +273,9 @@ public sealed class ExplorationFlowController
         _storyPanel.ShowLocationButton(true);
     }
 
+    /// <summary>Starts debug encounter and initializes its presentation flow.</summary>
+    /// <param name="entryAction">The entry action used by this operation.</param>
+    /// <returns><see langword="true"/> when the operation succeeds; otherwise, <see langword="false"/>.</returns>
     public bool StartDebugEncounter(ActionDefinition entryAction)
     {
         if (entryAction == null)
@@ -273,6 +297,8 @@ public sealed class ExplorationFlowController
         return true;
     }
 
+    /// <summary>Handles choice from the presentation layer.</summary>
+    /// <param name="choiceId">The choice id used by this operation.</param>
     public void HandleChoice(string choiceId)
     {
         if (_activeLocationEvent != null)

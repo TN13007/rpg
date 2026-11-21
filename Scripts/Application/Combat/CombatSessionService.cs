@@ -1,5 +1,12 @@
 using System;
 
+/// <summary>
+/// Coordinates the application-level lifecycle of one combat encounter.
+/// </summary>
+/// <remarks>
+/// The service connects the combat domain with entry-action execution and world-time costs.
+/// It does not render UI; presentation reads combat snapshots and results through the owning flow.
+/// </remarks>
 public sealed class CombatSessionService
 {
     private readonly Character _player;
@@ -16,10 +23,26 @@ public sealed class CombatSessionService
     private bool _encounterStarted;
     private bool _encounterCompleted;
 
+    /// <summary>Gets whether the encounter has not started or the combat domain has ended it.</summary>
     public bool IsEncounterOver => !_encounterStarted || _combatService.IsEncounterOver;
+
+    /// <summary>Gets whether the combat domain considers the encounter a victory.</summary>
     public bool IsVictory => _combatService.IsVictory;
+
+    /// <summary>Gets whether combat is waiting for the player to accept or continue after its outcome.</summary>
     public bool IsAwaitingPlayerDecision => _combatService.IsAwaitingPlayerDecision;
 
+    /// <summary>
+    /// Creates a combat session coordinator with the services and definitions required by an encounter.
+    /// </summary>
+    /// <param name="player">The player character whose entry action and encounter fatigue are applied.</param>
+    /// <param name="combatService">The Domain service that owns combat rules and state.</param>
+    /// <param name="gameClock">The shared world clock advanced by the entry action and encounter cost.</param>
+    /// <param name="activityTimeCalculator">Calculates the world-time cost of the encounter.</param>
+    /// <param name="activityFatigueCalculator">Calculates the Fatigue cost of the encounter.</param>
+    /// <param name="actionExecutionService">Validates and executes the action used to enter combat.</param>
+    /// <param name="combatEncounterAction">The authored action definition used to calculate encounter costs.</param>
+    /// <exception cref="ArgumentNullException">Any required dependency is <see langword="null"/>.</exception>
     public CombatSessionService(
         Character player,
         CombatService combatService,
@@ -38,6 +61,16 @@ public sealed class CombatSessionService
         _combatEncounterAction = combatEncounterAction ?? throw new ArgumentNullException(nameof(combatEncounterAction));
     }
 
+    /// <summary>
+    /// Attempts to execute the encounter entry action and start the combat domain session.
+    /// </summary>
+    /// <param name="entryAction">The action that moves the player into the encounter.</param>
+    /// <param name="failureReason">Receives the validation or startup failure reason when the operation returns <see langword="false"/>.</param>
+    /// <returns><see langword="true"/> when both entry-action execution and combat startup succeed; otherwise, <see langword="false"/>.</returns>
+    /// <remarks>
+    /// A successful call records the world-clock position before the entry action so the flow can later report elapsed time.
+    /// An already active encounter cannot be started again.
+    /// </remarks>
     public bool TryStartEncounter(ActionDefinition entryAction, out string failureReason)
     {
         if (_encounterStarted && !_encounterCompleted)
@@ -77,11 +110,18 @@ public sealed class CombatSessionService
         return true;
     }
 
+    /// <summary>Gets the latest read-only snapshot of the combat domain state.</summary>
+    /// <returns>A snapshot suitable for application and presentation consumers.</returns>
     public CombatSnapshot GetSnapshot()
     {
         return _combatService.GetSnapshot();
     }
 
+    /// <summary>
+    /// Executes a player combat action and applies encounter completion costs when combat ends.
+    /// </summary>
+    /// <param name="request">The requested combat action, actor and target information.</param>
+    /// <returns>The combat result, or <see langword="null"/> when the encounter is already over.</returns>
     public CombatResult ExecuteAction(CombatActionRequest request)
     {
         if (IsEncounterOver)
@@ -99,6 +139,11 @@ public sealed class CombatSessionService
         return result;
     }
 
+    /// <summary>
+    /// Advances combat simulation time and applies encounter completion costs when combat ends.
+    /// </summary>
+    /// <param name="elapsedCombatTime">The amount of combat time to advance, in the time unit expected by <see cref="CombatService.AdvanceCombatTime"/>.</param>
+    /// <returns>The combat result, or <see langword="null"/> when no active encounter can be advanced.</returns>
     public CombatResult AdvanceCombatTime(double elapsedCombatTime)
     {
         if (!_encounterStarted || _encounterCompleted)
@@ -116,6 +161,15 @@ public sealed class CombatSessionService
         return result;
     }
 
+    /// <summary>
+    /// Attempts to consume the world-clock interval recorded for the last successful encounter start.
+    /// </summary>
+    /// <param name="startDay">Receives the day before the entry action was executed.</param>
+    /// <param name="startMinutes">Receives the minute of day before the entry action was executed.</param>
+    /// <param name="endDay">Receives the current day after the encounter's world-time costs.</param>
+    /// <param name="endMinutes">Receives the current minute of day after the encounter's world-time costs.</param>
+    /// <returns><see langword="true"/> when a recorded interval is available; otherwise, <see langword="false"/> and all output values are set to zero.</returns>
+    /// <remarks>The recorded interval can be consumed only once; a successful call clears the pending feedback flag.</remarks>
     public bool TryConsumeTimeAdvance(
         out int startDay,
         out int startMinutes,

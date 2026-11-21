@@ -1,8 +1,17 @@
 using System;
 using System.Collections.Generic;
 
+/// <summary>Retrieves available interaction information from the current game state.</summary>
 public sealed class AvailableInteractionQuery
 {
+    /// <summary>Returns the interactions or presence records matching the supplied criteria.</summary>
+    /// <param name="player">The player used by this operation.</param>
+    /// <param name="playerActions">The player actions used by this operation.</param>
+    /// <param name="location">The location used by this operation.</param>
+    /// <param name="locationResolver">The location resolver used by this operation.</param>
+    /// <param name="travelAction">The travel action used by this operation.</param>
+    /// <param name="presentNpcIds">The present npc ids used by this operation.</param>
+    /// <returns>The resulting i read only list available interaction.</returns>
     public IReadOnlyList<AvailableInteraction> Query(
         Character player,
         PlayerActionDefinition[] playerActions,
@@ -32,6 +41,10 @@ public sealed class AvailableInteractionQuery
         return interactions;
     }
 
+    /// <summary>Returns the interactions or presence records matching the supplied criteria.</summary>
+    /// <param name="locationEvent">The location event used by this operation.</param>
+    /// <param name="presentNpcIds">The present npc ids used by this operation.</param>
+    /// <returns>The resulting i read only list available interaction.</returns>
     public IReadOnlyList<AvailableInteraction> Query(
         LocationEventDefinition locationEvent,
         ISet<string> presentNpcIds = null)

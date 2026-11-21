@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+/// <summary>Coordinates combat encounters, action execution, and encounter state.</summary>
 public sealed class CombatService : ICombatService
 {
     private const int _victoryReward = 25;
@@ -12,18 +13,30 @@ public sealed class CombatService : ICombatService
 
     private sealed class CombatantRuntime
     {
+        /// <summary>Gets the character.</summary>
         public Character Character { get; }
+        /// <summary>Gets the side.</summary>
         public CombatantSide Side { get; }
+        /// <summary>Gets a value indicating whether visible.</summary>
         public bool IsVisible { get; }
+        /// <summary>Gets the behavior profile.</summary>
         public EnemyBehaviorProfile BehaviorProfile { get; }
+        /// <summary>Gets the committed action.</summary>
         public CombatActionDefinition CommittedAction { get; set; }
+        /// <summary>Gets the committed target id.</summary>
         public string CommittedTargetId { get; set; } = string.Empty;
+        /// <summary>Gets the action order.</summary>
         public List<CombatActionDefinition> ActionOrder { get; }
         public Dictionary<string, CombatActionDefinition> Actions { get; }
+        /// <summary>Gets the effect state.</summary>
         public CombatantEffectState EffectState { get; }
+        /// <summary>Gets a value indicating whether downed.</summary>
         public bool IsDowned { get; set; }
+        /// <summary>Gets a value indicating whether been revived.</summary>
         public bool HasBeenRevived { get; set; }
 
+        /// <summary>Initializes a new instance of <see cref="CombatantRuntime"/>.</summary>
+        /// <param name="definition">The definition used to initialize the instance.</param>
         public CombatantRuntime(CombatantDefinition definition)
         {
             Character = definition.Character;
@@ -41,7 +54,9 @@ public sealed class CombatService : ICombatService
             IsDowned = Side == CombatantSide.Party && !Character.IsAlive;
         }
 
+        /// <summary>Gets a value indicating whether enemy.</summary>
         public bool IsEnemy => Side == CombatantSide.Enemy;
+        /// <summary>Gets a value indicating whether party member.</summary>
         public bool IsPartyMember => Side == CombatantSide.Party;
     }
 
@@ -61,24 +76,41 @@ public sealed class CombatService : ICombatService
     private int _round;
     private bool _encounterOver;
 
+    /// <summary>Gets a value indicating whether victory.</summary>
     public bool IsVictory { get; private set; }
+    /// <summary>Gets a value indicating whether encounter over.</summary>
     public bool IsEncounterOver => _encounterOver;
+    /// <summary>Gets a value indicating whether awaiting player decision.</summary>
     public bool IsAwaitingPlayerDecision =>
         !_encounterOver &&
         _combatants.TryGetValue(_activeCombatantId, out CombatantRuntime active) &&
         active.IsPartyMember &&
         !active.IsDowned &&
         active.Character.CanAct;
+    /// <summary>Gets the active combatant id.</summary>
     public string ActiveCombatantId => _activeCombatantId;
+    /// <summary>Gets the combat time.</summary>
     public double CombatTime => _timeline == null ? 0 : _timeline.CombatTime;
+    /// <summary>Gets the reward gold.</summary>
     public int RewardGold => IsVictory ? _victoryReward : 0;
+    /// <summary>Gets the party members.</summary>
     public IReadOnlyList<Character> PartyMembers => _party.Select(item => item.Character).ToArray();
 
+    /// <summary>Initializes a new instance of <see cref="CombatService"/>.</summary>
+    /// <param name="player">The player used to initialize the instance.</param>
+    /// <param name="enemy">The enemy used to initialize the instance.</param>
+    /// <param name="playerActions">The player actions used to initialize the instance.</param>
     public CombatService(Character player, Character enemy, IEnumerable<CombatActionDefinition> playerActions)
         : this(player, enemy, playerActions, CreateDefaultEnemyActions(), null)
     {
     }
 
+    /// <summary>Initializes a new instance of <see cref="CombatService"/>.</summary>
+    /// <param name="player">The player used to initialize the instance.</param>
+    /// <param name="enemy">The enemy used to initialize the instance.</param>
+    /// <param name="playerActions">The player actions used to initialize the instance.</param>
+    /// <param name="enemyActions">The enemy actions used to initialize the instance.</param>
+    /// <param name="enemyRandom">The enemy random used to initialize the instance.</param>
     public CombatService(
         Character player,
         Character enemy,
@@ -95,6 +127,9 @@ public sealed class CombatService : ICombatService
     {
     }
 
+    /// <summary>Initializes a new instance of <see cref="CombatService"/>.</summary>
+    /// <param name="combatants">The combatants used to initialize the instance.</param>
+    /// <param name="enemyRandom">The enemy random used to initialize the instance.</param>
     public CombatService(IEnumerable<CombatantDefinition> combatants, Random enemyRandom = null)
     {
         if (combatants == null)
@@ -139,6 +174,9 @@ public sealed class CombatService : ICombatService
         _enemyRandom = enemyRandom ?? new Random();
     }
 
+    /// <summary>Attempts to start encounter and reports whether the operation succeeded.</summary>
+    /// <param name="failureReason">The failure reason used by this operation.</param>
+    /// <returns><see langword="true"/> when the operation succeeds; otherwise, <see langword="false"/>.</returns>
     public bool TryStartEncounter(out string failureReason)
     {
         if (!_party.Any(item => item.Character.IsAlive))
@@ -205,6 +243,8 @@ public sealed class CombatService : ICombatService
         return !_encounterOver;
     }
 
+    /// <summary>Returns snapshot.</summary>
+    /// <returns>The resulting combat snapshot.</returns>
     public CombatSnapshot GetSnapshot()
     {
         CombatantRuntime active = null;
@@ -329,6 +369,9 @@ public sealed class CombatService : ICombatService
             _activeCombatantId);
     }
 
+    /// <summary>Executes the requested player action and returns its result.</summary>
+    /// <param name="request">The request used by this operation.</param>
+    /// <returns>The resulting combat result.</returns>
     public CombatResult ExecuteAction(CombatActionRequest request)
     {
         if (request == null)
@@ -415,6 +458,9 @@ public sealed class CombatService : ICombatService
         return Success(events);
     }
 
+    /// <summary>Advances combat time by the supplied amount.</summary>
+    /// <param name="elapsedCombatTime">The elapsed combat time used by this operation.</param>
+    /// <returns>The resulting combat result.</returns>
     public CombatResult AdvanceCombatTime(double elapsedCombatTime)
     {
         if (double.IsNaN(elapsedCombatTime) ||

@@ -2,8 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Text.Json;
 
+/// <summary>Parses serialized combat action json data into domain definitions.</summary>
 public static class CombatActionJsonReader
 {
+    /// <summary>Reads read and converts it into domain definitions.</summary>
+    /// <param name="json">The json used by this operation.</param>
+    /// <returns>The resulting combat action definition.</returns>
     public static CombatActionDefinition[] Read(string json)
     {
         if (string.IsNullOrWhiteSpace(json)) throw new ArgumentException("Combat action JSON is required.", nameof(json));

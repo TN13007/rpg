@@ -2,11 +2,16 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+/// <summary>Provides enemy behavior profile functionality for the application.</summary>
 public sealed class EnemyBehaviorProfile
 {
     private readonly Dictionary<string, int> _actionWeights;
+
+    /// <summary>Gets the configured weight for each enemy action ID. A weight of zero disables that action.</summary>
     public IReadOnlyDictionary<string, int> ActionWeights => _actionWeights;
 
+    /// <summary>Initializes a new instance of <see cref="EnemyBehaviorProfile"/>.</summary>
+    /// <param name="actionWeights">Maps each enemy action ID to its selection weight. Weights must be non-negative, and at least one action must have a positive weight.</param>
     public EnemyBehaviorProfile(IDictionary<string, int> actionWeights)
     {
         if (actionWeights == null) throw new ArgumentNullException(nameof(actionWeights));
@@ -23,6 +28,9 @@ public sealed class EnemyBehaviorProfile
             throw new ArgumentException("An enemy behavior profile must enable at least one action.", nameof(actionWeights));
     }
 
+    /// <summary>Returns the configured selection weight for an enemy action.</summary>
+    /// <param name="actionId">The action id used by this operation.</param>
+    /// <returns>The configured weight, or zero when the action ID is not present.</returns>
     public int GetWeight(string actionId)
     {
         return _actionWeights.TryGetValue(actionId, out int weight) ? weight : 0;

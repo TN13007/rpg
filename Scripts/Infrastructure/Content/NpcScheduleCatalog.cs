@@ -1,12 +1,16 @@
 using System;
 using System.Collections.Generic;
 
+/// <summary>Provides indexed access to configured npc schedule definitions.</summary>
 public sealed class NpcScheduleCatalog
 {
     private readonly Dictionary<string, NpcScheduleDefinition> _schedules;
 
+    /// <summary>Gets the all.</summary>
     public IEnumerable<NpcScheduleDefinition> All => _schedules.Values;
 
+    /// <summary>Initializes a new instance of <see cref="NpcScheduleCatalog"/>.</summary>
+    /// <param name="schedules">The schedules used to initialize the instance.</param>
     public NpcScheduleCatalog(IEnumerable<NpcScheduleDefinition> schedules)
     {
         if (schedules == null)
@@ -30,6 +34,10 @@ public sealed class NpcScheduleCatalog
         }
     }
 
+    /// <summary>Attempts to get and reports whether the operation succeeded.</summary>
+    /// <param name="characterId">The character id used by this operation.</param>
+    /// <param name="schedule">The schedule used by this operation.</param>
+    /// <returns><see langword="true"/> when the operation succeeds; otherwise, <see langword="false"/>.</returns>
     public bool TryGet(string characterId, out NpcScheduleDefinition schedule)
     {
         if (string.IsNullOrWhiteSpace(characterId))
@@ -40,6 +48,9 @@ public sealed class NpcScheduleCatalog
         return _schedules.TryGetValue(characterId, out schedule);
     }
 
+    /// <summary>Returns get.</summary>
+    /// <param name="characterId">The character id used by this operation.</param>
+    /// <returns>The resulting npc schedule definition.</returns>
     public NpcScheduleDefinition Get(string characterId)
     {
         if (!TryGet(characterId, out NpcScheduleDefinition schedule))

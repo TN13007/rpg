@@ -1,13 +1,17 @@
 using System;
 using System.Collections.Generic;
 
+/// <summary>Provides indexed access to the configured npc interaction definitions.</summary>
 public sealed class NpcInteractionCatalog
 {
     private readonly List<NpcInteractionDefinition> _all;
     private readonly Dictionary<string, List<NpcInteractionDefinition>> _byCharacter;
 
+    /// <summary>Gets the all.</summary>
     public IEnumerable<NpcInteractionDefinition> All => _all;
 
+    /// <summary>Initializes a new instance of <see cref="NpcInteractionCatalog"/>.</summary>
+    /// <param name="interactions">The interactions used to initialize the instance.</param>
     public NpcInteractionCatalog(IEnumerable<NpcInteractionDefinition> interactions)
     {
         if (interactions == null)
@@ -46,6 +50,9 @@ public sealed class NpcInteractionCatalog
         }
     }
 
+    /// <summary>Returns for character.</summary>
+    /// <param name="characterId">The character id used by this operation.</param>
+    /// <returns>The resulting i read only list npc interaction definition.</returns>
     public IReadOnlyList<NpcInteractionDefinition> GetForCharacter(string characterId)
     {
         if (string.IsNullOrWhiteSpace(characterId))

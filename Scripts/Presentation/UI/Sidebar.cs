@@ -2,12 +2,17 @@ using System;
 using System.Collections.Generic;
 using Godot;
 
+/// <summary>Provides sidebar presentation functionality.</summary>
 public partial class Sidebar : PanelContainer
 {
+    /// <summary>Raised when tab selected occurs.</summary>
     public event Action<string> TabSelected;
+    /// <summary>Raised when debug encounter requested occurs.</summary>
     public event Action DebugEncounterRequested;
+    /// <summary>Raised when enemy selected occurs.</summary>
     public event Action<string> EnemySelected;
 
+    /// <summary>Gets or sets the PackedScene instantiated to create enemy cards.</summary>
     [Export]
     public PackedScene EnemyCardScene { get; set; }
 
@@ -23,6 +28,7 @@ public partial class Sidebar : PanelContainer
         new Dictionary<string, EnemyCard>(StringComparer.Ordinal);
     private bool _showDebugTools;
 
+    /// <summary>Initializes the Godot control and connects its UI signals.</summary>
     public override void _Ready()
     {
         UiTheme.StylePanel(this);
@@ -54,6 +60,8 @@ public partial class Sidebar : PanelContainer
         Bind("Margin/Content/System/Settings", "Settings");
     }
 
+    /// <summary>Enters combat and displays its related combat UI.</summary>
+    /// <param name="enemies">The enemies used by this operation.</param>
     public void EnterCombat(EnemyCombatStatus[] enemies)
     {
         _characterSection.Visible = false;
@@ -65,6 +73,8 @@ public partial class Sidebar : PanelContainer
         UpdateCombatEnemies(enemies);
     }
 
+    /// <summary>Updates combat enemies to reflect the latest combat state.</summary>
+    /// <param name="enemies">The enemies used by this operation.</param>
     public void UpdateCombatEnemies(EnemyCombatStatus[] enemies)
     {
         if (!_enemySection.Visible)
@@ -126,6 +136,9 @@ public partial class Sidebar : PanelContainer
         UpdateEmptyEnemyState();
     }
 
+    /// <summary>Sets enemy target selection.</summary>
+    /// <param name="selectableEnemyIds">The selectable enemy ids used by this operation.</param>
+    /// <param name="selectedEnemyId">The selected enemy id used by this operation.</param>
     public void SetEnemyTargetSelection(string[] selectableEnemyIds, string selectedEnemyId = "")
     {
         HashSet<string> selectableIds = new HashSet<string>(
@@ -142,6 +155,9 @@ public partial class Sidebar : PanelContainer
         }
     }
 
+    /// <summary>Plays enemy feedback feedback for the selected combatant or action.</summary>
+    /// <param name="enemyName">The enemy name used by this operation.</param>
+    /// <param name="feedbackType">The feedback type used by this operation.</param>
     public void PlayEnemyFeedback(string enemyName, CombatFeedbackType feedbackType)
     {
         foreach (EnemyCard card in _enemyCards.Values)
@@ -153,6 +169,7 @@ public partial class Sidebar : PanelContainer
         }
     }
 
+    /// <summary>Clears enemy target selection from the current UI state.</summary>
     public void ClearEnemyTargetSelection()
     {
         foreach (EnemyCard card in _enemyCards.Values)
@@ -161,6 +178,7 @@ public partial class Sidebar : PanelContainer
         }
     }
 
+    /// <summary>Exits combat and restores the non-combat UI state.</summary>
     public void ExitCombat()
     {
         ClearEnemyCards();

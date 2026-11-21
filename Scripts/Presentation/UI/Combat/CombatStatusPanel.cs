@@ -1,6 +1,7 @@
 using System;
 using Godot;
 
+/// <summary>Presents combat status information and exposes its UI interactions.</summary>
 public partial class CombatStatusPanel : PanelContainer
 {
     private Label _round;
@@ -11,6 +12,7 @@ public partial class CombatStatusPanel : PanelContainer
     private Label _intentDescription;
     private Label _intentConfidence;
 
+    /// <summary>Initializes the Godot control and connects its UI signals.</summary>
     public override void _Ready()
     {
         UiTheme.StylePanel(this);
@@ -26,17 +28,24 @@ public partial class CombatStatusPanel : PanelContainer
         _intentCard.Visible = false;
     }
 
+    /// <summary>Sets turn.</summary>
+    /// <param name="round">The round used by this operation.</param>
+    /// <param name="turnLabel">The turn label used by this operation.</param>
     public void SetTurn(int round, string turnLabel)
     {
         _round.Text = "ROUND " + round.ToString("00");
         _turn.Text = turnLabel.ToUpperInvariant();
     }
 
+    /// <summary>Sets timeline.</summary>
+    /// <param name="entries">The entries used by this operation.</param>
     public void SetTimeline(TimelineMarkerViewData[] entries)
     {
         _timelineTrack.SetCombatants(entries);
     }
 
+    /// <summary>Sets intent.</summary>
+    /// <param name="intent">The intent used by this operation.</param>
     public void SetIntent(IntentObservation intent)
     {
         if (intent == null)

@@ -1,22 +1,40 @@
 using System;
 
+/// <summary>Identifies the source that provides an available player interaction.</summary>
 public enum InteractionSourceKind
 {
+    /// <summary>The interaction is an action owned by the player.</summary>
     Player,
+    /// <summary>The interaction is provided by the current location.</summary>
     Location,
+    /// <summary>The interaction is provided by an NPC.</summary>
     Npc,
+    /// <summary>The interaction moves the player to another location.</summary>
     Travel,
+    /// <summary>The interaction is a choice offered by a location event.</summary>
     Event
 }
 
+/// <summary>Provides available interaction functionality for the application.</summary>
 public sealed class AvailableInteraction
 {
+    /// <summary>Gets the source kind.</summary>
     public InteractionSourceKind SourceKind { get; }
+    /// <summary>Gets the source id.</summary>
     public string SourceId { get; }
+    /// <summary>Gets the action id.</summary>
     public string ActionId { get; }
+    /// <summary>Gets the target id.</summary>
     public string TargetId { get; }
+    /// <summary>Gets the action.</summary>
     public ActionDefinition Action { get; }
 
+    /// <summary>Initializes a new instance of <see cref="AvailableInteraction"/>.</summary>
+    /// <param name="sourceKind">The source kind used to initialize the instance.</param>
+    /// <param name="sourceId">The source id used to initialize the instance.</param>
+    /// <param name="actionId">The action id used to initialize the instance.</param>
+    /// <param name="targetId">The target id used to initialize the instance.</param>
+    /// <param name="action">The action used to initialize the instance.</param>
     public AvailableInteraction(
         InteractionSourceKind sourceKind,
         string sourceId,
@@ -36,13 +54,23 @@ public sealed class AvailableInteraction
     }
 }
 
+/// <summary>Provides action selection request functionality for the application.</summary>
 public sealed class ActionSelectionRequest
 {
+    /// <summary>Gets the source kind.</summary>
     public InteractionSourceKind SourceKind { get; }
+    /// <summary>Gets the source id.</summary>
     public string SourceId { get; }
+    /// <summary>Gets the action id.</summary>
     public string ActionId { get; }
+    /// <summary>Gets the target id.</summary>
     public string TargetId { get; }
 
+    /// <summary>Initializes a new instance of <see cref="ActionSelectionRequest"/>.</summary>
+    /// <param name="sourceKind">The source kind used to initialize the instance.</param>
+    /// <param name="sourceId">The source id used to initialize the instance.</param>
+    /// <param name="actionId">The action id used to initialize the instance.</param>
+    /// <param name="targetId">The target id used to initialize the instance.</param>
     public ActionSelectionRequest(
         InteractionSourceKind sourceKind,
         string sourceId,
@@ -59,6 +87,8 @@ public sealed class ActionSelectionRequest
         TargetId = targetId ?? string.Empty;
     }
 
+    /// <summary>Encodes the selection request as a string suitable for UI transport.</summary>
+    /// <returns>The resulting string.</returns>
     public string Encode()
     {
         return "choice|" + Uri.EscapeDataString(SourceKind.ToString())
@@ -67,6 +97,10 @@ public sealed class ActionSelectionRequest
             + "|" + Uri.EscapeDataString(TargetId);
     }
 
+    /// <summary>Attempts to parse and reports whether the operation succeeded.</summary>
+    /// <param name="value">The value used by this operation.</param>
+    /// <param name="request">The request used by this operation.</param>
+    /// <returns><see langword="true"/> when the operation succeeds; otherwise, <see langword="false"/>.</returns>
     public static bool TryParse(string value, out ActionSelectionRequest request)
     {
         request = null;
