@@ -35,7 +35,7 @@ public partial class CombatPreview : Control
             timeline: new[]
             {
                 new TimelineCombatantStatus(
-                    "ari",
+                    "player_student",
                     "Alex",
                     false,
                     20.0,
@@ -63,7 +63,7 @@ public partial class CombatPreview : Control
             {
                 new CombatEvent(CombatEventType.PlayerAction, 2, detail: "You attack Unstable Presence with a basic strike.", id: "preview-player-attack"),
                 new CombatEvent(CombatEventType.Damage, 2, targetName: "Unstable Presence", amount: 20, id: "preview-damage"),
-                new CombatEvent(CombatEventType.EnemyAction, 2, actorName: "GOBLIN A", detail: "The presence snarls angrily and lowers its stance.", id: "preview-enemy-reaction"),
+                new CombatEvent(CombatEventType.EnemyAction, 2, actorName: "UNSTABLE PRESENCE", detail: "The presence snarls angrily and lowers its stance.", id: "preview-enemy-reaction"),
                 new CombatEvent(CombatEventType.Check, 2, detail: "OBSERVATION · SUCCESS — You notice the presence shifting its weight forward.", id: "preview-perception")
             });
 
