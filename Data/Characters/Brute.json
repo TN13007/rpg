@@ -1,0 +1,27 @@
+{
+  "id": "brute-a",
+  "name": "Brute",
+  "role": "Heavy assault enemy",
+  "level": 1,
+  "maxHealth": 65,
+  "maxFatigue": 0,
+  "maxStamina": 0,
+  "maxMood": 0,
+  "startingHealth": 65,
+  "startingFatigue": 0,
+  "startingStamina": 0,
+  "startingMood": 0,
+  "startingGold": 0,
+  "stats": {
+    "strength": 20,
+    "agility": 4,
+    "intelligence": 3,
+    "endurance": 18,
+    "wisdom": 4,
+    "luck": 2
+  },
+  "combatActionIds": [
+    "brute_crushing_slam",
+    "brute_overhead_smash"
+  ]
+}
