@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 
 /*
@@ -12,6 +14,7 @@ public partial class MainController : Control
     private ExplorationFlowController _explorationController;
     private CombatFlowController _combatController;
     private ActionDefinition _debugEncounterAction;
+    private string[] _pendingEnemyTargetIds = Array.Empty<string>();
 
     public override void _Ready()
     {
@@ -26,7 +29,6 @@ public partial class MainController : Control
         Character player = new Character(playerData);
         Character enemy = new Character(enemyData);
         _debugEncounterAction = content.CombatEncounter;
-
 
         GameClock gameClock = new GameClock();
         ActivityTimeCalculator activityTimeCalculator = new ActivityTimeCalculator();
@@ -77,9 +79,12 @@ public partial class MainController : Control
 
         _sidebar.TabSelected += OpenTab;
         _sidebar.DebugEncounterRequested += StartDebugEncounter;
+        _sidebar.EnemySelected += HandleEnemySelected;
         storyPanel.ChoiceSelected += _explorationController.HandleChoice;
         storyPanel.ReturnToLocationRequested += _explorationController.ShowLocation;
-        combatPanel.ActionSelected += _combatController.HandleCombatAction;
+        combatPanel.ActionSelected += HandleCombatAction;
+        combatPanel.EnemyTargetSelectionRequested += BeginEnemyTargetSelection;
+        combatPanel.EnemyTargetSelectionCancelled += ClearEnemyTargetSelection;
         combatPanel.ContinueRequested += ReturnToExploration;
         characterPanel.SetCharacter(new CharacterViewModel(player));
         _explorationController.ShowLocation();
@@ -106,8 +111,40 @@ public partial class MainController : Control
         _combatController.StartEncounter(_debugEncounterAction, "Debug Encounter", "An unstable presence appears.");
     }
 
+    private void BeginEnemyTargetSelection(string[] targetIds)
+    {
+        _pendingEnemyTargetIds = targetIds ?? Array.Empty<string>();
+        _sidebar.SetEnemyTargetSelection(_pendingEnemyTargetIds);
+    }
+
+    private void HandleEnemySelected(string enemyId)
+    {
+        if (!_pendingEnemyTargetIds.Contains(enemyId, StringComparer.Ordinal))
+        {
+            return;
+        }
+
+        CombatPanel combatPanel = GetNode<CombatPanel>("SafeArea/Layout/CombatPanel");
+        combatPanel.SetSelectedEnemyTarget(enemyId);
+        _sidebar.SetEnemyTargetSelection(_pendingEnemyTargetIds, enemyId);
+    }
+
+    private void ClearEnemyTargetSelection()
+    {
+        _pendingEnemyTargetIds = Array.Empty<string>();
+        _sidebar.ClearEnemyTargetSelection();
+    }
+
+    private void HandleCombatAction(CombatActionRequest request)
+    {
+        ClearEnemyTargetSelection();
+        GetNode<CombatPanel>("SafeArea/Layout/CombatPanel").ClearTargetSelection();
+        _combatController.HandleCombatAction(request);
+    }
+
     private void ReturnToExploration()
     {
+        ClearEnemyTargetSelection();
         _combatController.ReturnToExploration(_explorationController.ShowLocation);
     }
 }
