@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-/// <summary>Provides npc presence functionality for the application.</summary>
+/// <summary>Describes one Character's scheduled presence at a Location for presentation and interaction discovery.</summary>
 public sealed class NpcPresence
 {
     /// <summary>Gets the character id.</summary>
@@ -13,11 +13,11 @@ public sealed class NpcPresence
     /// <summary>Gets the activity description.</summary>
     public string ActivityDescription { get; }
 
-    /// <summary>Initializes a new instance of <see cref="NpcPresence"/>.</summary>
-    /// <param name="characterId">The character id used to initialize the instance.</param>
-    /// <param name="name">The name used to initialize the instance.</param>
-    /// <param name="locationId">The location id used to initialize the instance.</param>
-    /// <param name="activityDescription">The activity description used to initialize the instance.</param>
+    /// <summary>Creates a presence record for one Character at a Location.</summary>
+    /// <param name="characterId">The stable ID of the Character who is present.</param>
+    /// <param name="name">The Character's display name.</param>
+    /// <param name="locationId">The ID of the Location where the Character is present.</param>
+    /// <param name="activityDescription">The authored description of what the Character is doing during this schedule interval.</param>
     public NpcPresence(
         string characterId,
         string name,
@@ -37,9 +37,9 @@ public sealed class NpcPresenceQuery
     private readonly NpcScheduleDefinition[] _schedules;
     private readonly Dictionary<string, CharacterData> _characters;
 
-    /// <summary>Initializes a new instance of <see cref="NpcPresenceQuery"/>.</summary>
-    /// <param name="schedules">The schedules used to initialize the instance.</param>
-    /// <param name="characters">The characters used to initialize the instance.</param>
+    /// <summary>Creates a read-only NPC presence query from validated schedule and Character definitions.</summary>
+    /// <param name="schedules">The daily schedules that map Character IDs to Location/time intervals.</param>
+    /// <param name="characters">The Character definitions used to resolve names and validate schedule references.</param>
     public NpcPresenceQuery(
         IEnumerable<NpcScheduleDefinition> schedules,
         IEnumerable<CharacterData> characters)
@@ -95,10 +95,10 @@ public sealed class NpcPresenceQuery
         _schedules = scheduleList.ToArray();
     }
 
-    /// <summary>Returns the interactions or presence records matching the supplied criteria.</summary>
-    /// <param name="locationId">The location id used by this operation.</param>
-    /// <param name="minuteOfDay">The minute of day used by this operation.</param>
-    /// <returns>The resulting i read only list npc presence.</returns>
+    /// <summary>Finds Characters scheduled at the specified Location and minute of the in-game day.</summary>
+    /// <param name="locationId">The current Location ID to match against each schedule entry.</param>
+    /// <param name="minuteOfDay">The minute within the day, from 0 inclusive to 1440 exclusive.</param>
+    /// <returns>Present NPC records sorted by Character name; the list is empty when no schedule matches.</returns>
     public IReadOnlyList<NpcPresence> Query(string locationId, int minuteOfDay)
     {
         if (string.IsNullOrWhiteSpace(locationId))
@@ -132,11 +132,11 @@ public sealed class NpcPresenceQuery
         return presentNpcs;
     }
 
-    /// <summary>Determines whether present.</summary>
-    /// <param name="characterId">The character id used by this operation.</param>
+    /// <summary>Checks whether a Character is scheduled at the specified Location and time.</summary>
+    /// <param name="characterId">The Character ID whose presence should be checked.</param>
     /// <param name="locationId">The location id used by this operation.</param>
     /// <param name="minuteOfDay">The minute of day used by this operation.</param>
-    /// <returns><see langword="true"/> when the operation succeeds; otherwise, <see langword="false"/>.</returns>
+    /// <returns><see langword="true"/> when the Character appears in the matching presence results; otherwise, <see langword="false"/>.</returns>
     public bool IsPresent(string characterId, string locationId, int minuteOfDay)
     {
         if (string.IsNullOrWhiteSpace(characterId))
@@ -156,10 +156,10 @@ public sealed class NpcPresenceQuery
         return false;
     }
 
-    /// <summary>Returns present character ids.</summary>
+    /// <summary>Gets the IDs of all Characters scheduled at the specified Location and time.</summary>
     /// <param name="locationId">The location id used by this operation.</param>
     /// <param name="minuteOfDay">The minute of day used by this operation.</param>
-    /// <returns>The resulting hash set string.</returns>
+    /// <returns>A new set of present Character IDs using ordinal ID comparison.</returns>
     public HashSet<string> GetPresentCharacterIds(string locationId, int minuteOfDay)
     {
         IReadOnlyList<NpcPresence> presentNpcs = Query(locationId, minuteOfDay);
