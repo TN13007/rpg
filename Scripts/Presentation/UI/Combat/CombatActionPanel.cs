@@ -13,7 +13,6 @@ public partial class CombatActionPanel : PanelContainer
     private Label _targetHeading;
     private GridContainer _targetGrid;
     private Button _backButton;
-    private Button _confirmButton;
     private PackedScene _actionCardScene;
     private CombatActionOption _pendingAction;
     private readonly HashSet<string> _validEnemyTargetIds =
@@ -28,13 +27,9 @@ public partial class CombatActionPanel : PanelContainer
         _targetHeading = GetNode<Label>("Margin/Content/TargetSelection/TargetHeading");
         _targetGrid = GetNode<GridContainer>("Margin/Content/TargetSelection/TargetGrid");
         _backButton = GetNode<Button>("Margin/Content/TargetSelection/BackButton");
-        _confirmButton = GetNode<Button>("Margin/Content/TargetSelection/ConfirmButton");
         _actionCardScene = GD.Load<PackedScene>("res://Scenes/UI/Combat/CombatActionCard.tscn");
         _backButton.Pressed += CancelTargetSelection;
-        _confirmButton.Pressed += ConfirmTargetSelection;
         UiTheme.StyleButton(_backButton);
-        UiTheme.StyleButton(_confirmButton, true);
-        _confirmButton.Disabled = true;
         _targetGrid.Visible = false;
     }
 
@@ -73,9 +68,15 @@ public partial class CombatActionPanel : PanelContainer
             return false;
         }
 
-        _selectedTargetId = enemyId;
-        _targetHeading.Text = "Target selected. Confirm " + _pendingAction.Label + ".";
-        _confirmButton.Disabled = false;
+        CombatActionRequest request = new CombatActionRequest(
+            _pendingAction.Id,
+            enemyId,
+            _pendingAction.ActorId);
+
+        ClearPendingTarget();
+        _targetSelection.Visible = false;
+        _actionGrid.Visible = true;
+        ActionSelected?.Invoke(request);
         return true;
     }
 
@@ -128,8 +129,7 @@ public partial class CombatActionPanel : PanelContainer
             _validEnemyTargetIds.Add(target.Id);
         }
 
-        _targetHeading.Text = "Choose a highlighted enemy from the sidebar.";
-        _confirmButton.Disabled = true;
+        _targetHeading.Text = "Choose a highlighted enemy from the sidebar. Selecting one executes the action.";
         _targetGrid.Visible = false;
         _actionGrid.Visible = false;
         _targetSelection.Visible = true;
@@ -159,27 +159,10 @@ public partial class CombatActionPanel : PanelContainer
 
         _pendingAction = null;
         _targetGrid.Visible = true;
-        _confirmButton.Visible = false;
         _actionGrid.Visible = false;
         _targetSelection.Visible = true;
     }
 
-    private void ConfirmTargetSelection()
-    {
-        if (_pendingAction == null || string.IsNullOrWhiteSpace(_selectedTargetId))
-        {
-            return;
-        }
-
-        CombatActionRequest request = new CombatActionRequest(
-            _pendingAction.Id,
-            _selectedTargetId,
-            _pendingAction.ActorId);
-        ClearPendingTarget();
-        _targetSelection.Visible = false;
-        _actionGrid.Visible = true;
-        ActionSelected?.Invoke(request);
-    }
 
     private void CancelTargetSelection()
     {
@@ -188,7 +171,6 @@ public partial class CombatActionPanel : PanelContainer
         _targetSelection.Visible = false;
         _actionGrid.Visible = true;
         _targetGrid.Visible = false;
-        _confirmButton.Visible = true;
         if (wasSelectingEnemy)
         {
             EnemyTargetSelectionCancelled?.Invoke();
@@ -209,7 +191,6 @@ public partial class CombatActionPanel : PanelContainer
         _pendingAction = null;
         _selectedTargetId = string.Empty;
         _validEnemyTargetIds.Clear();
-        _confirmButton.Disabled = true;
         _confirmButton.Visible = true;
     }
 
