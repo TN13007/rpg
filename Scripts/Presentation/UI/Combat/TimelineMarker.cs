@@ -93,6 +93,11 @@ public partial class TimelineMarker : Panel
             readyText += " · OUTSIDE DISPLAY WINDOW";
         }
 
-        return combatant.Name + " · " + readyText;
+        string tooltip = combatant.Name + " · " + readyText;
+        if (combatant.IsEnemy && !string.IsNullOrWhiteSpace(combatant.IntentDescription))
+        {
+            tooltip += " · INTENT: " + combatant.IntentDescription;
+        }
+        return tooltip;
     }
 }
