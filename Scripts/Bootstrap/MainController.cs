@@ -23,8 +23,9 @@ public partial class MainController : Control
         GameContentCatalog content = GameContentLoader.Load("res://Data");
         CharacterData playerData = content.GetCharacter("player-ari");
         CharacterData goblinData = content.GetCharacter("goblin-a");
+        CharacterData bruteData = content.GetCharacter("brute-a");
+        CharacterData disruptorData = content.GetCharacter("disruptor-a");
         Character player = new Character(playerData);
-        Character goblin = new Character(goblinData);
         _debugGoblinEncounterAction = FindAction(
             content.GetLocation("courtyard").Actions,
             "encounter_goblin");
@@ -46,9 +47,20 @@ public partial class MainController : Control
         List<CombatantDefinition> encounterCombatants =
             new List<CombatantDefinition>(StartingParty.CreateCombatants(content, player));
         encounterCombatants.Add(new CombatantDefinition(
-            goblin,
+            new Character(goblinData),
             CombatantSide.Enemy,
-            content.GetCombatActionsForCharacter(goblinData.Id)));
+            content.GetCombatActionsForCharacter(goblinData.Id),
+            behaviorProfile: EnemyBehaviorProfiles.CreateGoblinSkirmisher()));
+        encounterCombatants.Add(new CombatantDefinition(
+            new Character(bruteData),
+            CombatantSide.Enemy,
+            content.GetCombatActionsForCharacter(bruteData.Id),
+            behaviorProfile: EnemyBehaviorProfiles.CreateBrute()));
+        encounterCombatants.Add(new CombatantDefinition(
+            new Character(disruptorData),
+            CombatantSide.Enemy,
+            content.GetCombatActionsForCharacter(disruptorData.Id),
+            behaviorProfile: EnemyBehaviorProfiles.CreateDisruptor()));
 
         CombatService combatService = new CombatService(encounterCombatants);
         CombatPresentationMapper combatPresentationMapper = new CombatPresentationMapper();
