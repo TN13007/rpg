@@ -26,7 +26,7 @@ The intended fantasy is to create deliberate sequences in which one character de
 | Information | Partial; invisible/hidden enemies are omitted from the Timeline until revealed |
 | Resource persistence | Hybrid; selected resources persist while others recover through combat or rest |
 | Defeat state | Characters become Downed and may be revived |
-| World structure | Hybrid Academy hub and adventure areas |
+| World structure | University and city locations with optional paranormal incidents |
 
 These are design decisions. They do not assert that the current code implements them.
 
@@ -238,7 +238,7 @@ These are provisional encounter rules chosen to prove a finite, understandable r
 
 The accepted direction is **hybrid persistence**. It should create decisions across an adventure without making every encounter feel like punishment for the previous one.
 
-HP and selected expedition resources may persist between encounters. Other resources may recover through combat actions, milestones, consumables, rest or returning to the Academy. Exact resource types, regeneration rates, post-combat recovery and checkpoint rules remain open.
+HP and selected expedition resources may persist between encounters. Other resources may recover through combat actions, milestones, consumables, rest or returning to campus or another safe location. Exact resource types, regeneration rates, post-combat recovery and checkpoint rules remain open.
 
 Avoid adding overlapping resource bars unless each supports a distinct decision.
 

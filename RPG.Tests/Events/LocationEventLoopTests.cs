@@ -33,7 +33,7 @@ public sealed class LocationEventLoopTests
     [Fact]
     public void LocationCatalog_LoadsApartmentIncidentAndItsChoices()
     {
-        LoadLocationContent();
+        LoadLocationCatalog();
         LocationContent apartmentBlock = _locations.Get("apartment_block");
 
         Assert.Single(apartmentBlock.Events);
@@ -265,7 +265,7 @@ public sealed class LocationEventLoopTests
     [Fact]
     public void TravelToApartmentBlock_TriggersEvent_AndListeningAppliesTime()
     {
-        LoadLocationContent();
+        LoadLocationCatalog();
         Character player = TestCharacterFactory.CreatePlayer(agility: 30);
         GameClock clock = new GameClock();
         ActionExecutionService actionService = CreateActionService();
@@ -308,7 +308,7 @@ public sealed class LocationEventLoopTests
     [Fact]
     public void EnterChoiceAppliesItsAuthoredCostWithoutForcingCombat()
     {
-        LoadLocationContent();
+        LoadLocationCatalog();
         LocationContent apartmentBlock = WithGuaranteedEvents(_locations.Get("apartment_block"));
         LocationEventService eventService = new LocationEventService(new Random(1));
         Assert.True(eventService.TryTrigger(apartmentBlock, 1, true, out LocationEventDefinition locationEvent));
@@ -327,14 +327,14 @@ public sealed class LocationEventLoopTests
     public void HighFatigueAndZeroStamina_DoNotBlockEventChoice()
     {
         LoadLocationCatalog();
-        LocationEventDefinition locationEvent = _locations.Get("courtyard").Events[0];
-        LocationEventChoiceDefinition sneakChoice = FindChoice(locationEvent, "event_goblin_sneak");
+        LocationEventDefinition locationEvent = _locations.Get("apartment_block").Events[0];
+        LocationEventChoiceDefinition listenChoice = FindChoice(locationEvent, "listen_from_hallway");
         Character player = TestCharacterFactory.CreatePlayer(fatigue: 100, stamina: 0);
         GameClock clock = new GameClock();
         ActionExecutionService actionService = CreateActionService();
 
         bool result = actionService.TryExecute(
-            sneakChoice.Action,
+            listenChoice.Action,
             player,
             clock,
             out string reason,

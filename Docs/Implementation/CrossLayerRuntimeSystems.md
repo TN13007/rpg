@@ -10,11 +10,11 @@ The current build combines an authored, location-based modern student-life slice
 Implemented areas include:
 - Character state and resources, plus the Alex/Noah/Mira/Sera StartingParty composition.
 - GameClock day/minute tracking, elapsed-time advancement, midnight rollover and authored Sleep/Rest actions.
-- A connected Opening Day route through the carriage, university arrival, assembly hall, canteen, campus and nearby town, ending at the Dormitory.
+- A connected modern city route through university campus, lecture hall, library, campus café, student housing, East District and the old apartment block.
 - Location travel, context-sensitive Location Actions and source-aware Exploration choices.
-- Authored Location Events for the opening ceremony, meeting Mira and the canteen arrival. The previous Courtyard Goblin event remains available as content but has chance 0 during this opening-day slice.
+- Authored Location Events for a campus conversation and the Unit 213 incident. The first introduces a local rumor; the second offers observation, cautious entry and retreat without forcing Combat.
 - Four-person Combat with a shared Continuous Timeline, player decision pauses, action-specific Recovery Cost, Delay/Stun, Downed/Revive and Victory/Defeat.
-- Exploration rescue when Ari returns from an encounter at 0 HP.
+- Exploration rescue when Alex returns from an encounter at 0 HP.
 - Dedicated Combat presentation and authored JSON definitions loaded into runtime catalogs.
 
 ## 2. Current domain vocabulary
@@ -86,7 +86,7 @@ Each combatant has Remaining Progress and Speed. At encounter start, CombatServi
 The presentation pipeline maps combat timing into `TimelineMarkerViewData.TimeToReadySeconds`. For normal combatants this is `RemainingProgress / Speed`; for Stunned combatants it also includes the remaining Stun duration. `TimelineTrack.tscn` displays the next 10 seconds by default, with NOW at the left and the future horizon at the right. The Timeline is refreshed from the current snapshot each runtime frame, so marker movement matches the 1.0x Combat Clock without a lagging fixed-duration Tween. Party markers occupy the upper side of the rail and Enemy markers the lower side; overlapping markers stack within their own side without changing their horizontal time. It creates and reuses `TimelineMarker.tscn` instances by combatant ID. Hidden enemies are filtered from the UI but remain registered in the simulation.
 
 Current limitations:
-- The playable `MainController` encounter is composed from Alex, Noah, Mira and Sera through `StartingParty`, plus one Unstable Presence. The helper reuses Ari's Exploration `Character` instance and creates the other members from their character content. All four are passed to the existing Party Roster presentation and remain individually player-controlled.
+- The playable `MainController` encounter is composed from Alex, Noah, Mira and Sera through `StartingParty`, plus one Unstable Presence. The helper reuses Alex's Exploration `Character` instance and creates the other members from their character content. All four are passed to the existing Party Roster presentation and remain individually player-controlled.
 - Current Timeline markers use faction-colored circles. The marker scene has an icon slot, but no combatant portrait textures are currently supplied.
 - A Party member reaching zero HP enters Downed, remains visible in the Party roster and leaves the Timeline. Any active ally can spend 4 Stamina to revive that member once per encounter at 25% maximum HP (rounded up). The revived member and the reviving actor both receive the largest authored Recovery Cost in the encounter; the revived member is re-registered on the Timeline. If every Party member is Downed, the encounter ends in defeat. Enemies at zero HP are defeated rather than Downed.
 - Speed modifiers, Acceleration, Interrupt, casting/channeling and Cooldowns are not implemented.
