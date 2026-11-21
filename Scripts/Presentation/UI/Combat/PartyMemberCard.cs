@@ -7,8 +7,9 @@ public partial class PartyMemberCard : PanelContainer
     private ProgressBar _healthBar;
     private Label _conditionLabel;
     private string _memberId = string.Empty;
+    private string _displayName = string.Empty;
 
-    public string MemberName => _nameLabel?.Text ?? string.Empty;
+    public string MemberName => _displayName;
 
     public override void _Ready()
     {
@@ -33,6 +34,7 @@ public partial class PartyMemberCard : PanelContainer
         }
 
         _memberId = member.Id;
+        _displayName = member.Name;
         _nameLabel.Text = member.Name + (member.IsActive ? "  ·  READY" : string.Empty);
         _nameLabel.AddThemeColorOverride("font_color", member.IsActive ? UiTheme.Accent : UiTheme.Text);
         _healthLabel.Text = "HP  " + member.CurrentHealth + " / " + member.MaxHealth;
