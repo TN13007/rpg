@@ -1,15 +1,80 @@
 using System;
 
 /// <summary>Provides combat message type presentation data.</summary>
-public enum CombatMessageType { Player, Enemy, System }
+public enum CombatMessageType {
+    /// <summary>A message describing a player or party action.</summary>
+    Player,
+    /// <summary>A message describing an enemy action.</summary>
+    Enemy,
+    /// <summary>A system-generated combat message.</summary>
+    System
+}
 /// <summary>Provides combat message category presentation data.</summary>
-public enum CombatMessageCategory { None, Damage, Check, Turn, Environment, Inference, Emotion, StatusChange, Round }
+public enum CombatMessageCategory {
+    /// <summary>The message has no specialized category.</summary>
+    None,
+    /// <summary>The message reports damage.</summary>
+    Damage,
+    /// <summary>The message reports a gameplay check.</summary>
+    Check,
+    /// <summary>The message reports a turn transition.</summary>
+    Turn,
+    /// <summary>The message describes an environmental event.</summary>
+    Environment,
+    /// <summary>The message communicates an inferred enemy behavior.</summary>
+    Inference,
+    /// <summary>The message communicates an emotional change.</summary>
+    Emotion,
+    /// <summary>The message reports a status change.</summary>
+    StatusChange,
+    /// <summary>The message reports a round transition.</summary>
+    Round
+}
 /// <summary>Provides intent confidence presentation data.</summary>
-public enum IntentConfidence { Suspected, Recognized }
+public enum IntentConfidence {
+    /// <summary>The enemy intent is an informed suspicion.</summary>
+    Suspected,
+    /// <summary>The enemy intent has been recognized with higher confidence.</summary>
+    Recognized
+}
 /// <summary>Provides combat event type presentation data.</summary>
-public enum CombatEventType { PlayerAction, EnemyAction, Damage, Check, TurnChanged, EnvironmentChanged, Inference, Emotion, StatusChanged, RoundStarted }
+public enum CombatEventType {
+    /// <summary>A party member performed an action.</summary>
+    PlayerAction,
+    /// <summary>An enemy performed an action.</summary>
+    EnemyAction,
+    /// <summary>A combatant took damage.</summary>
+    Damage,
+    /// <summary>A gameplay check was resolved.</summary>
+    Check,
+    /// <summary>The active combatant changed.</summary>
+    TurnChanged,
+    /// <summary>The combat environment changed.</summary>
+    EnvironmentChanged,
+    /// <summary>An enemy intent inference was produced.</summary>
+    Inference,
+    /// <summary>A character emotion event occurred.</summary>
+    Emotion,
+    /// <summary>A combatant or encounter status changed.</summary>
+    StatusChanged,
+    /// <summary>A new combat round started.</summary>
+    RoundStarted
+}
 /// <summary>Provides combat feedback type presentation data.</summary>
-public enum CombatFeedbackType { Attack, Guard, Evade, Recover, Revive, Hit }
+public enum CombatFeedbackType {
+    /// <summary>Attack feedback.</summary>
+    Attack,
+    /// <summary>Guard feedback.</summary>
+    Guard,
+    /// <summary>Evade feedback.</summary>
+    Evade,
+    /// <summary>Stamina recovery feedback.</summary>
+    Recover,
+    /// <summary>Revival feedback.</summary>
+    Revive,
+    /// <summary>Incoming hit feedback.</summary>
+    Hit
+}
 
 /// <summary>Carries combat feedback information to the presentation layer.</summary>
 public sealed class CombatFeedbackViewData
