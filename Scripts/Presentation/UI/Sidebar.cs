@@ -142,6 +142,17 @@ public partial class Sidebar : PanelContainer
         }
     }
 
+    public void PlayEnemyFeedback(string enemyName, CombatFeedbackType feedbackType)
+    {
+        foreach (EnemyCard card in _enemyCards.Values)
+        {
+            if (card.EnemyName == enemyName)
+            {
+                card.PlayFeedback(feedbackType);
+            }
+        }
+    }
+
     public void ClearEnemyTargetSelection()
     {
         foreach (EnemyCard card in _enemyCards.Values)
