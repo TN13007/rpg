@@ -2,16 +2,28 @@ using System;
 using System.Collections.Generic;
 using Godot;
 
+/// <summary>Arranges combatant markers along the combat timeline.</summary>
 public partial class TimelineTrack : Control
 {
     private sealed class MarkerLayout
     {
+        /// <summary>Gets the combatant id.</summary>
         public string CombatantId { get; }
+        /// <summary>Gets the marker.</summary>
         public TimelineMarker Marker { get; }
+        /// <summary>Gets the center x.</summary>
         public float CenterX { get; }
+        /// <summary>Gets the lane.</summary>
         public int Lane { get; }
+        /// <summary>Gets a value indicating whether enemy.</summary>
         public bool IsEnemy { get; }
 
+        /// <summary>Initializes a new instance of <see cref="MarkerLayout"/>.</summary>
+        /// <param name="combatantId">The combatant id used to initialize the instance.</param>
+        /// <param name="marker">The marker used to initialize the instance.</param>
+        /// <param name="centerX">The center x used to initialize the instance.</param>
+        /// <param name="lane">The lane used to initialize the instance.</param>
+        /// <param name="isEnemy">The is enemy used to initialize the instance.</param>
         public MarkerLayout(string combatantId, TimelineMarker marker, float centerX, int lane, bool isEnemy)
         {
             CombatantId = combatantId;
@@ -31,9 +43,11 @@ public partial class TimelineTrack : Control
     private const float _bottomPadding = 4.0f;
 
     [Export]
+    /// <summary>Gets the marker scene.</summary>
     public PackedScene MarkerScene { get; set; }
 
     [Export(PropertyHint.Range, "1,30,0.5")]
+    /// <summary>Gets the display window seconds.</summary>
     public double DisplayWindowSeconds { get; set; } = 10.0;
 
     private ColorRect _rail;
@@ -44,6 +58,7 @@ public partial class TimelineTrack : Control
     private readonly Dictionary<string, TimelineMarker> _markers =
         new Dictionary<string, TimelineMarker>(StringComparer.Ordinal);
 
+    /// <summary>Initializes the Godot control and connects its UI signals.</summary>
     public override void _Ready()
     {
         _rail = GetNode<ColorRect>("Rail");
@@ -54,6 +69,8 @@ public partial class TimelineTrack : Control
         RefreshTimeline();
     }
 
+    /// <summary>Sets combatants.</summary>
+    /// <param name="combatants">The combatants used by this operation.</param>
     public void SetCombatants(TimelineMarkerViewData[] combatants)
     {
         _combatants = combatants ?? Array.Empty<TimelineMarkerViewData>();
