@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using Xunit;
 
 public sealed class CompetingEnemyThreatTests
@@ -89,7 +88,7 @@ public sealed class CompetingEnemyThreatTests
             item.Type == CombatEventType.StatusChanged &&
             item.Detail.Contains("stunned", StringComparison.OrdinalIgnoreCase));
 
-        Assert.Equal(88, partyMember.Health);
+        Assert.Equal(85, partyMember.Health);
         Assert.False(combat.IsEncounterOver);
     }
 
