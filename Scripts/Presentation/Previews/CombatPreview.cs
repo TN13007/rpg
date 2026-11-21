@@ -1,10 +1,12 @@
 using Godot;
 
+/// <summary>Provides a Godot preview of the current combat presentation.</summary>
 public partial class CombatPreview : Control
 {
     private CombatPanel _combatPanel;
     private CombatPresentationMapper _mapper;
 
+    /// <summary>Initializes the Godot control and connects its UI signals.</summary>
     public override void _Ready()
     {
         _combatPanel = GetNode<CombatPanel>("Margin/CombatPanel");
