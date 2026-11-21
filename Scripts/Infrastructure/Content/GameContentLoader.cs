@@ -2,8 +2,12 @@ using System;
 using System.Collections.Generic;
 using Godot;
 
+/// <summary>Loads game content data from files or serialized content.</summary>
 public static class GameContentLoader
 {
+    /// <summary>Loads load from the specified content source.</summary>
+    /// <param name="dataRoot">The data root used by this operation.</param>
+    /// <returns>The resulting game content catalog.</returns>
     public static GameContentCatalog Load(string dataRoot)
     {
         if (string.IsNullOrWhiteSpace(dataRoot))
