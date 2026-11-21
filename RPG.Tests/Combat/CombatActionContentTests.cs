@@ -7,7 +7,7 @@ using Xunit;
 public sealed class CombatActionContentTests
 {
     [Fact]
-    public void CombatActionJsonReaderLoadsPlayerAndGoblinActionDefinitions()
+    public void CombatActionJsonReaderLoadsPlayerAndPresenceActionDefinitions()
     {
         string path = Path.Combine(AppContext.BaseDirectory, "Data", "Combat", "CombatActions.json");
         CombatActionDefinition[] actions = CombatActionJsonReader.Read(File.ReadAllText(path));
@@ -65,7 +65,7 @@ public sealed class CombatActionContentTests
     [Fact]
     public void GameContentCatalogRejectsUnknownCharacterActionReferences()
     {
-        AcademyContent academy = new AcademyContent();
+        LocationCatalog academy = new LocationCatalog();
         academy.LoadJson("{\"locations\":[{\"id\":\"test_location\",\"name\":\"Test\",\"region\":\"Test\",\"description\":\"Test\",\"exits\":[],\"actions\":[]}]}");
         CharacterData character = new CharacterData("test_character", "Test", "Test", 1, 10, 100, 10, 100, 10, 0, 10, 50, 0,
             combatActionIds: new[] { "unknown_action" });
