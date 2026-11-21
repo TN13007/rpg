@@ -102,6 +102,24 @@ public sealed class CombatPresentationOrchestrator
     {
         _sidebar.UpdateCombatEnemies(viewData.Enemies);
         _combatPanel.ApplyViewData(viewData);
+        foreach (CombatFeedbackViewData feedback in viewData.Feedback)
+        {
+            if (!string.IsNullOrWhiteSpace(feedback.ActorName))
+            {
+                _combatPanel.PlayPartyFeedback(feedback.ActorName, feedback.Type);
+                _sidebar.PlayEnemyFeedback(feedback.ActorName, feedback.Type);
+            }
+
+            if (!string.IsNullOrWhiteSpace(feedback.TargetName))
+            {
+                _combatPanel.PlayPartyFeedback(feedback.TargetName, feedback.Type == CombatFeedbackType.Hit
+                    ? CombatFeedbackType.Hit
+                    : feedback.Type);
+                _sidebar.PlayEnemyFeedback(feedback.TargetName, feedback.Type == CombatFeedbackType.Hit
+                    ? CombatFeedbackType.Hit
+                    : feedback.Type);
+            }
+        }
 
         Character activeCharacter = _partyMembers.FirstOrDefault(
             character => character.Id == viewData.ActiveCombatantId);
