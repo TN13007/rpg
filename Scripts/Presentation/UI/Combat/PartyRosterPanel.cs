@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Godot;
 
+/// <summary>Presents party roster information and exposes its UI interactions.</summary>
 public partial class PartyRosterPanel : PanelContainer
 {
     private HBoxContainer _roster;
@@ -10,6 +11,7 @@ public partial class PartyRosterPanel : PanelContainer
         new Dictionary<string, PartyMemberCard>(StringComparer.Ordinal);
     private Label _emptyLabel;
 
+    /// <summary>Initializes the Godot control and connects its UI signals.</summary>
     public override void _Ready()
     {
         UiTheme.StylePanel(this);
@@ -21,6 +23,8 @@ public partial class PartyRosterPanel : PanelContainer
         }
     }
 
+    /// <summary>Sets members.</summary>
+    /// <param name="members">The members used by this operation.</param>
     public void SetMembers(PartyCombatStatus[] members)
     {
         HashSet<string> currentIds = new HashSet<string>(StringComparer.Ordinal);
@@ -71,6 +75,9 @@ public partial class PartyRosterPanel : PanelContainer
         UpdateEmptyState();
     }
 
+    /// <summary>Plays feedback feedback for the selected combatant or action.</summary>
+    /// <param name="characterName">The character name used by this operation.</param>
+    /// <param name="feedbackType">The feedback type used by this operation.</param>
     public void PlayFeedback(string characterName, CombatFeedbackType feedbackType)
     {
         foreach (PartyMemberCard card in _memberCards.Values)
