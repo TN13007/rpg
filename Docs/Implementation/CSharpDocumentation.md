@@ -182,3 +182,11 @@ XML documentation is an API guide, not a replacement for:
 - tests proving actual behavior.
 
 When a public contract changes, update its XML documentation in the same change. When a member is removed or renamed, update its references and documentation together. Prefer documenting the reason and observable contract over narrating each line of code.
+
+## 9. Current repository coverage
+
+The repository-wide documentation pass covers all 79 C# source files under `Scripts/`, including the Bootstrap, Domain, Application, Infrastructure and Presentation layers. Public types and their caller-facing members are documented with XML comments; constructors include parameter descriptions, methods include parameter/return descriptions where applicable, and public enum options explain their meaning.
+
+The `RPG.Tests/` project is intentionally not treated as a public API surface. Test names, assertions and fixtures document expected behavior through the test suite itself; XML comments are reserved for runtime contracts that other production code consumes. If a test helper later becomes a shared production API, document it when it moves into the runtime project.
+
+When adding a new runtime C# file, include XML documentation for its public types and members in the same change. Keep the comments aligned with implementation behavior and refine any generated skeleton text into a precise contract before merging.
