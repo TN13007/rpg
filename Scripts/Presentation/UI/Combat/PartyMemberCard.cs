@@ -1,5 +1,6 @@
 using Godot;
 
+/// <summary>Presents a combatant card and its current selection and feedback state.</summary>
 public partial class PartyMemberCard : PanelContainer
 {
     private Label _nameLabel;
@@ -10,8 +11,10 @@ public partial class PartyMemberCard : PanelContainer
     private string _displayName = string.Empty;
     private CombatCardVfx _vfx;
 
+    /// <summary>Gets the member name.</summary>
     public string MemberName => _displayName;
 
+    /// <summary>Initializes the Godot control and connects its UI signals.</summary>
     public override void _Ready()
     {
         _nameLabel = GetNode<Label>("Margin/Content/Name");
@@ -22,6 +25,8 @@ public partial class PartyMemberCard : PanelContainer
         UpdateStyle(false);
     }
 
+    /// <summary>Sets member.</summary>
+    /// <param name="member">The member used by this operation.</param>
     public void SetMember(PartyCombatStatus member)
     {
         if (member == null)
@@ -49,6 +54,8 @@ public partial class PartyMemberCard : PanelContainer
         UpdateStyle(member.IsActive);
     }
 
+    /// <summary>Plays feedback feedback for the selected combatant or action.</summary>
+    /// <param name="feedbackType">The feedback type used by this operation.</param>
     public void PlayFeedback(CombatFeedbackType feedbackType)
     {
         _vfx.PlayFeedback(feedbackType);
