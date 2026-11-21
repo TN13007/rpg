@@ -20,6 +20,8 @@ public sealed class CombatService : ICombatService
         public CombatantEffectState EffectState { get; }
         public bool IsDowned { get; set; }
         public bool HasBeenRevived { get; set; }
+        public CombatActionDefinition CommittedAction { get; set; }
+        public string CommittedTargetId { get; set; } = string.Empty;
 
         public CombatantRuntime(CombatantDefinition definition)
         {
@@ -155,6 +157,8 @@ public sealed class CombatService : ICombatService
             combatant.EffectState.Reset();
             combatant.IsDowned = combatant.IsPartyMember && !combatant.Character.IsAlive;
             combatant.HasBeenRevived = false;
+            combatant.CommittedAction = null;
+            combatant.CommittedTargetId = string.Empty;
         }
 
         if (!_enemies.Any(item => item.Character.IsAlive))
@@ -180,6 +184,11 @@ public sealed class CombatService : ICombatService
                 combatant.Character.Stats.Luck,
                 GetBaseSpeed(combatant.Character),
                 _initialProgress);
+        }
+
+        foreach (CombatantRuntime enemy in _enemies.Where(item => item.Character.IsAlive))
+        {
+            PlanEnemyIntent(enemy);
         }
 
         _round = 1;
@@ -296,7 +305,7 @@ public sealed class CombatService : ICombatService
             _round,
             turnLabel,
             enemyStatuses,
-            null,
+            GetPrimaryEnemyIntent(),
             availableActions.ToArray(),
             GetTimelineEntries(),
             partyStatuses,
@@ -529,13 +538,10 @@ public sealed class CombatService : ICombatService
 
     private double ResolveEnemyAction(CombatantRuntime actor, List<CombatEvent> events)
     {
-        List<CombatActionDefinition> availableActions = actor.ActionOrder
-            .Where(action => IsActionAvailable(action, actor.Character))
-            .ToList();
-
-        CombatActionDefinition action = availableActions.Count == 0
-            ? actor.ActionOrder[0]
-            : availableActions[_enemyRandom.Next(availableActions.Count)];
+        CombatActionDefinition action = actor.CommittedAction ?? SelectEnemyAction(actor);
+        string committedTargetId = actor.CommittedTargetId;
+        actor.CommittedAction = null;
+        actor.CommittedTargetId = string.Empty;
 
         if (!actor.Character.SpendStamina(action.StaminaCost))
         {
@@ -543,24 +549,28 @@ public sealed class CombatService : ICombatService
                 CombatEventType.EnemyAction,
                 _round,
                 actorName: actor.Character.Name.ToUpperInvariant(),
-                detail: actor.Character.Name + " cannot afford an action and loses the opportunity."));
+                detail: actor.Character.Name + " cannot afford its committed action and loses the opportunity."));
+            PlanEnemyIntent(actor);
             return action.RecoveryCost;
         }
 
         CombatantRuntime target = actor;
         if (RequiresTarget(action))
         {
-            List<CombatantRuntime> validTargets = _party
-                .Where(item => item.Character.IsAlive)
-                .ToList();
-
-            if (validTargets.Count == 0)
+            if (string.IsNullOrWhiteSpace(committedTargetId) ||
+                !_combatants.TryGetValue(committedTargetId, out target) ||
+                !target.IsPartyMember ||
+                !target.Character.IsAlive ||
+                target.IsDowned)
             {
+                events.Add(new CombatEvent(
+                    CombatEventType.EnemyAction,
+                    _round,
+                    actorName: actor.Character.Name.ToUpperInvariant(),
+                    detail: actor.Character.Name + " loses its committed action because the target is no longer available."));
+                PlanEnemyIntent(actor);
                 return action.RecoveryCost;
             }
-
-            int targetIndex = validTargets.Count == 1 ? 0 : _enemyRandom.Next(validTargets.Count);
-            target = validTargets[targetIndex];
         }
 
         events.Add(new CombatEvent(
@@ -571,7 +581,83 @@ public sealed class CombatService : ICombatService
             detail: action.ActionDetail));
 
         ApplyAction(action, actor, target, events);
+        PlanEnemyIntent(actor);
         return action.RecoveryCost;
+    }
+
+    private CombatActionDefinition SelectEnemyAction(CombatantRuntime enemy)
+    {
+        List<CombatActionDefinition> availableActions = enemy.ActionOrder
+            .Where(action => IsActionAvailable(action, enemy.Character))
+            .ToList();
+
+        return availableActions.Count == 0
+            ? enemy.ActionOrder[0]
+            : availableActions[_enemyRandom.Next(availableActions.Count)];
+    }
+
+    private void PlanEnemyIntent(CombatantRuntime enemy)
+    {
+        enemy.CommittedAction = SelectEnemyAction(enemy);
+        enemy.CommittedTargetId = string.Empty;
+
+        if (!RequiresTarget(enemy.CommittedAction))
+        {
+            return;
+        }
+
+        List<CombatantRuntime> validTargets = _party
+            .Where(item => item.Character.IsAlive && !item.IsDowned)
+            .ToList();
+
+        if (validTargets.Count == 0)
+        {
+            enemy.CommittedAction = null;
+            return;
+        }
+
+        int targetIndex = validTargets.Count == 1 ? 0 : _enemyRandom.Next(validTargets.Count);
+        enemy.CommittedTargetId = validTargets[targetIndex].Character.Id;
+    }
+
+    private string GetEnemyIntentDescription(CombatantRuntime enemy)
+    {
+        if (enemy.CommittedAction == null)
+        {
+            return string.Empty;
+        }
+
+        string description = enemy.CommittedAction.Label;
+        if (!string.IsNullOrWhiteSpace(enemy.CommittedTargetId) &&
+            _combatants.TryGetValue(enemy.CommittedTargetId, out CombatantRuntime target))
+        {
+            description += " → " + target.Character.Name;
+        }
+
+        return description;
+    }
+
+    private IntentObservation GetPrimaryEnemyIntent()
+    {
+        TimelineCombatantStatus nextEnemy = GetTimelineEntries()
+            .Where(entry => entry.IsEnemy && entry.IsVisible)
+            .OrderBy(entry => entry.RemainingStunTime + entry.RemainingProgress / entry.Speed)
+            .ThenByDescending(entry => entry.Luck)
+            .ThenBy(entry => entry.Id, StringComparer.Ordinal)
+            .FirstOrDefault();
+
+        if (nextEnemy == null ||
+            !_combatants.TryGetValue(nextEnemy.Id, out CombatantRuntime enemy) ||
+            enemy.CommittedAction == null)
+        {
+            return null;
+        }
+
+        return new IntentObservation(
+            enemy.Character.Id,
+            enemy.Character.Name,
+            GetEnemyIntentDescription(enemy),
+            IntentConfidence.Recognized);
     }
 
     private void ApplyAction(
@@ -749,7 +835,10 @@ public sealed class CombatService : ICombatService
                 combatant.Character.Id == _rewardRecipient.Id,
                 state.IsStunned(_timeline.CombatTime)
                     ? Math.Max(0.0, state.StunEndTime.Value - _timeline.CombatTime)
-                    : 0.0));
+                    : 0.0,
+                combatant.IsEnemy && combatant.IsVisible
+                    ? GetEnemyIntentDescription(combatant)
+                    : string.Empty));
         }
 
         return entries
