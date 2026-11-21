@@ -5,13 +5,14 @@
 
 ## 1. Current prototype overview
 
-The current build combines an Academy/location-based Exploration prototype with the first integrated four-person Tactical Timeline encounter. It is a partial implementation of the combat-first direction, not yet a complete adventure/progression loop.
+The current build combines an authored, location-based Academy life-simulation slice with the existing four-person Tactical Timeline combat prototype. The Opening Day path exercises Location, Travel, Action, Effect and Location Event content; it is not yet a general NPC or autonomous world simulation.
 
 Implemented areas include:
 - Character state and resources, plus the Ari/Bram/Mira/Sera StartingParty composition.
 - GameClock day/minute tracking, elapsed-time advancement, midnight rollover and authored Sleep/Rest actions.
+- A connected Opening Day route through the carriage, Academy arrival, assembly hall, canteen, campus and nearby town, ending at the Dormitory.
 - Location travel, context-sensitive Location Actions and source-aware Exploration choices.
-- A narrow Location Event flow with player-selected Confront/Sneak outcomes for the Courtyard Goblin.
+- Authored Location Events for the opening ceremony, meeting Mira and the canteen arrival. The previous Courtyard Goblin event remains available as content but has chance 0 during this opening-day slice.
 - Four-person Combat with a shared Continuous Timeline, player decision pauses, action-specific Recovery Cost, Delay/Stun, Downed/Revive and Victory/Defeat.
 - Exploration rescue when Ari returns from an encounter at 0 HP.
 - Dedicated Combat presentation and authored JSON definitions loaded into runtime catalogs.
@@ -47,6 +48,7 @@ Exact current values and action effects must be checked in the relevant JSON def
 The current prototype uses location-based navigation rather than free-roam movement.
 
 - The Player occupies a current Location.
+- A Location description may be a legacy string or an object containing `firstVisit` and `returnVisit`. On first entry in a game session the controller selects `firstVisit`; after leaving and re-entering it selects `returnVisit`. The selected prose remains stable during the current stay, including after local Actions and Event choices. Visit history is currently in-memory only and resets when the game process restarts.
 - A Location defines its exits, Actions and Event definitions.
 - Available choices are queried for the current context and mapped into presentation-safe choice data.
 - Selecting a choice sends an `ActionSelectionRequest` with source kind, source ID, action ID and optional target ID.
@@ -60,11 +62,11 @@ When the controlled character is at zero Health, the Exploration query suppresse
 
 ## 5. Location Events
 
-Location Events represent configured situations associated with a Location. The current Courtyard Goblin Ambush is a narrow deterministic example with Confront and Sneak choices.
+Location Events represent authored situations associated with a Location. The Opening Day content uses them for multi-paragraph scenes and choices, including the opening ceremony and first meetings. The older Courtyard Goblin Ambush remains in the content but has chance 0 so it does not interrupt the first day.
 
 An Event is not synonymous with Combat or Encounter. It may offer a choice that starts the dedicated Combat flow or resolves through the normal action path. Keep the Event decision and the specialized Combat resolution separate.
 
-Do not treat the current event selection rules as a finalized world-event scheduler. Verify the relevant `LocationEventService`, content definitions and tests before changing trigger timing or repeat behavior.
+The current Event definition still contains one description and a set of choices; it is not a general multi-page scene engine. Do not treat the current event selection rules as a finalized world-event scheduler. Verify the relevant `LocationEventService`, content definitions and tests before changing trigger timing or repeat behavior.
 
 ## 6. Current Combat implementation
 
@@ -85,7 +87,7 @@ The intended rules and open decisions are defined in [Design/Combat](../Design/C
 
 ## 7. Content and identity constraints
 
-- JSON property names use the repository's documented `camelCase` convention.
+- JSON property names use the repository's documented `camelCase` convention. Location `description` supports the original string form or an object containing `firstVisit` and `returnVisit`.
 - Authored content IDs use `snake_case`.
 - Serialized enum-like values use `PascalCase`.
 - Definitions may reference other definitions by stable ID; loaders/catalogs validate duplicate IDs and unresolved references.
