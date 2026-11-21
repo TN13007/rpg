@@ -7,81 +7,59 @@ This roadmap is organized around outcomes the player can experience. It is not a
 
 ## Current delivery focus
 
-The current build contains two important prototype slices in the same game: the authored Opening Day Location/Action/Event journey and a four-person Continuous Tactical Timeline encounter. They prove that daily-life interactions and specialized combat can coexist in the repository, but they do not yet demonstrate a fully verified journey connecting a world situation, a Combat encounter and its consequences on return.
+The active direction is a single modern student-life setting. The former fantasy Academy content is being replaced, not retained as a parallel scenario.
 
-- [Issue #103 — First playable Academy day](https://github.com/TN13007/rpg/issues/103) tracks the Opening Day player journey; its content was added in [PR #105](https://github.com/TN13007/rpg/pull/105). The complete manual Godot journey remains to be verified.
-- [Issue #91 — Four-Person Tactical Timeline Encounter](https://github.com/TN13007/rpg/issues/91) remains the active Combat delivery target. It completes the specialized Combat context; it does not define the entire game's identity.
+- [Issue #110 — Modern student life and paranormal incident](https://github.com/TN13007/rpg/issues/110) tracks the setting migration and first bounded incident journey.
+- The first content slice centers on university, student housing, a part-time café, the East District and the Unit 213 rumor.
+- The first incident must support observation and retreat without forcing combat. Professional response is introduced as an ordinary service, while actual dispatch/payment behavior remains a later runtime gap.
+- [Issue #91 — Four-Person Tactical Timeline Encounter](https://github.com/TN13007/rpg/issues/91) remains a separate Combat delivery target. Combat should be available for situations that justify it, not mandatory for every anomaly.
 
-Do not treat archived Academy Session plans or closed/deferred Issues as the current implementation queue. Party progression ([Issue #79](https://github.com/TN13007/rpg/issues/79)) remains a later growth milestone, not an automatic next step before the world-interaction direction is proved.
+The setting migration should preserve reusable runtime systems and avoid introducing a universal Quest, Incident, Social Network or World Simulation framework.
 
-## Phase 1 — Prove a connected world journey
+## Phase 1 — Establish a believable student routine
 
-Deliver a small, understandable player journey in which ordinary life and danger belong to one continuing world. The player can move through Locations, spend time on everyday interactions, encounter an authored situation, enter the specialized Combat flow when appropriate, and return to a world context where the relevant outcome is visible.
-
-**Exit criteria**
-
-- The player can navigate a connected set of Locations and understand the current context.
-- Daily actions and authored Event choices produce readable feedback and relevant state changes.
-- At least one world situation can lead into the dedicated Combat flow without making Event and Combat the same system.
-- Combat uses its own Timeline and rules; daily-life time and Combat Time are not conflated.
-- Victory and defeat return through a coherent encounter lifecycle.
-- Relevant encounter outcomes are reflected in the continuing character/world context rather than silently resetting.
-- The journey can be completed and understood in a Godot runtime session, not only through isolated unit tests.
-
-**Current linked work:** [#103 — Opening Day](https://github.com/TN13007/rpg/issues/103) and [#91 — Tactical Timeline Encounter](https://github.com/TN13007/rpg/issues/91).
-
-## Phase 2 — Make interactions respond to world and character state
-
-Turn important authored interactions from fixed choices into context-sensitive choices when a real player journey requires it. Start with a small number of conditions and outcomes that make revisiting people or places meaningfully different.
+Deliver a connected daily-life journey across campus, housing and nearby city locations. The player can attend a class, study, eat, meet friends, work a shift, rest and travel between locations. NPC schedules should make the world feel occupied without requiring autonomous simulation.
 
 **Exit criteria**
+- The starting location and route through the university are coherent.
+- Everyday actions use the existing GameClock and supported effects.
+- At least three NPCs have recognizable daily routines and available interactions.
+- The player can complete a day without being forced into a paranormal event.
 
-- At least one authored choice changes a later available interaction or response.
-- At least one NPC's visible Location/activity changes with GameClock time and changes what the player can see or do there.
-- At least one important character or Location reacts differently to a prior player action.
-- The player can understand why an option is available, unavailable or changed.
-- State changes are validated and tested through the owning gameplay domain.
-- No general-purpose quest, dialogue, event scheduler or NPC simulation framework is introduced without a concrete requirement.
+## Phase 2 — Prove an optional paranormal incident
 
-## Phase 3 — Prove growth across different activities
-
-Deliver a compact progression loop in which study, training, relationships, exploration and rewards can expand the player's options. Growth should influence more than combat statistics.
+Deliver one bounded incident, beginning with a rumor and ending with a player-chosen response. Unit 213 is the first candidate: reports describe a child crying at the same time each night in a vacant apartment.
 
 **Exit criteria**
+- The player can discover the rumor through ordinary conversation or local information.
+- The player can investigate, observe, enter cautiously or leave.
+- The player can ignore the incident and continue ordinary life.
+- The event does not require combat to reach a valid outcome.
+- The narrative distinguishes what the player observed from what is known to be true.
 
-- The player makes meaningful choices about what capability or opportunity to pursue.
-- At least two viable development directions lead to different available actions or approaches.
-- Equipment, skills or knowledge change decisions rather than only increasing numeric output.
-- Growth can be demonstrated in more than one interaction context.
+## Phase 3 — Add consequences only where proven necessary
 
-## Phase 4 — Prove evolving adventures and threats
-
-Deliver a compact adventure or developing threat that competes with the player's other goals and can be approached in more than one way.
-
-**Exit criteria**
-
-- The player understands what is at stake and can choose whether and how to respond.
-- Preparation, exploration and encounters create different decisions.
-- Partial success, failure or inaction can produce proportionate consequences.
-- The player's actions can change a Location, character circumstance or later opportunity.
-
-## Phase 5 — Deliver the first complete narrative arc
-
-Connect the player's current life, relationships and wider challenges into a story with meaningful motivations, choices and consequences.
+Use the first incident to identify which facts must persist: whether the player investigated, what they learned, whether the location was reported and whether the response company became involved.
 
 **Exit criteria**
+- One concrete later scene reacts to a prior incident outcome.
+- The player can understand why that scene changed.
+- State is stored by the smallest suitable mechanism; no generic world simulation is introduced.
 
-- The player can explain the central conflict and personal stakes.
-- Major choices produce observable consequences.
-- NPCs and Locations reflect important events.
-- The arc has a coherent beginning, escalation and resolution without requiring every optional activity.
+## Phase 4 — Expand the social and city layer
 
-## Phase 6 — Expand the world
+Add more classmates, coworkers, neighbors, local rumors and professional contacts when they create new player decisions. A phone or online community interface may be introduced only when the player journey benefits from it.
 
-Add Locations, characters, enemy families, personal goals, narrative arcs and long-term world challenges based on evidence from earlier playable journeys.
+**Exit criteria**
+- New content has distinct player-facing value.
+- NPC schedules and interactions remain understandable and testable.
+- Optional incidents coexist with daily-life activities rather than replacing them.
 
-Do not expand breadth before the existing player experience is satisfying.
+## Phase 5 — Integrate specialized combat journeys
 
-## Scope rule
+Continue improving the Tactical Timeline as a separate combat domain. Connect it to the world only through concrete situations that require confrontation and define how injury, recovery and elapsed time affect daily life.
 
-A phase is complete when its player-facing exit criteria can be demonstrated in a playable build. A document, architecture layer or collection of systems is not by itself proof of a complete player experience.
+**Exit criteria**
+- At least one complete journey can enter combat and return to the city with a visible consequence.
+- Non-combat approaches remain valid when appropriate.
+- Combat complexity is justified by player-facing decisions, not by a desire to simulate every threat.
