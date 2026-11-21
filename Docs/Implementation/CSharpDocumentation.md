@@ -190,3 +190,34 @@ The repository-wide documentation pass covers all 79 C# source files under `Scri
 The `RPG.Tests/` project is intentionally not treated as a public API surface. Test names, assertions and fixtures document expected behavior through the test suite itself; XML comments are reserved for runtime contracts that other production code consumes. If a test helper later becomes a shared production API, document it when it moves into the runtime project.
 
 When adding a new runtime C# file, include XML documentation for its public types and members in the same change. Keep the comments aligned with implementation behavior and refine any generated skeleton text into a precise contract before merging.
+
+
+## 10. Documentation quality review
+
+XML documentation being present is only the first pass. A useful tooltip must tell a caller what the member guarantees, not repeat its identifier or parameter name.
+
+Before accepting a documentation change, review each public API against this checklist:
+
+- **Meaning:** Does the summary explain the responsibility or observable operation in domain language?
+- **Inputs:** Does each parameter explain what value the caller supplies, including units, valid range, identity semantics or optional behavior where relevant?
+- **Output:** Does the return description explain what the value means? For a boolean, distinguish the success condition from failure. For a collection, identify its contents and whether it is a snapshot/read-only result or a mutable collection.
+- **Mutation:** Does the documentation identify the state changed, and whether the operation can partially mutate before failing?
+- **Preconditions:** Are required state, null handling, range constraints and other caller obligations clear?
+- **Time and units:** Are values described as game minutes, real seconds, progress units, resource points or another explicit unit?
+- **Failure:** Are failure reasons, sentinel values and exceptions documented only when they are part of the actual implementation contract?
+- **Truth:** Does the comment match the current implementation and tests, rather than the method name, a former design or a planned feature?
+
+Avoid descriptions such as "Gets the value", "The value used by this operation", "The resulting int", or a mechanically repeated method name. Those phrases satisfy neither IntelliSense nor maintenance needs.
+
+### Quality pass in the implementation-guides follow-up
+
+The follow-up review found that the initial repository-wide pass added XML tags broadly, but many summaries and parameter descriptions still repeated names or generic template text. The highest-traffic entry points received a deeper behavior-focused pass:
+
+- `ActionExecutionService`: action eligibility, world-time advancement, Fatigue and effect application.
+- `AvailableInteractionQuery`: current-context choice discovery, NPC requirement filtering and incapacitated-player recovery choices.
+- `NpcPresenceQuery`: schedule interval lookup, validation and returned presence records.
+- `GameContentLoader`: the exact content files loaded into the runtime catalog.
+- `MainController`: composition-root setup and frame-time forwarding.
+- `CombatFlowController`: encounter startup, player-decision pauses, result presentation and return to Exploration.
+
+The remaining XML comments are still useful as symbol navigation, but their detail is not uniform. Refine a member's contract whenever its behavior changes or it becomes a central extension point. Do not bulk-expand comments without reading the implementation and matching tests first.
