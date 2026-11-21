@@ -20,6 +20,9 @@ public sealed class ExplorationFlowController
 
     private string _currentLocationId = "carriage";
     private LocationEventDefinition _activeLocationEvent;
+    private readonly HashSet<string> _visitedLocationIds = new HashSet<string>(StringComparer.Ordinal);
+    private string _descriptionLocationId;
+    private string _currentLocationDescription;
 
     public ExplorationFlowController(
         StoryPanel storyPanel,
@@ -76,10 +79,22 @@ public sealed class ExplorationFlowController
         _storyPanel.ShowContent(
             location.Name,
             location.Region,
-            location.Description,
+            GetCurrentLocationDescription(location),
             choices,
             GameClockDisplayFormatter.Format(_gameClock));
         _storyPanel.ShowLocationButton(false);
+    }
+
+    private string GetCurrentLocationDescription(LocationContent location)
+    {
+        if (!string.Equals(_descriptionLocationId, location.Id, StringComparison.Ordinal))
+        {
+            bool firstVisit = _visitedLocationIds.Add(location.Id);
+            _descriptionLocationId = location.Id;
+            _currentLocationDescription = location.GetDescription(firstVisit);
+        }
+
+        return _currentLocationDescription;
     }
 
     public void ShowPage(string tab)
