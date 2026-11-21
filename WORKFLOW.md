@@ -24,21 +24,21 @@ Design decisions do not imply implementation. If the desired experience and curr
 
 ### Product direction
 
-The intended product is a combat-first Tactical Timeline RPG:
-- Four active party members with full player control.
-- No battlefield grid or front/back positioning.
-- A visible Timeline that makes action order and timing tactically meaningful.
-- Challenging encounters built around party synergy, control, resource decisions and enemy behavior.
-- The Academy is a supporting hub for preparation, growth, recovery and relationships.
-- Adventures and combat are the primary repeatable gameplay; narrative gives the journey meaning.
+The intended product is an open-ended Life Simulation RPG set in a Science-Fantasy world with Renaissance-era civilization and common magic:
+- The player creates a character and chooses how to spend time.
+- The Academy and nearby town provide the initial social and exploration space.
+- NPCs offer relationships, routines and activities without forcing a single story route.
+- Content is discovered through places, people, activities and events.
+- Combat and other challenging activities may exist as optional content; they are not the immediate product priority.
+- The world scale and larger lore remain open.
 
-The accepted direction and unresolved design questions are owned by [Design](Docs/Design/README.md), especially [Combat](Docs/Design/Combat.md) and the [Product Roadmap](Docs/Design/Roadmap.md). Do not copy detailed rules or provisional balance values into this status file.
+The first player-facing target is **Opening Day**: character creation, horse-carriage arrival around 07:00–08:00, reaching the opening ceremony by following students or meeting Mira, a concise introduction, free afternoon exploration and returning to the dormitory to sleep. The authoritative direction is in [Game Vision](Docs/Design/GameVision.md), [World and Narrative](Docs/Design/WorldAndNarrative.md) and [Roadmap](Docs/Design/Roadmap.md).
 
 ### Implementation reality on main
 
-The current build combines the Academy/location Exploration prototype with the first integrated four-person Tactical Timeline encounter. Exploration supports Location travel, context-sensitive actions, a narrow Courtyard Goblin Event, GameClock/Sleep and recovery actions. Combat composes Ari, Bram, Mira and Sera against one Goblin archetype; it has a shared real-time Timeline, player decision pauses, action-specific Recovery Cost, Delay/Stun, Downed/Revive, Victory/Defeat and the post-encounter rescue path.
+The current build has a location-based Exploration prototype, GameClock day/minute tracking, Sleep/recovery actions and a four-person Tactical Timeline combat prototype. The current Exploration flow uses authored Location Actions, Travel choices and a narrow Courtyard Goblin Event. Combat includes Ari, Bram, Mira and Sera against one Goblin archetype, with Timeline, player decision pauses, Recovery Cost, Delay/Stun, Downed/Revive and Victory/Defeat.
 
-This is a meaningful combat foundation, not yet a complete combat-first game loop. The playable encounter still has only one enemy behavior archetype, enemy intent is not presented, party progression and multi-encounter adventures are not implemented, and the full interactive Godot journey has not yet been manually accepted. Read [Implementation](Docs/Implementation/README.md) for verified code structure and runtime behavior. The archived Academy Session plan is not the current product roadmap.
+Do not infer that character creation, horse-carriage arrival, a crowd of students, dialogue, general NPC presence, schedules, relationships, free-roam movement or a complete Academy/town day already exist. Verify source and tests before treating any of these as implemented. See [Implementation](Docs/Implementation/README.md) for current code contracts.
 
 ## 3. Session protocol
 
@@ -60,16 +60,23 @@ The Git workflow, commit granularity and PR requirements are defined only in [CO
 
 ## 4. Current handoff
 
-**Immediate implementation priority:** [Issue #91 — Four-Person Tactical Timeline Encounter](https://github.com/TN13007/rpg/issues/91).
+**Immediate implementation priority:** [Issue #103 — Deliver the first playable Academy day](https://github.com/TN13007/rpg/issues/103).
 
-The next player-facing increment is Enemy Intent plus a second enemy behavior pattern, used in one encounter that creates competing threats and meaningful player responses. Before implementation:
-- Read [Game Vision](Docs/Design/GameVision.md), [Combat Design](Docs/Design/Combat.md) and [Roadmap Phase 1](Docs/Design/Roadmap.md).
-- Read [Cross-Layer Runtime Systems](Docs/Implementation/CrossLayerRuntimeSystems.md) and trace the current Combat flow, source code and tests.
-- Keep intent presentation separate from authoritative enemy action resolution; visible intent must not silently change.
-- Retain [Issue #62](https://github.com/TN13007/rpg/issues/62) for manual Sleep/GameClock runtime verification; this QA task does not block Combat implementation.
-- Keep [Issue #79](https://github.com/TN13007/rpg/issues/79) as the Phase 2 progression backlog; do not start it before Issue #91 reaches its playable exit criteria.
+Start by inspecting the current character, GameClock, Location/Travel/Action, content loading, save/persistence and presentation flows. Map each Opening Day requirement to existing code, missing behavior and manual verification. Do not assume JSON alone can implement new runtime behavior.
 
-Do not begin NPC simulation, broad Character abstractions or a general refactor unless a demonstrated player-facing requirement needs them.
+Deliver in small increments:
+1. Character creation and opening-day start.
+2. Horse-carriage arrival, student/crowd context, route choice and ceremony convergence.
+3. Free exploration of a deliberately small Academy/town location set.
+4. Dormitory return, Sleep, next-day transition and persistence.
+5. Full interactive Godot acceptance from character creation to sleeping.
+
+Keep the scope narrow. Do not introduce universal NPC simulation, broad relationship frameworks, new combat content or a full world model unless the playable journey proves a dependency.
+
+Deferred work:
+- [Issue #91](https://github.com/TN13007/rpg/issues/91): four-person Tactical Timeline encounter.
+- [Issue #79](https://github.com/TN13007/rpg/issues/79): party progression backlog.
+- [Issue #62](https://github.com/TN13007/rpg/issues/62): manual Sleep/GameClock runtime verification; reuse its checks when validating the daily-life loop.
 
 ## 5. Learning evidence
 
