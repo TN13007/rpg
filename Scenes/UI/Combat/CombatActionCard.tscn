@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://Scripts/Presentation/UI/Combat/CombatActionCard.cs" id="1"]
+
+[node name="CombatActionCard" type="Button"]
+custom_minimum_size = Vector2(0, 62)
+size_flags_horizontal = 3
+alignment = 0
+focus_mode = 2
+script = ExtResource("1")
