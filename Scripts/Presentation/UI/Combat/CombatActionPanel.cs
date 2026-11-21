@@ -17,7 +17,6 @@ public partial class CombatActionPanel : PanelContainer
     private CombatActionOption _pendingAction;
     private readonly HashSet<string> _validEnemyTargetIds =
         new HashSet<string>(StringComparer.Ordinal);
-    private string _selectedTargetId = string.Empty;
 
     public override void _Ready()
     {
@@ -122,7 +121,6 @@ public partial class CombatActionPanel : PanelContainer
         }
 
         _pendingAction = action;
-        _selectedTargetId = string.Empty;
         _validEnemyTargetIds.Clear();
         foreach (CombatActionTargetOption target in action.Targets)
         {
@@ -182,16 +180,13 @@ public partial class CombatActionPanel : PanelContainer
         _targetSelection.Visible = false;
         _actionGrid.Visible = true;
         _targetGrid.Visible = false;
-        _confirmButton.Visible = true;
         ActionSelected?.Invoke(request);
     }
 
     private void ClearPendingTarget()
     {
         _pendingAction = null;
-        _selectedTargetId = string.Empty;
         _validEnemyTargetIds.Clear();
-        _confirmButton.Visible = true;
     }
 
     private static string[] ToArray(HashSet<string> values)
