@@ -69,7 +69,7 @@ public sealed class CombatSessionService
     /// <returns><see langword="true"/> when both entry-action execution and combat startup succeed; otherwise, <see langword="false"/>.</returns>
     /// <remarks>
     /// The world-clock position is captured before the entry action, so the eventual feedback interval includes the entry action and the encounter's completion cost.
-    /// An already active encounter cannot be started again. If validation, entry-action execution or domain startup fails, the method returns the corresponding failure reason.
+    /// An already active encounter cannot be started again. If validation or entry-action execution fails, combat does not start. If domain startup fails after the entry action has succeeded, the entry action's world and character changes are not rolled back.
     /// </remarks>
     public bool TryStartEncounter(ActionDefinition entryAction, out string failureReason)
     {
