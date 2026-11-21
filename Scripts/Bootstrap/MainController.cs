@@ -17,7 +17,7 @@ public partial class MainController : Control
     private ActionDefinition _debugEncounterAction;
     private string[] _pendingEnemyTargetIds = Array.Empty<string>();
 
-    /// <summary>Performs the  ready operation for main controller.</summary>
+    /// <summary>Resolves the main scene nodes, loads game content, composes runtime services and controllers, connects UI signals and displays the initial Location.</summary>
     public override void _Ready()
     {
         _sidebar = GetNode<Sidebar>("SafeArea/Layout/Sidebar");
@@ -92,8 +92,8 @@ public partial class MainController : Control
         _explorationController.ShowLocation();
     }
 
-    /// <summary>Performs the  process operation for main controller.</summary>
-    /// <param name="delta">The delta used by this operation.</param>
+    /// <summary>Forwards each Godot frame's elapsed time to the Combat flow so the shared Timeline can advance.</summary>
+    /// <param name="delta">The elapsed frame time in seconds supplied by Godot.</param>
     public override void _Process(double delta)
     {
         _combatController?.AdvanceCombatTime(delta);
