@@ -4,6 +4,31 @@ using Xunit;
 public sealed class LocationEventLoopTests
 {
     private readonly AcademyContent _academy = new AcademyContent();
+
+    [Fact]
+    public void AcademyContent_LoadsFirstAndReturnVisitDescriptions()
+    {
+        const string json = @"{""locations"":[{""id"":""gate"",""name"":""Gate"",""region"":""REGION"",""description"":{""firstVisit"":""A long first introduction."",""returnVisit"":""A short familiar description.""},""exits"":[],""actions"":[]}]}";
+
+        _academy.LoadJson(json);
+
+        LocationContent location = _academy.Get("gate");
+        Assert.Equal("A long first introduction.", location.GetDescription(true));
+        Assert.Equal("A short familiar description.", location.GetDescription(false));
+    }
+
+    [Fact]
+    public void AcademyContent_LegacyStringDescriptionRemainsCompatible()
+    {
+        const string json = @"{""locations"":[{""id"":""gate"",""name"":""Gate"",""region"":""REGION"",""description"":""The old single description."",""exits"":[],""actions"":[]}]}";
+
+        _academy.LoadJson(json);
+
+        LocationContent location = _academy.Get("gate");
+        Assert.Equal("The old single description.", location.GetDescription(true));
+        Assert.Equal("The old single description.", location.GetDescription(false));
+    }
+
     [Fact]
     public void AcademyContent_LoadsCourtyardEventAndItsChoices()
     {
@@ -13,7 +38,7 @@ public sealed class LocationEventLoopTests
 
         Assert.Single(courtyard.Events);
         Assert.Equal("courtyard_goblin_ambush", courtyard.Events[0].Id);
-        Assert.Equal(0.5, courtyard.Events[0].Chance);
+        Assert.Equal(0, courtyard.Events[0].Chance);
         Assert.Equal(2, courtyard.Events[0].Choices.Length);
         Assert.Equal("encounter_goblin", courtyard.Events[0].Choices[0].EncounterActionId);
         Assert.Null(courtyard.Events[0].Choices[1].EncounterActionId);
@@ -223,7 +248,7 @@ public sealed class LocationEventLoopTests
         Assert.Equal(1.08, player.Fatigue, 6);
         Assert.Equal(8, player.Stamina);
 
-        LocationContent courtyard = _academy.Get("courtyard");
+        LocationContent courtyard = WithGuaranteedEvents(_academy.Get("courtyard"));
         LocationEventService eventService = new LocationEventService(new Random(1));
         bool triggered = eventService.TryTrigger(courtyard, clock.Day, player.CanAct, out LocationEventDefinition locationEvent);
 
@@ -257,7 +282,7 @@ public sealed class LocationEventLoopTests
 
         Assert.True(actionService.TryExecute(_academy.Travel, player, clock, out string travelReason, out _), travelReason);
 
-        LocationContent courtyard = _academy.Get("courtyard");
+        LocationContent courtyard = WithGuaranteedEvents(_academy.Get("courtyard"));
         LocationEventService eventService = new LocationEventService(new Random(1));
         Assert.True(eventService.TryTrigger(courtyard, clock.Day, player.CanAct, out LocationEventDefinition locationEvent));
 
@@ -319,6 +344,33 @@ public sealed class LocationEventLoopTests
         string json = CreateContentJson(eventJson);
 
         Assert.Throws<InvalidOperationException>(() => _academy.LoadJson(json));
+    }
+
+    private static LocationContent WithGuaranteedEvents(LocationContent location)
+    {
+        LocationEventDefinition[] guaranteedEvents = new LocationEventDefinition[location.Events.Length];
+
+        for (int index = 0; index < location.Events.Length; index++)
+        {
+            LocationEventDefinition locationEvent = location.Events[index];
+            guaranteedEvents[index] = new LocationEventDefinition(
+                locationEvent.Id,
+                locationEvent.Title,
+                locationEvent.Region,
+                locationEvent.Description,
+                1,
+                locationEvent.Choices);
+        }
+
+        return new LocationContent(
+            location.Id,
+            location.Name,
+            location.Region,
+            location.FirstVisitDescription,
+            location.ReturnVisitDescription,
+            location.Exits,
+            location.Actions,
+            guaranteedEvents);
     }
 
     private static ActionExecutionService CreateActionService()

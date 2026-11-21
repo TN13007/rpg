@@ -15,7 +15,7 @@ The Main Panel changes mode between Exploration and Combat. The Character Panel 
 
 ## 2. Exploration presentation
 
-Exploration displays current Location context and available choices. Choices are discovered by Application queries and mapped into grouped, presentation-safe data.
+Exploration displays current Location context and available choices. Choices are discovered by Application queries and mapped into grouped, presentation-safe data. `StoryPanel` renders Location prose in a scrollable `RichTextLabel`, so long first-visit introductions remain readable without pushing choices off-screen. The Exploration flow chooses `firstVisit` on a Location's first entry during the current process and `returnVisit` on later entries; the selected text stays stable during the current stay. Visit history is not persisted across restarts.
 
 Current pipeline:
 

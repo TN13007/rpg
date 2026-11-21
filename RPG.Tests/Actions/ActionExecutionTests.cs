@@ -238,12 +238,12 @@ public sealed class ActionExecutionTests
             }
         }
 
-        Assert.Equal(12, actionCount);
+        Assert.Equal(19, actionCount);
         Assert.Equal(3, LoadPlayerData().PlayerActions.Length);
     }
 
     [Fact]
-    public void AcademyRoutineActivitiesAdvanceTimeApplyFatigueAndPreserveCombatStamina()
+    public void AcademyRoutineActivitiesAdvanceTimeApplyFatigueAndRestoreMealStamina()
     {
         LoadAcademyContent();
         Character actor = TestCharacterFactory.CreatePlayer(
@@ -278,17 +278,17 @@ public sealed class ActionExecutionTests
         Assert.Equal(20, mealDuration);
         Assert.Equal(0.666667, actor.Fatigue, 5);
         Assert.Equal(42, actor.Mood);
-        Assert.Equal(4, actor.Stamina);
+        Assert.Equal(7, actor.Stamina);
 
         Assert.True(_service.TryExecute(lesson, actor, clock, out reason, out int lessonDuration), reason);
         Assert.Equal(60, lessonDuration);
         Assert.Equal(4.666667, actor.Fatigue, 5);
-        Assert.Equal(4, actor.Stamina);
+        Assert.Equal(7, actor.Stamina);
 
         Assert.True(_service.TryExecute(practice, actor, clock, out reason, out int practiceDuration), reason);
         Assert.Equal(45, practiceDuration);
         Assert.Equal(10.666667, actor.Fatigue, 5);
-        Assert.Equal(4, actor.Stamina);
+        Assert.Equal(7, actor.Stamina);
         Assert.Equal(20, actor.Health);
         Assert.Equal(7, actor.Gold);
         Assert.Equal(42, actor.Mood);
