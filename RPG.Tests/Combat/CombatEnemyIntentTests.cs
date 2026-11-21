@@ -26,10 +26,14 @@ public sealed class CombatEnemyIntentTests
 
         Assert.False(string.IsNullOrWhiteSpace(intent.IntentDescription));
         Assert.Contains(player.Name, intent.IntentDescription);
-        Assert.NotNull(combat.GetSnapshot().Intent);
-        Assert.Equal(presence.Id, combat.GetSnapshot().Intent.EnemyId);
-        Assert.Equal(intent.IntentDescription, combat.GetSnapshot().Intent.Description);
-        Assert.Equal(IntentConfidence.Recognized, combat.GetSnapshot().Intent.Confidence);
+
+        CombatSnapshot snapshot = combat.GetSnapshot();
+        EnemyCombatStatus enemyCardData = Assert.Single(snapshot.Enemies, entry => entry.Id == presence.Id);
+        Assert.Equal(intent.IntentDescription, enemyCardData.IntentDescription);
+        Assert.NotNull(snapshot.Intent);
+        Assert.Equal(presence.Id, snapshot.Intent.EnemyId);
+        Assert.Equal(intent.IntentDescription, snapshot.Intent.Description);
+        Assert.Equal(IntentConfidence.Recognized, snapshot.Intent.Confidence);
     }
 
     [Fact]
