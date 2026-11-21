@@ -4,7 +4,7 @@ using Godot;
 public partial class Sidebar : PanelContainer
 {
     public event Action<string> TabSelected;
-    public event Action DebugGoblinEncounterRequested;
+    public event Action DebugEncounterRequested;
 
     private VBoxContainer _characterSection;
     private VBoxContainer _diarySection;
@@ -29,9 +29,9 @@ public partial class Sidebar : PanelContainer
         _showDebugTools = OS.IsDebugBuild();
         _debugSection.Visible = _showDebugTools;
 
-        Button debugButton = GetNode<Button>("Margin/Content/Debug/ForceGoblinEncounter");
+        Button debugButton = GetNode<Button>("Margin/Content/Debug/ForceEncounter");
         UiTheme.StyleButton(debugButton, true);
-        debugButton.Pressed += HandleDebugGoblinEncounterRequested;
+        debugButton.Pressed += HandleDebugEncounterRequested;
 
         Bind("Margin/Content/Character/Profile", "Profile");
         Bind("Margin/Content/Character/Skills", "Skills");
@@ -114,9 +114,9 @@ public partial class Sidebar : PanelContainer
         TabSelected?.Invoke(tab);
     }
 
-    private void HandleDebugGoblinEncounterRequested()
+    private void HandleDebugEncounterRequested()
     {
-        DebugGoblinEncounterRequested?.Invoke();
+        DebugEncounterRequested?.Invoke();
     }
 
     private Control CreateEnemyCard(EnemyCombatStatus enemy)

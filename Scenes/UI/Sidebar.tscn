@@ -27,13 +27,13 @@ theme_override_constants/separation = 3
 layout_mode = 2
 theme_override_font_sizes/font_size = 22
 theme_override_colors/font_color = Color(0.776, 0.647, 0.416, 1)
-text = "ASTERIA"
+text = "CAMPUS"
 
 [node name="Subtitle" type="Label" parent="Margin/Content/Brand"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 10
 theme_override_colors/font_color = Color(0.608, 0.639, 0.678, 1)
-text = "ADVENTURER ACADEMY"
+text = "STUDENT LIFE RPG"
 
 [node name="Separator" type="HSeparator" parent="Margin/Content"]
 layout_mode = 2
@@ -135,9 +135,9 @@ theme_override_font_sizes/font_size = 10
 theme_override_colors/font_color = Color(0.776, 0.647, 0.416, 1)
 text = "DEBUG"
 
-[node name="ForceGoblinEncounter" type="Button" parent="Margin/Content/Debug"]
+[node name="ForceEncounter" type="Button" parent="Margin/Content/Debug"]
 layout_mode = 2
-text = "Force Goblin Encounter"
+text = "Force Encounter"
 
 [node name="Spacer" type="Control" parent="Margin/Content"]
 layout_mode = 2
@@ -147,4 +147,4 @@ size_flags_vertical = 3
 layout_mode = 2
 theme_override_font_sizes/font_size = 9
 theme_override_colors/font_color = Color(0.608, 0.639, 0.678, 1)
-text = "FIRST ADVENTURE  ·  UI PROTOTYPE"
+text = "CITY LIFE  ·  GAME PROTOTYPE"

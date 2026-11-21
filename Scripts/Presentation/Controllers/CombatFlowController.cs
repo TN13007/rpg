@@ -16,14 +16,6 @@ public sealed class CombatFlowController
         _combatSession = combatSession ?? throw new ArgumentNullException(nameof(combatSession));
     }
 
-    public bool StartGoblinEncounter(ActionDefinition action)
-    {
-        return StartEncounter(
-            action,
-            "Goblin Ambush",
-            "A goblin jumps out from the bushes and blocks your way.");
-    }
-
     public bool StartEncounter(ActionDefinition action, string title, string openingMessage)
     {
         if (!_combatSession.TryStartEncounter(action, out string failureReason))
