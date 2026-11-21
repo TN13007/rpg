@@ -3,10 +3,15 @@ using System;
 /// <summary>Identifies the source that provides an available player interaction.</summary>
 public enum InteractionSourceKind
 {
+    /// <summary>The interaction is an action owned by the player.</summary>
     Player,
+    /// <summary>The interaction is provided by the current location.</summary>
     Location,
+    /// <summary>The interaction is provided by an NPC.</summary>
     Npc,
+    /// <summary>The interaction moves the player to another location.</summary>
     Travel,
+    /// <summary>The interaction is a choice offered by a location event.</summary>
     Event
 }
 
