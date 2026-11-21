@@ -1,16 +1,16 @@
 using System;
 
-/// <summary>Coordinates combat flow flow and user interactions.</summary>
+/// <summary>Coordinates Combat use cases with player-facing navigation and presentation updates.</summary>
 public sealed class CombatFlowController
 {
     private readonly StoryPanel _storyPanel;
     private readonly CombatPresentationOrchestrator _presentation;
     private readonly CombatSessionService _combatSession;
 
-    /// <summary>Initializes a new instance of <see cref="CombatFlowController"/>.</summary>
-    /// <param name="storyPanel">The story panel used to initialize the instance.</param>
-    /// <param name="presentation">The presentation used to initialize the instance.</param>
-    /// <param name="combatSession">The combat session used to initialize the instance.</param>
+    /// <summary>Creates the Combat flow controller with its navigation surface, presentation orchestrator and session service.</summary>
+    /// <param name="storyPanel">Displays validation feedback when an encounter cannot be started.</param>
+    /// <param name="presentation">Owns Combat UI mode changes and mapping/rendering of snapshots and results.</param>
+    /// <param name="combatSession">Coordinates entry-action execution, Domain combat and encounter completion costs.</param>
     public CombatFlowController(
         StoryPanel storyPanel,
         CombatPresentationOrchestrator presentation,
@@ -21,11 +21,11 @@ public sealed class CombatFlowController
         _combatSession = combatSession ?? throw new ArgumentNullException(nameof(combatSession));
     }
 
-    /// <summary>Starts encounter and initializes its presentation flow.</summary>
-    /// <param name="action">The action used by this operation.</param>
-    /// <param name="title">The title used by this operation.</param>
-    /// <param name="openingMessage">The opening message used by this operation.</param>
-    /// <returns><see langword="true"/> when the operation succeeds; otherwise, <see langword="false"/>.</returns>
+    /// <summary>Starts an encounter through the session service and displays its initial snapshot when startup succeeds.</summary>
+    /// <param name="action">The authored entry action to validate and execute before Combat begins.</param>
+    /// <param name="title">The heading shown by the Combat presentation.</param>
+    /// <param name="openingMessage">The initial system message added to the Combat presentation.</param>
+    /// <returns><see langword="true"/> when the entry action and Combat startup both succeed; otherwise, <see langword="false"/>.</returns>
     public bool StartEncounter(ActionDefinition action, string title, string openingMessage)
     {
         if (!_combatSession.TryStartEncounter(action, out string failureReason))
@@ -39,8 +39,8 @@ public sealed class CombatFlowController
         return true;
     }
 
-    /// <summary>Advances combat time by the supplied elapsed time.</summary>
-    /// <param name="elapsedCombatTime">The elapsed combat time used by this operation.</param>
+    /// <summary>Advances the active encounter unless Combat is over or waiting for a player decision, then presents new events or updates the Timeline.</summary>
+    /// <param name="elapsedCombatTime">The elapsed frame time in seconds to pass to the shared Combat clock.</param>
     public void AdvanceCombatTime(double elapsedCombatTime)
     {
         if (_combatSession.IsEncounterOver || _combatSession.IsAwaitingPlayerDecision)
@@ -69,8 +69,8 @@ public sealed class CombatFlowController
         }
     }
 
-    /// <summary>Handles combat action from the presentation layer.</summary>
-    /// <param name="request">The request used by this operation.</param>
+    /// <summary>Submits the selected player action to the encounter session and refreshes the resulting presentation.</summary>
+    /// <param name="request">The selected action, acting Party member and target IDs supplied by the Combat UI.</param>
     public void HandleCombatAction(CombatActionRequest request)
     {
         if (_combatSession.IsEncounterOver)
@@ -92,8 +92,8 @@ public sealed class CombatFlowController
         }
     }
 
-    /// <summary>Returns from to exploration and invokes the supplied navigation callback.</summary>
-    /// <param name="showLocation">The show location used by this operation.</param>
+    /// <summary>Returns to Exploration after the encounter outcome has been acknowledged and invokes the supplied Location refresh callback.</summary>
+    /// <param name="showLocation">Refreshes the current Location after the Combat panel is closed.</param>
     public void ReturnToExploration(Action showLocation)
     {
         if (showLocation == null)
