@@ -1,5 +1,6 @@
 using System;
 
+/// <summary>Represents a qualitative range of a character's current mood.</summary>
 public enum MoodBand
 {
     VeryLow,
@@ -8,8 +9,13 @@ public enum MoodBand
     Positive
 }
 
+/// <summary>Calculates mood band values from gameplay data.</summary>
 public static class MoodBandCalculator
 {
+    /// <summary>Calculates calculate from the supplied values.</summary>
+    /// <param name="mood">The mood used by this operation.</param>
+    /// <param name="maxMood">The max mood used by this operation.</param>
+    /// <returns>The resulting mood band.</returns>
     public static MoodBand Calculate(int mood, int maxMood)
     {
         if (maxMood < 0)
