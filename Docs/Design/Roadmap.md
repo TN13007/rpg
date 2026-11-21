@@ -9,18 +9,20 @@ This roadmap is organized around outcomes the player can experience. It is not a
 
 The current product direction is an open-ended Life Simulation RPG. The first delivery target is [Issue #103 — Deliver the first playable Academy day](https://github.com/TN13007/rpg/issues/103).
 
-The player creates a character, arrives at the Academy by horse carriage, chooses how to reach the opening ceremony, meets a few people, explores the Academy and nearby town freely, then returns to the dormitory and sleeps.
+Build one authored day with the existing Location, Travel, Action, Effect and Location Event model. Start at a horse carriage, arrive at the Academy, choose to follow students or meet Mira, attend the opening ceremony, eat at the canteen, explore a small set of locations and return to the Dormitory to sleep.
 
 ### Exit criteria
 
-- Character creation produces a playable, persistent player character.
-- The opening journey and Academy arrival establish place and time.
-- The player can reach the ceremony by either following students or meeting Mira.
-- Both arrival routes converge on one ceremony state.
-- The ceremony introduces only the information and people needed at the start.
-- The player can freely explore the selected locations and use their available interactions.
-- The player can return to the dormitory, sleep and advance to the next day.
-- The complete journey is manually verified in Godot.
+- The day starts around 07:00–08:00 at a carriage location using the existing protagonist data.
+- Travel changes Location through the existing exit/travel flow.
+- Both arrival routes converge on the same opening ceremony.
+- The ceremony presents its authored story passages and choices.
+- Canteen actions can advance time and restore Stamina.
+- Mira and a few students can be interacted with through authored content.
+- The player can explore a deliberately small Academy/town location graph.
+- The player can return to Dormitory and use the existing eight-hour Sleep action.
+- Automated tests cover any new sequential event behavior and route convergence.
+- The complete day is manually verified in Godot.
 
 ## Phase 1 — Make one day playable
 
@@ -41,7 +43,7 @@ Add only the NPC behavior needed for visible daily life.
 ### Exit criteria
 
 - A small authored cast has recognizable identities and locations.
-- Selected NPCs follow simple, testable schedules.
+- Selected NPCs follow simple, testable schedules when needed.
 - The player can meet, talk to and participate in activities with them.
 - NPC availability and event outcomes respond consistently to time and location.
 - At least a few meaningful interactions are reflected later.
@@ -70,11 +72,11 @@ Add more locations, people, events and optional personal stories based on what t
 
 ## Existing systems and deferred work
 
-The repository already contains a four-person Tactical Timeline combat prototype and a location-based Exploration prototype. These remain available foundations, but combat is no longer the immediate product priority and is not part of Opening Day.
+The repository already contains a four-person Tactical Timeline combat prototype and a location-based Exploration prototype. These remain available foundations, but combat is not required by Opening Day and is no longer the immediate product priority.
 
 - [Issue #91](https://github.com/TN13007/rpg/issues/91) remains deferred combat work.
 - [Issue #79](https://github.com/TN13007/rpg/issues/79) remains deferred party-progression work.
-- [Issue #62](https://github.com/TN13007/rpg/issues/62) remains a manual GameClock/Sleep verification task that can be reused when validating the daily-life loop.
+- [Issue #62](https://github.com/TN13007/rpg/issues/62) remains a manual GameClock/Sleep runtime verification task and can be reused when validating the daily-life loop.
 
 Do not start NPC autonomy, broad progression or combat expansion in parallel with Opening Day unless the opening journey demonstrates a concrete dependency.
 
