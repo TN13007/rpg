@@ -8,7 +8,7 @@ public sealed class LocationEventLoopTests
     [Fact]
     public void AcademyContent_LoadsFirstAndReturnVisitDescriptions()
     {
-        const string json = @"{""locations"":[{""id"":""gate"",""name"":""Gate"",""region"":""REGION"",""description"":{""first_visit"":""A long first introduction."",""return_visit"":""A short familiar description.""},""exits"":[],""actions"":[]}]}";
+        const string json = @"{""locations"":[{""id"":""gate"",""name"":""Gate"",""region"":""REGION"",""description"":{""firstVisit"":""A long first introduction."",""returnVisit"":""A short familiar description.""},""exits"":[],""actions"":[]}]}";
 
         _academy.LoadJson(json);
 
