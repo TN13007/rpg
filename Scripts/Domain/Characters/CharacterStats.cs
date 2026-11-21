@@ -3,11 +3,17 @@ using System;
 /// <summary>Identifies a character attribute used by gameplay calculations.</summary>
 public enum CharacterStat
 {
+    /// <summary>Represents physical strength.</summary>
     Strength,
+    /// <summary>Represents agility and contributes to combat speed.</summary>
     Agility,
+    /// <summary>Represents intelligence.</summary>
     Intelligence,
+    /// <summary>Represents endurance.</summary>
     Endurance,
+    /// <summary>Represents wisdom.</summary>
     Wisdom,
+    /// <summary>Represents luck and breaks combat timeline ties.</summary>
     Luck
 }
 
