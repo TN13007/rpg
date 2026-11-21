@@ -34,7 +34,13 @@ internal static class TestCharacterFactory
 
     public static CombatActionDefinition[] CreatePlayerCombatActions()
     {
-        return CreateCombatActions().Where(action => !action.Id.StartsWith("goblin_", StringComparison.Ordinal)).ToArray();
+        return CreateCombatActions().Where(action =>
+            action.Id == "quick_strike" ||
+            action.Id == "heavy_strike" ||
+            action.Id == "guard" ||
+            action.Id == "evade" ||
+            action.Id == "catch_breath" ||
+            action.Id == "disrupting_strike").ToArray();
     }
 
     public static CombatActionDefinition[] CreateEnemyCombatActions()
