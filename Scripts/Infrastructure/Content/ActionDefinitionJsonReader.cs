@@ -2,8 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Text.Json;
 
+/// <summary>Parses serialized action definition json data into domain definitions.</summary>
 public static class ActionDefinitionJsonReader
 {
+    /// <summary>Reads action definition and converts it into domain definitions.</summary>
+    /// <param name="id">The id used by this operation.</param>
+    /// <param name="label">The label used by this operation.</param>
+    /// <param name="data">The data used by this operation.</param>
+    /// <returns>The resulting action definition.</returns>
     public static ActionDefinition ReadActionDefinition(string id, string label, JsonElement data)
     {
         int durationMinutes = data.GetProperty("durationMinutes").GetInt32();
