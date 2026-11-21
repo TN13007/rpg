@@ -217,6 +217,12 @@ Enemies should differ by tactical problem, not only HP and damage. Candidate arc
 
 An encounter should combine behaviors to create competing priorities. There should usually be more than one viable response.
 
+### 9.1 Committed enemy intent
+
+At encounter start, each living enemy commits to one action and (when required) one living party target. The committed action and target remain fixed while that enemy recovers, while the player chooses an action, and while the enemy is affected by Stun. The enemy plans its next intent only after resolving its current action. If its committed target is no longer a valid target when the action resolves, the action is lost rather than silently retargeted.
+
+The Timeline marker exposes the committed action and target in its tooltip. This is a readable preview of the next threat, not a second action-selection interface. Enemy behavior profiles may weight the actions already assigned to that enemy; they do not add actions or change action execution. The Unit 213 Unstable Presence uses a lightweight authored profile over its existing presence_* actions. No Academy encounter or additional enemy archetype is required.
+
 ## 10. Downed and revival
 
 When HP reaches zero, a Party member enters **Downed** rather than immediately causing total party defeat. Enemies at zero HP are defeated in this first implementation.
