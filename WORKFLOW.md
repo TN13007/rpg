@@ -40,7 +40,7 @@ The refactor branch replaces the Academy content with a modern city graph in `Da
 
 The four-person combat party is now Alex, Noah, Mira and Sera, with an Unstable Presence as the authored enemy. Daily schedules and interactions are authored for Mira, Noah, Sera and Ms. Carter. The Unit 213 event supports observation, cautious entry and retreat without forcing combat.
 
-This branch has not yet been merged; latest `main` remains the previous Academy build until the refactor PR is accepted. The refactor has not yet received Godot runtime verification. Do not describe the new player journey as runtime-tested until it has been opened and played in Godot.
+This branch has not yet been merged; latest `main` remains the previous Academy build until the refactor PR is accepted. CI has passed all .NET tests, the Godot 4.7.2 build, and headless main-scene/combat-preview smoke checks. A manual interactive player-journey playthrough has not yet been performed. Do not describe the full new journey as manually playtested until it has been opened and played in Godot.
 
 The runtime still does not provide durable incident flags, delayed incident progression, a social-feed interface or actual professional dispatch/payment behavior. Do not add a generic Quest, Incident, Social Network or World Simulation framework without a concrete player-facing requirement.
 
