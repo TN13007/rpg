@@ -4,7 +4,7 @@ using Xunit;
 
 public sealed class ActionExecutionTests
 {
-    private readonly AcademyContent _academy = new AcademyContent();
+    private readonly LocationCatalog _locations = new LocationCatalog();
     private readonly ActionExecutionService _service =
         new ActionExecutionService(new ActivityTimeCalculator(), new ActionEffectExecutor());
 
@@ -56,7 +56,7 @@ public sealed class ActionExecutionTests
     [Fact]
     public void RestRecoversFatigueStaminaAndMood()
     {
-        LoadAcademyContent();
+        LoadLocationCatalog();
         Character actor = TestCharacterFactory.CreatePlayer(fatigue: 20, stamina: 1, mood: 40, gold: 7);
         GameClock clock = new GameClock();
 
@@ -74,7 +74,7 @@ public sealed class ActionExecutionTests
     [Fact]
     public void TalkToMiraAppliesAuthoredMoodIncreaseExactlyOnce()
     {
-        LoadAcademyContent();
+        LoadLocationCatalog();
         Character actor = TestCharacterFactory.CreatePlayer(mood: 40);
         GameClock clock = new GameClock();
         ActionDefinition action = FindNpcInteraction("mira", "talk");
@@ -95,7 +95,7 @@ public sealed class ActionExecutionTests
     [Fact]
     public void RestAndSleepRecoveryAreClamped()
     {
-        LoadAcademyContent();
+        LoadLocationCatalog();
         Character actor = TestCharacterFactory.CreatePlayer(fatigue: 0, stamina: 10);
         GameClock clock = new GameClock();
 
@@ -121,7 +121,7 @@ public sealed class ActionExecutionTests
         int expectedDay,
         int expectedMinutesOfDay)
     {
-        LoadAcademyContent();
+        LoadLocationCatalog();
         Character actor = TestCharacterFactory.CreatePlayer(
             health: 5, fatigue: 55, stamina: 2, mood: 50);
         GameClock clock = new GameClock(1, startingHour, startingMinute);
@@ -196,15 +196,15 @@ public sealed class ActionExecutionTests
     [Fact]
     public void TravelUsesActivityMetAndKeepsAgilityDurationModifier()
     {
-        LoadAcademyContent();
+        LoadLocationCatalog();
         Character actor = TestCharacterFactory.CreatePlayer(agility: 30);
         GameClock clock = new GameClock();
 
         bool success = _service.TryExecute(
-            _academy.Travel, actor, clock, out string reason, out int duration);
+            _locations.Travel, actor, clock, out string reason, out int duration);
 
         Assert.True(success, reason);
-        Assert.Equal(2.8, _academy.Travel.ActivityMet, 6);
+        Assert.Equal(2.8, _locations.Travel.ActivityMet, 6);
         Assert.Equal(9, duration);
         Assert.Equal(1.08, actor.Fatigue, 6);
         Assert.Equal(8, actor.Stamina);
@@ -214,21 +214,21 @@ public sealed class ActionExecutionTests
     [Fact]
     public void CombatEncounterHasSeparateDurationAndActivityIntensity()
     {
-        LoadAcademyContent();
+        LoadLocationCatalog();
 
-        Assert.Equal(30, _academy.CombatEncounter.DurationMinutes);
-        Assert.Equal(5.0, _academy.CombatEncounter.ActivityMet, 6);
+        Assert.Equal(30, _locations.CombatEncounter.DurationMinutes);
+        Assert.Equal(5.0, _locations.CombatEncounter.ActivityMet, 6);
         Assert.Equal(8.0, new ActivityFatigueCalculator().Calculate(
-            _academy.CombatEncounter, _academy.CombatEncounter.DurationMinutes), 6);
+            _locations.CombatEncounter, _locations.CombatEncounter.DurationMinutes), 6);
     }
 
     [Fact]
     public void EveryConfiguredActivityHasValidIntensityAndDuration()
     {
-        LoadAcademyContent();
+        LoadLocationCatalog();
         int actionCount = 0;
 
-        foreach (LocationContent location in _academy.All)
+        foreach (LocationContent location in _locations.All)
         {
             foreach (ActionDefinition action in location.Actions)
             {
@@ -250,25 +250,26 @@ public sealed class ActionExecutionTests
     }
 
     [Fact]
-    public void AcademyRoutineActivitiesAdvanceTimeApplyFatigueAndRestoreMealStamina()
+    public void UniversityRoutineActivitiesAdvanceTimeApplyFatigueAndRestoreMealStamina()
     {
-        LoadAcademyContent();
+        LoadLocationCatalog();
         Character actor = TestCharacterFactory.CreatePlayer(
             health: 20, fatigue: 0, stamina: 4, mood: 40, gold: 7);
         GameClock clock = new GameClock(1, 7, 30);
 
-        LocationContent courtyard = _academy.Get("courtyard");
-        LocationContent classroom = _academy.Get("classroom");
-        LocationContent canteen = _academy.Get("canteen");
+        LocationContent campus = _locations.Get("university_campus");
+        LocationContent lectureHall = _locations.Get("lecture_hall");
+        LocationContent cafe = _locations.Get("campus_cafe");
+        LocationContent sportsField = _locations.Get("sports_field");
 
-        Assert.Contains("canteen", courtyard.Exits);
-        Assert.Contains("courtyard", canteen.Exits);
-        Assert.Contains(courtyard.Actions, action => action.Id == "practice");
-        Assert.Contains(classroom.Actions, action => action.Id == "attend_lesson");
-        Assert.Contains(canteen.Actions, action => action.Id == "eat_meal");
-        Assert.DoesNotContain(classroom.Actions, action => action.Id == "practice");
-        Assert.DoesNotContain(courtyard.Actions, action => action.Id == "attend_lesson");
-        Assert.DoesNotContain(courtyard.Actions, action => action.Id == "eat_meal");
+        Assert.Contains("campus_cafe", campus.Exits);
+        Assert.Contains("university_campus", cafe.Exits);
+        Assert.Contains(sportsField.Actions, action => action.Id == "practice");
+        Assert.Contains(lectureHall.Actions, action => action.Id == "attend_lesson");
+        Assert.Contains(cafe.Actions, action => action.Id == "eat_meal");
+        Assert.DoesNotContain(lectureHall.Actions, action => action.Id == "practice");
+        Assert.DoesNotContain(campus.Actions, action => action.Id == "attend_lesson");
+        Assert.DoesNotContain(campus.Actions, action => action.Id == "eat_meal");
 
         ActionDefinition meal = FindAction("eat_meal");
         ActionDefinition lesson = FindAction("attend_lesson");
@@ -306,7 +307,7 @@ public sealed class ActionExecutionTests
     [Fact]
     public void InspectRequestsAppliesAuthoredNegativeMoodEffect()
     {
-        LoadAcademyContent();
+        LoadLocationCatalog();
         Character actor = TestCharacterFactory.CreatePlayer(mood: 76);
         GameClock clock = new GameClock();
         ActionDefinition action = FindAction("inspect_requests");
@@ -327,12 +328,12 @@ public sealed class ActionExecutionTests
     [Fact]
     public void InfirmaryTreatmentRestoresConfiguredHealthAndAppliesItsCostsOnce()
     {
-        LoadAcademyContent();
-        LocationContent infirmary = _academy.Get("infirmary");
+        LoadLocationCatalog();
+        LocationContent clinic = _locations.Get("campus_clinic");
         ActionDefinition treatment = FindAction("infirmary_treatment");
 
-        Assert.Contains("infirmary", _academy.Get("courtyard").Exits);
-        Assert.Contains("courtyard", infirmary.Exits);
+        Assert.Contains("campus_clinic", _locations.Get("east_district").Exits);
+        Assert.Contains("east_district", clinic.Exits);
         Assert.Equal(60, treatment.DurationMinutes);
         Assert.Equal(1.3, treatment.ActivityMet, 6);
         ActionEffectDefinition effect = Assert.Single(treatment.Effects);
@@ -360,7 +361,7 @@ public sealed class ActionExecutionTests
     [Fact]
     public void InfirmaryTreatmentAtFullHealthDoesNotExceedMaximum()
     {
-        LoadAcademyContent();
+        LoadLocationCatalog();
         Character actor = TestCharacterFactory.CreatePlayer(
             health: 20, fatigue: 10, stamina: 3, mood: 40, gold: 7);
         GameClock clock = new GameClock(1, 10, 0);
@@ -385,7 +386,7 @@ public sealed class ActionExecutionTests
     [Fact]
     public void DeadActorCannotReceiveInfirmaryTreatmentOrChangeAnyState()
     {
-        LoadAcademyContent();
+        LoadLocationCatalog();
         Character actor = TestCharacterFactory.CreatePlayer(
             health: 0, fatigue: 35, stamina: 2, mood: 45, gold: 9);
         GameClock clock = new GameClock(2, 9, 30);
@@ -411,7 +412,7 @@ public sealed class ActionExecutionTests
 
     private ActionDefinition FindAction(string actionId)
     {
-        foreach (LocationContent location in _academy.All)
+        foreach (LocationContent location in _locations.All)
         {
             foreach (ActionDefinition action in location.Actions)
             {
@@ -459,9 +460,9 @@ public sealed class ActionExecutionTests
         return CharacterDataLoader.LoadJson(File.ReadAllText(path));
     }
 
-    private void LoadAcademyContent()
+    private void LoadLocationCatalog()
     {
-        string path = Path.Combine(AppContext.BaseDirectory, "Data", "AcademyLocations.json");
-        _academy.LoadJson(File.ReadAllText(path));
+        string path = Path.Combine(AppContext.BaseDirectory, "Data", "Locations.json");
+        _locations.LoadJson(File.ReadAllText(path));
     }
 }

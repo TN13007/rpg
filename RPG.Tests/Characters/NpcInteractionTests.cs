@@ -14,10 +14,10 @@ public sealed class NpcInteractionTests
         IReadOnlyList<NpcInteractionDefinition> interactions = catalog.GetForCharacter("mira");
 
         Assert.Equal(2, interactions.Count);
-        Assert.True(interactions[0].IsAvailableAt("canteen"));
-        Assert.True(interactions[0].IsAvailableAt("library"));
-        Assert.True(interactions[1].IsAvailableAt("canteen"));
-        Assert.False(interactions[1].IsAvailableAt("library"));
+        Assert.True(interactions[0].IsAvailableAt("campus_cafe"));
+        Assert.True(interactions[0].IsAvailableAt("campus_library"));
+        Assert.True(interactions[1].IsAvailableAt("campus_cafe"));
+        Assert.False(interactions[1].IsAvailableAt("campus_library"));
     }
 
     [Fact]
@@ -28,9 +28,9 @@ public sealed class NpcInteractionTests
         NpcInteractionCatalog catalog = NpcInteractionDataLoader.LoadJson(json);
         NpcInteractionQuery query = new NpcInteractionQuery(catalog);
 
-        IReadOnlyList<AvailableInteraction> atCanteen = query.Query("mira", "canteen");
-        IReadOnlyList<AvailableInteraction> atLibrary = query.Query("mira", "library");
-        IReadOnlyList<AvailableInteraction> forUnknownNpc = query.Query("unknown", "canteen");
+        IReadOnlyList<AvailableInteraction> atCanteen = query.Query("mira", "campus_cafe");
+        IReadOnlyList<AvailableInteraction> atLibrary = query.Query("mira", "campus_library");
+        IReadOnlyList<AvailableInteraction> forUnknownNpc = query.Query("unknown", "campus_cafe");
 
         Assert.Equal(2, atCanteen.Count);
         Assert.Contains(atCanteen, item => item.ActionId == "talk");
