@@ -60,7 +60,7 @@ Not every challenge must escalate into catastrophe. Consequences should be legib
 
 NPCs should have their own motivations, capabilities and circumstances where those details create meaningful player-facing choices. Schedules, memories and autonomous decisions are possible tools, not mandatory features for every NPC.
 
-The first schedule model is a recurring daily timetable authored as time ranges, Locations and visible activities. It answers where a scheduled NPC is at the current GameClock time; it does not imply pathfinding, needs, autonomous decision-making or continuous simulation. A gap means the NPC is not scheduled at a known player-facing Location. NPC-required interactions are available only while that NPC is present in the current Location.
+The first schedule model is a recurring daily timetable authored as time ranges, Locations and visible activities. It answers where a scheduled NPC is at the current GameClock time; it does not imply pathfinding, needs, autonomous decision-making or continuous simulation. A gap means the NPC is not scheduled at a known player-facing Location. The player discovers present NPCs through `See around`; their interactions are authored separately from Location actions and are available only while the NPC is present.
 
 A desire to do something is not the same as being able to do it: events, resources, relationships, danger and the player's actions may prevent or redirect an NPC's plans.
 

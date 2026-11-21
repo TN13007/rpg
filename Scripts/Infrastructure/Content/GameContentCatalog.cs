@@ -8,6 +8,7 @@ public sealed class GameContentCatalog
     public CharacterCatalog Characters { get; }
     public CombatActionCatalog CombatActions { get; }
     public NpcScheduleCatalog NpcSchedules { get; }
+    public NpcInteractionCatalog NpcInteractions { get; }
 
     public IEnumerable<LocationContent> Locations => _academy.All;
     public ActionDefinition Travel => _academy.Travel;
@@ -17,12 +18,14 @@ public sealed class GameContentCatalog
         AcademyContent academy,
         CharacterCatalog characters,
         CombatActionCatalog combatActions,
-        NpcScheduleCatalog npcSchedules)
+        NpcScheduleCatalog npcSchedules,
+        NpcInteractionCatalog npcInteractions = null)
     {
         _academy = academy ?? throw new ArgumentNullException(nameof(academy));
         Characters = characters ?? throw new ArgumentNullException(nameof(characters));
         CombatActions = combatActions ?? throw new ArgumentNullException(nameof(combatActions));
         NpcSchedules = npcSchedules ?? throw new ArgumentNullException(nameof(npcSchedules));
+        NpcInteractions = npcInteractions ?? new NpcInteractionCatalog(Array.Empty<NpcInteractionDefinition>());
 
         foreach (CharacterData character in Characters.All)
         {
@@ -30,6 +33,7 @@ public sealed class GameContentCatalog
         }
 
         ValidateNpcScheduleReferences();
+        ValidateNpcInteractionReferences();
         ValidateRequiredNpcReferences();
     }
 
@@ -57,6 +61,25 @@ public sealed class GameContentCatalog
             foreach (NpcScheduleEntryDefinition entry in schedule.Entries)
             {
                 _academy.Get(entry.LocationId);
+            }
+        }
+    }
+
+    private void ValidateNpcInteractionReferences()
+    {
+        foreach (NpcInteractionDefinition interaction in NpcInteractions.All)
+        {
+            Characters.Get(interaction.CharacterId);
+            if (!NpcSchedules.TryGet(interaction.CharacterId, out _))
+            {
+                throw new InvalidOperationException(
+                    "NPC interaction references Character '" + interaction.CharacterId
+                    + "', but that Character has no daily schedule.");
+            }
+
+            foreach (string locationId in interaction.AvailableLocationIds)
+            {
+                _academy.Get(locationId);
             }
         }
     }

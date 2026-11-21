@@ -4,6 +4,7 @@ public enum InteractionSourceKind
 {
     Player,
     Location,
+    Npc,
     Travel,
     Event
 }

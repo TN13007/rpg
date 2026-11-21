@@ -20,6 +20,7 @@ public sealed class ActionChoiceMapper
         {
             InteractionSourceKind.Player,
             InteractionSourceKind.Location,
+            InteractionSourceKind.Npc,
             InteractionSourceKind.Travel,
             InteractionSourceKind.Event
         })
@@ -37,6 +38,7 @@ public sealed class ActionChoiceMapper
                 {
                     InteractionSourceKind.Player => "PERSONAL",
                     InteractionSourceKind.Location => "AT THIS LOCATION",
+                    InteractionSourceKind.Npc => "WITH NPC",
                     InteractionSourceKind.Travel => "TRAVEL",
                     InteractionSourceKind.Event => "CURRENT SITUATION",
                     _ => throw new ArgumentOutOfRangeException()

@@ -198,20 +198,6 @@
       ],
       "actions": [
         {
-          "id": "talk_mira",
-          "label": "Talk to Mira",
-          "requiredNpcId": "mira",
-          "durationMinutes": 15,
-          "effects": [
-            {
-              "type": "ChangeMood",
-              "amount": 3
-            }
-          ],
-          "feedback": "Mira smiles. “Are you heading to practical training too? The afternoon session is about to begin.”",
-          "activityMet": 1.5
-        },
-        {
           "id": "inspect_board",
           "label": "Read the notice board",
           "durationMinutes": 10,
@@ -296,20 +282,6 @@
           "activityMet": 1.5
         },
         {
-          "id": "talk_mira_canteen",
-          "label": "Talk with Mira",
-          "requiredNpcId": "mira",
-          "durationMinutes": 10,
-          "effects": [
-            {
-              "type": "ChangeMood",
-              "amount": 2
-            }
-          ],
-          "feedback": "Mira makes room at the table and tells you about the places she wants to see around the Academy.",
-          "activityMet": 1.2
-        },
-        {
           "id": "talk_first_years",
           "label": "Talk with other first-year students",
           "durationMinutes": 10,
@@ -331,20 +303,6 @@
           "description": "The canteen is crowded with new students. Near the windows, a few tables have already filled with first-year students comparing their first impressions of the Academy. Other seats remain open: you can join a group, look for someone you know, or take a quiet break on your own.",
           "chance": 1,
           "choices": [
-            {
-              "id": "join_mira_for_lunch",
-              "label": "Join Mira's table",
-              "requiredNpcId": "mira",
-              "durationMinutes": 15,
-              "effects": [
-                {
-                  "type": "ChangeMood",
-                  "amount": 2
-                }
-              ],
-              "feedback": "Mira introduces you to the students at her table. Conversation turns to the ceremony and what everyone hopes to explore.",
-              "activityMet": 1.2
-            },
             {
               "id": "join_other_students",
               "label": "Sit with another group",

@@ -80,6 +80,22 @@ Data/NpcSchedules.json
 
 Schedules are read-only content. The query does not move NPCs or mutate state; it resolves the active authored time interval when the current Location context is shown. The owning action flow still executes the selected Action.
 
+### NPC interactions
+
+```text
+Data/NpcInteractions.json
+  -> Infrastructure NpcInteractionDataLoader / NpcInteractionCatalog
+  -> GameContentCatalog Character / Location reference validation
+  -> Application NpcInteractionQuery(characterId, locationId)
+  -> ExplorationFlowController
+       -> See around: list NPCs from NpcPresenceQuery
+       -> select NPC: query that Character's available interactions
+       -> ActionSelectionRequest (SourceKind.Npc, characterId, actionId)
+       -> revalidate NPC presence before ActionExecutionService
+```
+
+Location content owns actions performed with the place itself. Character-specific interactions are authored separately and may be global to that NPC or restricted to selected Locations. Opening `See around` and selecting a person are navigation only; the selected NPC Action is what advances GameClock and applies effects.
+
 ### Combat
 
 ```text

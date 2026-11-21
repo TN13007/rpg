@@ -5,8 +5,8 @@ The codebase is organized **layer-first, then by feature**. This file is a quick
 | Layer | Responsibility | Start here |
 |---|---|---|
 | `Bootstrap/` | Godot entry point and dependency composition | `MainController.cs` |
-| `Domain/` | Game state, definitions, rules and calculations | `Characters/Character.cs`, `Characters/NpcScheduleDefinition.cs`, `Combat/CombatService.cs`, `Time/GameClock.cs` |
-| `Application/` | Use-case execution and read-only context queries | `Actions/ActionExecutionService.cs`, `Combat/CombatSessionService.cs`, `Exploration/AvailableInteractionQuery.cs`, `Exploration/NpcPresenceQuery.cs` |
+| `Domain/` | Game state, definitions, rules and calculations | `Characters/Character.cs`, `Characters/NpcScheduleDefinition.cs`, `Characters/NpcInteractionDefinition.cs`, `Combat/CombatService.cs`, `Time/GameClock.cs` |
+| `Application/` | Use-case execution and read-only context queries | `Actions/ActionExecutionService.cs`, `Combat/CombatSessionService.cs`, `Exploration/AvailableInteractionQuery.cs`, `Exploration/NpcPresenceQuery.cs`, `Exploration/NpcInteractionQuery.cs` |
 | `Presentation/` | UI, flow coordination, ViewData, mappers and formatters | `Controllers/ExplorationFlowController.cs`, `Controllers/CombatFlowController.cs` |
 | `Infrastructure/` | JSON/content loading and engine/platform integration | `Content/GameContentLoader.cs` and schema-specific readers |
 

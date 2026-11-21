@@ -18,12 +18,18 @@ public sealed class ExplorationFlowController
     private readonly ActionChoiceMapper _actionChoiceMapper;
     private readonly LocationEventService _locationEventService;
     private readonly NpcPresenceQuery _npcPresenceQuery;
+    private readonly NpcInteractionQuery _npcInteractionQuery;
     private readonly Func<ActionDefinition, bool> _startEncounter;
 
     private string _currentLocationId = "carriage";
     private LocationEventDefinition _activeLocationEvent;
     private readonly HashSet<string> _visitedLocationIds = new HashSet<string>(StringComparer.Ordinal);
     private string _descriptionLocationId;
+    private string _selectedNpcId;
+
+    private const string SeeAroundChoiceId = "navigation|see-around";
+    private const string BackToPeopleChoiceId = "navigation|back-to-people";
+    private const string SelectNpcActionId = "select";
     private string _currentLocationDescription;
 
     public ExplorationFlowController(
@@ -41,6 +47,7 @@ public sealed class ExplorationFlowController
         ActionChoiceMapper actionChoiceMapper,
         LocationEventService locationEventService,
         NpcPresenceQuery npcPresenceQuery,
+        NpcInteractionQuery npcInteractionQuery,
         Func<ActionDefinition, bool> startEncounter)
     {
         _storyPanel = storyPanel ?? throw new ArgumentNullException(nameof(storyPanel));
@@ -57,6 +64,7 @@ public sealed class ExplorationFlowController
         _actionChoiceMapper = actionChoiceMapper ?? throw new ArgumentNullException(nameof(actionChoiceMapper));
         _locationEventService = locationEventService ?? throw new ArgumentNullException(nameof(locationEventService));
         _npcPresenceQuery = npcPresenceQuery ?? throw new ArgumentNullException(nameof(npcPresenceQuery));
+        _npcInteractionQuery = npcInteractionQuery ?? throw new ArgumentNullException(nameof(npcInteractionQuery));
         _startEncounter = startEncounter ?? throw new ArgumentNullException(nameof(startEncounter));
 
         ValidatePlayerActions();
@@ -71,6 +79,7 @@ public sealed class ExplorationFlowController
         }
 
         LocationContent location = _getLocation(_currentLocationId);
+        _selectedNpcId = null;
         IReadOnlyList<NpcPresence> presentNpcs = _npcPresenceQuery.Query(location.Id, _gameClock.MinutesOfDay);
         HashSet<string> presentNpcIds = GetNpcIds(presentNpcs);
         IReadOnlyList<AvailableInteraction> interactions = _availableInteractionQuery.Query(
@@ -81,12 +90,20 @@ public sealed class ExplorationFlowController
             _travelAction,
             presentNpcIds);
         List<ActionChoiceViewData> choices = _actionChoiceMapper.Map(interactions, _player);
+        if (_player.CanAct && presentNpcs.Count > 0)
+        {
+            choices.Add(new ActionChoiceViewData(
+                SeeAroundChoiceId,
+                "See around",
+                string.Empty,
+                "OBSERVE"));
+        }
 
         _gameModeController.ShowExploration();
         _storyPanel.ShowContent(
             location.Name,
             location.Region,
-            AppendNpcPresence(GetCurrentLocationDescription(location), presentNpcs),
+            GetCurrentLocationDescription(location),
             choices,
             GameClockDisplayFormatter.Format(_gameClock));
         _storyPanel.ShowLocationButton(false);
@@ -103,24 +120,100 @@ public sealed class ExplorationFlowController
         return characterIds;
     }
 
-    private static string AppendNpcPresence(string description, IReadOnlyList<NpcPresence> presentNpcs)
+    private void ShowPeopleHere()
     {
+        IReadOnlyList<NpcPresence> presentNpcs = _npcPresenceQuery.Query(
+            _currentLocationId,
+            _gameClock.MinutesOfDay);
         if (presentNpcs.Count == 0)
         {
-            return description;
+            ShowLocation();
+            _storyPanel.ShowFeedback("There is no one nearby to interact with.");
+            return;
         }
 
-        StringBuilder builder = new StringBuilder(description);
-        builder.Append("\n\nPeople here:");
+        _selectedNpcId = null;
+        StringBuilder description = new StringBuilder("You take a moment to look around.");
+        List<ActionChoiceViewData> choices = new List<ActionChoiceViewData>();
         foreach (NpcPresence presence in presentNpcs)
         {
-            builder.Append("\n")
+            description.Append("\n\n")
                 .Append(presence.Name)
                 .Append(" — ")
                 .Append(presence.ActivityDescription);
+
+            ActionSelectionRequest request = new ActionSelectionRequest(
+                InteractionSourceKind.Npc,
+                presence.CharacterId,
+                SelectNpcActionId);
+            choices.Add(new ActionChoiceViewData(
+                request.Encode(),
+                presence.Name,
+                string.Empty,
+                "PEOPLE HERE"));
         }
 
-        return builder.ToString();
+        _gameModeController.ShowExploration();
+        _storyPanel.ShowContent(
+            "People here",
+            _getLocation(_currentLocationId).Name.ToUpperInvariant(),
+            description.ToString(),
+            choices,
+            GameClockDisplayFormatter.Format(_gameClock));
+        _storyPanel.ShowLocationButton(true);
+    }
+
+    private void ShowNpcInteractions(string characterId)
+    {
+        IReadOnlyList<NpcPresence> presentNpcs = _npcPresenceQuery.Query(
+            _currentLocationId,
+            _gameClock.MinutesOfDay);
+        NpcPresence selectedNpc = null;
+        foreach (NpcPresence presence in presentNpcs)
+        {
+            if (string.Equals(presence.CharacterId, characterId, StringComparison.Ordinal))
+            {
+                selectedNpc = presence;
+                break;
+            }
+        }
+
+        if (selectedNpc == null)
+        {
+            ShowLocation();
+            _storyPanel.ShowFeedback("That character is no longer here.");
+            return;
+        }
+
+        _selectedNpcId = characterId;
+        IReadOnlyList<AvailableInteraction> interactions = _npcInteractionQuery.Query(
+            characterId,
+            _currentLocationId);
+        List<ActionChoiceViewData> choices = _actionChoiceMapper.Map(interactions, _player);
+        choices.Add(new ActionChoiceViewData(
+            BackToPeopleChoiceId,
+            "Back to people",
+            string.Empty,
+            "NAVIGATION"));
+
+        string description = selectedNpc.ActivityDescription;
+        if (interactions.Count == 0)
+        {
+            description += "\n\nThere are no available interactions here right now.";
+        }
+        else
+        {
+            description += "\n\nWhat would you like to do?";
+        }
+
+        _gameModeController.ShowExploration();
+        _storyPanel.ShowContent(
+            selectedNpc.Name,
+            _getLocation(_currentLocationId).Name.ToUpperInvariant(),
+            description,
+            choices,
+            GameClockDisplayFormatter.Format(_gameClock));
+        _storyPanel.ShowLocationButton(true);
     }
 
     private string GetCurrentLocationDescription(LocationContent location)
@@ -148,6 +241,7 @@ public sealed class ExplorationFlowController
             _ => "Prototype preferences and game settings."
         };
 
+        _selectedNpcId = null;
         _gameModeController.ShowExploration();
         _storyPanel.ShowContent(
             tab,
@@ -195,6 +289,18 @@ public sealed class ExplorationFlowController
             return;
         }
 
+        if (choiceId == SeeAroundChoiceId)
+        {
+            ShowPeopleHere();
+            return;
+        }
+
+        if (choiceId == BackToPeopleChoiceId)
+        {
+            ShowPeopleHere();
+            return;
+        }
+
         if (!ActionSelectionRequest.TryParse(choiceId, out ActionSelectionRequest request))
         {
             _storyPanel.ShowFeedback("That action selection is invalid or outdated.");
@@ -230,6 +336,45 @@ public sealed class ExplorationFlowController
                 }
 
                 ExecuteAction(locationAction);
+                return;
+
+            case InteractionSourceKind.Npc:
+                if (request.ActionId == SelectNpcActionId)
+                {
+                    if (_selectedNpcId != null)
+                    {
+                        _storyPanel.ShowFeedback("That people list is outdated.");
+                        return;
+                    }
+
+                    ShowNpcInteractions(request.SourceId);
+                    return;
+                }
+
+                if (!string.Equals(_selectedNpcId, request.SourceId, StringComparison.Ordinal) ||
+                    !_npcPresenceQuery.IsPresent(
+                        request.SourceId,
+                        _currentLocationId,
+                        _gameClock.MinutesOfDay))
+                {
+                    ShowLocation();
+                    _storyPanel.ShowFeedback("That character is no longer here.");
+                    return;
+                }
+
+                foreach (AvailableInteraction interaction in _npcInteractionQuery.Query(
+                    request.SourceId,
+                    _currentLocationId))
+                {
+                    if (interaction.ActionId == request.ActionId)
+                    {
+                        ExecuteAction(interaction.Action);
+                        return;
+                    }
+                }
+
+                _storyPanel.ShowFeedback("That interaction is no longer available.");
+                ShowNpcInteractions(request.SourceId);
                 return;
 
             case InteractionSourceKind.Travel:
@@ -438,16 +583,13 @@ public sealed class ExplorationFlowController
         IReadOnlyList<AvailableInteraction> interactions = _availableInteractionQuery.Query(
             locationEvent,
             presentNpcIds);
-        IReadOnlyList<NpcPresence> presentNpcs = _npcPresenceQuery.Query(
-            _currentLocationId,
-            _gameClock.MinutesOfDay);
         List<ActionChoiceViewData> choices = _actionChoiceMapper.Map(interactions, _player);
 
         _gameModeController.ShowExploration();
         _storyPanel.ShowContent(
             locationEvent.Title,
             locationEvent.Region,
-            AppendNpcPresence(locationEvent.Description, presentNpcs),
+            locationEvent.Description,
             choices,
             GameClockDisplayFormatter.Format(_gameClock));
         _storyPanel.ShowLocationButton(false);
