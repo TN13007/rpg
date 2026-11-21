@@ -292,8 +292,6 @@ This repository uses the following Git conventions:
 - **Pull Request title:** use the same type/scope pattern and describe the outcome delivered by the PR.
 - **Issue title:** use the prefix supplied by its template: `[Bug]`, `[Task]`, `[Design]` or `[Idea]`.
 
-The Issue title prefixes supplied by the templates are `[Bug]`, `[Task]`, `[Design]` and `[Idea]`.
-
 The four work items have different responsibilities:
 - **Issue = one problem or requirement with verifiable acceptance criteria.**
 - **Commit = one coherent logical change, which may include multiple related files.**
