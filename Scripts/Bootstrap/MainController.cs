@@ -126,7 +126,6 @@ public partial class MainController : Control
 
         CombatPanel combatPanel = GetNode<CombatPanel>("SafeArea/Layout/CombatPanel");
         combatPanel.SetSelectedEnemyTarget(enemyId);
-        _sidebar.SetEnemyTargetSelection(_pendingEnemyTargetIds, enemyId);
     }
 
     private void ClearEnemyTargetSelection()
