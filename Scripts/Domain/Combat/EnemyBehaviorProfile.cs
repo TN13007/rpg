@@ -31,7 +31,7 @@ public sealed class EnemyBehaviorProfile
             _actionWeights.Add(entry.Key, entry.Value);
         }
 
-        if (_actionWeights.Count == 0 || !_actionWeights.Values.AnyWeight())
+        if (_actionWeights.Count == 0 || !_actionWeights.Values.Any(weight => weight > 0))
         {
             throw new ArgumentException("An enemy behavior profile must enable at least one action.", nameof(actionWeights));
         }
@@ -40,21 +40,5 @@ public sealed class EnemyBehaviorProfile
     public int GetWeight(string actionId)
     {
         return _actionWeights.TryGetValue(actionId, out int weight) ? weight : 0;
-    }
-}
-
-internal static class EnemyBehaviorProfileWeightExtensions
-{
-    public static bool AnyWeight(this IEnumerable<int> weights)
-    {
-        foreach (int weight in weights)
-        {
-            if (weight > 0)
-            {
-                return true;
-            }
-        }
-
-        return false;
     }
 }
