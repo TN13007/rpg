@@ -5,7 +5,9 @@ using System.Linq;
 /// <summary>Identifies whether a combatant belongs to the party or the enemy side.</summary>
 public enum CombatantSide
 {
+    /// <summary>Identifies a combatant controlled by the player's party.</summary>
     Party,
+    /// <summary>Identifies a combatant opposing the player's party.</summary>
     Enemy
 }
 
