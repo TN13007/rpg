@@ -16,7 +16,7 @@ public sealed class CombatEnemyIntentTests
 
         CombatSnapshot snapshot = combat.GetSnapshot();
         TimelineCombatantStatus enemyTimeline = Assert.Single(
-            snapshot.Timeline.Where(entry => entry.Id == enemy.Id));
+            snapshot.Timeline, entry => entry.Id == enemy.Id);
 
         Assert.Equal("Heavy Swing → " + player.Name, enemyTimeline.IntentDescription);
         Assert.NotNull(snapshot.Intent);
@@ -58,7 +58,7 @@ public sealed class CombatEnemyIntentTests
 
         Assert.True(result.Success);
         TimelineCombatantStatus enemyTimeline = Assert.Single(
-            result.Snapshot.Timeline.Where(entry => entry.Id == enemy.Id));
+            result.Snapshot.Timeline, entry => entry.Id == enemy.Id);
 
         Assert.True(enemyTimeline.IsStunned);
         Assert.Equal("Heavy Swing → " + player.Name, enemyTimeline.IntentDescription);
@@ -98,9 +98,9 @@ public sealed class CombatEnemyIntentTests
         Assert.True(combat.TryStartEncounter(out string failureReason), failureReason);
 
         TimelineCombatantStatus heavyIntent = Assert.Single(
-            combat.GetSnapshot().Timeline.Where(entry => entry.Id == enemyA.Id));
+            combat.GetSnapshot().Timeline, entry => entry.Id == enemyA.Id);
         TimelineCombatantStatus disruptorIntent = Assert.Single(
-            combat.GetSnapshot().Timeline.Where(entry => entry.Id == enemyB.Id));
+            combat.GetSnapshot().Timeline, entry => entry.Id == enemyB.Id);
 
         Assert.Equal("Heavy Swing → " + player.Name, heavyIntent.IntentDescription);
         Assert.Equal("Staggering Blow → " + player.Name, disruptorIntent.IntentDescription);
@@ -125,7 +125,7 @@ public sealed class CombatEnemyIntentTests
 
         CombatResult enemyResult = combat.AdvanceCombatTime(10.0);
         CombatEvent enemyAction = Assert.Single(
-            enemyResult.Events.Where(item => item.Type == CombatEventType.EnemyAction));
+            enemyResult.Events, item => item.Type == CombatEventType.EnemyAction);
 
         Assert.Equal("TEST ENEMY", enemyAction.ActorName);
         Assert.Equal(player.Name, enemyAction.TargetName);
