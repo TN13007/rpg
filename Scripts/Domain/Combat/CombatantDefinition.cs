@@ -14,12 +14,14 @@ public sealed class CombatantDefinition
     public CombatantSide Side { get; }
     public CombatActionDefinition[] Actions { get; }
     public bool IsVisible { get; }
+    public EnemyBehaviorProfile BehaviorProfile { get; }
 
     public CombatantDefinition(
         Character character,
         CombatantSide side,
         IEnumerable<CombatActionDefinition> actions,
-        bool isVisible = true)
+        bool isVisible = true,
+        EnemyBehaviorProfile behaviorProfile = null)
     {
         Character = character ?? throw new ArgumentNullException(nameof(character));
         if (!Enum.IsDefined(typeof(CombatantSide), side))
@@ -47,7 +49,23 @@ public sealed class CombatantDefinition
             }
         }
 
+        if (behaviorProfile != null && side != CombatantSide.Enemy)
+        {
+            throw new ArgumentException("Only enemies can have an enemy behavior profile.", nameof(behaviorProfile));
+        }
+
+        if (behaviorProfile != null && Actions.Any(action => !behaviorProfile.ActionWeights.ContainsKey(action.Id)))
+        {
+            throw new ArgumentException("A behavior profile must define a weight for every enemy action.", nameof(behaviorProfile));
+        }
+
+        if (behaviorProfile != null && behaviorProfile.ActionWeights.Keys.Any(id => !actionIds.Contains(id)))
+        {
+            throw new ArgumentException("A behavior profile cannot reference an action the enemy does not have.", nameof(behaviorProfile));
+        }
+
         Side = side;
         IsVisible = side == CombatantSide.Party || isVisible;
+        BehaviorProfile = behaviorProfile;
     }
 }
