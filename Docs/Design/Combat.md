@@ -217,6 +217,18 @@ Enemies should differ by tactical problem, not only HP and damage. Candidate arc
 
 An encounter should combine behaviors to create competing priorities. There should usually be more than one viable response.
 
+### 9.1 Authored behavior profiles
+
+Each enemy may have a small authored behavior profile that assigns an integer selection weight to each action in its action list. A weight of `0` excludes an action; higher weights make it more likely to be selected. Every profile must enable at least one action. If no profile is supplied, the enemy keeps the existing uniform random selection.
+
+Profiles describe tactical emphasis, not a general AI system. For the first encounter slice, use a few readable patterns:
+
+- **Brute:** high weight on heavy attacks; long Recovery.
+- **Disruptor:** high weight on Stun or Delay; lower direct damage.
+- **Skirmisher:** high weight on quick attacks; short Recovery.
+
+The enemy commits its selected action and target as Intent before the player decision window. The profile is consulted again only after the enemy acts and needs its next Intent. It must never reroll or replace a committed Intent during Recovery, Stun or a player decision window. Profiles do not change Timeline scheduling, party control or action resolution.
+
 ## 10. Downed and revival
 
 When HP reaches zero, a Party member enters **Downed** rather than immediately causing total party defeat. Enemies at zero HP are defeated in this first implementation.
@@ -277,7 +289,8 @@ The following are intentionally not finalized:
 - Delay / Acceleration stacking and resistance.
 - Stun duration, resistance, refresh, stacking and anti-stun-lock rules.
 - Detection, reveal and the precision of enemy timing information.
-- Enemy intent / telegraph disclosure.
+- Enemy intent / telegraph disclosure beyond the baseline committed action and target.
+- Exact enemy action-selection weights and profile tuning.
 - Casting, channeling, Interrupt and Cooldown rules.
 - Luck range, growth and whether any future effect modifies tie-break Luck.
 - Bleed-out/death and special enemy rules for targeting Downed characters.
