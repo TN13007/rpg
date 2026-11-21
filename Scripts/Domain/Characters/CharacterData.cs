@@ -1,25 +1,59 @@
 using System;
 using System.Collections.Generic;
 
+/// <summary>Provides character data functionality for gameplay.</summary>
 public sealed class CharacterData
 {
+    /// <summary>Gets the id.</summary>
     public string Id { get; }
+    /// <summary>Gets the name.</summary>
     public string Name { get; }
+    /// <summary>Gets the role.</summary>
     public string Role { get; }
+    /// <summary>Gets the level.</summary>
     public int Level { get; }
+    /// <summary>Gets the max health.</summary>
     public int MaxHealth { get; }
+    /// <summary>Gets the max fatigue.</summary>
     public double MaxFatigue { get; }
+    /// <summary>Gets the max stamina.</summary>
     public int MaxStamina { get; }
+    /// <summary>Gets the max mood.</summary>
     public int MaxMood { get; }
+    /// <summary>Gets the starting health.</summary>
     public int StartingHealth { get; }
+    /// <summary>Gets the starting fatigue.</summary>
     public double StartingFatigue { get; }
+    /// <summary>Gets the starting stamina.</summary>
     public int StartingStamina { get; }
+    /// <summary>Gets the starting mood.</summary>
     public int StartingMood { get; }
+    /// <summary>Gets the starting gold.</summary>
     public int StartingGold { get; }
+    /// <summary>Gets the stats.</summary>
     public CharacterStats Stats { get; }
+    /// <summary>Gets the player actions.</summary>
     public PlayerActionDefinition[] PlayerActions { get; }
+    /// <summary>Gets the combat action ids.</summary>
     public string[] CombatActionIds { get; }
 
+    /// <summary>Initializes a new instance of <see cref="CharacterData"/>.</summary>
+    /// <param name="id">The id used to initialize the instance.</param>
+    /// <param name="name">The name used to initialize the instance.</param>
+    /// <param name="role">The role used to initialize the instance.</param>
+    /// <param name="level">The level used to initialize the instance.</param>
+    /// <param name="maxHealth">The max health used to initialize the instance.</param>
+    /// <param name="maxFatigue">The max fatigue used to initialize the instance.</param>
+    /// <param name="maxStamina">The max stamina used to initialize the instance.</param>
+    /// <param name="maxMood">The max mood used to initialize the instance.</param>
+    /// <param name="startingHealth">The starting health used to initialize the instance.</param>
+    /// <param name="startingFatigue">The starting fatigue used to initialize the instance.</param>
+    /// <param name="startingStamina">The starting stamina used to initialize the instance.</param>
+    /// <param name="startingMood">The starting mood used to initialize the instance.</param>
+    /// <param name="startingGold">The starting gold used to initialize the instance.</param>
+    /// <param name="stats">The stats used to initialize the instance.</param>
+    /// <param name="playerActions">The player actions used to initialize the instance.</param>
+    /// <param name="combatActionIds">The combat action ids used to initialize the instance.</param>
     public CharacterData(
         string id,
         string name,
