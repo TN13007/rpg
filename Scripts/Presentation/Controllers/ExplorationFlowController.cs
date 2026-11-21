@@ -2,7 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-/// <summary>Coordinates exploration flow flow and user interactions.</summary>
+/// <summary>Coordinates the Exploration presentation flow, including location navigation, player actions, NPC interactions and location events.</summary>
+/// <remarks>Queries application/domain services for available content, then maps the results into StoryPanel view data. It does not own the underlying character, world-clock or location definitions.</remarks>
 public sealed class ExplorationFlowController
 {
     private readonly StoryPanel _storyPanel;
@@ -88,7 +89,8 @@ public sealed class ExplorationFlowController
         ValidatePlayerActions();
     }
 
-    /// <summary>Displays location in the current game mode.</summary>
+    /// <summary>Builds and displays the current location page, including its description and currently available choices.</summary>
+    /// <remarks>Resolves NPC presence using the current world-clock time, queries valid player/location interactions, and switches the presentation to Exploration mode. If a location event is active, that event page is shown instead.</remarks>
     public void ShowLocation()
     {
         if (_activeLocationEvent != null)
@@ -247,8 +249,9 @@ public sealed class ExplorationFlowController
         return _currentLocationDescription;
     }
 
-    /// <summary>Displays page in the current game mode.</summary>
-    /// <param name="tab">The tab used by this operation.</param>
+    /// <summary>Displays a non-location character-record page such as Profile, Skills, Inventory or Journal.</summary>
+    /// <param name="tab">The page title to display. Recognized titles select their corresponding description; an unrecognized value uses the default preferences/settings description.</param>
+    /// <remarks>Clears the selected NPC, switches to Exploration mode, displays the page without action choices and enables the return-to-location control.</remarks>
     public void ShowPage(string tab)
     {
         string description = tab switch
@@ -273,9 +276,11 @@ public sealed class ExplorationFlowController
         _storyPanel.ShowLocationButton(true);
     }
 
-    /// <summary>Starts debug encounter and initializes its presentation flow.</summary>
-    /// <param name="entryAction">The entry action used by this operation.</param>
-    /// <returns><see langword="true"/> when the operation succeeds; otherwise, <see langword="false"/>.</returns>
+    /// <summary>Requests an encounter using the supplied entry action when Exploration is active.</summary>
+    /// <param name="entryAction">The authored action that must be validated and executed before combat can begin.</param>
+    /// <returns><see langword="true"/> when the encounter callback accepts the request; otherwise, <see langword="false"/>.</returns>
+    /// <remarks>Returns <see langword="false"/> without invoking the callback if the game is already in Combat mode. On success, clears the active location event so returning to Exploration does not reopen the previous event.</remarks>
+    /// <exception cref="ArgumentNullException"><paramref name="entryAction"/> is <see langword="null"/>.</exception>
     public bool StartDebugEncounter(ActionDefinition entryAction)
     {
         if (entryAction == null)
@@ -297,8 +302,9 @@ public sealed class ExplorationFlowController
         return true;
     }
 
-    /// <summary>Handles choice from the presentation layer.</summary>
-    /// <param name="choiceId">The choice id used by this operation.</param>
+    /// <summary>Routes a StoryPanel choice to the matching player, location, NPC or active location-event interaction.</summary>
+    /// <param name="choiceId">The encoded selection ID produced for a currently displayed choice.</param>
+    /// <remarks>Validates the selection source and source ID against the current location, player or active event before executing it. Invalid, stale or unrecognized selections are rejected with presentation feedback and do not execute an action.</remarks>
     public void HandleChoice(string choiceId)
     {
         if (_activeLocationEvent != null)
