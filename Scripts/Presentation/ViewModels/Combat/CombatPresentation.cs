@@ -119,6 +119,7 @@ public sealed class TimelineCombatantStatus
     public bool IsVisible { get; }
     public bool IsPrimaryPartyMember { get; }
     public double RemainingStunTime { get; }
+    public string IntentDescription { get; }
 
     public TimelineCombatantStatus(
         string id,
@@ -131,7 +132,8 @@ public sealed class TimelineCombatantStatus
         bool isStunned,
         bool isVisible = true,
         bool isPrimaryPartyMember = false,
-        double remainingStunTime = 0.0)
+        double remainingStunTime = 0.0,
+        string intentDescription = "")
     {
         if (double.IsNaN(remainingStunTime) ||
             double.IsInfinity(remainingStunTime) ||
@@ -151,6 +153,7 @@ public sealed class TimelineCombatantStatus
         IsVisible = isVisible;
         IsPrimaryPartyMember = !isEnemy && isPrimaryPartyMember;
         RemainingStunTime = remainingStunTime;
+        IntentDescription = intentDescription ?? string.Empty;
     }
 }
 
@@ -261,6 +264,7 @@ public sealed class TimelineMarkerViewData
     public int Luck { get; }
     public bool IsStunned { get; }
     public double TimeToReadySeconds { get; }
+    public string IntentDescription { get; }
 
     public TimelineMarkerViewData(
         string id,
@@ -271,7 +275,8 @@ public sealed class TimelineMarkerViewData
         bool isReady,
         bool isStunned,
         int luck,
-        double timeToReadySeconds)
+        double timeToReadySeconds,
+        string intentDescription = "")
     {
         if (double.IsNaN(timeToReadySeconds) ||
             double.IsInfinity(timeToReadySeconds) ||
@@ -289,6 +294,7 @@ public sealed class TimelineMarkerViewData
         IsStunned = isStunned;
         Luck = luck;
         TimeToReadySeconds = timeToReadySeconds;
+        IntentDescription = intentDescription ?? string.Empty;
     }
 }
 
