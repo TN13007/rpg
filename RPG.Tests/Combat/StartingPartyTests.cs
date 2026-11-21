@@ -10,13 +10,13 @@ public sealed class StartingPartyTests
     public void CreatesFourPartyMembersInStableOrderAndReusesThePrimaryCharacter()
     {
         GameContentCatalog content = LoadContent();
-        Character primaryCharacter = new Character(content.GetCharacter("player-ari"));
+        Character primaryCharacter = new Character(content.GetCharacter("player_student"));
 
         CombatantDefinition[] party = StartingParty.CreateCombatants(content, primaryCharacter);
 
         Assert.Equal(4, party.Length);
         Assert.Equal(
-            new[] { "player-ari", "bram", "mira", "sera" },
+            new[] { "player_student", "noah", "mira", "sera" },
             party.Select(combatant => combatant.Character.Id));
         Assert.Same(primaryCharacter, party[0].Character);
         Assert.All(party, combatant => Assert.Equal(CombatantSide.Party, combatant.Side));
@@ -27,13 +27,13 @@ public sealed class StartingPartyTests
     public void UsesTheCombatActionsAuthoredForEachPartyMember()
     {
         GameContentCatalog content = LoadContent();
-        Character primaryCharacter = new Character(content.GetCharacter("player-ari"));
+        Character primaryCharacter = new Character(content.GetCharacter("player_student"));
 
         CombatantDefinition[] party = StartingParty.CreateCombatants(content, primaryCharacter);
 
         Assert.Equal(
             new[] { "heavy_strike", "guard", "catch_breath" },
-            GetActionIds(party, "bram"));
+            GetActionIds(party, "noah"));
         Assert.Equal(
             new[] { "quick_strike", "disrupting_strike", "evade", "catch_breath" },
             GetActionIds(party, "mira"));
@@ -46,13 +46,13 @@ public sealed class StartingPartyTests
     public void FourPersonPartyCanStartAnEncounterWithTheExistingCombatService()
     {
         GameContentCatalog content = LoadContent();
-        Character primaryCharacter = new Character(content.GetCharacter("player-ari"));
+        Character primaryCharacter = new Character(content.GetCharacter("player_student"));
         CombatService combat = CreateCombat(content, primaryCharacter);
 
         Assert.True(combat.TryStartEncounter(out string failureReason), failureReason);
         Assert.Equal(4, combat.PartyMembers.Count);
         Assert.Equal(
-            new[] { "player-ari", "bram", "mira", "sera" },
+            new[] { "player_student", "noah", "mira", "sera" },
             combat.PartyMembers.Select(character => character.Id));
     }
 
@@ -60,10 +60,10 @@ public sealed class StartingPartyTests
     public void EveryPartyMemberReceivesAnIndependentPlayerDecisionWindow()
     {
         GameContentCatalog content = LoadContent();
-        Character primaryCharacter = new Character(content.GetCharacter("player-ari"));
+        Character primaryCharacter = new Character(content.GetCharacter("player_student"));
         CombatService combat = CreateCombat(content, primaryCharacter);
 
-        string[] expectedActorIds = { "player-ari", "sera", "mira", "bram" };
+        string[] expectedActorIds = { "player_student", "sera", "mira", "noah" };
         string[] expectedActionIds = { "quick_strike", "quick_strike", "quick_strike", "heavy_strike" };
 
         Assert.True(combat.TryStartEncounter(out string failureReason), failureReason);
@@ -86,11 +86,11 @@ public sealed class StartingPartyTests
             Assert.Contains(
                 snapshot.AvailableActions,
                 action => action.Id == actionId
-                    && action.TargetId == "goblin-a"
+                    && action.TargetId == "hostile_presence"
                     && action.IsAvailable);
 
             CombatResult result = combat.ExecuteAction(
-                new CombatActionRequest(actionId, "goblin-a", actorId));
+                new CombatActionRequest(actionId, "hostile_presence", actorId));
 
             Assert.True(result.Success, result.FailureReason);
         }
@@ -123,7 +123,7 @@ public sealed class StartingPartyTests
         GameContentCatalog content,
         Character primaryCharacter)
     {
-        Character goblin = new Character(content.GetCharacter("goblin-a"));
+        Character goblin = new Character(content.GetCharacter("hostile_presence"));
         List<CombatantDefinition> encounter = new List<CombatantDefinition>(
             StartingParty.CreateCombatants(content, primaryCharacter));
 
@@ -155,7 +155,7 @@ public sealed class StartingPartyTests
             .ToArray();
 
         return new GameContentCatalog(
-            new AcademyContent(),
+            new LocationCatalog(),
             new CharacterCatalog(characters),
             new CombatActionCatalog(TestCharacterFactory.CreateCombatActions()),
             new NpcScheduleCatalog(Array.Empty<NpcScheduleDefinition>()));

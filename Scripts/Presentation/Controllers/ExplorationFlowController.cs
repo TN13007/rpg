@@ -21,7 +21,7 @@ public sealed class ExplorationFlowController
     private readonly NpcInteractionQuery _npcInteractionQuery;
     private readonly Func<ActionDefinition, bool> _startEncounter;
 
-    private string _currentLocationId = "university_campus;
+    private string _currentLocationId = "university_campus";
     private LocationEventDefinition _activeLocationEvent;
     private readonly HashSet<string> _visitedLocationIds = new HashSet<string>(StringComparer.Ordinal);
     private string _descriptionLocationId;

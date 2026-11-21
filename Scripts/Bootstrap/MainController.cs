@@ -22,15 +22,11 @@ public partial class MainController : Control
 
         GameContentCatalog content = GameContentLoader.Load("res://Data");
         CharacterData playerData = content.GetCharacter("player_student");
-        CharacterData goblinData = content.GetCharacter("hostile_presence");
+        CharacterData enemyData = content.GetCharacter("hostile_presence");
         Character player = new Character(playerData);
-        Character enemy = new Character(goblinData);
+        Character enemy = new Character(enemyData);
         _debugEncounterAction = content.CombatEncounter;
 
-        if (_debugEncounterAction == null)
-        {
-            throw new System.InvalidOperationException("Debug Goblin encounter action is missing from courtyard content.");
-        }
 
         GameClock gameClock = new GameClock();
         ActivityTimeCalculator activityTimeCalculator = new ActivityTimeCalculator();
@@ -46,7 +42,7 @@ public partial class MainController : Control
         encounterCombatants.Add(new CombatantDefinition(
             enemy,
             CombatantSide.Enemy,
-            content.GetCombatActionsForCharacter(goblinData.Id)));
+            content.GetCombatActionsForCharacter(enemyData.Id)));
 
         CombatService combatService = new CombatService(encounterCombatants);
         CombatPresentationMapper combatPresentationMapper = new CombatPresentationMapper();

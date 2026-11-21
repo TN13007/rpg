@@ -10,23 +10,23 @@ public partial class CombatPreview : Control
         _combatPanel = GetNode<CombatPanel>("Margin/CombatPanel");
         _mapper = new CombatPresentationMapper();
         _combatPanel.ActionSelected += OnActionSelected;
-        _combatPanel.BeginEncounter("Goblin Ambush");
+        _combatPanel.BeginEncounter("Unit 213 Incident");
 
         CombatSnapshot snapshot = new CombatSnapshot(
             2,
             "PLAYER TURN",
             new[]
             {
-                new EnemyCombatStatus("goblin-a", "Goblin A", 40, 60, "Wounded")
+                new EnemyCombatStatus("hostile_presence", "Unstable Presence", 40, 60, "Wounded")
             },
             new IntentObservation(
-                "goblin-a",
-                "Goblin A",
+                "hostile_presence",
+                "Unstable Presence",
                 "The enemy appears to be preparing a forward attack.",
                 IntentConfidence.Suspected),
             new[]
             {
-                new CombatActionOption("attack", "Attack Goblin A", "No Stamina cost", "Deal damage with a basic attack.", targetId: "goblin-a"),
+                new CombatActionOption("attack", "Attack Unstable Presence", "No Stamina cost", "Deal damage with a basic attack.", targetId: "hostile_presence"),
                 new CombatActionOption("defend", "Defend", "1 Stamina", "Reduce the impact of the next incoming attack."),
                 new CombatActionOption("dodge", "Dodge", "2 Stamina", "Attempt to evade the incoming attack."),
                 new CombatActionOption("catch_breath", "Catch Breath", "Recover 3 Stamina", "Recover your composure before the enemy responds."),
@@ -36,7 +36,7 @@ public partial class CombatPreview : Control
             {
                 new TimelineCombatantStatus(
                     "ari",
-                    "Ari",
+                    "Alex",
                     false,
                     20.0,
                     10.0,
@@ -46,8 +46,8 @@ public partial class CombatPreview : Control
                     true,
                     true),
                 new TimelineCombatantStatus(
-                    "goblin-a",
-                    "Goblin A",
+                    "hostile_presence",
+                    "Unstable Presence",
                     true,
                     100.0,
                     10.0,
@@ -61,10 +61,10 @@ public partial class CombatPreview : Control
             snapshot,
             new[]
             {
-                new CombatEvent(CombatEventType.PlayerAction, 2, detail: "You attack Goblin A with a basic strike.", id: "preview-player-attack"),
-                new CombatEvent(CombatEventType.Damage, 2, targetName: "Goblin A", amount: 20, id: "preview-damage"),
-                new CombatEvent(CombatEventType.EnemyAction, 2, actorName: "GOBLIN A", detail: "The goblin snarls angrily and lowers its stance.", id: "preview-enemy-reaction"),
-                new CombatEvent(CombatEventType.Check, 2, detail: "PERCEPTION CHECK · SUCCESS — You notice the goblin shifting its weight forward.", id: "preview-perception")
+                new CombatEvent(CombatEventType.PlayerAction, 2, detail: "You attack Unstable Presence with a basic strike.", id: "preview-player-attack"),
+                new CombatEvent(CombatEventType.Damage, 2, targetName: "Unstable Presence", amount: 20, id: "preview-damage"),
+                new CombatEvent(CombatEventType.EnemyAction, 2, actorName: "GOBLIN A", detail: "The presence snarls angrily and lowers its stance.", id: "preview-enemy-reaction"),
+                new CombatEvent(CombatEventType.Check, 2, detail: "OBSERVATION · SUCCESS — You notice the presence shifting its weight forward.", id: "preview-perception")
             });
 
         CombatViewData viewData = _mapper.Map(previewResult);
