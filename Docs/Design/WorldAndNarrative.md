@@ -155,7 +155,7 @@ The first playable version does not need all five options. It must, however, pre
 
 | Journey requirement | Existing contract | Current fit |
 |---|---|---|
-| Move between campus, café, home and incident site | Location exits and Travel | Content can author the route |
+| Move between campus, café, home and incident site | Location exits and Travel | The Location schema can author the route, but the current loader loads only one `AcademyLocations.json` graph; a parallel city graph is not selectable yet |
 | Spend time at class or work | Player Actions / Location Actions and GameClock | Supported for time advancement; the current effect set is limited |
 | Have Linh and Minh appear at authored times | NPC schedules and `See around` | Supported by daily time ranges |
 | Ask an NPC about a rumor | NPC interactions | Supported for authored interactions and feedback |
@@ -171,9 +171,9 @@ The current action effect types are `RestoreHealth`, `RestoreFatigue`, `RestoreS
 
 ### Prototype boundary and likely minimum gap
 
-The first content pass should use the existing Location, NPC schedule, NPC interaction and Event contracts. It can demonstrate the everyday route, discovery, investigation choices and a non-combat retreat without adding a generalized system.
+The Location, NPC schedule, NPC interaction and Event definitions are reusable, but the current composition is not yet content-only for a second setting: `GameContentLoader.Load()` explicitly loads `AcademyLocations.json`, and `AcademyContent` validates one connected Location graph. A separate modern-city JSON file cannot currently be selected at runtime. Keeping the Academy intact while running this alternative setting therefore requires a small, explicit content-root/scenario-selection change, or a deliberate replacement of the existing graph. The latter would overwrite the current slice and is not part of this prototype.
 
-A genuinely reactive specialist call or a persistent resolved/unresolved aftermath needs at least one small, explicit piece of world state and a supported way to change and query it. The next implementation decision should be made only after the authored journey is wired and the exact limitation is reproduced. Do not build a generic Quest, Incident, Social Network or World Simulation framework for this one scenario.
+Once the setting is loadable, the existing contracts can demonstrate the everyday route, discovery, investigation choices and a non-combat retreat without a generalized quest framework. A genuinely reactive specialist call or persistent resolved/unresolved aftermath needs at least one small, explicit piece of world state and a supported way to change and query it. The next implementation decision should be made only after the authored journey is wired and the exact limitation is reproduced. Do not build a generic Quest, Incident, Social Network or World Simulation framework for this one scenario.
 
 ### Open decisions after the prototype
 
