@@ -26,7 +26,7 @@ public partial class CombatPreview : Control
                 IntentConfidence.Suspected),
             new[]
             {
-                new CombatActionOption("attack", "Attack Unstable Presence", "No Stamina cost", "Deal damage with a basic attack.", targetId: "hostile_presence"),
+                new CombatActionOption("attack", "Attack", "No Stamina cost", "Deal damage with a basic attack.", targets: new[] { new CombatActionTargetOption("hostile_presence", "Unstable Presence") }),
                 new CombatActionOption("defend", "Defend", "1 Stamina", "Reduce the impact of the next incoming attack."),
                 new CombatActionOption("dodge", "Dodge", "2 Stamina", "Attempt to evade the incoming attack."),
                 new CombatActionOption("catch_breath", "Catch Breath", "Recover 3 Stamina", "Recover your composure before the enemy responds."),
