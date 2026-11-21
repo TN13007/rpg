@@ -70,8 +70,16 @@ public sealed class EnemyCombatStatus
     public int MaxHealth { get; }
     public string Condition { get; }
     public bool IsVisible { get; }
+    public string IntentDescription { get; }
 
-    public EnemyCombatStatus(string id, string name, int currentHealth, int maxHealth, string condition, bool isVisible = true)
+    public EnemyCombatStatus(
+        string id,
+        string name,
+        int currentHealth,
+        int maxHealth,
+        string condition,
+        bool isVisible = true,
+        string intentDescription = "")
     {
         if (maxHealth < 1) throw new ArgumentOutOfRangeException(nameof(maxHealth));
         if (currentHealth < 0 || currentHealth > maxHealth) throw new ArgumentOutOfRangeException(nameof(currentHealth));
@@ -81,6 +89,7 @@ public sealed class EnemyCombatStatus
         MaxHealth = maxHealth;
         Condition = condition ?? string.Empty;
         IsVisible = isVisible;
+        IntentDescription = intentDescription ?? string.Empty;
     }
 }
 
