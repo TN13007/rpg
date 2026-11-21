@@ -94,6 +94,47 @@
       "stunDuration": 0.5,
       "recoveryCost": 115,
       "actionDetail": "The goblin lands a staggering blow."
+    },
+    {
+      "id": "brute_crushing_slam",
+      "label": "Crushing Slam",
+      "costLabel": "Enemy Action",
+      "description": "A devastating, slow attack.",
+      "behavior": "Attack",
+      "damage": 13,
+      "recoveryCost": 155,
+      "actionDetail": "The brute winds up and brings down a crushing slam."
+    },
+    {
+      "id": "brute_overhead_smash",
+      "label": "Overhead Smash",
+      "costLabel": "Enemy Action",
+      "description": "A heavy overhead attack.",
+      "behavior": "Attack",
+      "damage": 17,
+      "recoveryCost": 185,
+      "actionDetail": "The brute commits to a massive overhead smash."
+    },
+    {
+      "id": "disruptor_staggering_blow",
+      "label": "Disrupting Pulse",
+      "costLabel": "Enemy Action",
+      "description": "A control strike that briefly stuns its target.",
+      "behavior": "Stun",
+      "damage": 3,
+      "stunDuration": 0.85,
+      "recoveryCost": 130,
+      "actionDetail": "The disruptor releases a pulse that leaves its target staggered."
+    },
+    {
+      "id": "disruptor_quick_jab",
+      "label": "Quick Jab",
+      "costLabel": "Enemy Action",
+      "description": "A quick low-damage strike.",
+      "behavior": "Attack",
+      "damage": 4,
+      "recoveryCost": 80,
+      "actionDetail": "The disruptor darts in with a quick jab."
     }
   ]
 }
