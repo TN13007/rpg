@@ -1,11 +1,16 @@
 using System;
 
+/// <summary>Coordinates action execution behavior and applies its domain rules.</summary>
 public sealed class ActionExecutionService
 {
     private readonly ActivityTimeCalculator _timeCalculator;
     private readonly ActivityFatigueCalculator _fatigueCalculator;
     private readonly ActionEffectExecutor _effectExecutor;
 
+    /// <summary>Initializes a new instance of <see cref="ActionExecutionService"/>.</summary>
+    /// <param name="timeCalculator">The time calculator used to initialize the instance.</param>
+    /// <param name="effectExecutor">The effect executor used to initialize the instance.</param>
+    /// <param name="fatigueCalculator">The fatigue calculator used to initialize the instance.</param>
     public ActionExecutionService(
         ActivityTimeCalculator timeCalculator,
         ActionEffectExecutor effectExecutor,
@@ -16,6 +21,11 @@ public sealed class ActionExecutionService
         _fatigueCalculator = fatigueCalculator ?? new ActivityFatigueCalculator();
     }
 
+    /// <summary>Determines whether execute.</summary>
+    /// <param name="action">The action used by this operation.</param>
+    /// <param name="actor">The actor used by this operation.</param>
+    /// <param name="failureReason">The failure reason used by this operation.</param>
+    /// <returns><see langword="true"/> when the operation succeeds; otherwise, <see langword="false"/>.</returns>
     public bool CanExecute(ActionDefinition action, Character actor, out string failureReason)
     {
         if (action == null)
@@ -66,6 +76,13 @@ public sealed class ActionExecutionService
             && action.Effects[0].Amount > 0;
     }
 
+    /// <summary>Attempts to execute and reports whether the operation succeeded.</summary>
+    /// <param name="action">The action used by this operation.</param>
+    /// <param name="actor">The actor used by this operation.</param>
+    /// <param name="gameClock">The game clock used by this operation.</param>
+    /// <param name="failureReason">The failure reason used by this operation.</param>
+    /// <param name="actualDuration">The actual duration used by this operation.</param>
+    /// <returns><see langword="true"/> when the operation succeeds; otherwise, <see langword="false"/>.</returns>
     public bool TryExecute(
         ActionDefinition action,
         Character actor,
