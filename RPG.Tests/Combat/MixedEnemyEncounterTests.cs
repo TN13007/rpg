@@ -33,8 +33,8 @@ public sealed class MixedEnemyEncounterTests
             CreatePartyMember("mira", "Mira", partyAction),
             CreatePartyMember("sera", "Sera", partyAction),
             CreateEnemy("goblin-a", "Goblin", goblinActions, EnemyBehaviorProfiles.CreateGoblinSkirmisher()),
-            CreateEnemy("brute-a", "Brute", bruteActions, EnemyBehaviorProfiles.CreateBrute()),
-            CreateEnemy("disruptor-a", "Disruptor", disruptorActions, EnemyBehaviorProfiles.CreateDisruptor())
+            CreateEnemy("brute_a", "Brute", bruteActions, EnemyBehaviorProfiles.CreateBrute()),
+            CreateEnemy("disruptor_a", "Disruptor", disruptorActions, EnemyBehaviorProfiles.CreateDisruptor())
         };
 
         CombatService combat = new CombatService(combatants, new Random(31));
@@ -56,11 +56,11 @@ public sealed class MixedEnemyEncounterTests
              entry.IntentDescription.StartsWith("Heavy Swing", StringComparison.Ordinal) ||
              entry.IntentDescription.StartsWith("Staggering Blow", StringComparison.Ordinal)));
         Assert.Contains(enemyIntents, entry =>
-            entry.Id == "brute-a" &&
+            entry.Id == "brute_a" &&
             (entry.IntentDescription.StartsWith("Crushing Slam", StringComparison.Ordinal) ||
              entry.IntentDescription.StartsWith("Overhead Smash", StringComparison.Ordinal)));
         Assert.Contains(enemyIntents, entry =>
-            entry.Id == "disruptor-a" &&
+            entry.Id == "disruptor_a" &&
             (entry.IntentDescription.StartsWith("Disrupting Pulse", StringComparison.Ordinal) ||
              entry.IntentDescription.StartsWith("Quick Jab", StringComparison.Ordinal)));
     }
