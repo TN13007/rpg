@@ -25,7 +25,7 @@ public sealed class CombatEnemyIntentTests
         Assert.Equal(IntentConfidence.Recognized, snapshot.Intent.Confidence);
 
         CombatViewData viewData = new CombatPresentationMapper().Map(snapshot);
-        Assert.Equal("Heavy Swing → " + player.Name, Assert.Single(viewData.Timeline).IntentDescription);
+        Assert.Equal("Heavy Swing → " + player.Name, Assert.Single(viewData.Timeline, marker => marker.Id == enemy.Id).IntentDescription);
     }
 
     [Fact]
