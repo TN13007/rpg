@@ -248,7 +248,7 @@ public sealed class LocationEventLoopTests
         Assert.Equal(1.08, player.Fatigue, 6);
         Assert.Equal(8, player.Stamina);
 
-        LocationContent courtyard = _academy.Get("courtyard");
+        LocationContent courtyard = WithGuaranteedEvents(_academy.Get("courtyard"));
         LocationEventService eventService = new LocationEventService(new Random(1));
         bool triggered = eventService.TryTrigger(courtyard, clock.Day, player.CanAct, out LocationEventDefinition locationEvent);
 
@@ -282,7 +282,7 @@ public sealed class LocationEventLoopTests
 
         Assert.True(actionService.TryExecute(_academy.Travel, player, clock, out string travelReason, out _), travelReason);
 
-        LocationContent courtyard = _academy.Get("courtyard");
+        LocationContent courtyard = WithGuaranteedEvents(_academy.Get("courtyard"));
         LocationEventService eventService = new LocationEventService(new Random(1));
         Assert.True(eventService.TryTrigger(courtyard, clock.Day, player.CanAct, out LocationEventDefinition locationEvent));
 
@@ -344,6 +344,33 @@ public sealed class LocationEventLoopTests
         string json = CreateContentJson(eventJson);
 
         Assert.Throws<InvalidOperationException>(() => _academy.LoadJson(json));
+    }
+
+    private static LocationContent WithGuaranteedEvents(LocationContent location)
+    {
+        LocationEventDefinition[] guaranteedEvents = new LocationEventDefinition[location.Events.Length];
+
+        for (int index = 0; index < location.Events.Length; index++)
+        {
+            LocationEventDefinition locationEvent = location.Events[index];
+            guaranteedEvents[index] = new LocationEventDefinition(
+                locationEvent.Id,
+                locationEvent.Title,
+                locationEvent.Region,
+                locationEvent.Description,
+                1,
+                locationEvent.Choices);
+        }
+
+        return new LocationContent(
+            location.Id,
+            location.Name,
+            location.Region,
+            location.FirstVisitDescription,
+            location.ReturnVisitDescription,
+            location.Exits,
+            location.Actions,
+            guaranteedEvents);
     }
 
     private static ActionExecutionService CreateActionService()
