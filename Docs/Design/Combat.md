@@ -283,7 +283,7 @@ The following are intentionally not finalized:
 - Delay / Acceleration stacking and resistance.
 - Stun duration, resistance, refresh, stacking and anti-stun-lock rules.
 - Detection, reveal and the precision of enemy timing information.
-- Enemy intent / telegraph disclosure.
+- Intent disclosure beyond the committed action and target shown on visible Timeline markers.
 - Casting, channeling, Interrupt and Cooldown rules.
 - Luck range, growth and whether any future effect modifies tie-break Luck.
 - Bleed-out/death and special enemy rules for targeting Downed characters.
