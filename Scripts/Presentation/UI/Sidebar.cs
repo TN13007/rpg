@@ -1,10 +1,15 @@
 using System;
+using System.Collections.Generic;
 using Godot;
 
 public partial class Sidebar : PanelContainer
 {
     public event Action<string> TabSelected;
     public event Action DebugEncounterRequested;
+    public event Action<string> EnemySelected;
+
+    [Export]
+    public PackedScene EnemyCardScene { get; set; }
 
     private VBoxContainer _characterSection;
     private VBoxContainer _diarySection;
@@ -13,12 +18,14 @@ public partial class Sidebar : PanelContainer
     private VBoxContainer _enemyList;
     private Control _navigationSpacer;
     private VBoxContainer _debugSection;
+    private Label _emptyEnemyLabel;
+    private readonly Dictionary<string, EnemyCard> _enemyCards =
+        new Dictionary<string, EnemyCard>(StringComparer.Ordinal);
     private bool _showDebugTools;
 
     public override void _Ready()
     {
         UiTheme.StylePanel(this);
-
         _characterSection = GetNode<VBoxContainer>("Margin/Content/Character");
         _diarySection = GetNode<VBoxContainer>("Margin/Content/Diary");
         _systemSection = GetNode<VBoxContainer>("Margin/Content/System");
@@ -28,6 +35,11 @@ public partial class Sidebar : PanelContainer
         _debugSection = GetNode<VBoxContainer>("Margin/Content/Debug");
         _showDebugTools = OS.IsDebugBuild();
         _debugSection.Visible = _showDebugTools;
+
+        if (EnemyCardScene == null)
+        {
+            GD.PushError("Sidebar requires an EnemyCard scene.");
+        }
 
         Button debugButton = GetNode<Button>("Margin/Content/Debug/ForceEncounter");
         UiTheme.StyleButton(debugButton, true);
@@ -60,39 +72,87 @@ public partial class Sidebar : PanelContainer
             return;
         }
 
-        ClearChildren(_enemyList);
+        HashSet<string> currentEnemyIds = new HashSet<string>(StringComparer.Ordinal);
+        int cardIndex = 0;
 
-        int visibleCount = 0;
         if (enemies != null)
         {
             foreach (EnemyCombatStatus enemy in enemies)
             {
-                if (!enemy.IsVisible)
+                if (enemy == null || !enemy.IsVisible || string.IsNullOrWhiteSpace(enemy.Id))
                 {
                     continue;
                 }
 
-                _enemyList.AddChild(CreateEnemyCard(enemy));
-                visibleCount++;
+                currentEnemyIds.Add(enemy.Id);
+
+                if (!_enemyCards.TryGetValue(enemy.Id, out EnemyCard card))
+                {
+                    if (EnemyCardScene == null)
+                    {
+                        continue;
+                    }
+
+                    card = EnemyCardScene.Instantiate<EnemyCard>();
+                    card.Selected += HandleEnemySelected;
+                    _enemyList.AddChild(card);
+                    card.Setup(enemy);
+                    _enemyCards.Add(enemy.Id, card);
+                }
+                else
+                {
+                    card.UpdateDisplay(enemy);
+                }
+
+                _enemyList.MoveChild(card, cardIndex);
+                cardIndex++;
             }
         }
 
-        if (visibleCount == 0)
+        List<string> removedEnemyIds = new List<string>();
+        foreach (KeyValuePair<string, EnemyCard> entry in _enemyCards)
         {
-            Label emptyLabel = new Label
+            if (!currentEnemyIds.Contains(entry.Key))
             {
-                Text = "No enemies detected",
-                SizeFlagsHorizontal = Control.SizeFlags.ExpandFill
-            };
-            emptyLabel.AddThemeFontSizeOverride("font_size", 11);
-            emptyLabel.AddThemeColorOverride("font_color", UiTheme.Muted);
-            _enemyList.AddChild(emptyLabel);
+                removedEnemyIds.Add(entry.Key);
+            }
+        }
+
+        foreach (string enemyId in removedEnemyIds)
+        {
+            RemoveEnemyCard(enemyId);
+        }
+
+        UpdateEmptyEnemyState();
+    }
+
+    public void SetEnemyTargetSelection(string[] selectableEnemyIds, string selectedEnemyId = "")
+    {
+        HashSet<string> selectableIds = new HashSet<string>(
+            selectableEnemyIds ?? Array.Empty<string>(),
+            StringComparer.Ordinal);
+
+        foreach (KeyValuePair<string, EnemyCard> entry in _enemyCards)
+        {
+            bool selectable = selectableIds.Contains(entry.Key);
+            entry.Value.SetTargetSelectionState(
+                true,
+                selectable,
+                selectable && entry.Key == selectedEnemyId);
+        }
+    }
+
+    public void ClearEnemyTargetSelection()
+    {
+        foreach (EnemyCard card in _enemyCards.Values)
+        {
+            card.SetTargetSelectionState(false, false, false);
         }
     }
 
     public void ExitCombat()
     {
-        ClearChildren(_enemyList);
+        ClearEnemyCards();
         _enemySection.Visible = false;
         _characterSection.Visible = true;
         _diarySection.Visible = true;
@@ -109,87 +169,62 @@ public partial class Sidebar : PanelContainer
         button.Selected += HandleTabSelected;
     }
 
-    private void HandleTabSelected(string tab)
+    private void HandleTabSelected(string tab) => TabSelected?.Invoke(tab);
+    private void HandleDebugEncounterRequested() => DebugEncounterRequested?.Invoke();
+    private void HandleEnemySelected(string enemyId) => EnemySelected?.Invoke(enemyId);
+
+    private void RemoveEnemyCard(string enemyId)
     {
-        TabSelected?.Invoke(tab);
+        if (!_enemyCards.TryGetValue(enemyId, out EnemyCard card))
+        {
+            return;
+        }
+
+        card.Selected -= HandleEnemySelected;
+        _enemyCards.Remove(enemyId);
+        card.QueueFree();
     }
 
-    private void HandleDebugEncounterRequested()
+    private void ClearEnemyCards()
     {
-        DebugEncounterRequested?.Invoke();
+        foreach (EnemyCard card in _enemyCards.Values)
+        {
+            card.Selected -= HandleEnemySelected;
+            card.QueueFree();
+        }
+
+        _enemyCards.Clear();
+
+        if (_emptyEnemyLabel != null)
+        {
+            _emptyEnemyLabel.QueueFree();
+            _emptyEnemyLabel = null;
+        }
     }
 
-    private Control CreateEnemyCard(EnemyCombatStatus enemy)
+    private void UpdateEmptyEnemyState()
     {
-        PanelContainer card = new PanelContainer
+        if (_enemyCards.Count == 0)
         {
-            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill
-        };
+            if (_emptyEnemyLabel == null)
+            {
+                _emptyEnemyLabel = new Label
+                {
+                    Text = "No enemies detected",
+                    SizeFlagsHorizontal = Control.SizeFlags.ExpandFill
+                };
+                _emptyEnemyLabel.AddThemeFontSizeOverride("font_size", 11);
+                _emptyEnemyLabel.AddThemeColorOverride("font_color", UiTheme.Muted);
+                _enemyList.AddChild(_emptyEnemyLabel);
+            }
 
-        StyleBoxFlat cardStyle = new StyleBoxFlat
+            return;
+        }
+
+        if (_emptyEnemyLabel != null)
         {
-            BgColor = UiTheme.PanelLight,
-            CornerRadiusTopLeft = 6,
-            CornerRadiusTopRight = 6,
-            CornerRadiusBottomLeft = 6,
-            CornerRadiusBottomRight = 6
-        };
-        cardStyle.ContentMarginLeft = 8;
-        cardStyle.ContentMarginRight = 8;
-        cardStyle.ContentMarginTop = 8;
-        cardStyle.ContentMarginBottom = 8;
-        card.AddThemeStyleboxOverride("panel", cardStyle);
-
-        VBoxContainer content = new VBoxContainer();
-        content.AddThemeConstantOverride("separation", 5);
-        card.AddChild(content);
-
-        Label name = new Label
-        {
-            Text = enemy.Name,
-            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill
-        };
-        name.AddThemeFontSizeOverride("font_size", 12);
-        name.AddThemeColorOverride("font_color", UiTheme.Text);
-        content.AddChild(name);
-
-        Label health = new Label
-        {
-            Text = "HP  " + enemy.CurrentHealth + " / " + enemy.MaxHealth,
-            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill
-        };
-        health.AddThemeFontSizeOverride("font_size", 10);
-        health.AddThemeColorOverride("font_color", UiTheme.Muted);
-        content.AddChild(health);
-
-        ProgressBar healthBar = new ProgressBar
-        {
-            CustomMinimumSize = new Vector2(0, 8),
-            MaxValue = enemy.MaxHealth,
-            Value = enemy.CurrentHealth,
-            ShowPercentage = false,
-            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill
-        };
-        content.AddChild(healthBar);
-
-        Label condition = new Label
-        {
-            Text = enemy.Condition,
-            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill
-        };
-        condition.AddThemeFontSizeOverride("font_size", 10);
-        condition.AddThemeColorOverride("font_color", UiTheme.Muted);
-        content.AddChild(condition);
-
-        return card;
-    }
-
-    private void ClearChildren(Node parent)
-    {
-        foreach (Node child in parent.GetChildren())
-        {
-            parent.RemoveChild(child);
-            child.QueueFree();
+            _emptyEnemyLabel.QueueFree();
+            _emptyEnemyLabel = null;
         }
     }
 }
