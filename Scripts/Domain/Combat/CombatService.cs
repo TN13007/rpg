@@ -597,7 +597,8 @@ public sealed class CombatService : ICombatService
             _round,
             actorName: actor.Character.Name.ToUpperInvariant(),
             targetName: target.Character.Id == actor.Character.Id ? string.Empty : target.Character.Name,
-            detail: action.ActionDetail));
+            detail: action.ActionDetail,
+            actionId: action.Id));
 
         ApplyAction(action, actor, target, events);
         PlanEnemyIntent(actor);
