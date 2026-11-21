@@ -2,20 +2,33 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+/// <summary>Identifies whether a combatant belongs to the party or the enemy side.</summary>
 public enum CombatantSide
 {
     Party,
     Enemy
 }
 
+/// <summary>Defines the combatant data and its validation rules.</summary>
 public sealed class CombatantDefinition
 {
+    /// <summary>Gets the character.</summary>
     public Character Character { get; }
+    /// <summary>Gets the side.</summary>
     public CombatantSide Side { get; }
+    /// <summary>Gets the actions.</summary>
     public CombatActionDefinition[] Actions { get; }
+    /// <summary>Gets a value indicating whether visible.</summary>
     public bool IsVisible { get; }
+    /// <summary>Gets the behavior profile.</summary>
     public EnemyBehaviorProfile BehaviorProfile { get; }
 
+    /// <summary>Initializes a new instance of <see cref="CombatantDefinition"/>.</summary>
+    /// <param name="character">The character used to initialize the instance.</param>
+    /// <param name="side">The side used to initialize the instance.</param>
+    /// <param name="actions">The actions used to initialize the instance.</param>
+    /// <param name="isVisible">The is visible used to initialize the instance.</param>
+    /// <param name="behaviorProfile">The behavior profile used to initialize the instance.</param>
     public CombatantDefinition(
         Character character,
         CombatantSide side,
