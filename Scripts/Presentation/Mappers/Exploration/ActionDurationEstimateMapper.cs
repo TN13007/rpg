@@ -1,14 +1,21 @@
 using System;
 
+/// <summary>Maps application data into action duration estimate presentation models.</summary>
 public sealed class ActionDurationEstimateMapper
 {
     private readonly ActivityTimeCalculator _timeCalculator;
 
+    /// <summary>Initializes a new instance of <see cref="ActionDurationEstimateMapper"/>.</summary>
+    /// <param name="timeCalculator">The time calculator used to initialize the instance.</param>
     public ActionDurationEstimateMapper(ActivityTimeCalculator timeCalculator)
     {
         _timeCalculator = timeCalculator ?? throw new ArgumentNullException(nameof(timeCalculator));
     }
 
+    /// <summary>Maps the supplied map data into presentation data.</summary>
+    /// <param name="action">The action used by this operation.</param>
+    /// <param name="actor">The actor used by this operation.</param>
+    /// <returns>The resulting string.</returns>
     public string Map(ActionDefinition action, Character actor)
     {
         if (action == null) throw new ArgumentNullException(nameof(action));
