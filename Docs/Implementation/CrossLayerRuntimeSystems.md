@@ -5,16 +5,16 @@
 
 ## 1. Current prototype overview
 
-The current build is an Academy/location-based prototype with a deterministic Goblin encounter. It is not yet the combat-first Tactical Timeline game described by Design.
+The current build combines an Academy/location-based Exploration prototype with the first integrated four-person Tactical Timeline encounter. It is a partial implementation of the combat-first direction, not yet a complete adventure/progression loop.
 
 Implemented areas include:
-- Character state and resources.
-- GameClock day/minute tracking and elapsed-time advancement.
-- Location travel and context-sensitive Location Actions.
-- Player Actions such as Rest and Sleep.
-- Location Events with player-selected outcomes.
-- A dedicated deterministic Combat flow and presentation.
-- Authored JSON definitions loaded into runtime catalogs.
+- Character state and resources, plus the Ari/Bram/Mira/Sera StartingParty composition.
+- GameClock day/minute tracking, elapsed-time advancement, midnight rollover and authored Sleep/Rest actions.
+- Location travel, context-sensitive Location Actions and source-aware Exploration choices.
+- A narrow Location Event flow with player-selected Confront/Sneak outcomes for the Courtyard Goblin.
+- Four-person Combat with a shared Continuous Timeline, player decision pauses, action-specific Recovery Cost, Delay/Stun, Downed/Revive and Victory/Defeat.
+- Exploration rescue when Ari returns from an encounter at 0 HP.
+- Dedicated Combat presentation and authored JSON definitions loaded into runtime catalogs.
 
 ## 2. Current domain vocabulary
 

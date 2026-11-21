@@ -101,6 +101,6 @@ MainController composes the screen and top-level signals. ExplorationFlowControl
 
 ## 6. Current limitations
 
-The current UI is a prototype, not a final interface specification. The combat service and Party roster presentation support multiple members, but the playable MainController encounter is still wired with Ari and one Goblin. Portrait textures are not yet supplied to Timeline markers. Broad skill selection, inventory, relationships, diary, responsive narrow-screen behavior and full assistive-technology verification remain incomplete.
+The current UI is a prototype, not a final interface specification. The playable MainController encounter is wired with Ari, Bram, Mira and Sera against one Goblin. Only one Goblin behavior archetype is currently authored, and upcoming Enemy Intent/action targets are not yet presented to the player. Portrait textures are not yet supplied to Timeline markers. Broad skill selection, inventory, relationships, diary, responsive narrow-screen behavior and full assistive-technology verification remain incomplete.
 
 When the intended UI changes, first update the relevant Design document if the player experience changes; update this document only when the current presentation contract changes.

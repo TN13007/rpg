@@ -1,15 +1,15 @@
 # Product Roadmap
 
 **Status:** Directional player-facing sequence  
-**Last updated:** 2026-11-20
+**Last updated:** 2026-11-21
 
 This roadmap is organized around outcomes the player can experience. It is not an implementation task list. Current tasks, blockers and delivery status belong in GitHub Issues/PRs and [WORKFLOW.md](../../WORKFLOW.md).
 
 ## Current delivery focus
 
-The current implementation is an earlier Academy/location/Event/Goblin prototype. It does not yet prove the accepted combat-first product direction. The active delivery target is [Issue #91 — Four-Person Tactical Timeline Encounter](https://github.com/TN13007/rpg/issues/91).
+The current build combines the Academy/location/Event Exploration prototype with the first integrated four-person Continuous Tactical Timeline encounter. It demonstrates the core combat foundation, but it does not yet prove the complete combat-first experience: there is only one enemy behavior archetype, Enemy Intent is not presented, and the full interactive encounter journey remains unverified. The active delivery target is [Issue #91 — Four-Person Tactical Timeline Encounter](https://github.com/TN13007/rpg/issues/91).
 
-Do not treat the archived Version 1 Academy Session plan or the deferred Academy-life Issues as the current implementation queue. Character, NPC, relationship, schedule and event systems remain valuable future work, but should be shaped by the needs demonstrated in playable combat and adventure slices.
+Do not treat archived Academy Session plans or closed/deferred Issues as the current implementation queue. Party progression is Phase 2 ([Issue #79](https://github.com/TN13007/rpg/issues/79)); adventure, Academy and narrative work follow the player-facing sequence below and should be shaped by the needs demonstrated in playable slices.
 
 ## Phase 1 — Prove core combat
 

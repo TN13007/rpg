@@ -305,6 +305,18 @@ Examples:
 
 A single Issue can be implemented by several commits or, when delivery must be separated, by several explicitly linked PRs. Do not create one commit or PR per file.
 
+### Remote branch lifecycle
+
+After a PR is merged or closed, delete its remote head branch when no other open PR or active work depends on it. Keep `main` and every branch backing an open PR. Do not retain merged/abandoned branches merely as historical records; the PR and commit history already preserve that record.
+
+Delete a remote branch using GitHub's branch Delete action or:
+
+```bash
+git push origin --delete <branch-name>
+```
+
+Before deleting, verify the branch is not the base or head of another open PR and that its changes are either merged or intentionally abandoned.
+
 ## 10. Documentation governance
 
 Documentation exists to preserve durable project knowledge, not to record every work session. Keep the smallest set of canonical documents that lets a contributor understand and change the project without duplicating the same rule in several places.

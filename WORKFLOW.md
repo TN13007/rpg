@@ -2,7 +2,7 @@
 
 **Repository:** [TN13007/rpg](https://github.com/TN13007/rpg)  
 **Engine:** Godot 4.7.2 .NET / C#  
-**Last reviewed:** 2026-11-20  
+**Last reviewed:** 2026-11-21  
 **Baseline:** latest `main`; open or unmerged PRs are proposals, not implemented behavior.
 
 > This is the only changing project-status and handoff tracker. Do not create separate status, Session-history, decision or learning trackers.
@@ -36,9 +36,9 @@ The accepted direction and unresolved design questions are owned by [Design](Doc
 
 ### Implementation reality on main
 
-The current repository is still an earlier Academy/location/Event/Goblin prototype. It has a Godot main scene, layered C# code, authored JSON content, Location-based Exploration choices, a deterministic single-Goblin Combat flow, character resources and a dedicated Combat presentation.
+The current build combines the Academy/location Exploration prototype with the first integrated four-person Tactical Timeline encounter. Exploration supports Location travel, context-sensitive actions, a narrow Courtyard Goblin Event, GameClock/Sleep and recovery actions. Combat composes Ari, Bram, Mira and Sera against one Goblin archetype; it has a shared real-time Timeline, player decision pauses, action-specific Recovery Cost, Delay/Stun, Downed/Revive, Victory/Defeat and the post-encounter rescue path.
 
-The current implementation does **not** yet realize the intended four-person Timeline combat, party synergy, Downed/revival loop or the full adventure/progression experience. Read [Implementation](Docs/Implementation/README.md) for verified code structure and runtime behavior. The archived Version 1 Academy Session plan is not the current product roadmap.
+This is a meaningful combat foundation, not yet a complete combat-first game loop. The playable encounter still has only one enemy behavior archetype, enemy intent is not presented, party progression and multi-encounter adventures are not implemented, and the full interactive Godot journey has not yet been manually accepted. Read [Implementation](Docs/Implementation/README.md) for verified code structure and runtime behavior. The archived Academy Session plan is not the current product roadmap.
 
 ## 3. Session protocol
 
@@ -60,15 +60,16 @@ The Git workflow, commit granularity and PR requirements are defined only in [CO
 
 ## 4. Current handoff
 
-**Next implementation task:** [Issue #91 — Four-Person Tactical Timeline Encounter](https://github.com/TN13007/rpg/issues/91).
+**Immediate implementation priority:** [Issue #91 — Four-Person Tactical Timeline Encounter](https://github.com/TN13007/rpg/issues/91).
 
-Before implementation:
+The next player-facing increment is Enemy Intent plus a second enemy behavior pattern, used in one encounter that creates competing threats and meaningful player responses. Before implementation:
 - Read [Game Vision](Docs/Design/GameVision.md), [Combat Design](Docs/Design/Combat.md) and [Roadmap Phase 1](Docs/Design/Roadmap.md).
 - Read [Cross-Layer Runtime Systems](Docs/Implementation/CrossLayerRuntimeSystems.md) and trace the current Combat flow, source code and tests.
-- Resolve only the timing/control decisions required for the first playable encounter; update Design before treating those rules as accepted.
-- Keep Academy-life/NPC Issues #78–83 deferred. Do not expand their scope while proving the core combat loop.
+- Keep intent presentation separate from authoritative enemy action resolution; visible intent must not silently change.
+- Retain [Issue #62](https://github.com/TN13007/rpg/issues/62) for manual Sleep/GameClock runtime verification; this QA task does not block Combat implementation.
+- Keep [Issue #79](https://github.com/TN13007/rpg/issues/79) as the Phase 2 progression backlog; do not start it before Issue #91 reaches its playable exit criteria.
 
-Do not begin a parallel Character/NPC framework or broad refactor unless Issue #91 demonstrates a concrete requirement.
+Do not begin NPC simulation, broad Character abstractions or a general refactor unless a demonstrated player-facing requirement needs them.
 
 ## 5. Learning evidence
 
