@@ -169,7 +169,9 @@ public sealed class DownedRecoveryFlowTests
         return new GameContentCatalog(
             LoadAcademy(),
             new CharacterCatalog(characters),
-            new CombatActionCatalog(TestCharacterFactory.CreateCombatActions()));
+            new CombatActionCatalog(TestCharacterFactory.CreateCombatActions()),
+            NpcScheduleDataLoader.LoadJson(File.ReadAllText(
+                Path.Combine(AppContext.BaseDirectory, "Data", "NpcSchedules.json"))));
     }
 
     private static AcademyContent LoadAcademy()
