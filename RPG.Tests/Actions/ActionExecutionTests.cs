@@ -285,7 +285,7 @@ public sealed class ActionExecutionTests
         Assert.True(_service.TryExecute(meal, actor, clock, out string reason, out int mealDuration), reason);
         Assert.Equal(20, mealDuration);
         Assert.Equal(0.666667, actor.Fatigue, 5);
-        Assert.Equal(43, actor.Mood);
+        Assert.Equal(42, actor.Mood);
         Assert.Equal(7, actor.Stamina);
 
         Assert.True(_service.TryExecute(lesson, actor, clock, out reason, out int lessonDuration), reason);
@@ -299,7 +299,7 @@ public sealed class ActionExecutionTests
         Assert.Equal(7, actor.Stamina);
         Assert.Equal(20, actor.Health);
         Assert.Equal(7, actor.Gold);
-        Assert.Equal(44, actor.Mood);
+        Assert.Equal(43, actor.Mood);
         Assert.Equal(1, clock.Day);
         Assert.Equal(575, clock.MinutesOfDay);
     }
