@@ -136,6 +136,7 @@ public partial class EnemyCard : Button
         Modulate = _targetSelectionActive && !_selectable
             ? new Color(0.72f, 0.72f, 0.72f, 1.0f)
             : Colors.White;
+        MouseDefaultCursorShape = _selectable ? CursorShape.PointingHand : CursorShape.Arrow;
     }
 
     private static StyleBoxFlat CreateStyle(Color background, Color border, int borderWidth)
