@@ -5,70 +5,79 @@
 
 This roadmap is organized around outcomes the player can experience. It is not an implementation task list. Current tasks, blockers and delivery status belong in GitHub Issues/PRs and [WORKFLOW.md](../../WORKFLOW.md).
 
-## Current delivery focus
+## Current delivery focus — Opening Day
 
-The current build combines the Academy/location/Event Exploration prototype with the first integrated four-person Continuous Tactical Timeline encounter. It demonstrates the core combat foundation, but it does not yet prove the complete combat-first experience: there is only one enemy behavior archetype, Enemy Intent is not presented, and the full interactive encounter journey remains unverified. The active delivery target is [Issue #91 — Four-Person Tactical Timeline Encounter](https://github.com/TN13007/rpg/issues/91).
+The current product direction is an open-ended Life Simulation RPG. The first delivery target is [Issue #103 — Deliver the first playable Academy day](https://github.com/TN13007/rpg/issues/103).
 
-Do not treat archived Academy Session plans or closed/deferred Issues as the current implementation queue. Party progression is Phase 2 ([Issue #79](https://github.com/TN13007/rpg/issues/79)); adventure, Academy and narrative work follow the player-facing sequence below and should be shaped by the needs demonstrated in playable slices.
+The player creates a character, arrives at the Academy by horse carriage, chooses how to reach the opening ceremony, meets a few people, explores the Academy and nearby town freely, then returns to the dormitory and sleeps.
 
-## Phase 1 — Prove core combat
+### Exit criteria
 
-Deliver a complete, understandable encounter with a four-person party, visible Timeline, full player control, distinct enemy behaviors and meaningful victory/defeat outcomes.
+- Character creation produces a playable, persistent player character.
+- The opening journey and Academy arrival establish place and time.
+- The player can reach the ceremony by either following students or meeting Mira.
+- Both arrival routes converge on one ceremony state.
+- The ceremony introduces only the information and people needed at the start.
+- The player can freely explore the selected locations and use their available interactions.
+- The player can return to the dormitory, sleep and advance to the next day.
+- The complete journey is manually verified in Godot.
 
-**Exit criteria**
-- The player can read the Timeline and anticipate upcoming actions.
-- Party members have distinct and useful contributions.
-- Timeline manipulation changes encounter outcomes.
-- Enemy actions create meaningful pressure.
-- Downed and revival are understandable and consequential.
-- The encounter is challenging without inflated HP or opaque rules.
+## Phase 1 — Make one day playable
 
-**Current implementation issue:** [#91 — Four-Person Tactical Timeline Encounter](https://github.com/TN13007/rpg/issues/91).
+Deliver the smallest reliable daily-life loop after the opening.
 
-## Phase 2 — Prove party progression
+### Exit criteria
 
-Deliver a short progression loop in which rewards and development choices change how the party fights.
+- The GameClock advances through activities and handles day rollover.
+- The player can travel between a small set of locations.
+- Available activities depend on location and relevant conditions.
+- Sleep and recovery work consistently.
+- State that matters to the next day is preserved.
 
-**Exit criteria**
-- At least two meaningful build directions are viable.
-- Equipment or skills change tactical decisions, not only damage values.
-- The player understands the benefit and trade-off of each growth choice.
+## Phase 2 — Make the Academy feel inhabited
 
-## Phase 3 — Prove the adventure loop
+Add only the NPC behavior needed for visible daily life.
 
-Deliver a compact adventure connecting preparation, exploration, multiple encounters, resource decisions, objectives and rewards.
+### Exit criteria
 
-**Exit criteria**
-- The player has a reason to enter the area.
-- Encounters present different tactical problems.
-- Resources create decisions between encounters.
-- The adventure has a satisfying end and return to the Academy.
+- A small authored cast has recognizable identities and locations.
+- Selected NPCs follow simple, testable schedules.
+- The player can meet, talk to and participate in activities with them.
+- NPC availability and event outcomes respond consistently to time and location.
+- At least a few meaningful interactions are reflected later.
 
-## Phase 4 — Make the Academy matter
+## Phase 3 — Expand activities and personal progression
 
-Deliver a focused hub experience for preparation, training, recovery, recruitment and selected character interactions.
+Add optional activities based on player interest, such as study, training, work, shopping, crafting, exploration and combat.
 
-**Exit criteria**
-- Academy activities support the next adventure or deepen investment in characters.
-- The player understands the value of spending time at the hub.
-- Daily-life systems do not overwhelm the main adventure loop.
+### Exit criteria
 
-## Phase 5 — Deliver the first complete narrative arc
+- Activities offer distinct outcomes and trade-offs.
+- The player can choose which activities to pursue.
+- Skills, knowledge, resources or relationships change what the player can do.
+- No single optional activity becomes a mandatory progression gate without an explicit design decision.
 
-Connect combat and adventure to a story with meaningful character motivations, choices and consequences.
+## Phase 4 — Expand the world and its stories
 
-**Exit criteria**
-- The player can explain the central conflict and personal stakes.
-- Major choices produce observable consequences.
-- NPCs and locations reflect important events.
-- The arc has a coherent beginning, escalation and resolution.
+Add more locations, people, events and optional personal stories based on what the first playable region proves useful.
 
-## Phase 6 — Expand the world
+### Exit criteria
 
-Add areas, enemy families, party members, narrative arcs and long-term world challenges based on evidence from earlier phases.
+- New locations provide distinct reasons to visit.
+- NPCs and events create discoverable stories.
+- Player actions can cause understandable local consequences.
+- World scale and history expand only when supported by actual content needs.
 
-Do not expand breadth before the core loop is satisfying.
+## Existing systems and deferred work
+
+The repository already contains a four-person Tactical Timeline combat prototype and a location-based Exploration prototype. These remain available foundations, but combat is no longer the immediate product priority and is not part of Opening Day.
+
+- [Issue #91](https://github.com/TN13007/rpg/issues/91) remains deferred combat work.
+- [Issue #79](https://github.com/TN13007/rpg/issues/79) remains deferred party-progression work.
+- [Issue #62](https://github.com/TN13007/rpg/issues/62) remains a manual GameClock/Sleep verification task that can be reused when validating the daily-life loop.
+
+Do not start NPC autonomy, broad progression or combat expansion in parallel with Opening Day unless the opening journey demonstrates a concrete dependency.
 
 ## Scope rule
 
-A phase is complete when its player-facing exit criteria can be demonstrated in a playable build. A document, architecture layer or collection of systems is not by itself proof of a complete player experience.
+A phase is complete when its player-facing exit criteria can be demonstrated in a playable build. A document, architecture layer or collection of systems is not by itself proof of a complete experience.
