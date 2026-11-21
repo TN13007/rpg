@@ -69,7 +69,7 @@ public sealed class LocationEventLoopTests
     public void EventService_RequiredNpcMustBePresentAndAbsenceDoesNotConsumeDailyAttempt()
     {
         LocationEventDefinition locationEvent = CreateEvent("mira_arrival", 1, "mira");
-        LocationContent location = CreateLocation("mira_meeting_point", locationEvent);
+        LocationContent location = CreateLocation("campus_cafe", locationEvent);
         LocationEventService service = new LocationEventService(new Random(1));
 
         bool absent = service.TryTrigger(

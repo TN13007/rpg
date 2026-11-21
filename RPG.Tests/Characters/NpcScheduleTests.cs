@@ -10,7 +10,7 @@ public sealed class NpcScheduleTests
     public void GetEntryAt_UsesInclusiveStartAndExclusiveEnd()
     {
         NpcScheduleEntryDefinition morning = new NpcScheduleEntryDefinition(
-            420, 510, "mira_meeting_point", "Greeting students.");
+            420, 510, "university_campus", "Greeting students.");
         NpcScheduleDefinition schedule = new NpcScheduleDefinition("mira", new[] { morning });
 
         Assert.Same(morning, schedule.GetEntryAt(420));
@@ -25,7 +25,7 @@ public sealed class NpcScheduleTests
             "mira",
             new[]
             {
-                new NpcScheduleEntryDefinition(420, 510, "mira_meeting_point", "Greeting students."),
+                new NpcScheduleEntryDefinition(420, 510, "university_campus", "Greeting students."),
                 new NpcScheduleEntryDefinition(570, 750, "canteen", "Having lunch.")
             });
 
@@ -41,7 +41,7 @@ public sealed class NpcScheduleTests
             "mira",
             new[]
             {
-                new NpcScheduleEntryDefinition(420, 600, "mira_meeting_point", "Greeting students."),
+                new NpcScheduleEntryDefinition(420, 600, "university_campus", "Greeting students."),
                 new NpcScheduleEntryDefinition(599, 720, "canteen", "Having lunch.")
             }));
     }
