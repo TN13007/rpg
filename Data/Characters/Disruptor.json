@@ -1,0 +1,27 @@
+{
+  "id": "disruptor-a",
+  "name": "Disruptor",
+  "role": "Control enemy",
+  "level": 1,
+  "maxHealth": 42,
+  "maxFatigue": 0,
+  "maxStamina": 0,
+  "maxMood": 0,
+  "startingHealth": 42,
+  "startingFatigue": 0,
+  "startingStamina": 0,
+  "startingMood": 0,
+  "startingGold": 0,
+  "stats": {
+    "strength": 7,
+    "agility": 11,
+    "intelligence": 15,
+    "endurance": 9,
+    "wisdom": 12,
+    "luck": 8
+  },
+  "combatActionIds": [
+    "disruptor_staggering_blow",
+    "disruptor_quick_jab"
+  ]
+}
