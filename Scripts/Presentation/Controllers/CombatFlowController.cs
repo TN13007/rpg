@@ -20,8 +20,8 @@ public sealed class CombatFlowController
     {
         return StartEncounter(
             action,
-            "Goblin Ambush",
-            "A goblin jumps out from the bushes and blocks your way.");
+            "Courtyard Ambush",
+            "A goblin darts between the trees. A brute blocks the path while a disruptor begins gathering energy.");
     }
 
     public bool StartEncounter(ActionDefinition action, string title, string openingMessage)
