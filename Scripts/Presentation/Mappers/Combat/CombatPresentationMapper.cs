@@ -15,8 +15,7 @@ public sealed class CombatPresentationMapper
             Array.Empty<CombatMessage>(),
             MapTimeline(snapshot.Timeline),
             snapshot.Party,
-            snapshot.ActiveCombatantId,
-            MapFeedback(result.Events));
+            snapshot.ActiveCombatantId);
     }
 
     public CombatViewData Map(CombatResult result)
@@ -50,7 +49,8 @@ public sealed class CombatPresentationMapper
             messages,
             MapTimeline(snapshot.Timeline),
             snapshot.Party,
-            snapshot.ActiveCombatantId);
+            snapshot.ActiveCombatantId,
+            MapFeedback(result.Events));
     }
 
     private static CombatFeedbackViewData[] MapFeedback(CombatEvent[] events)
