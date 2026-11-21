@@ -1,14 +1,18 @@
 using System;
 using System.Collections.Generic;
 
+/// <summary>Tracks combat time and the readiness of participating combatants.</summary>
 public sealed class CombatTimeline
 {
     private readonly Dictionary<string, CombatantTimelineState> _combatants =
         new Dictionary<string, CombatantTimelineState>(StringComparer.Ordinal);
     private readonly double _progressScale;
 
+    /// <summary>Gets the combat time.</summary>
     public double CombatTime { get; private set; }
 
+    /// <summary>Initializes a new instance of <see cref="CombatTimeline"/>.</summary>
+    /// <param name="progressScale">The progress scale used to initialize the instance.</param>
     public CombatTimeline(double progressScale = 1.0)
     {
         if (double.IsNaN(progressScale) ||
@@ -21,6 +25,11 @@ public sealed class CombatTimeline
         _progressScale = progressScale;
     }
 
+    /// <summary>Adds combatant to the current state.</summary>
+    /// <param name="combatantId">The combatant id used by this operation.</param>
+    /// <param name="luck">The luck used by this operation.</param>
+    /// <param name="baseSpeed">The base speed used by this operation.</param>
+    /// <param name="initialProgress">The initial progress used by this operation.</param>
     public void AddCombatant(string combatantId, int luck, double baseSpeed, double initialProgress)
     {
         CombatantTimelineState state = new CombatantTimelineState(
@@ -34,6 +43,9 @@ public sealed class CombatTimeline
         }
     }
 
+    /// <summary>Removes combatant from the current state.</summary>
+    /// <param name="combatantId">The combatant id used by this operation.</param>
+    /// <returns><see langword="true"/> when the operation succeeds; otherwise, <see langword="false"/>.</returns>
     public bool RemoveCombatant(string combatantId)
     {
         if (string.IsNullOrWhiteSpace(combatantId))
@@ -44,11 +56,17 @@ public sealed class CombatTimeline
         return _combatants.Remove(combatantId);
     }
 
+    /// <summary>Performs the contains combatant operation for combat timeline.</summary>
+    /// <param name="combatantId">The combatant id used by this operation.</param>
+    /// <returns><see langword="true"/> when the operation succeeds; otherwise, <see langword="false"/>.</returns>
     public bool ContainsCombatant(string combatantId)
     {
         return !string.IsNullOrWhiteSpace(combatantId) && _combatants.ContainsKey(combatantId);
     }
 
+    /// <summary>Returns combatant.</summary>
+    /// <param name="combatantId">The combatant id used by this operation.</param>
+    /// <returns>The resulting combatant timeline state.</returns>
     public CombatantTimelineState GetCombatant(string combatantId)
     {
         if (string.IsNullOrWhiteSpace(combatantId))
@@ -64,6 +82,9 @@ public sealed class CombatTimeline
         return state;
     }
 
+    /// <summary>Applies stun to the target combatant.</summary>
+    /// <param name="combatantId">The combatant id used by this operation.</param>
+    /// <param name="duration">The duration used by this operation.</param>
     public void ApplyStun(string combatantId, double duration)
     {
         ValidatePositiveFinite(duration, nameof(duration));
@@ -76,6 +97,9 @@ public sealed class CombatTimeline
         GetCombatant(combatantId).ApplyStun(endTime);
     }
 
+    /// <summary>Applies delay to the target combatant.</summary>
+    /// <param name="combatantId">The combatant id used by this operation.</param>
+    /// <param name="amount">The amount used by this operation.</param>
     public void ApplyDelay(string combatantId, double amount)
     {
         if (double.IsNaN(amount) || double.IsInfinity(amount) || amount < 0)
@@ -86,11 +110,16 @@ public sealed class CombatTimeline
         GetCombatant(combatantId).AddDelay(amount * _progressScale);
     }
 
+    /// <summary>Applies recovery to the target combatant.</summary>
+    /// <param name="combatantId">The combatant id used by this operation.</param>
+    /// <param name="recoveryCost">The recovery cost used by this operation.</param>
     public void ApplyRecovery(string combatantId, double recoveryCost)
     {
         GetCombatant(combatantId).SetRecoveryCost(recoveryCost * _progressScale);
     }
 
+    /// <summary>Returns next ready combatant id.</summary>
+    /// <returns>The resulting string.</returns>
     public string GetNextReadyCombatantId()
     {
         CombatantTimelineState selected = null;
@@ -113,6 +142,8 @@ public sealed class CombatTimeline
         return selected == null ? string.Empty : selected.CombatantId;
     }
 
+    /// <summary>Returns time until next event.</summary>
+    /// <returns>The resulting double.</returns>
     public double? GetTimeUntilNextEvent()
     {
         double? nextEventTime = null;
@@ -144,6 +175,8 @@ public sealed class CombatTimeline
         return nextEventTime;
     }
 
+    /// <summary>Advances to next event by the supplied amount.</summary>
+    /// <returns><see langword="true"/> when the operation succeeds; otherwise, <see langword="false"/>.</returns>
     public bool AdvanceToNextEvent()
     {
         double? elapsed = GetTimeUntilNextEvent();
@@ -156,6 +189,8 @@ public sealed class CombatTimeline
         return true;
     }
 
+    /// <summary>Advances time by the supplied amount.</summary>
+    /// <param name="elapsedCombatTime">The elapsed combat time used by this operation.</param>
     public void AdvanceTime(double elapsedCombatTime)
     {
         if (double.IsNaN(elapsedCombatTime) || double.IsInfinity(elapsedCombatTime) || elapsedCombatTime < 0)
