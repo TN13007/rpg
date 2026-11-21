@@ -10,7 +10,7 @@ public sealed class NpcScheduleTests
     public void GetEntryAt_UsesInclusiveStartAndExclusiveEnd()
     {
         NpcScheduleEntryDefinition morning = new NpcScheduleEntryDefinition(
-            420, 510, "mira_meeting_point", "Greeting students.");
+            420, 510, "university_campus", "Greeting students.");
         NpcScheduleDefinition schedule = new NpcScheduleDefinition("mira", new[] { morning });
 
         Assert.Same(morning, schedule.GetEntryAt(420));
@@ -25,7 +25,7 @@ public sealed class NpcScheduleTests
             "mira",
             new[]
             {
-                new NpcScheduleEntryDefinition(420, 510, "mira_meeting_point", "Greeting students."),
+                new NpcScheduleEntryDefinition(420, 510, "university_campus", "Greeting students."),
                 new NpcScheduleEntryDefinition(570, 750, "canteen", "Having lunch.")
             });
 
@@ -41,7 +41,7 @@ public sealed class NpcScheduleTests
             "mira",
             new[]
             {
-                new NpcScheduleEntryDefinition(420, 600, "mira_meeting_point", "Greeting students."),
+                new NpcScheduleEntryDefinition(420, 600, "university_campus", "Greeting students."),
                 new NpcScheduleEntryDefinition(599, 720, "canteen", "Having lunch.")
             }));
     }
@@ -104,13 +104,13 @@ public sealed class NpcScheduleTests
         NpcScheduleCatalog catalog = NpcScheduleDataLoader.LoadJson(json);
         NpcScheduleDefinition miraSchedule = catalog.Get("mira");
 
-        Assert.Equal(8, miraSchedule.Entries.Length);
-        Assert.Equal("mira_meeting_point", miraSchedule.GetEntryAt(450).LocationId);
-        Assert.Equal("mira_meeting_point", miraSchedule.GetEntryAt(474).LocationId);
-        Assert.Equal("assembly_hall", miraSchedule.GetEntryAt(475).LocationId);
-        Assert.Equal("canteen", miraSchedule.GetEntryAt(600).LocationId);
-        Assert.Equal("library", miraSchedule.GetEntryAt(780).LocationId);
-        Assert.Equal("courtyard", miraSchedule.GetEntryAt(880).LocationId);
+        Assert.Equal(6, miraSchedule.Entries.Length);
+        Assert.Equal("university_campus", miraSchedule.GetEntryAt(450).LocationId);
+        Assert.Equal("university_campus", miraSchedule.GetEntryAt(500).LocationId);
+        Assert.Equal("lecture_hall", miraSchedule.GetEntryAt(550).LocationId);
+        Assert.Equal("campus_cafe", miraSchedule.GetEntryAt(690).LocationId);
+        Assert.Equal("campus_library", miraSchedule.GetEntryAt(800).LocationId);
+        Assert.Equal("student_union", miraSchedule.GetEntryAt(950).LocationId);
     }
 
     [Fact]

@@ -1,90 +1,90 @@
 # World and Narrative Design
 
-**Status:** Long-term direction; details remain in development  
+**Status:** Accepted setting direction; incident details remain in development  
 **Last updated:** 2026-11-21
 
 ## World structure
 
-The world uses a **hybrid, location-based structure**:
+The game takes place in a contemporary city centered around a university and its surrounding districts.
 
-- The Academy is a recurring place to study, train, rest, work toward personal goals and meet people.
-- Nearby towns, roads, wilderness and adventure areas provide other places to visit, investigate and interact with.
-- Dangerous situations and combat occur in this same world. They are not a disconnected game mode.
-- The wider world may change in response to time, player actions and unresolved situations.
+- The university campus is the player's main routine and social anchor.
+- Student housing provides a place to rest, study and manage personal life.
+- Cafés, shops and part-time workplaces connect daily routines to money and local relationships.
+- Nearby streets, parks, apartment blocks and public services create a wider city to explore.
+- Paranormal response companies operate as ordinary professional services for reports that appear unusual or dangerous.
 
-The Academy is important because of the people, activities and opportunities found there. It should not be reduced to a preparation menu, but it also does not need to become a detailed school-management simulator.
+This is a modern setting. The world does not use a fantasy academy, guild, magical curriculum or default adventurer premise.
 
-## World interaction and consequence
+## Ordinary life
 
-The player experiences the world through contextual interactions. A Location, social situation, discovery or encounter presents relevant choices. The player selects an interaction; the responsible gameplay rules resolve it; the result changes relevant character or world state.
+The protagonist is an ordinary student. Their immediate concerns can include classes, assignments, attendance, money, work shifts, friends, rest and personal plans. These routines should remain meaningful even when no paranormal event is active.
 
-At the design level, this creates a continuing loop:
+The player is not a chosen one, and the story does not require them to investigate every rumor. A player may spend several in-game days studying, working or socializing without following an incident.
 
-```text
-World state -> situation/context -> available interactions
-     ^                                  |
-     |                                  v
-updated state <- outcome/effects <- chosen interaction
-```
+## Paranormal layer
 
-Daily activities, social interactions, travel, exploration and combat share this conceptual pattern. They do not need identical costs, execution rules or presentation.
+Unexplained phenomena exist within the same everyday world. People encounter them through rumors, neighborhood forums, inconsistent witness accounts, unusual recordings and personal experiences.
 
-Combat is a high-stakes interaction context with its own Tactical Timeline and combat resolution. An Event may introduce a threat and offer a choice to fight, flee, negotiate or use another supported response; the Event itself is not the Combat system. When Combat ends, its relevant outcome should feed back into the continuing world.
+Incidents should vary in scale and tone:
+- Harmless or inconvenient oddities.
+- Local urban legends and unsettling locations.
+- Dangerous anomalies that require caution or professional assistance.
+- Rare large-scale events, used only when the story earns that escalation.
 
-The exact persistence and scope of each consequence must be defined by the scenario. Not every action needs to change the whole world, and not every choice needs a long-term consequence.
+Ordinary technology remains ordinary. A phone can record audio, display a forum post or call a service; it does not become a supernatural artifact. A rumor appearing online does not mean the game needs a fully simulated social network.
+
+## Player agency and incident responses
+
+An incident is an opportunity, not a mandatory quest. Depending on the situation, the player may:
+
+- Ignore the rumor and continue daily life.
+- Observe from a safe distance.
+- Gather information or compare witness accounts.
+- Visit the location and investigate.
+- Leave when the situation becomes unsafe.
+- Contact a professional response service.
+- Confront the anomaly only when the situation and implemented combat rules support it.
+
+The game should communicate risk without requiring the player to solve every mystery. Refusing to enter a dangerous place can be a valid and sensible outcome.
 
 ## Narrative direction
 
-The story should give emotional and thematic meaning to the player's current life, relationships and adventures. The larger narrative may explore reincarnation, recurring souls, changed circumstances, responsibility, redemption and the meaning of a finite life.
+Stories should emerge from the contrast between recognizable daily routines and unexplained events. A strange incident can interrupt a lecture, become a topic at lunch, appear on a neighborhood forum or affect a part-time shift.
 
-The player should first have reasons to care about the people and events of the current life. The reincarnation mystery should deepen that investment rather than replace it.
+The protagonist's personal relationships and ordinary responsibilities remain central. Paranormal incidents should deepen the world and its characters rather than replace student life with a constant emergency.
 
-The narrative should create context, people, mysteries and consequences without forcing every player into one fixed heroic sequence. A player may follow a major plot, focus on personal goals, or move between them.
+Avoid assuming a single world-ending conspiracy, a chosen-one prophecy or a mandatory sequence of escalating bosses. A small event can be complete and satisfying without revealing a grand secret.
 
-## Evolving challenges and consequences
+## Consequences and continuity
 
-Major threats may change while the player pursues other goals. The player may intervene early, prepare, seek allies, negotiate, fight, partially resolve a threat, ignore it or fail. The available responses depend on the situation and on what the player has developed or discovered.
+Important incidents may evolve while the player is busy elsewhere. Consequences should be proportionate and understandable:
+- A rumor may gain or lose credibility.
+- Residents may stop visiting a location.
+- A professional service may secure a dangerous site.
+- A careless intervention may make the situation harder to resolve.
+- A person who asked for help may remember whether the player responded.
 
-Outcomes may affect:
-
-- The player's health, resources, capabilities and immediate circumstances.
-- NPC circumstances, safety and survival.
-- Locations, routes and the activities available there.
-- Relationships, trust and reputation.
-- Future encounters, discoveries and opportunities.
-- The state and scale of a larger threat.
-
-Not every challenge must escalate into catastrophe. Consequences should be legible, proportionate and connected to the action or inaction that caused them.
+These are design possibilities, not claims that persistent incident progression is implemented. The current runtime supports authored Location Events and daily NPC schedules, but does not yet provide durable incident state, delayed progression, a social feed or professional dispatch/payment behavior. Add the smallest state mechanism only when a specific journey requires it.
 
 ## NPCs and relationships
 
-NPCs should have their own motivations, capabilities and circumstances where those details create meaningful player-facing choices. Schedules, memories and autonomous decisions are possible tools, not mandatory features for every NPC.
+NPCs include classmates, friends, coworkers, neighbors and specialists. Their identities should be grounded in ordinary roles and motivations before any supernatural involvement.
 
-The first schedule model is a recurring daily timetable authored as time ranges, Locations and visible activities. It answers where a scheduled NPC is at the current GameClock time; it does not imply pathfinding, needs, autonomous decision-making or continuous simulation. A gap means the NPC is not scheduled at a known player-facing Location. The player discovers present NPCs through `See around`; their interactions are authored separately from Location actions and are available only while the NPC is present.
-
-A desire to do something is not the same as being able to do it: events, resources, relationships, danger and the player's actions may prevent or redirect an NPC's plans.
+The current schedule model is a recurring daily timetable authored as time ranges, Locations and visible activities. It resolves where a scheduled NPC is at the current GameClock time; it does not imply pathfinding, needs, autonomous decision-making or continuous simulation. The player discovers present NPCs through `See around`; character interactions are authored separately from Location actions.
 
 Relationships should be represented through the smallest set of dimensions or flags that produce observable differences. Avoid a large social simulation or relationship framework before a playable interaction needs it.
 
 ## Time and simulation boundaries
 
-Daily life and Combat have different time semantics:
+Daily activities may advance GameClock in minutes or hours. Combat runs on its own Combat Timeline and pauses while the player chooses an action. The rule for translating a completed encounter back into world time must be defined by the relevant scenario; do not assume the two clocks are interchangeable.
 
-- Daily activities may advance GameClock in minutes or hours.
-- Combat runs on its own Combat Timeline and pauses while the player chooses an action.
-- The rule for translating the elapsed duration or consequences of a completed encounter back into world time must be defined by the relevant gameplay scenario; do not assume the two clocks are interchangeable.
-
-The game does not need to simulate every NPC or every Location continuously. Use authored presence, conditional events or coarse updates where they are sufficient. Add autonomous simulation only when the player can notice it and make a meaningful decision because of it.
-
-## Content boundaries
-
-Optional personal-interest content, including NSFW material, is secondary to the core world experience. It should not be required to access central exploration, character growth, combat or narrative content.
+The game does not need to simulate every NPC or Location continuously. Use authored presence, conditional events or coarse updates where they are sufficient. Add autonomous simulation only when the player can notice it and make a meaningful decision because of it.
 
 ## Open questions
 
-- Which character and world facts must persist across Location and Combat contexts?
-- Which consequences should be immediate, delayed or visible only when the player revisits a Location or NPC?
-- How should encounter duration and recovery interact with GameClock?
-- Which NPCs need authored presence, simple state-driven behavior or bounded autonomy?
-- How much of the wider world changes autonomously, and at what level of detail?
-- How do challenge stages, relationships, reincarnation and story branches affect one another without creating an unmanageable simulation?
+- How widely are paranormal incidents known: isolated witnesses, online communities or public institutions?
+- Which incident outcomes must persist across days and game sessions?
+- Should an ignored incident advance on fixed world time, player visits or authored checkpoints?
+- What does contacting a professional response service actually cost and how long does dispatch take?
+- Which incidents can be resolved without combat, and which genuinely require confrontation?
+- How should the ordinary student schedule remain engaging when the player chooses not to investigate?

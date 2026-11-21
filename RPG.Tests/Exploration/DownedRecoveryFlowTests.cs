@@ -7,13 +7,13 @@ using Xunit;
 public sealed class DownedRecoveryFlowTests
 {
     [Fact]
-    public void PartyVictoryWithAriDownedOffersRescueAndRestoresExplorationActions()
+    public void PartyVictoryWithAlexDownedOffersRescueAndRestoresExplorationActions()
     {
         GameContentCatalog content = LoadContent();
-        CharacterData ariData = content.GetCharacter("player-ari");
-        Character ari = new Character(ariData);
+        CharacterData playerData = content.GetCharacter("player_student");
+        Character player = new Character(playerData);
         Character enemy = CreateFastTestEnemy();
-        CombatantDefinition[] party = StartingParty.CreateCombatants(content, ari);
+        CombatantDefinition[] party = StartingParty.CreateCombatants(content, player);
         List<CombatantDefinition> encounter = new List<CombatantDefinition>(party)
         {
             new CombatantDefinition(
@@ -31,7 +31,7 @@ public sealed class DownedRecoveryFlowTests
             new ActionEffectExecutor(),
             fatigueCalculator);
         CombatSessionService session = new CombatSessionService(
-            ari,
+            player,
             combat,
             clock,
             timeCalculator,
@@ -47,8 +47,8 @@ public sealed class DownedRecoveryFlowTests
 
         Assert.Contains(
             openingEvents.Events,
-            item => item.Type == CombatEventType.EnemyAction && item.TargetName == "Ari");
-        Assert.Equal(0, ari.Health);
+            item => item.Type == CombatEventType.EnemyAction && item.TargetName == "Alex");
+        Assert.Equal(0, player.Health);
         Assert.Equal("sera", combat.ActiveCombatantId);
 
         CombatResult victory = session.ExecuteAction(
@@ -57,17 +57,17 @@ public sealed class DownedRecoveryFlowTests
         Assert.True(victory.Success, victory.FailureReason);
         Assert.True(session.IsEncounterOver);
         Assert.True(session.IsVictory);
-        Assert.Equal(0, ari.Health);
+        Assert.Equal(0, player.Health);
 
-        AcademyContent academy = LoadAcademy();
-        LocationContent courtyard = academy.Get("courtyard");
+        LocationCatalog locations = LoadLocations();
+        LocationContent university_campus = locations.Get("university_campus");
         AvailableInteractionQuery interactionQuery = new AvailableInteractionQuery();
         IReadOnlyList<AvailableInteraction> incapacitatedChoices = interactionQuery.Query(
-            ari,
-            ariData.PlayerActions,
-            courtyard,
-            academy.Get,
-            academy.Travel);
+            player,
+            playerData.PlayerActions,
+            university_campus,
+            locations.Get,
+            locations.Travel);
 
         AvailableInteraction rescueChoice = Assert.Single(incapacitatedChoices);
         Assert.Equal(InteractionSourceKind.Player, rescueChoice.SourceKind);
@@ -76,85 +76,85 @@ public sealed class DownedRecoveryFlowTests
             item.SourceKind == InteractionSourceKind.Location ||
             item.SourceKind == InteractionSourceKind.Travel);
 
-        ActionDefinition rescueAction = ariData.PlayerActions
+        ActionDefinition rescueAction = playerData.PlayerActions
             .Single(item => item.Action.Id == "request_rescue")
             .Action;
         int minutesBeforeRescue = clock.MinutesOfDay;
 
         Assert.True(actionExecution.TryExecute(
             rescueAction,
-            ari,
+            player,
             clock,
             out string rescueFailure,
             out int rescueDuration), rescueFailure);
 
         Assert.Equal(180, rescueDuration);
-        Assert.Equal(5, ari.Health);
+        Assert.Equal(5, player.Health);
         Assert.Equal(minutesBeforeRescue + 180, clock.MinutesOfDay);
 
         IReadOnlyList<AvailableInteraction> recoveredChoices = interactionQuery.Query(
-            ari,
-            ariData.PlayerActions,
-            courtyard,
-            academy.Get,
-            academy.Travel);
+            player,
+            playerData.PlayerActions,
+            university_campus,
+            locations.Get,
+            locations.Travel);
 
         Assert.Contains(recoveredChoices, item =>
             item.SourceKind == InteractionSourceKind.Player && item.ActionId == "rest");
         Assert.Contains(recoveredChoices, item => item.SourceKind == InteractionSourceKind.Travel);
         Assert.DoesNotContain(recoveredChoices, item => item.ActionId == "request_rescue");
-        Assert.True(actionExecution.CanExecute(academy.Travel, ari, out string travelFailure), travelFailure);
+        Assert.True(actionExecution.CanExecute(locations.Travel, player, out string travelFailure), travelFailure);
     }
 
     [Fact]
     public void RescueIsUnavailableToHealthyCharactersAndOrdinaryActionsRemainBlockedWhenDowned()
     {
         GameContentCatalog content = LoadContent();
-        CharacterData ariData = content.GetCharacter("player-ari");
-        Character ari = new Character(ariData);
-        AcademyContent academy = LoadAcademy();
+        CharacterData playerData = content.GetCharacter("player_student");
+        Character player = new Character(playerData);
+        LocationCatalog locations = LoadLocations();
         ActionExecutionService actionExecution = new ActionExecutionService(
             new ActivityTimeCalculator(),
             new ActionEffectExecutor());
         AvailableInteractionQuery interactionQuery = new AvailableInteractionQuery();
-        LocationContent courtyard = academy.Get("courtyard");
-        ActionDefinition rescueAction = ariData.PlayerActions
+        LocationContent university_campus = locations.Get("university_campus");
+        ActionDefinition rescueAction = playerData.PlayerActions
             .Single(item => item.Action.Id == "request_rescue")
             .Action;
         GameClock clock = new GameClock();
 
         IReadOnlyList<AvailableInteraction> healthyChoices = interactionQuery.Query(
-            ari,
-            ariData.PlayerActions,
-            courtyard,
-            academy.Get,
-            academy.Travel);
+            player,
+            playerData.PlayerActions,
+            university_campus,
+            locations.Get,
+            locations.Travel);
 
         Assert.DoesNotContain(healthyChoices, item => item.ActionId == "request_rescue");
-        Assert.False(actionExecution.CanExecute(rescueAction, ari, out string healthyFailure));
+        Assert.False(actionExecution.CanExecute(rescueAction, player, out string healthyFailure));
         Assert.Contains("incapacitated", healthyFailure);
 
-        ari.TakeDamage(ari.Health);
+        player.TakeDamage(player.Health);
 
         IReadOnlyList<AvailableInteraction> downedChoices = interactionQuery.Query(
-            ari,
-            ariData.PlayerActions,
-            courtyard,
-            academy.Get,
-            academy.Travel);
+            player,
+            playerData.PlayerActions,
+            university_campus,
+            locations.Get,
+            locations.Travel);
 
         Assert.Single(downedChoices);
         Assert.Contains(downedChoices, item => item.ActionId == "request_rescue");
-        Assert.False(actionExecution.CanExecute(academy.Travel, ari, out string travelFailure));
+        Assert.False(actionExecution.CanExecute(locations.Travel, player, out string travelFailure));
         Assert.Contains("dead", travelFailure);
         Assert.False(actionExecution.TryExecute(
-            academy.Travel,
-            ari,
+            locations.Travel,
+            player,
             clock,
             out string executeFailure,
             out int duration));
         Assert.Equal(0, duration);
-        Assert.Equal(0, ari.Health);
+        Assert.Equal(0, player.Health);
         Assert.Equal(450, clock.MinutesOfDay);
     }
 
@@ -167,26 +167,27 @@ public sealed class DownedRecoveryFlowTests
             .ToArray();
 
         return new GameContentCatalog(
-            LoadAcademy(),
+            LoadLocations(),
             new CharacterCatalog(characters),
-            new CombatActionCatalog(TestCharacterFactory.CreateCombatActions()),
+            new CombatActionCatalog(CombatActionJsonReader.Read(File.ReadAllText(
+                Path.Combine(AppContext.BaseDirectory, "Data", "Combat", "CombatActions.json")))),
             NpcScheduleDataLoader.LoadJson(File.ReadAllText(
                 Path.Combine(AppContext.BaseDirectory, "Data", "NpcSchedules.json"))));
     }
 
-    private static AcademyContent LoadAcademy()
+    private static LocationCatalog LoadLocations()
     {
-        AcademyContent academy = new AcademyContent();
-        string path = Path.Combine(AppContext.BaseDirectory, "Data", "AcademyLocations.json");
-        academy.LoadJson(File.ReadAllText(path));
-        return academy;
+        LocationCatalog locations = new LocationCatalog();
+        string path = Path.Combine(AppContext.BaseDirectory, "Data", "Locations.json");
+        locations.LoadJson(File.ReadAllText(path));
+        return locations;
     }
 
     private static Character CreateFastTestEnemy()
     {
         CharacterData data = new CharacterData(
             "recovery-test-enemy",
-            "Test Goblin",
+            "Test Presence",
             "Deterministic recovery test enemy",
             1,
             8,
@@ -215,7 +216,7 @@ public sealed class DownedRecoveryFlowTests
             20,
             0,
             string.Empty,
-            "The enemy strikes Ari.",
+            "The enemy strikes Alex.",
             1000);
     }
 

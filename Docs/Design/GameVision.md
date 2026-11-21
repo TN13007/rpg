@@ -1,137 +1,107 @@
-# Game Vision — Adventurer Academy
+# Game Vision — Modern Student Life
 
-**Status:** Current product direction  
+**Status:** Accepted product direction  
 **Last updated:** 2026-11-21
 
 ## High concept
 
-Adventurer Academy is a player-directed fantasy life-simulation RPG about living in and around an academy in a wider, changing world. The player chooses how to spend time, whom to know, what to learn, where to go and which opportunities or dangers to pursue.
+A player-directed life-simulation RPG about an ordinary university student living in a contemporary city where unexplained phenomena quietly exist alongside everyday life.
 
-Daily activities, social interactions, exploration, adventures and tactical combat are not separate games competing for priority. They are different ways of interacting with the same continuing world. Combat is a specialized, high-stakes interaction with its own tactical rules; its outcomes can affect the player's ongoing life and the world around them.
+Most days are familiar: attend classes, study, work a part-time job, meet friends, manage money, explore the city or stay home. Somewhere in the same city, strange reports circulate through neighborhood forums and private conversations. A player may investigate them, ignore them, make matters worse, or seek help from a professional response company.
 
-The game should make room for self-directed play. A player may spend a session studying, meeting people, exploring, preparing for danger, fighting, or following a situation that connects several of these activities. A single mandatory heroic sequence should not dictate every session.
+The protagonist is not a chosen one and is not required to save the world. The supernatural is an optional part of a larger everyday life, not a mandatory quest chain. Phones, laptops, messaging apps and the Internet are ordinary tools; they are not magical artifacts.
+
+Tactical combat remains a specialized interaction context for situations where confrontation makes sense. It should not define every anomaly or replace investigation, retreat and asking for help.
 
 ## Experience priorities
 
-1. **Player-directed life:** The player decides what matters to them and how to spend their time. The game presents understandable opportunities, constraints and consequences rather than forcing one fixed activity loop.
-2. **Meaningful world interactions:** Players can act through daily activities, conversation, travel, investigation, trade, exploration or force when the situation allows. Each interaction communicates its context, requirements, costs and outcome.
-3. **Continuity and consequence:** Relevant character and world state carries between contexts. A choice made during ordinary life may shape a later encounter; an encounter may change the player's health, resources, relationships, reputation or available opportunities.
-4. **Specialized tactical combat:** Combat remains a deep, deliberate experience built around party decisions and the Tactical Timeline. It is part of the world, not a disconnected game mode, but it does not need to use the same execution rules as ordinary actions.
-5. **Character and narrative investment:** People, places and personal goals give meaning to the player's decisions. Narrative should deepen the current life and its relationships, not dictate every action.
-6. **Incremental simulation:** Simulate the people, places and long-term changes that create observable player decisions. Do not simulate every character or system merely to make the world appear technically complete.
+1. **Ordinary life first:** The player has a believable student routine with classes, friends, work, money, rest and personal plans.
+2. **Player-directed curiosity:** Rumors and unusual situations create opportunities, not obligations. The player chooses whether to investigate.
+3. **A world with two faces:** Everyday places remain recognizable while strange events can occur within them. An incident does not turn the whole setting into a fantasy world.
+4. **Meaningful responses:** Observe, document, investigate, leave, ask for professional help or confront a threat when appropriate. Fighting is one possible response, not the default answer.
+5. **Social continuity:** Classmates, coworkers, neighbors and specialists have their own schedules and reasons to be where they are.
+6. **Proportionate consequences:** Ignoring or mishandling an incident may change what happens later, but not every rumor needs to become a catastrophe.
+7. **Incremental simulation:** Build only the state and behavior that creates observable player decisions. Do not build a general-purpose world simulator prematurely.
 
 ## Core pillars
 
-### A World to Live In
+### A Student Life Worth Returning To
 
-The Academy is a recurring place to study, train, rest, meet people and make plans. The wider world provides other locations, opportunities, discoveries and dangers. The world is the shared context for these activities, not a wrapper around a separate combat game.
+The university, student apartment, campus facilities, part-time workplace and nearby city districts form the everyday world. The player should have reasons to return to these places even when no paranormal incident is active.
 
-### Contextual Interactions and Outcomes
+### Optional Paranormal Incidents
 
-The player encounters a situation in a current context and chooses from the interactions that make sense there. An interaction may have requirements, costs, time, risks, effects and narrative feedback. The responsible gameplay domain validates and resolves it; the result changes the relevant character or world state.
+Unusual events enter the player's life through rumors, observations, messages and encounters. Some are dangerous, some harmless, some strange or even funny. The player may ignore an incident and continue with ordinary plans.
 
-This is a shared design model, not a requirement for one universal interaction executor in code.
+### Modern Tools, Ordinary Uses
+
+Phones, laptops, cameras, online forums and messaging are normal parts of contemporary life. They may help the player collect information or contact people, but they are not supernatural devices and do not imply a dedicated social-network simulation system already exists.
+
+### People and Places
+
+NPCs should feel like students, friends, coworkers, residents and professionals before they become sources of quests or combat statistics. Their routines and interactions should support recognizable relationships and choices.
 
 ### Tactical Timeline Combat
 
-Combat is a specialized interaction context for dangerous confrontations. The player commands a party, reads threats and controls the order and timing of actions. It keeps its own Combat Timeline, combat rules and execution flow.
-
-### Characters and Relationships
-
-Characters should be worth knowing as people, not just as combat statistics. Interactions may reveal information, change familiarity or trust, create opportunities, provide help, or produce conflict. Implement relationship depth only when it changes observable player choices or outcomes.
-
-### Discovery, Adventure and Consequence
-
-The player may discover a threat, opportunity or mystery while pursuing another goal. They can prepare, intervene, seek help, partially resolve it, ignore it or fail. The world should reflect important outcomes in proportion to what happened.
+Combat remains a separate rules domain for dangerous confrontations. It uses its own Timeline, party decisions and action resolution. A paranormal incident may never reach combat if the player observes, retreats or seeks help.
 
 ## Shared world-interaction model
 
 At the design level, the experience follows this loop:
 
 ```text
-Current world state and context
-              |
-              v
-   Available interactions appear
-              |
-              v
-       Player chooses one
-              |
-              v
- Owning rules validate and resolve it
-              |
-              v
-     Outcome and effects are applied
-              |
-              v
- Relevant character/world state changes
-              |
-              v
-   The next context offers new choices
+Current life and world context
+             |
+             v
+ Everyday activities and unusual opportunities
+             |
+             v
+       Player chooses a response
+             |
+             v
+  Owning rules validate and resolve it
+             |
+             v
+    Character / incident outcome
+             |
+             v
+ The next day and later situations reflect it
 ```
 
-Examples of interaction contexts include:
+Daily-life actions may advance GameClock by minutes or hours. Combat uses its own Combat Timeline and pauses for player decisions. Travel changes the current Location through the supported navigation flow. Events may present a situation and choices; a choice may resolve as an ordinary action or start a specialized Combat flow.
 
-| Context | Example interactions | Time/rules |
-|---|---|---|
-| Daily life at a Location | Eat, rest, study, train, inspect | Uses the relevant daily-life action rules and GameClock |
-| Travel and exploration | Move between Locations, investigate a place | Uses location/navigation rules |
-| Social situations | Talk, ask, negotiate, help, refuse | Uses the authored social situation and its supported conditions/outcomes |
-| Combat | Attack, defend, dodge, delay, revive | Uses CombatService and Combat Timeline rules |
-
-These examples describe the intended experience; they do not claim that every listed interaction or system is already implemented.
-
-The model must not be mistaken for a universal software pipeline. The conceptual interaction is shared, while each domain keeps the rules it needs:
-
-- Daily-life actions may advance GameClock by minutes.
-- Combat advances its own Combat Time and pauses for player decisions.
-- Travel changes the current Location through the supported navigation flow.
-- Events may present a situation and choices; a choice may resolve as an ordinary action or start a specialized Combat flow.
-
-Do not merge CombatService into ActionExecutionService or collapse different time domains into one clock merely to make the concepts look uniform. Share code or effect contracts only when a concrete behavior genuinely has the same semantics in more than one domain.
-
-## How life and combat affect each other
-
-The following are design examples, not promises that every consequence is currently implemented:
-
-- Studying or training may improve capabilities used in later exploration or combat.
-- Relationships may provide information, assistance, access or additional choices.
-- Injury or resource loss from combat may change which daily activities are sensible or available.
-- Resolving a threat may make a Location or route safer and open new opportunities.
-- Ignoring a developing danger may change the people, places or encounters the player meets later.
-- Using force against a person may resolve an immediate obstacle while creating social, legal or reputational consequences.
-
-A combat result should return to the continuing world context. Victory is not automatically a reset, and defeat does not have to be just a separate screen; the appropriate consequences depend on the situation and the rules being designed.
+This is a shared design model, not a requirement for one universal interaction executor in code. Keep each gameplay domain responsible for its own rules.
 
 ## World structure
 
-**Accepted:** Hybrid structure.
+**Accepted:** One contemporary student-life setting with optional paranormal content.
 
-- The Academy is a recurring hub and social anchor, but not merely a support menu for combat.
-- Adventure areas are Locations in the same world where exploration, encounters, objectives and other interactions occur.
-- The wider world may change in response to time, player actions and unresolved situations.
+- The university is the main social and routine anchor, not a fantasy academy.
+- The city provides housing, shops, workplaces, public spaces and unusual locations.
+- Paranormal response services exist as ordinary professional organizations within the setting.
+- Anomalies and rumors can be discovered or ignored; the player is not forced into a central heroic plot.
 - Location-based navigation is the current presentation direction; free-roam movement is not required by this vision.
 
-The player moves between contexts as their choices and circumstances require. This is not a mandatory Academy → Adventure → Combat → Academy sequence.
+The former fantasy Academy setting is superseded. New player-facing content must use the contemporary setting.
 
 ## Content priorities
 
-- Prove complete player journeys that connect ordinary interactions, meaningful choices and their outcomes.
-- Preserve the depth and distinct identity of Tactical Timeline combat.
-- Expand social, daily-life and exploration content when it creates choices the player can understand and care about.
-- Let progression support a wider range of actions and play styles, not only larger combat numbers.
-- Keep optional personal-interest content, including NSFW material, optional; it must not become a mandatory barrier to the wider experience.
-- Prefer authored content and the smallest supported rules before introducing general simulation frameworks.
+- Establish a coherent daily student routine across campus, home and the city.
+- Give the player at least one optional paranormal incident with multiple understandable responses.
+- Keep the ordinary-life loop worthwhile when the player ignores the incident.
+- Add durable consequences only when a concrete journey needs them.
+- Preserve the existing Tactical Timeline combat implementation without making combat mandatory for every incident.
+- Prefer authored content and the smallest supported rules before introducing general systems for quests, incidents, social feeds or autonomous world simulation.
 
 ## Scope test
 
 Evaluate a proposed feature by asking:
 
-- Does it create a meaningful choice in a recognizable world context?
-- Does the player understand its requirements, costs, risks and likely consequences?
-- Does its outcome affect the current situation or a later decision in a useful way?
-- Does it connect naturally to existing daily-life, social, exploration or combat experiences?
+- Does it strengthen ordinary student life or create a meaningful optional paranormal decision?
+- Does the player understand why the situation is happening and what responses are available?
+- Can the player ignore, leave or seek help where that makes sense?
+- Does the outcome affect the current situation or a later decision in a useful way?
 - Can the value be demonstrated in a small playable journey?
-- Is a new system genuinely required, or can the existing domain rules support it?
+- Is a new runtime system genuinely required, or can current Location, Action, NPC, Event and Combat behavior support it?
 
-If the feature adds complexity without creating a meaningful player-facing decision, defer it.
+If a feature adds complexity without creating a meaningful player-facing decision, defer it.

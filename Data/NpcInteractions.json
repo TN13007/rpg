@@ -12,15 +12,15 @@
           "amount": 2
         }
       ],
-      "feedback": "Mira makes a little room for you and asks how your first day at the Academy is going.",
+      "feedback": "Mira asks how your classes are going and tells you about a strange neighborhood post she saw online.",
       "activityMet": 1.2
     },
     {
       "characterId": "mira",
       "id": "join_mira_for_lunch",
-      "label": "Join Mira's table",
+      "label": "Join Mira for lunch",
       "availableLocationIds": [
-        "canteen"
+        "campus_cafe"
       ],
       "durationMinutes": 15,
       "effects": [
@@ -29,8 +29,50 @@
           "amount": 2
         }
       ],
-      "feedback": "Mira introduces you to the students at her table. Conversation turns to the ceremony and what everyone hopes to explore.",
+      "feedback": "You share lunch and compare plans for the rest of the day. Mira mentions that the apartment-block rumor has been circulating for weeks.",
       "activityMet": 1.2
+    },
+    {
+      "characterId": "noah",
+      "id": "talk",
+      "label": "Talk with Noah",
+      "availableLocationIds": [],
+      "durationMinutes": 10,
+      "effects": [
+        {
+          "type": "ChangeMood",
+          "amount": 1
+        }
+      ],
+      "feedback": "Noah talks about his training session and asks whether you are free this weekend.",
+      "activityMet": 1.2
+    },
+    {
+      "characterId": "sera",
+      "id": "talk",
+      "label": "Talk with Sera",
+      "availableLocationIds": [],
+      "durationMinutes": 10,
+      "effects": [
+        {
+          "type": "ChangeMood",
+          "amount": 2
+        }
+      ],
+      "feedback": "Sera asks what you have been studying and recommends a quieter place to work.",
+      "activityMet": 1.2
+    },
+    {
+      "characterId": "ms_carter",
+      "id": "ask_about_services",
+      "label": "Ask about response services",
+      "availableLocationIds": [
+        "response_office"
+      ],
+      "durationMinutes": 10,
+      "effects": [],
+      "feedback": "Ms. Carter explains that the company verifies reports before dispatching a field team. She gives you a public contact card and advises you not to enter an unsafe building alone.",
+      "activityMet": 0.8
     }
   ]
 }

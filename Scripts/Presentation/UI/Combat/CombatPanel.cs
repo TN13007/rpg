@@ -5,6 +5,9 @@ public partial class CombatPanel : PanelContainer
 {
     public event Action<CombatActionRequest> ActionSelected;
     public event Action ContinueRequested;
+    public event Action<string[]> EnemyTargetSelectionRequested;
+    public event Action EnemyTargetSelectionCancelled;
+
     private Label _encounterTitle;
     private Label _mode;
     private Button _continueButton;
@@ -24,6 +27,8 @@ public partial class CombatPanel : PanelContainer
         _messageLog = GetNode<CombatMessageLog>("Margin/Content/CombatMessageLog");
         _actionPanel = GetNode<CombatActionPanel>("Margin/Content/CombatActionPanel");
         _actionPanel.ActionSelected += HandleActionSelected;
+        _actionPanel.EnemyTargetSelectionRequested += HandleEnemyTargetSelectionRequested;
+        _actionPanel.EnemyTargetSelectionCancelled += HandleEnemyTargetSelectionCancelled;
         _continueButton.Pressed += HandleContinuePressed;
         _continueButton.Visible = false;
         _mode.Text = "TACTICAL TIMELINE";
@@ -66,6 +71,21 @@ public partial class CombatPanel : PanelContainer
         _statusPanel.SetTimeline(entries);
     }
 
+    public void PlayPartyFeedback(string characterName, CombatFeedbackType feedbackType)
+    {
+        _partyRosterPanel.PlayFeedback(characterName, feedbackType);
+    }
+
+    public bool SetSelectedEnemyTarget(string enemyId)
+    {
+        return _actionPanel.SetSelectedEnemyTarget(enemyId);
+    }
+
+    public void ClearTargetSelection()
+    {
+        _actionPanel.ClearTargetSelection();
+    }
+
     public void AppendMessage(CombatMessage message)
     {
         _messageLog.Append(message);
@@ -83,6 +103,16 @@ public partial class CombatPanel : PanelContainer
     private void HandleActionSelected(CombatActionRequest request)
     {
         ActionSelected?.Invoke(request);
+    }
+
+    private void HandleEnemyTargetSelectionRequested(string[] targetIds)
+    {
+        EnemyTargetSelectionRequested?.Invoke(targetIds);
+    }
+
+    private void HandleEnemyTargetSelectionCancelled()
+    {
+        EnemyTargetSelectionCancelled?.Invoke();
     }
 
     private void HandleContinuePressed()

@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://Scripts/Presentation/UI/StoryPanel.cs" id="1"]
-[ext_resource type="Texture2D" path="res://Assets/AcademyScene.svg" id="2"]
+[ext_resource type="Texture2D" path="res://Assets/CampusScene.svg" id="2"]
 
 [node name="StoryPanel" type="PanelContainer"]
 layout_mode = 2
@@ -30,13 +30,13 @@ theme_override_constants/separation = 4
 layout_mode = 2
 theme_override_font_sizes/font_size = 25
 theme_override_colors/font_color = Color(0.91, 0.89, 0.84, 1)
-text = "Academy Courtyard"
+text = "University Campus"
 
 [node name="Subtitle" type="Label" parent="Margin/Content/Header/Heading"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 10
 theme_override_colors/font_color = Color(0.608, 0.639, 0.678, 1)
-text = "ASTERIA ACADEMY"
+text = "NORTH CAMPUS"
 
 [node name="Day" type="Label" parent="Margin/Content/Header"]
 layout_mode = 2
@@ -74,7 +74,7 @@ fit_content = false
 scroll_active = true
 theme_override_colors/default_color = Color(0.86, 0.85, 0.81, 1)
 theme_override_font_sizes/normal_font_size = 15
-text = "Students cross the courtyard beneath old trees. Somewhere nearby, a bell marks the beginning of another day."
+text = "Students cross the campus plaza with coffee cups and backpacks. The morning is busy, familiar and full of ordinary plans."
 
 [node name="ChoicesTitle" type="Label" parent="Margin/Content"]
 layout_mode = 2

@@ -21,9 +21,32 @@ theme_override_constants/separation = 7
 layout_mode = 2
 theme_override_font_sizes/font_size = 10
 theme_override_colors/font_color = Color(0.776, 0.647, 0.416, 1)
-text = "YOUR ACTION"
+text = "CHOOSE ACTION"
 
 [node name="ActionGrid" type="GridContainer" parent="Margin/Content"]
+layout_mode = 2
+size_flags_horizontal = 3
+columns = 2
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 8
+
+[node name="TargetSelection" type="VBoxContainer" parent="Margin/Content"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 7
+
+[node name="TargetHeading" type="Label" parent="Margin/Content/TargetSelection"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(0.776, 0.647, 0.416, 1)
+text = "CHOOSE TARGET"
+
+[node name="BackButton" type="Button" parent="Margin/Content/TargetSelection"]
+layout_mode = 2
+text = "Back to Actions"
+
+[node name="TargetGrid" type="GridContainer" parent="Margin/Content/TargetSelection"]
+visible = false
 layout_mode = 2
 size_flags_horizontal = 3
 columns = 2

@@ -1,0 +1,23 @@
+{
+  "id": "ms_carter",
+  "name": "Ms. Carter",
+  "role": "Response coordinator",
+  "level": 1,
+  "maxHealth": 20,
+  "maxFatigue": 100,
+  "maxStamina": 10,
+  "maxMood": 100,
+  "startingHealth": 20,
+  "startingFatigue": 0,
+  "startingStamina": 10,
+  "startingMood": 60,
+  "startingGold": 0,
+  "stats": {
+    "strength": 8,
+    "agility": 10,
+    "intelligence": 24,
+    "endurance": 12,
+    "wisdom": 24,
+    "luck": 10
+  }
+}

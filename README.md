@@ -1,8 +1,8 @@
-# RPG — Adventurer Academy
+# RPG — Modern Student Life
 
 Godot 4.7.2 .NET / C# project.
 
-Adventurer Academy is a player-directed fantasy life-simulation RPG. Daily life, relationships, exploration, adventures and tactical combat are connected ways of interacting with one continuing world. Combat has its own specialized tactical rules; its outcomes belong to the wider character and world experience.
+A player-directed student-life RPG set in a contemporary city where unexplained phenomena exist alongside ordinary routines. Attend classes, study, work part-time, meet friends and explore the city. Paranormal rumors are optional opportunities: investigate them, ignore them, leave or seek professional help. Tactical combat remains a specialized system for situations where confrontation makes sense.
 
 ## Start here
 

@@ -25,7 +25,7 @@ A good Issue answers:
 
 Keep one Issue focused on one coherent outcome. Split work when the outcomes can be implemented, verified and delivered independently. Keep related Issues linked when they contribute to a larger initiative; do not create separate Issues merely because a solution touches multiple files.
 
-For bugs, include reliable reproduction steps and actual versus expected behavior. For design work, state the decision to be made and the gameplay scenarios or constraints that will validate it. A design Issue should produce a documented decision; implementation should be tracked separately when it is a distinct deliverable.
+For bugs, include reliable reproduction steps and actual versus expected behavior. Use the **Design task** template when a specific design decision or conflict must be resolved. Use the **Design idea** template when exploring a mechanic or feature inspired by another game: explain the source mechanic, identify the player experience worth learning from it, adapt it to this project, show a concrete gameplay scenario, identify connected systems and trade-offs, and define the smallest useful experiment. An idea is a proposal, not an accepted requirement; do not create an implementation task until the design has enough evidence to justify it. A design Issue should produce a documented decision; implementation should be tracked separately when it is a distinct deliverable.
 
 Do not create a new system or abstraction merely because it seems reusable. Validate the need against concrete gameplay scenarios first.
 
@@ -229,7 +229,7 @@ Use namespaces only where they provide a useful boundary. Keep namespaces to two
 - A C# file should match its main type, and should generally contain one core type: `CombatService.cs`.
 - Name test methods in `PascalCase`; do not use underscores to divide test-name segments.
 - Use `PascalCase` for Godot scene files, custom node names and resource files: `CombatPanel.tscn`.
-- Use `PascalCase` for JSON data filenames, assets and Markdown document filenames: `AcademyLocations.json`, `CharacterPortrait.svg`, `ExampleService.md`.
+- Use `PascalCase` for JSON data filenames, assets and Markdown document filenames: `Locations.json`, `CharacterPortrait.svg`, `ExampleService.md`.
 - Keep intentional repository entry files `README.md`, `CONTRIBUTING.md`, `AGENTS.md` and `WORKFLOW.md`, plus platform/tool-managed names such as `.github` and `.editorconfig`, unchanged.
 
 #### Markdown document names
@@ -277,7 +277,7 @@ The filename identifies the document's primary ownership; it does not prescribe 
 | Element | Convention | Example |
 |---|---|---|
 | JSON property | `camelCase` | `startingFatigue`, `maxHealth` |
-| Game content ID | `snake_case` | `player_ari`, `inspect_letter`, `courtyard_goblin_ambush` |
+| Game content ID | `snake_case` | `player_student`, `inspect_letter`, `apartment_213_incident` |
 | Serialized enum-like value | `PascalCase` | `RestoreFatigue`, `NextDay`, `Agility` |
 | Player-facing label/text | Natural language | `"Read the letter on your desk"` |
 
@@ -290,9 +290,9 @@ This repository uses the following Git conventions:
 - **Branch:** `<type>/issue-<number>-<short-description>`; the description is `kebab-case`. Allowed types: `feat`, `fix`, `docs`, `test`, `refactor`, `chore`.
 - **Commit:** `<type>(<optional-scope>): <imperative-summary>`, using the Conventional Commit types defined in Section 3.
 - **Pull Request title:** use the same type/scope pattern and describe the outcome delivered by the PR.
-- **Issue title:** use the prefix supplied by its template: `[Bug]`, `[Task]` or `[Design]`.
+- **Issue title:** use the prefix supplied by its template: `[Bug]`, `[Task]`, `[Design]` or `[Idea]`.
 
-The three work items have different responsibilities:
+The four work items have different responsibilities:
 - **Issue = one problem or requirement with verifiable acceptance criteria.**
 - **Commit = one coherent logical change, which may include multiple related files.**
 - **Pull Request = one reviewable solution, which may contain multiple commits and files.**

@@ -12,8 +12,8 @@ public static class GameContentLoader
         }
 
         string normalizedRoot = dataRoot.TrimEnd('/');
-        AcademyContent academy = new AcademyContent();
-        academy.Load(normalizedRoot + "/AcademyLocations.json");
+        LocationCatalog locations = new LocationCatalog();
+        locations.Load(normalizedRoot + "/Locations.json");
 
         string charactersPath = normalizedRoot + "/Characters";
         DirAccess characterDirectory = DirAccess.Open(charactersPath);
@@ -50,6 +50,6 @@ public static class GameContentLoader
         NpcScheduleCatalog npcSchedules = NpcScheduleDataLoader.Load(normalizedRoot + "/NpcSchedules.json");
         NpcInteractionCatalog npcInteractions = NpcInteractionDataLoader.Load(normalizedRoot + "/NpcInteractions.json");
 
-        return new GameContentCatalog(academy, characterCatalog, combatActions, npcSchedules, npcInteractions);
+        return new GameContentCatalog(locations, characterCatalog, combatActions, npcSchedules, npcInteractions);
     }
 }

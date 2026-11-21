@@ -4,6 +4,21 @@ public enum CombatMessageType { Player, Enemy, System }
 public enum CombatMessageCategory { None, Damage, Check, Turn, Environment, Inference, Emotion, StatusChange, Round }
 public enum IntentConfidence { Suspected, Recognized }
 public enum CombatEventType { PlayerAction, EnemyAction, Damage, Check, TurnChanged, EnvironmentChanged, Inference, Emotion, StatusChanged, RoundStarted }
+public enum CombatFeedbackType { Attack, Guard, Evade, Recover, Revive, Hit }
+
+public sealed class CombatFeedbackViewData
+{
+    public string ActorName { get; }
+    public string TargetName { get; }
+    public CombatFeedbackType Type { get; }
+
+    public CombatFeedbackViewData(string actorName, string targetName, CombatFeedbackType type)
+    {
+        ActorName = actorName ?? string.Empty;
+        TargetName = targetName ?? string.Empty;
+        Type = type;
+    }
+}
 
 public sealed class CombatActionRequest
 {
@@ -29,8 +44,9 @@ public sealed class CombatEvent
     public string TargetName { get; }
     public int Amount { get; }
     public string Detail { get; }
+    public string ActionId { get; }
 
-    public CombatEvent(CombatEventType type, int round, string actorName = "", string targetName = "", int amount = 0, string detail = "", string id = "")
+    public CombatEvent(CombatEventType type, int round, string actorName = "", string targetName = "", int amount = 0, string detail = "", string id = "", string actionId = "")
     {
         Id = string.IsNullOrWhiteSpace(id) ? Guid.NewGuid().ToString("N") : id;
         Round = round;
@@ -39,6 +55,7 @@ public sealed class CombatEvent
         TargetName = targetName ?? string.Empty;
         Amount = amount;
         Detail = detail ?? string.Empty;
+        ActionId = actionId ?? string.Empty;
     }
 }
 
@@ -70,8 +87,16 @@ public sealed class EnemyCombatStatus
     public int MaxHealth { get; }
     public string Condition { get; }
     public bool IsVisible { get; }
+    public string IntentDescription { get; }
 
-    public EnemyCombatStatus(string id, string name, int currentHealth, int maxHealth, string condition, bool isVisible = true)
+    public EnemyCombatStatus(
+        string id,
+        string name,
+        int currentHealth,
+        int maxHealth,
+        string condition,
+        bool isVisible = true,
+        string intentDescription = "")
     {
         if (maxHealth < 1) throw new ArgumentOutOfRangeException(nameof(maxHealth));
         if (currentHealth < 0 || currentHealth > maxHealth) throw new ArgumentOutOfRangeException(nameof(currentHealth));
@@ -81,6 +106,7 @@ public sealed class EnemyCombatStatus
         MaxHealth = maxHealth;
         Condition = condition ?? string.Empty;
         IsVisible = isVisible;
+        IntentDescription = intentDescription ?? string.Empty;
     }
 }
 
@@ -119,6 +145,7 @@ public sealed class TimelineCombatantStatus
     public bool IsVisible { get; }
     public bool IsPrimaryPartyMember { get; }
     public double RemainingStunTime { get; }
+    public string IntentDescription { get; }
 
     public TimelineCombatantStatus(
         string id,
@@ -131,7 +158,8 @@ public sealed class TimelineCombatantStatus
         bool isStunned,
         bool isVisible = true,
         bool isPrimaryPartyMember = false,
-        double remainingStunTime = 0.0)
+        double remainingStunTime = 0.0,
+        string intentDescription = "")
     {
         if (double.IsNaN(remainingStunTime) ||
             double.IsInfinity(remainingStunTime) ||
@@ -151,6 +179,7 @@ public sealed class TimelineCombatantStatus
         IsVisible = isVisible;
         IsPrimaryPartyMember = !isEnemy && isPrimaryPartyMember;
         RemainingStunTime = remainingStunTime;
+        IntentDescription = intentDescription ?? string.Empty;
     }
 }
 
@@ -170,27 +199,50 @@ public sealed class IntentObservation
     }
 }
 
+public sealed class CombatActionTargetOption
+{
+    public string Id { get; }
+    public string Name { get; }
+
+    public CombatActionTargetOption(string id, string name)
+    {
+        if (string.IsNullOrWhiteSpace(id))
+            throw new ArgumentException("Target ID is required.", nameof(id));
+
+        Id = id;
+        Name = name ?? string.Empty;
+    }
+}
+
 public sealed class CombatActionOption
 {
     public string Id { get; }
-    public string TargetId { get; }
     public string ActorId { get; }
     public string Label { get; }
     public string CostLabel { get; }
     public string Description { get; }
     public bool IsAvailable { get; }
     public string UnavailableReason { get; }
+    public CombatActionTargetOption[] Targets { get; }
 
-    public CombatActionOption(string id, string label, string costLabel, string description, bool isAvailable = true, string unavailableReason = "", string targetId = "", string actorId = "")
+    public CombatActionOption(
+        string id,
+        string label,
+        string costLabel,
+        string description,
+        bool isAvailable = true,
+        string unavailableReason = "",
+        string actorId = "",
+        CombatActionTargetOption[] targets = null)
     {
         Id = id ?? string.Empty;
-        TargetId = targetId ?? string.Empty;
         ActorId = actorId ?? string.Empty;
         Label = label ?? string.Empty;
         CostLabel = costLabel ?? string.Empty;
         Description = description ?? string.Empty;
         IsAvailable = isAvailable;
         UnavailableReason = unavailableReason ?? string.Empty;
+        Targets = targets ?? Array.Empty<CombatActionTargetOption>();
     }
 }
 
@@ -261,6 +313,7 @@ public sealed class TimelineMarkerViewData
     public int Luck { get; }
     public bool IsStunned { get; }
     public double TimeToReadySeconds { get; }
+    public string IntentDescription { get; }
 
     public TimelineMarkerViewData(
         string id,
@@ -271,7 +324,8 @@ public sealed class TimelineMarkerViewData
         bool isReady,
         bool isStunned,
         int luck,
-        double timeToReadySeconds)
+        double timeToReadySeconds,
+        string intentDescription = "")
     {
         if (double.IsNaN(timeToReadySeconds) ||
             double.IsInfinity(timeToReadySeconds) ||
@@ -289,6 +343,7 @@ public sealed class TimelineMarkerViewData
         IsStunned = isStunned;
         Luck = luck;
         TimeToReadySeconds = timeToReadySeconds;
+        IntentDescription = intentDescription ?? string.Empty;
     }
 }
 
@@ -303,6 +358,7 @@ public sealed class CombatViewData
     public CombatMessage[] NewMessages { get; }
     public TimelineMarkerViewData[] Timeline { get; }
     public string ActiveCombatantId { get; }
+    public CombatFeedbackViewData[] Feedback { get; }
 
     public CombatViewData(
         int round,
@@ -313,7 +369,8 @@ public sealed class CombatViewData
         CombatMessage[] newMessages,
         TimelineMarkerViewData[] timeline = null,
         PartyCombatStatus[] party = null,
-        string activeCombatantId = "")
+        string activeCombatantId = "",
+        CombatFeedbackViewData[] feedback = null)
     {
         Round = round;
         ActiveTurnLabel = activeTurnLabel ?? string.Empty;
@@ -324,5 +381,6 @@ public sealed class CombatViewData
         NewMessages = newMessages ?? Array.Empty<CombatMessage>();
         Timeline = timeline ?? Array.Empty<TimelineMarkerViewData>();
         ActiveCombatantId = activeCombatantId ?? string.Empty;
+        Feedback = feedback ?? Array.Empty<CombatFeedbackViewData>();
     }
 }

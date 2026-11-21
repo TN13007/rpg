@@ -36,7 +36,7 @@ For the current prototype, the main smoke journey should cover:
 - Exploration shows the current Location and available choices.
 - Player/Location/Travel/Event choices route to the expected behavior.
 - Rest and Sleep apply their configured state/time changes.
-- The Courtyard Goblin Event can enter Combat and resolve its available choices.
+- The Unit 213 incident presents observation, cautious entry and retreat as non-combat choices; Combat remains separately testable through the debug encounter.
 - Combat status, message log and available actions refresh correctly.
 - Combat completion returns to the same Location and applies encounter outcomes once.
 

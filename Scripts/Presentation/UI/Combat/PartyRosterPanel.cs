@@ -1,113 +1,110 @@
+using System;
+using System.Collections.Generic;
 using Godot;
 
 public partial class PartyRosterPanel : PanelContainer
 {
     private HBoxContainer _roster;
+    private PackedScene _memberCardScene;
+    private readonly Dictionary<string, PartyMemberCard> _memberCards =
+        new Dictionary<string, PartyMemberCard>(StringComparer.Ordinal);
+    private Label _emptyLabel;
 
     public override void _Ready()
     {
         UiTheme.StylePanel(this);
         _roster = GetNode<HBoxContainer>("Margin/Content/RosterScroll/Roster");
+        _memberCardScene = GD.Load<PackedScene>("res://Scenes/UI/Combat/PartyMemberCard.tscn");
+        if (_memberCardScene == null)
+        {
+            GD.PushError("PartyMemberCard.tscn could not be loaded.");
+        }
     }
 
     public void SetMembers(PartyCombatStatus[] members)
     {
-        ClearChildren();
+        HashSet<string> currentIds = new HashSet<string>(StringComparer.Ordinal);
+        int cardIndex = 0;
 
-        if (members == null || members.Length == 0)
+        if (members != null)
         {
-            Label emptyLabel = new Label
+            foreach (PartyCombatStatus member in members)
             {
-                Text = "No party members",
-                SizeFlagsHorizontal = Control.SizeFlags.ExpandFill
-            };
-            emptyLabel.AddThemeFontSizeOverride("font_size", 10);
-            emptyLabel.AddThemeColorOverride("font_color", UiTheme.Muted);
-            _roster.AddChild(emptyLabel);
+                if (member == null || string.IsNullOrWhiteSpace(member.Id))
+                {
+                    continue;
+                }
+
+                currentIds.Add(member.Id);
+                if (!_memberCards.TryGetValue(member.Id, out PartyMemberCard card))
+                {
+                    if (_memberCardScene == null)
+                    {
+                        continue;
+                    }
+
+                    card = _memberCardScene.Instantiate<PartyMemberCard>();
+                    _roster.AddChild(card);
+                    _memberCards.Add(member.Id, card);
+                }
+
+                card.SetMember(member);
+                _roster.MoveChild(card, cardIndex++);
+            }
+        }
+
+        List<string> removedIds = new List<string>();
+        foreach (string memberId in _memberCards.Keys)
+        {
+            if (!currentIds.Contains(memberId))
+            {
+                removedIds.Add(memberId);
+            }
+        }
+
+        foreach (string memberId in removedIds)
+        {
+            _memberCards[memberId].QueueFree();
+            _memberCards.Remove(memberId);
+        }
+
+        UpdateEmptyState();
+    }
+
+    public void PlayFeedback(string characterName, CombatFeedbackType feedbackType)
+    {
+        foreach (PartyMemberCard card in _memberCards.Values)
+        {
+            if (card.MemberName == characterName)
+            {
+                card.PlayFeedback(feedbackType);
+            }
+        }
+    }
+
+    private void UpdateEmptyState()
+    {
+        if (_memberCards.Count == 0)
+        {
+            if (_emptyLabel == null)
+            {
+                _emptyLabel = new Label
+                {
+                    Text = "No party members",
+                    SizeFlagsHorizontal = Control.SizeFlags.ExpandFill
+                };
+                _emptyLabel.AddThemeFontSizeOverride("font_size", 10);
+                _emptyLabel.AddThemeColorOverride("font_color", UiTheme.Muted);
+                _roster.AddChild(_emptyLabel);
+            }
+
             return;
         }
 
-        foreach (PartyCombatStatus member in members)
+        if (_emptyLabel != null)
         {
-            _roster.AddChild(CreateMemberCard(member));
-        }
-    }
-
-    private Control CreateMemberCard(PartyCombatStatus member)
-    {
-        PanelContainer card = new PanelContainer
-        {
-            CustomMinimumSize = new Vector2(125, 0),
-            SizeFlagsHorizontal = Control.SizeFlags.ShrinkBegin
-        };
-
-        StyleBoxFlat cardStyle = new StyleBoxFlat
-        {
-            BgColor = member.IsActive ? new Color("#514735") : UiTheme.PanelLight,
-            CornerRadiusTopLeft = 6,
-            CornerRadiusTopRight = 6,
-            CornerRadiusBottomLeft = 6,
-            CornerRadiusBottomRight = 6
-        };
-        cardStyle.ContentMarginLeft = 8;
-        cardStyle.ContentMarginRight = 8;
-        cardStyle.ContentMarginTop = 7;
-        cardStyle.ContentMarginBottom = 7;
-        card.AddThemeStyleboxOverride("panel", cardStyle);
-
-        VBoxContainer content = new VBoxContainer();
-        content.AddThemeConstantOverride("separation", 4);
-        card.AddChild(content);
-
-        Label name = new Label
-        {
-            Text = member.Name + (member.IsActive ? "  ·  READY" : string.Empty),
-            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
-            ClipText = true
-        };
-        name.AddThemeFontSizeOverride("font_size", 11);
-        name.AddThemeColorOverride("font_color", member.IsActive ? UiTheme.Accent : UiTheme.Text);
-        content.AddChild(name);
-
-        Label health = new Label
-        {
-            Text = "HP  " + member.CurrentHealth + " / " + member.MaxHealth,
-            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill
-        };
-        health.AddThemeFontSizeOverride("font_size", 10);
-        health.AddThemeColorOverride("font_color", UiTheme.Muted);
-        content.AddChild(health);
-
-        ProgressBar healthBar = new ProgressBar
-        {
-            CustomMinimumSize = new Vector2(0, 7),
-            MaxValue = member.MaxHealth,
-            Value = member.CurrentHealth,
-            ShowPercentage = false,
-            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill
-        };
-        content.AddChild(healthBar);
-
-        Label condition = new Label
-        {
-            Text = member.Condition,
-            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill
-        };
-        condition.AddThemeFontSizeOverride("font_size", 9);
-        condition.AddThemeColorOverride(
-            "font_color",
-            member.Condition == "Downed" ? new Color("#E07A70") : UiTheme.Muted);
-        content.AddChild(condition);
-
-        return card;
-    }
-
-    private void ClearChildren()
-    {
-        foreach (Node child in _roster.GetChildren())
-        {
-            _roster.RemoveChild(child);
-            child.QueueFree();
+            _emptyLabel.QueueFree();
+            _emptyLabel = null;
         }
     }
 }

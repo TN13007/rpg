@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 public sealed class CombatPresentationMapper
 {
@@ -48,7 +49,70 @@ public sealed class CombatPresentationMapper
             messages,
             MapTimeline(snapshot.Timeline),
             snapshot.Party,
-            snapshot.ActiveCombatantId);
+            snapshot.ActiveCombatantId,
+            MapFeedback(result.Events));
+    }
+
+    private static CombatFeedbackViewData[] MapFeedback(CombatEvent[] events)
+    {
+        if (events == null || events.Length == 0)
+        {
+            return Array.Empty<CombatFeedbackViewData>();
+        }
+
+        List<CombatFeedbackViewData> feedback = new List<CombatFeedbackViewData>();
+        foreach (CombatEvent combatEvent in events)
+        {
+            if (combatEvent.Type == CombatEventType.Damage &&
+                !string.IsNullOrWhiteSpace(combatEvent.TargetName))
+            {
+                feedback.Add(new CombatFeedbackViewData(
+                    string.Empty,
+                    combatEvent.TargetName,
+                    CombatFeedbackType.Hit));
+                continue;
+            }
+
+            if (combatEvent.Type == CombatEventType.EnemyAction)
+            {
+                if (!string.IsNullOrWhiteSpace(combatEvent.TargetName))
+                {
+                    feedback.Add(new CombatFeedbackViewData(
+                        combatEvent.ActorName,
+                        string.Empty,
+                        CombatFeedbackType.Attack));
+                }
+
+                continue;
+            }
+
+            if (combatEvent.Type != CombatEventType.PlayerAction)
+            {
+                continue;
+            }
+
+            CombatFeedbackType? type = combatEvent.ActionId switch
+            {
+                "quick_strike" => CombatFeedbackType.Attack,
+                "heavy_strike" => CombatFeedbackType.Attack,
+                "disrupting_strike" => CombatFeedbackType.Attack,
+                "guard" => CombatFeedbackType.Guard,
+                "evade" => CombatFeedbackType.Evade,
+                "catch_breath" => CombatFeedbackType.Recover,
+                "revive_ally" => CombatFeedbackType.Revive,
+                _ => null
+            };
+
+            if (type.HasValue && !string.IsNullOrWhiteSpace(combatEvent.ActorName))
+            {
+                feedback.Add(new CombatFeedbackViewData(
+                    combatEvent.ActorName,
+                    combatEvent.TargetName,
+                    type.Value));
+            }
+        }
+
+        return feedback.ToArray();
     }
 
     private static TimelineMarkerViewData[] MapTimeline(TimelineCombatantStatus[] entries)
@@ -74,7 +138,8 @@ public sealed class CombatPresentationMapper
                 entry.IsReady,
                 entry.IsStunned,
                 entry.Luck,
-                timeToReady);
+                timeToReady,
+                entry.IntentDescription);
         }
 
         return mapped;

@@ -5,16 +5,16 @@
 
 ## 1. Current prototype overview
 
-The current build combines an authored, location-based Academy life-simulation slice, a bounded daily NPC presence schedule and the four-person Tactical Timeline combat prototype. The Opening Day path exercises Location, Travel, Action, Effect and Location Event content. NPC presence is schedule-driven, but NPCs do not yet make autonomous decisions or simulate needs, memory or relationships.
+The current build combines an authored, location-based modern student-life slice, a bounded daily NPC presence schedule and the four-person Tactical Timeline combat prototype. The Campus Day path exercises Location, Travel, Action, Effect and Location Event content. NPC presence is schedule-driven, but NPCs do not yet make autonomous decisions or simulate needs, memory or relationships.
 
 Implemented areas include:
-- Character state and resources, plus the Ari/Bram/Mira/Sera StartingParty composition.
+- Character state and resources, plus the Alex/Noah/Mira/Sera StartingParty composition.
 - GameClock day/minute tracking, elapsed-time advancement, midnight rollover and authored Sleep/Rest actions.
-- A connected Opening Day route through the carriage, Academy arrival, assembly hall, canteen, campus and nearby town, ending at the Dormitory.
+- A connected modern city route through university campus, lecture hall, library, campus café, student housing, East District and the old apartment block.
 - Location travel, context-sensitive Location Actions and source-aware Exploration choices.
-- Authored Location Events for the opening ceremony, meeting Mira and the canteen arrival. The previous Courtyard Goblin event remains available as content but has chance 0 during this opening-day slice.
+- Authored Location Events for a campus conversation and the Unit 213 incident. The first introduces a local rumor; the second offers observation, cautious entry and retreat without forcing Combat.
 - Four-person Combat with a shared Continuous Timeline, player decision pauses, action-specific Recovery Cost, Delay/Stun, Downed/Revive and Victory/Defeat.
-- Exploration rescue when Ari returns from an encounter at 0 HP.
+- Exploration rescue when Alex returns from an encounter at 0 HP.
 - Dedicated Combat presentation and authored JSON definitions loaded into runtime catalogs.
 
 ## 2. Current domain vocabulary
@@ -65,13 +65,13 @@ The current choice sources include Player Actions, Location Actions, NPC interac
 
 `NpcPresenceQuery` combines the current Location, `GameClock.MinutesOfDay`, schedule definitions and Character data. `ExplorationFlowController` uses the result to offer `See around`, display the people currently present and revalidate the selected NPC before an interaction executes. Events with an event-level NPC requirement are not triggered while that NPC is absent; an unavailable NPC-specific Event does not consume the Location's daily event attempt. Event choice NPC requirements are checked again when selected. Presence is evaluated when the current context is shown; there is no per-frame NPC movement simulation.
 
-The current schedule repeats every in-game day because `GameClock` has a day index but no weekday calendar. An unscheduled time range means the NPC is not present at a player-facing Location. The first authored schedule is Mira's; other Characters need an explicit schedule before they can be selected through `See around`. NPC interactions can apply to every scheduled Location or specify an explicit `availableLocationIds` list.
+The current schedule repeats every in-game day because `GameClock` has a day index but no weekday calendar. An unscheduled time range means the NPC is not present at a player-facing Location. The current content authors daily schedules for Mira, Noah, Sera and Ms. Carter. Each scheduled Character can be discovered through `See around` when present. NPC interactions can apply to every scheduled Location or specify an explicit `availableLocationIds` list.
 
 When the controlled character is at zero Health, the Exploration query suppresses normal Player, Location and Travel choices and exposes only an authored recovery Player Action. The current `Request emergency rescue` action advances GameClock by 180 minutes and revives the character with 5 HP. The action execution service permits this single-effect Revive action only while the character is incapacitated; normal interactions return after recovery.
 
 ## 5. Location Events
 
-Location Events represent authored situations associated with a Location. The Opening Day content uses them for multi-paragraph scenes and choices, including the opening ceremony and first meetings. The older Courtyard Goblin Ambush remains in the content but has chance 0 so it does not interrupt the first day.
+Location Events represent authored situations associated with a Location. The current modern setting uses Location Events for everyday conversations and the Unit 213 incident. The Unit 213 event offers observation, cautious entry and retreat; it does not force Combat.
 
 An Event is not synonymous with Combat or Encounter. It may offer a choice that starts the dedicated Combat flow or resolves through the normal action path. Keep the Event decision and the specialized Combat resolution separate.
 
@@ -86,11 +86,11 @@ Each combatant has Remaining Progress and Speed. At encounter start, CombatServi
 The presentation pipeline maps combat timing into `TimelineMarkerViewData.TimeToReadySeconds`. For normal combatants this is `RemainingProgress / Speed`; for Stunned combatants it also includes the remaining Stun duration. `TimelineTrack.tscn` displays the next 10 seconds by default, with NOW at the left and the future horizon at the right. The Timeline is refreshed from the current snapshot each runtime frame, so marker movement matches the 1.0x Combat Clock without a lagging fixed-duration Tween. Party markers occupy the upper side of the rail and Enemy markers the lower side; overlapping markers stack within their own side without changing their horizontal time. It creates and reuses `TimelineMarker.tscn` instances by combatant ID. Hidden enemies are filtered from the UI but remain registered in the simulation.
 
 Current limitations:
-- The playable `MainController` encounter is composed from Ari, Bram, Mira and Sera through `StartingParty`, plus one Goblin. The helper reuses Ari's Exploration `Character` instance and creates the other members from their character content. All four are passed to the existing Party Roster presentation and remain individually player-controlled.
+- The playable `MainController` encounter is composed from Alex, Noah, Mira and Sera through `StartingParty`, plus one Unstable Presence. The helper reuses Alex's Exploration `Character` instance and creates the other members from their character content. All four are passed to the existing Party Roster presentation and remain individually player-controlled.
 - Current Timeline markers use faction-colored circles. The marker scene has an icon slot, but no combatant portrait textures are currently supplied.
 - A Party member reaching zero HP enters Downed, remains visible in the Party roster and leaves the Timeline. Any active ally can spend 4 Stamina to revive that member once per encounter at 25% maximum HP (rounded up). The revived member and the reviving actor both receive the largest authored Recovery Cost in the encounter; the revived member is re-registered on the Timeline. If every Party member is Downed, the encounter ends in defeat. Enemies at zero HP are defeated rather than Downed.
 - Speed modifiers, Acceleration, Interrupt, casting/channeling and Cooldowns are not implemented.
-- Enemy behavior remains limited to the currently authored Goblin actions; distinct enemy behavior archetypes and multi-enemy playable encounters remain incomplete.
+- Enemy behavior remains limited to the currently authored Unstable Presence actions; distinct enemy behavior archetypes and multi-enemy playable encounters remain incomplete.
 
 The intended rules and open decisions are defined in [Design/Combat](../Design/Combat.md). Do not treat numeric balance or explicitly open design decisions as finalized implementation contracts.
 

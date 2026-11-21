@@ -62,7 +62,7 @@ The current panel separates:
 - Encounter context and Party roster, including a visible Downed condition.
 - Expected action timing on a shared Time-to-Ready axis.
 - Ordered message history.
-- Available Combat Actions, including contextual Revive targets when a Party member is Downed.
+- Available Combat Actions are listed once per action, regardless of the number of valid targets. Selecting an enemy-targeting action activates the valid EnemyCards in the Sidebar; the player selects one card and confirms it. Revive remains a separate ally-target flow because its targets are Party members, not enemies.
 
 `CombatPresentationMapper` converts each combatant's Remaining Progress, Speed and remaining Stun duration into `TimelineMarkerViewData.TimeToReadySeconds`. The UI consumes this presentation value; it does not calculate combat timing from Domain state.
 
@@ -78,11 +78,26 @@ The current panel separates:
 - CombatPanel renders the view data; it does not calculate damage, spend resources or inspect hidden enemy decisions.
 - The latest snapshot replaces current status and available actions; new messages append to history.
 
+### Reusable presentation components
+
+Combat UI components consume presentation contracts and do not access Domain entities or services directly:
+
+| Component | Input contract | Responsibility |
+|---|---|---|
+| `EnemyCard` | `EnemyCombatStatus` | Render enemy name, HP, condition and committed intent; expose target-selection state and selection event |
+| `PartyMemberCard` | `PartyCombatStatus` | Render one party member's status and receive action feedback |
+| `CombatActionCard` | `CombatActionOption` | Render one available action and emit the selected option |
+| `TimelineMarker` | `TimelineMarkerViewData` | Render one combatant on the shared Timeline |
+| `CombatMessageEntry` | `CombatMessage` | Render one historical combat message |
+
+Parent panels own component collections and lifecycle. They create, update, reorder and release instances by stable entity ID. A component receives a presentation object through `Set...` methods; it must not look up `Character`, query `CombatService`, parse content files or decide whether an action is legal. Components may expose UI events, but the owning controller/service revalidates the request.
+
+`CombatPresentationMapper` also maps resolved action events into `CombatFeedbackViewData`. The orchestrator routes those cues to the matching PartyMemberCard or EnemyCard. Attack, Guard, Evade, Catch Breath, Revive and Hit currently use short visual color pulses; these are presentation-only and do not affect combat resolution.
 ### Message semantics
 
 Messages use Player, Enemy or System identity. Speaker/category labels remain visible; alignment or color is not the only identity cue. Completed events are historical facts, while observations/inferences must be presented as such.
 
-The current prototype uses exact enemy HP in status and records damage deltas in the log. The log is bounded and preserves reading position when the user scrolls older messages.
+The current prototype uses exact enemy HP in status and records damage deltas in the log. The log is bounded and preserves reading position when the user scrolls older messages. Target selection is confirmed before execution; invalid targets are not selectable and the sidebar cursor changes only for valid EnemyCards.
 
 ## 4. Character Panel
 
@@ -101,6 +116,6 @@ MainController composes the screen and top-level signals. ExplorationFlowControl
 
 ## 6. Current limitations
 
-The current UI is a prototype, not a final interface specification. The playable MainController encounter is wired with Ari, Bram, Mira and Sera against one Goblin. Only one Goblin behavior archetype is currently authored, and upcoming Enemy Intent/action targets are not yet presented to the player. Portrait textures are not yet supplied to Timeline markers. Broad skill selection, inventory, relationships, diary, responsive narrow-screen behavior and full assistive-technology verification remain incomplete.
+The current UI is a prototype, not a final interface specification. The playable MainController encounter is wired with Alex, Noah, Mira and Sera against one Unstable Presence. Only one Unstable Presence behavior archetype is currently authored. Portrait textures are not yet supplied to Timeline markers. Interactive Godot acceptance is still required to verify target selection, action feedback and the full encounter flow. Broad skill selection, inventory, relationships, diary, responsive narrow-screen behavior and full assistive-technology verification remain incomplete.
 
 When the intended UI changes, first update the relevant Design document if the player experience changes; update this document only when the current presentation contract changes.

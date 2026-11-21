@@ -1,20 +1,45 @@
 using System;
+using System.Collections.Generic;
 using Godot;
 
 public partial class CombatActionPanel : PanelContainer
 {
     public event Action<CombatActionRequest> ActionSelected;
+    public event Action<string[]> EnemyTargetSelectionRequested;
+    public event Action EnemyTargetSelectionCancelled;
+
     private GridContainer _actionGrid;
+    private VBoxContainer _targetSelection;
+    private Label _targetHeading;
+    private GridContainer _targetGrid;
+    private Button _backButton;
+    private PackedScene _actionCardScene;
+    private CombatActionOption _pendingAction;
+    private readonly HashSet<string> _validEnemyTargetIds =
+        new HashSet<string>(StringComparer.Ordinal);
 
     public override void _Ready()
     {
         UiTheme.StylePanel(this);
         _actionGrid = GetNode<GridContainer>("Margin/Content/ActionGrid");
+        _targetSelection = GetNode<VBoxContainer>("Margin/Content/TargetSelection");
+        _targetHeading = GetNode<Label>("Margin/Content/TargetSelection/TargetHeading");
+        _targetGrid = GetNode<GridContainer>("Margin/Content/TargetSelection/TargetGrid");
+        _backButton = GetNode<Button>("Margin/Content/TargetSelection/BackButton");
+        _actionCardScene = GD.Load<PackedScene>("res://Scenes/UI/Combat/CombatActionCard.tscn");
+        _backButton.Pressed += CancelTargetSelection;
+        UiTheme.StyleButton(_backButton);
+        _targetGrid.Visible = false;
     }
 
     public void SetActions(CombatActionOption[] actions)
     {
-        ClearChildren();
+        ClearChildren(_actionGrid);
+        ClearChildren(_targetGrid);
+        ClearPendingTarget();
+        _actionGrid.Visible = true;
+        _targetSelection.Visible = false;
+
         if (actions == null || actions.Length == 0)
         {
             Label emptyLabel = new Label { Text = "No actions available." };
@@ -22,37 +47,160 @@ public partial class CombatActionPanel : PanelContainer
             _actionGrid.AddChild(emptyLabel);
             return;
         }
-        foreach (CombatActionOption action in actions) _actionGrid.AddChild(CreateActionButton(action));
+
+        foreach (CombatActionOption action in actions)
+        {
+            CombatActionCard card = CreateActionCard(action);
+            if (card != null)
+            {
+                _actionGrid.AddChild(card);
+            }
+        }
     }
 
-    private CombatActionButton CreateActionButton(CombatActionOption action)
+    public bool SetSelectedEnemyTarget(string enemyId)
     {
-        string cost = string.IsNullOrWhiteSpace(action.CostLabel) ? string.Empty : "  ·  " + action.CostLabel;
-        string detail = string.IsNullOrWhiteSpace(action.Description) ? string.Empty : "\n" + action.Description;
-        string unavailableReason = action.IsAvailable || string.IsNullOrWhiteSpace(action.UnavailableReason)
-            ? string.Empty : "\n" + action.UnavailableReason;
-        CombatActionButton button = new CombatActionButton
+        if (_pendingAction == null ||
+            string.IsNullOrWhiteSpace(enemyId) ||
+            !_validEnemyTargetIds.Contains(enemyId))
         {
-            Request = new CombatActionRequest(action.Id, action.TargetId, action.ActorId),
-            Text = action.Label + cost + detail + unavailableReason,
-            TooltipText = action.UnavailableReason,
-            CustomMinimumSize = new Vector2(0, 62),
-            Disabled = !action.IsAvailable,
-            Alignment = HorizontalAlignment.Left,
-            FocusMode = FocusModeEnum.All
-        };
-        UiTheme.StyleButton(button);
-        button.ActionSelected += HandleActionSelected;
-        return button;
+            return false;
+        }
+
+        CombatActionRequest request = new CombatActionRequest(
+            _pendingAction.Id,
+            enemyId,
+            _pendingAction.ActorId);
+
+        ClearPendingTarget();
+        _targetSelection.Visible = false;
+        _actionGrid.Visible = true;
+        ActionSelected?.Invoke(request);
+        return true;
     }
 
-    private void HandleActionSelected(CombatActionRequest request) { ActionSelected?.Invoke(request); }
-
-    private void ClearChildren()
+    public void ClearTargetSelection()
     {
-        foreach (Node child in _actionGrid.GetChildren())
+        ClearPendingTarget();
+        _targetSelection.Visible = false;
+        _actionGrid.Visible = true;
+    }
+
+    private CombatActionCard CreateActionCard(CombatActionOption action)
+    {
+        if (_actionCardScene == null)
         {
-            _actionGrid.RemoveChild(child);
+            GD.PushError("CombatActionCard.tscn could not be loaded.");
+            return null;
+        }
+
+        CombatActionCard card = _actionCardScene.Instantiate<CombatActionCard>();
+        card.SetAction(action);
+        UiTheme.StyleButton(card);
+        card.Selected += SelectAction;
+        return card;
+    }
+
+    private void SelectAction(CombatActionOption action)
+    {
+        if (action.Targets.Length == 0)
+        {
+            ActionSelected?.Invoke(new CombatActionRequest(
+                action.Id,
+                string.Empty,
+                action.ActorId));
+            return;
+        }
+
+        // Revive targets are party members, not EnemyCards. Keep their dedicated
+        // target list until party roster cards become selectable components.
+        if (action.Id == "revive_ally")
+        {
+            ShowPartyTargetButtons(action);
+            return;
+        }
+
+        _pendingAction = action;
+        _validEnemyTargetIds.Clear();
+        foreach (CombatActionTargetOption target in action.Targets)
+        {
+            _validEnemyTargetIds.Add(target.Id);
+        }
+
+        _targetHeading.Text = "Choose a highlighted enemy from the sidebar. Selecting one executes the action.";
+        _targetGrid.Visible = false;
+        _actionGrid.Visible = false;
+        _targetSelection.Visible = true;
+        EnemyTargetSelectionRequested?.Invoke(ToArray(_validEnemyTargetIds));
+    }
+
+    private void ShowPartyTargetButtons(CombatActionOption action)
+    {
+        ClearChildren(_targetGrid);
+        _targetHeading.Text = "Choose an ally to revive.";
+        foreach (CombatActionTargetOption target in action.Targets)
+        {
+            CombatActionButton button = new CombatActionButton
+            {
+                Request = new CombatActionRequest(action.Id, target.Id, action.ActorId),
+                Text = target.Name,
+                CustomMinimumSize = new Vector2(0, 42),
+                Disabled = !action.IsAvailable,
+                Alignment = HorizontalAlignment.Left,
+                FocusMode = FocusModeEnum.All,
+                MouseDefaultCursorShape = CursorShape.PointingHand
+            };
+            UiTheme.StyleButton(button);
+            button.ActionSelected += HandleActionSelected;
+            _targetGrid.AddChild(button);
+        }
+
+        _pendingAction = null;
+        _targetGrid.Visible = true;
+        _actionGrid.Visible = false;
+        _targetSelection.Visible = true;
+    }
+
+
+    private void CancelTargetSelection()
+    {
+        bool wasSelectingEnemy = _pendingAction != null;
+        ClearPendingTarget();
+        _targetSelection.Visible = false;
+        _actionGrid.Visible = true;
+        _targetGrid.Visible = false;
+        if (wasSelectingEnemy)
+        {
+            EnemyTargetSelectionCancelled?.Invoke();
+        }
+    }
+
+    private void HandleActionSelected(CombatActionRequest request)
+    {
+        _targetSelection.Visible = false;
+        _actionGrid.Visible = true;
+        _targetGrid.Visible = false;
+        ActionSelected?.Invoke(request);
+    }
+
+    private void ClearPendingTarget()
+    {
+        _pendingAction = null;
+        _validEnemyTargetIds.Clear();
+    }
+
+    private static string[] ToArray(HashSet<string> values)
+    {
+        string[] result = new string[values.Count];
+        values.CopyTo(result);
+        return result;
+    }
+
+    private static void ClearChildren(Node container)
+    {
+        foreach (Node child in container.GetChildren())
+        {
+            container.RemoveChild(child);
             child.QueueFree();
         }
     }

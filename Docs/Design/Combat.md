@@ -26,7 +26,7 @@ The intended fantasy is to create deliberate sequences in which one character de
 | Information | Partial; invisible/hidden enemies are omitted from the Timeline until revealed |
 | Resource persistence | Hybrid; selected resources persist while others recover through combat or rest |
 | Defeat state | Characters become Downed and may be revived |
-| World structure | Hybrid Academy hub and adventure areas |
+| World structure | University and city locations with optional paranormal incidents |
 
 These are design decisions. They do not assert that the current code implements them.
 
@@ -217,6 +217,12 @@ Enemies should differ by tactical problem, not only HP and damage. Candidate arc
 
 An encounter should combine behaviors to create competing priorities. There should usually be more than one viable response.
 
+### 9.1 Committed enemy intent
+
+At encounter start, each living enemy commits to one action and (when required) one living party target. The committed action and target remain fixed while that enemy recovers, while the player chooses an action, and while the enemy is affected by Stun. The enemy plans its next intent only after resolving its current action. If its committed target is no longer a valid target when the action resolves, the action is lost rather than silently retargeted.
+
+The Timeline marker exposes the committed action and target in its tooltip. This is a readable preview of the next threat, not a second action-selection interface. Enemy behavior profiles may weight the actions already assigned to that enemy; they do not add actions or change action execution. The Unit 213 Unstable Presence uses a lightweight authored profile over its existing presence_* actions. No Academy encounter or additional enemy archetype is required.
+
 ## 10. Downed and revival
 
 When HP reaches zero, a Party member enters **Downed** rather than immediately causing total party defeat. Enemies at zero HP are defeated in this first implementation.
@@ -238,7 +244,7 @@ These are provisional encounter rules chosen to prove a finite, understandable r
 
 The accepted direction is **hybrid persistence**. It should create decisions across an adventure without making every encounter feel like punishment for the previous one.
 
-HP and selected expedition resources may persist between encounters. Other resources may recover through combat actions, milestones, consumables, rest or returning to the Academy. Exact resource types, regeneration rates, post-combat recovery and checkpoint rules remain open.
+HP and selected expedition resources may persist between encounters. Other resources may recover through combat actions, milestones, consumables, rest or returning to campus or another safe location. Exact resource types, regeneration rates, post-combat recovery and checkpoint rules remain open.
 
 Avoid adding overlapping resource bars unless each supports a distinct decision.
 
@@ -277,7 +283,7 @@ The following are intentionally not finalized:
 - Delay / Acceleration stacking and resistance.
 - Stun duration, resistance, refresh, stacking and anti-stun-lock rules.
 - Detection, reveal and the precision of enemy timing information.
-- Enemy intent / telegraph disclosure.
+- Intent disclosure beyond the committed action and target shown on visible Timeline markers.
 - Casting, channeling, Interrupt and Cooldown rules.
 - Luck range, growth and whether any future effect modifies tie-break Luck.
 - Bleed-out/death and special enemy rules for targeting Downed characters.

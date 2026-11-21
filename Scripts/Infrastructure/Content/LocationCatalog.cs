@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text.Json;
 using Godot;
 
-public sealed class AcademyContent
+public sealed class LocationCatalog
 {
     private Dictionary<string, LocationContent> _locations =
         new Dictionary<string, LocationContent>(StringComparer.Ordinal);
@@ -16,12 +16,12 @@ public sealed class AcademyContent
     {
         if (string.IsNullOrWhiteSpace(path))
         {
-            throw new ArgumentException("Academy content path is required.", nameof(path));
+            throw new ArgumentException("Location content path is required.", nameof(path));
         }
 
         if (!FileAccess.FileExists(path))
         {
-            throw new InvalidOperationException("Academy content file was not found: " + path);
+            throw new InvalidOperationException("Location content file was not found: " + path);
         }
 
         string json = FileAccess.GetFileAsString(path);
@@ -32,7 +32,7 @@ public sealed class AcademyContent
     {
         if (string.IsNullOrWhiteSpace(json))
         {
-            throw new ArgumentException("Academy content JSON is required.", nameof(json));
+            throw new ArgumentException("Location content JSON is required.", nameof(json));
         }
 
         Dictionary<string, LocationContent> loadedLocations =
@@ -89,7 +89,7 @@ public sealed class AcademyContent
 
             if (loadedLocations.Count == 0)
             {
-                throw new InvalidOperationException("Academy content must contain at least one location.");
+                throw new InvalidOperationException("Location content must contain at least one location.");
             }
 
             ValidateLocationExits(loadedLocations);
@@ -100,7 +100,7 @@ public sealed class AcademyContent
         }
         catch (JsonException exception)
         {
-            throw new InvalidOperationException("Invalid academy content JSON.", exception);
+            throw new InvalidOperationException("Invalid location content JSON.", exception);
         }
     }
 
@@ -264,7 +264,7 @@ public sealed class AcademyContent
             string legacyDescription = data.GetString();
             if (string.IsNullOrWhiteSpace(legacyDescription))
             {
-                throw new InvalidOperationException("Academy location description cannot be empty.");
+                throw new InvalidOperationException("Location description cannot be empty.");
             }
 
             firstVisitDescription = legacyDescription;
@@ -288,7 +288,7 @@ public sealed class AcademyContent
 
         if (string.IsNullOrWhiteSpace(value))
         {
-            throw new InvalidOperationException("Academy content field is required: " + propertyName);
+            throw new InvalidOperationException("Location content field is required: " + propertyName);
         }
 
         return value;
@@ -328,11 +328,11 @@ public sealed class AcademyContent
         return actions.ToArray();
     }
 
-    
 
-    
 
-    
 
-    
+
+
+
+
 }

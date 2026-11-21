@@ -5,8 +5,8 @@ public static class StartingParty
 {
     private static readonly string[] _characterIds =
     {
-        "player-ari",
-        "bram",
+        "player_student",
+        "noah",
         "mira",
         "sera"
     };

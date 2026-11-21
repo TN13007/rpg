@@ -76,7 +76,7 @@ public sealed class CombatServiceTests
         Character player = TestCharacterFactory.CreatePlayer();
         Character enemy = TestCharacterFactory.CreateEnemy();
         CombatActionDefinition heavySwing = TestCharacterFactory.CreateEnemyCombatActions()
-            .Single(action => action.Id == "goblin_heavy_swing");
+            .Single(action => action.Id == "presence_heavy_swing");
 
         CombatService combat = new CombatService(
             player,
@@ -142,7 +142,7 @@ public sealed class CombatServiceTests
     }
 
     [Fact]
-    public void GuardSpendsStaminaAndReducesTheNextGoblinHit()
+    public void GuardSpendsStaminaAndReducesTheNextPresenceHit()
     {
         CombatService combat = TestCharacterFactory.CreateCombat(out Character player, out Character enemy);
         StartAtPlayerDecision(combat);
@@ -155,7 +155,7 @@ public sealed class CombatServiceTests
     }
 
     [Fact]
-    public void EvadeSpendsStaminaAndAvoidsTheNextGoblinHit()
+    public void EvadeSpendsStaminaAndAvoidsTheNextPresenceHit()
     {
         CombatService combat = TestCharacterFactory.CreateCombat(out Character player, out Character enemy);
         StartAtPlayerDecision(combat);
@@ -182,7 +182,7 @@ public sealed class CombatServiceTests
     }
 
     [Fact]
-    public void DefeatingGoblinEndsEncounterWithoutCounterattack()
+    public void DefeatingPresenceEndsEncounterWithoutCounterattack()
     {
         CombatService combat = TestCharacterFactory.CreateCombat(out Character player, out Character enemy, enemyHealth: 8);
         StartAtPlayerDecision(combat);
@@ -196,7 +196,7 @@ public sealed class CombatServiceTests
     }
 
     [Fact]
-    public void GoblinChoosesOnlyFromItsAuthoredActionSet()
+    public void PresenceChoosesOnlyFromItsAuthoredActionSet()
     {
         CombatService combat = TestCharacterFactory.CreateCombat(out Character player, out Character enemy, randomSeed: 17);
         StartAtPlayerDecision(combat);
@@ -204,9 +204,9 @@ public sealed class CombatServiceTests
         CombatEvent[] enemyEvents = AdvanceUntilPlayerDecision(combat);
         string[] allowed =
         {
-            "The goblin snaps out a quick jab.",
-            "The goblin commits to a heavy swing.",
-            "The goblin lands a staggering blow."
+            "The presence lunges forward without warning.",
+            "The presence slams into its target.",
+            "A pulse of pressure leaves its target momentarily disoriented."
         };
         Assert.Contains(enemyEvents, item => item.Type == CombatEventType.EnemyAction && allowed.Contains(item.Detail));
     }
@@ -248,10 +248,13 @@ public sealed class CombatServiceTests
         {
             Assert.Equal(member.Id, combat.GetSnapshot().ActiveCombatantId);
             CombatActionOption action = Assert.Single(combat.GetSnapshot().AvailableActions.Where(option =>
-                option.Id == "quick_strike" && option.TargetId == enemyA.Id));
+                option.Id == "quick_strike"));
+            Assert.Equal(2, action.Targets.Length);
             Assert.Equal(member.Id, action.ActorId);
+            CombatActionTargetOption selectedTarget = Assert.Single(
+                action.Targets.Where(target => target.Id == enemyA.Id));
             CombatResult actionResult = combat.ExecuteAction(new CombatActionRequest(
-                action.Id, action.TargetId, action.ActorId));
+                action.Id, selectedTarget.Id, action.ActorId));
             Assert.True(actionResult.Success);
             enemyEvents.AddRange(AdvanceUntilPlayerDecision(combat));
         }
@@ -312,11 +315,13 @@ public sealed class CombatServiceTests
         Assert.DoesNotContain(downedSnapshot.Timeline, item => item.Id == downed.Id);
 
         CombatActionOption reviveOption = Assert.Single(downedSnapshot.AvailableActions.Where(item =>
-            item.Id == "revive_ally" && item.TargetId == downed.Id));
+            item.Id == "revive_ally"));
+        CombatActionTargetOption reviveTarget = Assert.Single(
+            reviveOption.Targets.Where(target => target.Id == downed.Id));
         Assert.True(reviveOption.IsAvailable);
 
         CombatResult reviveResult = combat.ExecuteAction(
-            new CombatActionRequest("revive_ally", downed.Id, medic.Id));
+            new CombatActionRequest("revive_ally", reviveTarget.Id, medic.Id));
         Assert.True(reviveResult.Success);
         Assert.Equal(2, downed.Health);
         Assert.Equal(6, medic.Stamina);
@@ -336,17 +341,18 @@ public sealed class CombatServiceTests
         AdvanceUntilPlayerDecision(combat);
 
         Assert.Equal(medic.Id, combat.ActiveCombatantId);
-        PartyCombatStatus downedAgain = Assert.Single(
-            combat.GetSnapshot().Party.Where(item => item.Id == downed.Id));
-        Assert.Equal("Downed", downedAgain.Condition);
+        PartyCombatStatus revivedPartyMember = Assert.Single(
+            combat.GetSnapshot().Party, item => item.Id == downed.Id);
+        Assert.Equal("Wounded", revivedPartyMember.Condition);
+        Assert.Equal(2, revivedPartyMember.CurrentHealth);
         Assert.DoesNotContain(combat.GetSnapshot().AvailableActions, item =>
-            item.Id == "revive_ally" && item.TargetId == downed.Id);
+            item.Id == "revive_ally" && item.Targets.Any(target => target.Id == downed.Id));
 
         CombatResult repeatedRevive = combat.ExecuteAction(
             new CombatActionRequest("revive_ally", downed.Id, medic.Id));
         Assert.False(repeatedRevive.Success);
         Assert.Equal(6, medic.Stamina);
-        Assert.Equal(0, downed.Health);
+        Assert.Equal(2, downed.Health);
     }
 
     [Fact]

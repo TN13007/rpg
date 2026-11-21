@@ -21,7 +21,7 @@ public sealed class ExplorationFlowController
     private readonly NpcInteractionQuery _npcInteractionQuery;
     private readonly Func<ActionDefinition, bool> _startEncounter;
 
-    private string _currentLocationId = "carriage";
+    private string _currentLocationId = "university_campus";
     private LocationEventDefinition _activeLocationEvent;
     private readonly HashSet<string> _visitedLocationIds = new HashSet<string>(StringComparer.Ordinal);
     private string _descriptionLocationId;
@@ -233,11 +233,11 @@ public sealed class ExplorationFlowController
         string description = tab switch
         {
             "Profile" => GetProfileDescription(),
-            "Skills" => "Techniques available to a novice adventurer.",
+            "Skills" => "Techniques you have practiced and can use.",
             "Inventory" => "Items and equipment carried by your character.",
-            "Relationships" => "People you have met during your time at the academy.",
+            "Relationships" => "People you have met around campus and the city.",
             "Goals" => "Your current assignments and short-term objectives.",
-            "Journal" => "A record of meaningful events from your academy life.",
+            "Journal" => "A record of meaningful events from your student life.",
             _ => "Prototype preferences and game settings."
         };
 
@@ -245,14 +245,14 @@ public sealed class ExplorationFlowController
         _gameModeController.ShowExploration();
         _storyPanel.ShowContent(
             tab,
-            "ADVENTURER RECORD",
+            "STUDENT RECORD",
             description,
             Array.Empty<ActionChoiceViewData>(),
             GameClockDisplayFormatter.Format(_gameClock));
         _storyPanel.ShowLocationButton(true);
     }
 
-    public bool StartDebugGoblinEncounter(ActionDefinition entryAction)
+    public bool StartDebugEncounter(ActionDefinition entryAction)
     {
         if (entryAction == null)
         {
@@ -399,7 +399,7 @@ public sealed class ExplorationFlowController
     {
         CharacterStats stats = _player.Stats;
 
-        return "A summary of your adventurer and current condition."
+        return "A summary of your student profile and current condition."
             + "\n\nATTRIBUTES"
             + "\nStrength: " + stats.Strength
             + "\nAgility: " + stats.Agility

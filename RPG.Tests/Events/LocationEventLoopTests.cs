@@ -4,47 +4,46 @@ using Xunit;
 
 public sealed class LocationEventLoopTests
 {
-    private readonly AcademyContent _academy = new AcademyContent();
+    private readonly LocationCatalog _locations = new LocationCatalog();
 
     [Fact]
-    public void AcademyContent_LoadsFirstAndReturnVisitDescriptions()
+    public void LocationCatalog_LoadsFirstAndReturnVisitDescriptions()
     {
         const string json = @"{""locations"":[{""id"":""gate"",""name"":""Gate"",""region"":""REGION"",""description"":{""firstVisit"":""A long first introduction."",""returnVisit"":""A short familiar description.""},""exits"":[],""actions"":[]}]}";
 
-        _academy.LoadJson(json);
+        _locations.LoadJson(json);
 
-        LocationContent location = _academy.Get("gate");
+        LocationContent location = _locations.Get("gate");
         Assert.Equal("A long first introduction.", location.GetDescription(true));
         Assert.Equal("A short familiar description.", location.GetDescription(false));
     }
 
     [Fact]
-    public void AcademyContent_LegacyStringDescriptionRemainsCompatible()
+    public void LocationCatalog_LegacyStringDescriptionRemainsCompatible()
     {
         const string json = @"{""locations"":[{""id"":""gate"",""name"":""Gate"",""region"":""REGION"",""description"":""The old single description."",""exits"":[],""actions"":[]}]}";
 
-        _academy.LoadJson(json);
+        _locations.LoadJson(json);
 
-        LocationContent location = _academy.Get("gate");
+        LocationContent location = _locations.Get("gate");
         Assert.Equal("The old single description.", location.GetDescription(true));
         Assert.Equal("The old single description.", location.GetDescription(false));
     }
 
     [Fact]
-    public void AcademyContent_LoadsCourtyardEventAndItsChoices()
+    public void LocationCatalog_LoadsApartmentIncidentAndItsChoices()
     {
-        LoadAcademyContent();
+        LoadLocationCatalog();
+        LocationContent apartmentBlock = _locations.Get("apartment_block");
 
-        LocationContent courtyard = _academy.Get("courtyard");
-
-        Assert.Single(courtyard.Events);
-        Assert.Equal("courtyard_goblin_ambush", courtyard.Events[0].Id);
-        Assert.Equal(0, courtyard.Events[0].Chance);
-        Assert.Equal(2, courtyard.Events[0].Choices.Length);
-        Assert.Equal("encounter_goblin", courtyard.Events[0].Choices[0].EncounterActionId);
-        Assert.Null(courtyard.Events[0].Choices[1].EncounterActionId);
-        Assert.Equal(10, courtyard.Events[0].Choices[1].Action.DurationMinutes);
-        Assert.Equal(2.0, courtyard.Events[0].Choices[1].Action.ActivityMet);
+        Assert.Single(apartmentBlock.Events);
+        Assert.Equal("apartment_213_incident", apartmentBlock.Events[0].Id);
+        Assert.Equal(1, apartmentBlock.Events[0].Chance);
+        Assert.Equal(3, apartmentBlock.Events[0].Choices.Length);
+        Assert.Equal("listen_from_hallway", apartmentBlock.Events[0].Choices[0].Id);
+        Assert.Null(apartmentBlock.Events[0].Choices[0].EncounterActionId);
+        Assert.Equal(10, apartmentBlock.Events[0].Choices[0].Action.DurationMinutes);
+        Assert.Equal("enter_unit_213", apartmentBlock.Events[0].Choices[1].Id);
     }
 
     [Fact]
@@ -70,7 +69,7 @@ public sealed class LocationEventLoopTests
     public void EventService_RequiredNpcMustBePresentAndAbsenceDoesNotConsumeDailyAttempt()
     {
         LocationEventDefinition locationEvent = CreateEvent("mira_arrival", 1, "mira");
-        LocationContent location = CreateLocation("mira_meeting_point", locationEvent);
+        LocationContent location = CreateLocation("campus_cafe", locationEvent);
         LocationEventService service = new LocationEventService(new Random(1));
 
         bool absent = service.TryTrigger(
@@ -87,7 +86,7 @@ public sealed class LocationEventLoopTests
     }
 
     [Fact]
-    public void AcademyContent_LoadsEventNpcRequirement()
+    public void LocationCatalog_LoadsEventNpcRequirement()
     {
         string events = "[{ \"id\": \"mira_arrival\", \"title\": \"Mira arrives\","
             + " \"region\": \"REGION\", \"description\": \"Mira is here.\","
@@ -95,9 +94,9 @@ public sealed class LocationEventLoopTests
             + " \"choices\": [{ \"id\": \"say_hello\", \"label\": \"Say hello\","
             + " \"durationMinutes\": 1 }] }]";
 
-        _academy.LoadJson(CreateContentJson(events));
+        _locations.LoadJson(CreateContentJson(events));
 
-        Assert.Equal("mira", _academy.Get("courtyard").Events[0].RequiredNpcId);
+        Assert.Equal("mira", _locations.Get("courtyard").Events[0].RequiredNpcId);
     }
 
     [Fact]
@@ -264,15 +263,15 @@ public sealed class LocationEventLoopTests
     }
 
     [Fact]
-    public void TravelToCourtyard_TriggersEvent_AndSneakingAppliesCostAndTime()
+    public void TravelToApartmentBlock_TriggersEvent_AndListeningAppliesTime()
     {
-        LoadAcademyContent();
+        LoadLocationCatalog();
         Character player = TestCharacterFactory.CreatePlayer(agility: 30);
         GameClock clock = new GameClock();
         ActionExecutionService actionService = CreateActionService();
 
         bool travelled = actionService.TryExecute(
-            _academy.Travel,
+            _locations.Travel,
             player,
             clock,
             out string travelReason,
@@ -283,23 +282,23 @@ public sealed class LocationEventLoopTests
         Assert.Equal(1.08, player.Fatigue, 6);
         Assert.Equal(8, player.Stamina);
 
-        LocationContent courtyard = WithGuaranteedEvents(_academy.Get("courtyard"));
+        LocationContent apartmentBlock = WithGuaranteedEvents(_locations.Get("apartment_block"));
         LocationEventService eventService = new LocationEventService(new Random(1));
-        bool triggered = eventService.TryTrigger(courtyard, clock.Day, player.CanAct, out LocationEventDefinition locationEvent);
+        bool triggered = eventService.TryTrigger(apartmentBlock, clock.Day, player.CanAct, out LocationEventDefinition locationEvent);
 
         Assert.True(triggered);
         Assert.NotNull(locationEvent);
 
-        LocationEventChoiceDefinition sneakChoice = FindChoice(locationEvent, "event_goblin_sneak");
-        bool sneaked = actionService.TryExecute(
-            sneakChoice.Action,
+        LocationEventChoiceDefinition listenChoice = FindChoice(locationEvent, "listen_from_hallway");
+        bool listened = actionService.TryExecute(
+            listenChoice.Action,
             player,
             clock,
-            out string sneakReason,
-            out int sneakDuration);
+            out string listenReason,
+            out int listenDuration);
 
-        Assert.True(sneaked, sneakReason);
-        Assert.Equal(10, sneakDuration);
+        Assert.True(listened, listenReason);
+        Assert.Equal(10, listenDuration);
         Assert.Equal(1.7466666667, player.Fatigue, 6);
         Assert.Equal(8, player.Stamina);
         Assert.Equal(469, clock.MinutesOfDay);
@@ -307,46 +306,35 @@ public sealed class LocationEventLoopTests
     }
 
     [Fact]
-    public void ConfrontChoice_SpendsInvestigationCostAndStartsCombat()
+    public void EnterChoiceAppliesItsAuthoredCostWithoutForcingCombat()
     {
-        LoadAcademyContent();
-        Character player = TestCharacterFactory.CreatePlayer(agility: 30);
-        Character enemy = TestCharacterFactory.CreateEnemy();
+        LoadLocationCatalog();
+        LocationContent apartmentBlock = WithGuaranteedEvents(_locations.Get("apartment_block"));
+        LocationEventService eventService = new LocationEventService(new Random(1));
+        Assert.True(eventService.TryTrigger(apartmentBlock, 1, true, out LocationEventDefinition locationEvent));
+
+        LocationEventChoiceDefinition enterChoice = FindChoice(locationEvent, "enter_unit_213");
+        Assert.Null(enterChoice.EncounterActionId);
+
+        Character player = TestCharacterFactory.CreatePlayer();
         GameClock clock = new GameClock();
         ActionExecutionService actionService = CreateActionService();
-
-        Assert.True(actionService.TryExecute(_academy.Travel, player, clock, out string travelReason, out _), travelReason);
-
-        LocationContent courtyard = WithGuaranteedEvents(_academy.Get("courtyard"));
-        LocationEventService eventService = new LocationEventService(new Random(1));
-        Assert.True(eventService.TryTrigger(courtyard, clock.Day, player.CanAct, out LocationEventDefinition locationEvent));
-
-        LocationEventChoiceDefinition confrontChoice = FindChoice(locationEvent, "event_goblin_attack");
-        Assert.Equal("encounter_goblin", confrontChoice.EncounterActionId);
-
-        ActionDefinition encounterAction = FindAction(courtyard, confrontChoice.EncounterActionId);
-        Assert.True(actionService.TryExecute(encounterAction, player, clock, out string actionReason, out _), actionReason);
-        Assert.Equal(1.08, player.Fatigue, 6);
-        Assert.Equal(8, player.Stamina);
-
-        CombatService combat = new CombatService(player, enemy, TestCharacterFactory.CreateCombatActions());
-        Assert.True(combat.TryStartEncounter(out string combatReason), combatReason);
-        Assert.Equal(40, enemy.Health);
-        Assert.True(player.CanAct);
+        Assert.True(actionService.TryExecute(enterChoice.Action, player, clock, out string reason, out int duration), reason);
+        Assert.Equal(5, duration);
     }
 
     [Fact]
     public void HighFatigueAndZeroStamina_DoNotBlockEventChoice()
     {
-        LoadAcademyContent();
-        LocationEventDefinition locationEvent = _academy.Get("courtyard").Events[0];
-        LocationEventChoiceDefinition sneakChoice = FindChoice(locationEvent, "event_goblin_sneak");
+        LoadLocationCatalog();
+        LocationEventDefinition locationEvent = _locations.Get("apartment_block").Events[0];
+        LocationEventChoiceDefinition listenChoice = FindChoice(locationEvent, "listen_from_hallway");
         Character player = TestCharacterFactory.CreatePlayer(fatigue: 100, stamina: 0);
         GameClock clock = new GameClock();
         ActionExecutionService actionService = CreateActionService();
 
         bool result = actionService.TryExecute(
-            sneakChoice.Action,
+            listenChoice.Action,
             player,
             clock,
             out string reason,
@@ -366,7 +354,7 @@ public sealed class LocationEventLoopTests
         string json = CreateContentJson(
             "[{ \"id\": \"event\", \"title\": \"Event\", \"region\": \"REGION\", \"description\": \"Description\", \"chance\": 1, \"choices\": [{ \"id\": \"choice\", \"label\": \"Choice\", \"durationMinutes\": 0, \"encounterActionId\": \"missing\" }] }]");
 
-        Assert.Throws<InvalidOperationException>(() => _academy.LoadJson(json));
+        Assert.Throws<InvalidOperationException>(() => _locations.LoadJson(json));
     }
 
     [Fact]
@@ -378,7 +366,7 @@ public sealed class LocationEventLoopTests
             + "]";
         string json = CreateContentJson(eventJson);
 
-        Assert.Throws<InvalidOperationException>(() => _academy.LoadJson(json));
+        Assert.Throws<InvalidOperationException>(() => _locations.LoadJson(json));
     }
 
     private static LocationContent WithGuaranteedEvents(LocationContent location)
@@ -472,9 +460,9 @@ public sealed class LocationEventLoopTests
             + "}";
     }
 
-    private void LoadAcademyContent()
+    private void LoadLocationCatalog()
     {
-        string path = System.IO.Path.Combine(System.AppContext.BaseDirectory, "Data", "AcademyLocations.json");
-        _academy.LoadJson(System.IO.File.ReadAllText(path));
+        string path = System.IO.Path.Combine(System.AppContext.BaseDirectory, "Data", "Locations.json");
+        _locations.LoadJson(System.IO.File.ReadAllText(path));
     }
 }
