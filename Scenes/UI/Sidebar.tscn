@@ -1,12 +1,14 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://Scripts/Presentation/UI/Sidebar.cs" id="1"]
 [ext_resource type="Script" path="res://Scripts/Presentation/UI/SidebarButton.cs" id="2"]
+[ext_resource type="PackedScene" path="res://Scenes/UI/Combat/EnemyCard.tscn" id="3"]
 
 [node name="Sidebar" type="PanelContainer"]
 custom_minimum_size = Vector2(215, 0)
 layout_mode = 2
 script = ExtResource("1")
+EnemyCardScene = ExtResource("3")
 
 [node name="Margin" type="MarginContainer" parent="."]
 layout_mode = 2
