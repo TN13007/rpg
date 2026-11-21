@@ -77,19 +77,19 @@ public sealed class ActionExecutionTests
         LoadAcademyContent();
         Character actor = TestCharacterFactory.CreatePlayer(mood: 40);
         GameClock clock = new GameClock();
-        ActionDefinition action = FindAction("talk_mira");
+        ActionDefinition action = FindNpcInteraction("mira", "talk");
 
         ActionEffectDefinition moodEffect = Assert.Single(action.Effects);
         Assert.Equal(ActionEffectType.ChangeMood, moodEffect.Type);
-        Assert.Equal(3, moodEffect.Amount);
+        Assert.Equal(2, moodEffect.Amount);
 
         bool success = _service.TryExecute(
             action, actor, clock, out string reason, out int duration);
 
         Assert.True(success, reason);
-        Assert.Equal(15, duration);
-        Assert.Equal(43, actor.Mood);
-        Assert.Equal(465, clock.MinutesOfDay);
+        Assert.Equal(10, duration);
+        Assert.Equal(42, actor.Mood);
+        Assert.Equal(460, clock.MinutesOfDay);
     }
 
     [Fact]
@@ -236,6 +236,13 @@ public sealed class ActionExecutionTests
                 Assert.InRange(action.ActivityMet, 0, 20);
                 Assert.True(action.DurationMinutes >= 0);
             }
+        }
+
+        foreach (NpcInteractionDefinition interaction in LoadNpcInteractions().All)
+        {
+            actionCount++;
+            Assert.InRange(interaction.Action.ActivityMet, 0, 20);
+            Assert.True(interaction.Action.DurationMinutes >= 0);
         }
 
         Assert.Equal(19, actionCount);
@@ -424,6 +431,26 @@ public sealed class ActionExecutionTests
         }
 
         throw new InvalidOperationException("Action not found: " + actionId);
+    }
+
+    private static ActionDefinition FindNpcInteraction(string characterId, string actionId)
+    {
+        foreach (NpcInteractionDefinition interaction in LoadNpcInteractions().GetForCharacter(characterId))
+        {
+            if (interaction.Action.Id == actionId)
+            {
+                return interaction.Action;
+            }
+        }
+
+        throw new InvalidOperationException(
+            "NPC interaction not found: " + characterId + "/" + actionId);
+    }
+
+    private static NpcInteractionCatalog LoadNpcInteractions()
+    {
+        string path = Path.Combine(AppContext.BaseDirectory, "Data", "NpcInteractions.json");
+        return NpcInteractionDataLoader.LoadJson(File.ReadAllText(path));
     }
 
     private static CharacterData LoadPlayerData()
