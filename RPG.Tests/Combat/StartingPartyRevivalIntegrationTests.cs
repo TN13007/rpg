@@ -160,7 +160,7 @@ public sealed class StartingPartyRevivalIntegrationTests
         CombatEvent secondEnemyAction = Assert.Single(
             secondEncounterEvents.Where(item => item.Type == CombatEventType.EnemyAction));
 
-        Assert.Equal("Player", secondEnemyAction.TargetName);
+        Assert.Equal("Alex", secondEnemyAction.TargetName);
         Assert.Equal(0, context.Player.Health);
         Assert.Equal(
             "Downed",

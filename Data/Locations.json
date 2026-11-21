@@ -279,7 +279,7 @@
               "durationMinutes": 10,
               "effects": [],
               "feedback": "The crying returns in short bursts, each separated by the same interval. You notice that the sound seems to come from inside the bedroom, not the hallway.",
-              "activityMet": 1
+              "activityMet": 2
             },
             {
               "id": "enter_unit_213",

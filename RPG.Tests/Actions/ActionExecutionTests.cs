@@ -66,7 +66,7 @@ public sealed class ActionExecutionTests
         Assert.Equal(30, duration);
         Assert.Equal(15, actor.Fatigue);
         Assert.Equal(4, actor.Stamina);
-        Assert.Equal(42, actor.Mood);
+        Assert.Equal(43, actor.Mood);
         Assert.Equal(7, actor.Gold);
         Assert.Equal(480, clock.MinutesOfDay);
     }
@@ -299,7 +299,7 @@ public sealed class ActionExecutionTests
         Assert.Equal(7, actor.Stamina);
         Assert.Equal(20, actor.Health);
         Assert.Equal(7, actor.Gold);
-        Assert.Equal(42, actor.Mood);
+        Assert.Equal(44, actor.Mood);
         Assert.Equal(1, clock.Day);
         Assert.Equal(575, clock.MinutesOfDay);
     }

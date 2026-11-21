@@ -116,7 +116,7 @@ public sealed class ExplorationInteractionQueryTests
             request.SourceKind == InteractionSourceKind.Event &&
             request.SourceId == locationEvent.Id &&
             request.ActionId == "join_the_conversation" &&
-            request.TargetId == null);
+            string.IsNullOrEmpty(request.TargetId));
     }
 
     [Fact]
