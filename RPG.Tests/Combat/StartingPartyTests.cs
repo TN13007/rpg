@@ -157,6 +157,7 @@ public sealed class StartingPartyTests
         return new GameContentCatalog(
             new AcademyContent(),
             new CharacterCatalog(characters),
-            new CombatActionCatalog(TestCharacterFactory.CreateCombatActions()));
+            new CombatActionCatalog(TestCharacterFactory.CreateCombatActions()),
+            new NpcScheduleCatalog(Array.Empty<NpcScheduleDefinition>()));
     }
 }

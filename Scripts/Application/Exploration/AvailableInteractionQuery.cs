@@ -8,7 +8,8 @@ public sealed class AvailableInteractionQuery
         PlayerActionDefinition[] playerActions,
         LocationContent location,
         Func<string, LocationContent> locationResolver,
-        ActionDefinition travelAction)
+        ActionDefinition travelAction,
+        ISet<string> presentNpcIds = null)
     {
         if (player == null) throw new ArgumentNullException(nameof(player));
         if (playerActions == null) throw new ArgumentNullException(nameof(playerActions));
@@ -24,20 +25,27 @@ public sealed class AvailableInteractionQuery
             return interactions;
         }
 
-        AddLocationActions(interactions, location);
+        AddLocationActions(interactions, location, presentNpcIds);
         AddPlayerActions(interactions, player, playerActions, location.Id);
         AddTravelActions(interactions, location, locationResolver, travelAction);
 
         return interactions;
     }
 
-    public IReadOnlyList<AvailableInteraction> Query(LocationEventDefinition locationEvent)
+    public IReadOnlyList<AvailableInteraction> Query(
+        LocationEventDefinition locationEvent,
+        ISet<string> presentNpcIds = null)
     {
         if (locationEvent == null) throw new ArgumentNullException(nameof(locationEvent));
 
         List<AvailableInteraction> interactions = new List<AvailableInteraction>();
         foreach (LocationEventChoiceDefinition choice in locationEvent.Choices)
         {
+            if (!IsNpcRequirementSatisfied(choice.Action, presentNpcIds))
+            {
+                continue;
+            }
+
             interactions.Add(new AvailableInteraction(
                 InteractionSourceKind.Event,
                 locationEvent.Id,
@@ -50,11 +58,12 @@ public sealed class AvailableInteractionQuery
 
     private static void AddLocationActions(
         List<AvailableInteraction> interactions,
-        LocationContent location)
+        LocationContent location,
+        ISet<string> presentNpcIds)
     {
         foreach (ActionDefinition action in location.Actions)
         {
-            if (!IsEventEncounterAction(location, action.Id))
+            if (!IsEventEncounterAction(location, action.Id) && IsNpcRequirementSatisfied(action, presentNpcIds))
             {
                 interactions.Add(new AvailableInteraction(
                     InteractionSourceKind.Location, location.Id, action.Id, string.Empty, action));
@@ -128,6 +137,12 @@ public sealed class AvailableInteractionQuery
             interactions.Add(new AvailableInteraction(
                 InteractionSourceKind.Travel, location.Id, travelAction.Id, exitId, travelChoice));
         }
+    }
+
+    private static bool IsNpcRequirementSatisfied(ActionDefinition action, ISet<string> presentNpcIds)
+    {
+        return string.IsNullOrWhiteSpace(action.RequiredNpcId)
+            || (presentNpcIds != null && presentNpcIds.Contains(action.RequiredNpcId));
     }
 
     private static bool HasReviveEffect(ActionDefinition action)

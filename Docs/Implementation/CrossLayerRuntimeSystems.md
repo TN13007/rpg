@@ -5,7 +5,7 @@
 
 ## 1. Current prototype overview
 
-The current build combines an authored, location-based Academy life-simulation slice with the existing four-person Tactical Timeline combat prototype. The Opening Day path exercises Location, Travel, Action, Effect and Location Event content; it is not yet a general NPC or autonomous world simulation.
+The current build combines an authored, location-based Academy life-simulation slice, a bounded daily NPC presence schedule and the four-person Tactical Timeline combat prototype. The Opening Day path exercises Location, Travel, Action, Effect and Location Event content. NPC presence is schedule-driven, but NPCs do not yet make autonomous decisions or simulate needs, memory or relationships.
 
 Implemented areas include:
 - Character state and resources, plus the Ari/Bram/Mira/Sera StartingParty composition.
@@ -22,6 +22,7 @@ Implemented areas include:
 | Concept | Current meaning |
 |---|---|
 | Character | Runtime participant with character data and mutable state |
+| NPC Schedule | Daily authored time ranges that map a Character ID to a Location and visible activity |
 | Player | The controlled Character in the current prototype |
 | Location | Current place that owns configured actions, exits and event definitions |
 | Action | Authored operation with supported duration, costs and effects |
@@ -56,7 +57,15 @@ The current prototype uses location-based navigation rather than free-roam movem
 - Travel changes the current Location; the destination's configured Event pool may then be evaluated.
 - The current implementation does not retain a general persistent Interaction Context for arbitrary NPCs or objects.
 
-The current choice sources include Player Actions, Location Actions, Travel choices and Event choices. Generic target interactions are not a generalized runtime feature.
+The current choice sources include Player Actions, Location Actions, NPC interactions, Travel choices and Event choices. Character-specific interactions are loaded from `Data/NpcInteractions.json`, queried for the selected NPC and current Location, and displayed after the player chooses `See around` and selects a person. The selection is revalidated against current NPC presence before execution. Event definitions and choices may still declare `requiredNpcId` for authored, situation-specific scenes; those requirements are checked before a choice is offered and again when selected. Location Actions describe the place itself rather than embedding actions for individual NPCs.
+
+### NPC presence and daily schedules
+
+`GameContentLoader` loads `Data/NpcSchedules.json` into `NpcScheduleCatalog`. Each schedule references an existing Character ID and contains non-overlapping half-open time intervals (`startMinute` inclusive, `endMinute` exclusive), a Location ID and an authored activity description. `GameContentCatalog` validates Character, Location and required-NPC references before the runtime starts.
+
+`NpcPresenceQuery` combines the current Location, `GameClock.MinutesOfDay`, schedule definitions and Character data. `ExplorationFlowController` uses the result to offer `See around`, display the people currently present and revalidate the selected NPC before an interaction executes. Events with an event-level NPC requirement are not triggered while that NPC is absent; an unavailable NPC-specific Event does not consume the Location's daily event attempt. Event choice NPC requirements are checked again when selected. Presence is evaluated when the current context is shown; there is no per-frame NPC movement simulation.
+
+The current schedule repeats every in-game day because `GameClock` has a day index but no weekday calendar. An unscheduled time range means the NPC is not present at a player-facing Location. The first authored schedule is Mira's; other Characters need an explicit schedule before they can be selected through `See around`. NPC interactions can apply to every scheduled Location or specify an explicit `availableLocationIds` list.
 
 When the controlled character is at zero Health, the Exploration query suppresses normal Player, Location and Travel choices and exposes only an authored recovery Player Action. The current `Request emergency rescue` action advances GameClock by 180 minutes and revives the character with 5 HP. The action execution service permits this single-effect Revive action only while the character is incapacitated; normal interactions return after recovery.
 
@@ -91,6 +100,7 @@ The intended rules and open decisions are defined in [Design/Combat](../Design/C
 - Authored content IDs use `snake_case`.
 - Serialized enum-like values use `PascalCase`.
 - Definitions may reference other definitions by stable ID; loaders/catalogs validate duplicate IDs and unresolved references.
+- NPC schedules reference Character and Location IDs; `requiredNpcId` on an Action must reference a Character with a loaded schedule.
 - Content can select only behavior already supported by the runtime. JSON is not an arbitrary scripting language.
 
 For exact file locations and ownership, see [Cross-Layer Architecture](CrossLayerArchitecture.md). For current screen and ViewData boundaries, see [Presentation User Interface](PresentationUserInterface.md).

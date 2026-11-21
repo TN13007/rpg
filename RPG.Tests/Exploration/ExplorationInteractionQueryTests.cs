@@ -133,6 +133,70 @@ public sealed class ExplorationInteractionQueryTests
         Assert.False(ActionSelectionRequest.TryParse("travel:courtyard", out _));
     }
 
+    [Fact]
+    public void Query_OffersNpcRequiredLocationActionOnlyWhenNpcIsPresent()
+    {
+        Character player = TestCharacterFactory.CreatePlayer();
+        ActionDefinition talkToMira = new ActionDefinition(
+            "talk_to_mira", "Talk with Mira", 10, requiredNpcId: "mira");
+        LocationContent location = new LocationContent(
+            "canteen",
+            "Canteen",
+            "ACADEMY",
+            "A canteen.",
+            Array.Empty<string>(),
+            new[] { talkToMira });
+        AvailableInteractionQuery query = new AvailableInteractionQuery();
+        ActionDefinition travel = new ActionDefinition("travel", "Travel", 10);
+
+        IReadOnlyList<AvailableInteraction> absent = query.Query(
+            player,
+            Array.Empty<PlayerActionDefinition>(),
+            location,
+            _ => location,
+            travel,
+            new HashSet<string>(StringComparer.Ordinal));
+        IReadOnlyList<AvailableInteraction> present = query.Query(
+            player,
+            Array.Empty<PlayerActionDefinition>(),
+            location,
+            _ => location,
+            travel,
+            new HashSet<string>(StringComparer.Ordinal) { "mira" });
+
+        Assert.DoesNotContain(absent, item => item.ActionId == "talk_to_mira");
+        Assert.Contains(present, item => item.ActionId == "talk_to_mira");
+    }
+
+    [Fact]
+    public void EventChoices_OfferNpcRequiredChoiceOnlyWhenNpcIsPresent()
+    {
+        ActionDefinition joinMira = new ActionDefinition(
+            "join_mira", "Join Mira", 10, requiredNpcId: "mira");
+        ActionDefinition joinStudents = new ActionDefinition("join_students", "Join other students", 10);
+        LocationEventDefinition locationEvent = new LocationEventDefinition(
+            "canteen_arrival",
+            "A place to sit",
+            "CANTEEN",
+            "Students are looking for seats.",
+            1.0,
+            new[]
+            {
+                new LocationEventChoiceDefinition("join_mira", joinMira),
+                new LocationEventChoiceDefinition("join_students", joinStudents)
+            });
+        AvailableInteractionQuery query = new AvailableInteractionQuery();
+
+        IReadOnlyList<AvailableInteraction> absent = query.Query(
+            locationEvent, new HashSet<string>(StringComparer.Ordinal));
+        IReadOnlyList<AvailableInteraction> present = query.Query(
+            locationEvent, new HashSet<string>(StringComparer.Ordinal) { "mira" });
+
+        Assert.DoesNotContain(absent, item => item.ActionId == "join_mira");
+        Assert.Contains(absent, item => item.ActionId == "join_students");
+        Assert.Contains(present, item => item.ActionId == "join_mira");
+    }
+
     private void LoadContent()
     {
         _academy.LoadJson(File.ReadAllText(

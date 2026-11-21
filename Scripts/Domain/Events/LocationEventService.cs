@@ -21,7 +21,8 @@ public sealed class LocationEventService
         LocationContent location,
         int day,
         bool canAct,
-        out LocationEventDefinition triggeredEvent)
+        out LocationEventDefinition triggeredEvent,
+        ISet<string> presentNpcIds = null)
     {
         if (location == null)
         {
@@ -51,8 +52,7 @@ public sealed class LocationEventService
             return false;
         }
 
-        _lastAttemptedDayByLocation[location.Id] = day;
-
+        List<LocationEventDefinition> eligibleEvents = new List<LocationEventDefinition>();
         foreach (LocationEventDefinition locationEvent in location.Events)
         {
             if (locationEvent == null)
@@ -60,6 +60,24 @@ public sealed class LocationEventService
                 throw new ArgumentException("Location events cannot contain null values.", nameof(location));
             }
 
+            if (!string.IsNullOrWhiteSpace(locationEvent.RequiredNpcId) &&
+                (presentNpcIds == null || !presentNpcIds.Contains(locationEvent.RequiredNpcId)))
+            {
+                continue;
+            }
+
+            eligibleEvents.Add(locationEvent);
+        }
+
+        if (eligibleEvents.Count == 0)
+        {
+            return false;
+        }
+
+        _lastAttemptedDayByLocation[location.Id] = day;
+
+        foreach (LocationEventDefinition locationEvent in eligibleEvents)
+        {
             if (locationEvent.Chance <= 0)
             {
                 continue;

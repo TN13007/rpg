@@ -1,0 +1,36 @@
+{
+  "interactions": [
+    {
+      "characterId": "mira",
+      "id": "talk",
+      "label": "Talk with Mira",
+      "availableLocationIds": [],
+      "durationMinutes": 10,
+      "effects": [
+        {
+          "type": "ChangeMood",
+          "amount": 2
+        }
+      ],
+      "feedback": "Mira makes a little room for you and asks how your first day at the Academy is going.",
+      "activityMet": 1.2
+    },
+    {
+      "characterId": "mira",
+      "id": "join_mira_for_lunch",
+      "label": "Join Mira's table",
+      "availableLocationIds": [
+        "canteen"
+      ],
+      "durationMinutes": 15,
+      "effects": [
+        {
+          "type": "ChangeMood",
+          "amount": 2
+        }
+      ],
+      "feedback": "Mira introduces you to the students at her table. Conversation turns to the ceremony and what everyone hopes to explore.",
+      "activityMet": 1.2
+    }
+  ]
+}

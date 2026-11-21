@@ -39,6 +39,7 @@ public sealed class LocationEventDefinition
     public string Description { get; }
     public double Chance { get; }
     public LocationEventChoiceDefinition[] Choices { get; }
+    public string RequiredNpcId { get; }
 
     public LocationEventDefinition(
         string id,
@@ -46,7 +47,8 @@ public sealed class LocationEventDefinition
         string region,
         string description,
         double chance,
-        LocationEventChoiceDefinition[] choices)
+        LocationEventChoiceDefinition[] choices,
+        string requiredNpcId = null)
     {
         if (string.IsNullOrWhiteSpace(id))
         {
@@ -98,5 +100,6 @@ public sealed class LocationEventDefinition
         Description = description;
         Chance = chance;
         Choices = (LocationEventChoiceDefinition[])choices.Clone();
+        RequiredNpcId = string.IsNullOrWhiteSpace(requiredNpcId) ? null : requiredNpcId;
     }
 }

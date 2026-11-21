@@ -71,7 +71,11 @@ public sealed class CombatActionContentTests
             combatActionIds: new[] { "unknown_action" });
         CharacterCatalog characters = new CharacterCatalog(new[] { character });
         CombatActionCatalog actions = new CombatActionCatalog(TestCharacterFactory.CreateCombatActions());
-        Assert.Throws<KeyNotFoundException>(() => new GameContentCatalog(academy, characters, actions));
+        Assert.Throws<KeyNotFoundException>(() => new GameContentCatalog(
+            academy,
+            characters,
+            actions,
+            new NpcScheduleCatalog(Array.Empty<NpcScheduleDefinition>())));
     }
 
     [Fact]

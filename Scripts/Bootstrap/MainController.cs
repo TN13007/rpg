@@ -53,6 +53,10 @@ public partial class MainController : Control
         CombatService combatService = new CombatService(encounterCombatants);
         CombatPresentationMapper combatPresentationMapper = new CombatPresentationMapper();
         LocationEventService locationEventService = new LocationEventService();
+        NpcPresenceQuery npcPresenceQuery = new NpcPresenceQuery(
+            content.NpcSchedules.All,
+            content.Characters.All);
+        NpcInteractionQuery npcInteractionQuery = new NpcInteractionQuery(content.NpcInteractions);
 
         _gameModeController = new GameModeController(storyPanel, combatPanel);
         CombatSessionService combatSessionService = new CombatSessionService(
@@ -73,7 +77,8 @@ public partial class MainController : Control
             storyPanel, characterPanel, _gameModeController, player,
             playerData.PlayerActions, content.Locations, content.GetLocation,
             content.Travel, gameClock, actionExecutionService, availableInteractionQuery,
-            actionChoiceMapper, locationEventService, _combatController.StartGoblinEncounter);
+            actionChoiceMapper, locationEventService, npcPresenceQuery, npcInteractionQuery,
+            _combatController.StartGoblinEncounter);
 
         _sidebar.TabSelected += OpenTab;
         _sidebar.DebugGoblinEncounterRequested += StartDebugGoblinEncounter;
