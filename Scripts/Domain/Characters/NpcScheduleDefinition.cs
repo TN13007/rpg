@@ -1,12 +1,22 @@
 using System;
 
+/// <summary>Defines the npc schedule entry data and its validation rules.</summary>
 public sealed class NpcScheduleEntryDefinition
 {
+    /// <summary>Gets the start minute.</summary>
     public int StartMinute { get; }
+    /// <summary>Gets the end minute.</summary>
     public int EndMinute { get; }
+    /// <summary>Gets the location id.</summary>
     public string LocationId { get; }
+    /// <summary>Gets the activity description.</summary>
     public string ActivityDescription { get; }
 
+    /// <summary>Initializes a new instance of <see cref="NpcScheduleEntryDefinition"/>.</summary>
+    /// <param name="startMinute">The start minute used to initialize the instance.</param>
+    /// <param name="endMinute">The end minute used to initialize the instance.</param>
+    /// <param name="locationId">The location id used to initialize the instance.</param>
+    /// <param name="activityDescription">The activity description used to initialize the instance.</param>
     public NpcScheduleEntryDefinition(
         int startMinute,
         int endMinute,
@@ -39,19 +49,28 @@ public sealed class NpcScheduleEntryDefinition
         ActivityDescription = activityDescription;
     }
 
+    /// <summary>Performs the contains operation for npc schedule definition.</summary>
+    /// <param name="minuteOfDay">The minute of day used by this operation.</param>
+    /// <returns><see langword="true"/> when the operation succeeds; otherwise, <see langword="false"/>.</returns>
     public bool Contains(int minuteOfDay)
     {
         return minuteOfDay >= StartMinute && minuteOfDay < EndMinute;
     }
 }
 
+/// <summary>Defines the npc schedule data and its validation rules.</summary>
 public sealed class NpcScheduleDefinition
 {
     private readonly NpcScheduleEntryDefinition[] _entries;
 
+    /// <summary>Gets the character id.</summary>
     public string CharacterId { get; }
+    /// <summary>Gets the entries.</summary>
     public NpcScheduleEntryDefinition[] Entries => (NpcScheduleEntryDefinition[])_entries.Clone();
 
+    /// <summary>Initializes a new instance of <see cref="NpcScheduleDefinition"/>.</summary>
+    /// <param name="characterId">The character id used to initialize the instance.</param>
+    /// <param name="entries">The entries used to initialize the instance.</param>
     public NpcScheduleDefinition(string characterId, NpcScheduleEntryDefinition[] entries)
     {
         if (string.IsNullOrWhiteSpace(characterId))
@@ -91,6 +110,9 @@ public sealed class NpcScheduleDefinition
         CharacterId = characterId;
     }
 
+    /// <summary>Returns entry at.</summary>
+    /// <param name="minuteOfDay">The minute of day used by this operation.</param>
+    /// <returns>The resulting npc schedule entry definition.</returns>
     public NpcScheduleEntryDefinition GetEntryAt(int minuteOfDay)
     {
         if (minuteOfDay < 0 || minuteOfDay >= 1440)
