@@ -17,7 +17,7 @@
       "name": "Horse Carriage",
       "region": "ROAD TO THE ACADEMY",
       "description": {
-        "first_visit": "The carriage rocks gently as its wheels follow the pale country road. Through the window, fields still silvered by morning dew give way to scattered farms and low stone bridges. Other carriages travel in the same direction, their painted crests and luggage hinting at families from distant towns.\\n\\nAhead, beyond a line of old trees, the Academy rises above the countryside. Its towers catch the early light, and even from here the place looks less like a school and more like a small city waiting to be discovered.",
+        "first_visit": "The carriage rocks gently as its wheels follow the pale country road. Through the window, fields still silvered by morning dew give way to scattered farms and low stone bridges. Other carriages travel in the same direction, their painted crests and luggage hinting at families from distant towns.\n\nAhead, beyond a line of old trees, the Academy rises above the countryside. Its towers catch the early light, and even from here the place looks less like a school and more like a small city waiting to be discovered.",
         "return_visit": "The carriage continues along the familiar road toward the Academy. The towers remain visible above the trees."
       },
       "exits": [
@@ -30,7 +30,7 @@
       "name": "Academy Entrance",
       "region": "ASTERIA ACADEMY",
       "description": {
-        "first_visit": "The carriage slows before a pair of monumental iron gates set between pale stone pillars. Silver inlays trace intricate patterns across the metal, meeting beneath the Academy's crest: a star enclosed by a ring of fine geometric lines. Beyond the entrance, rooftops, towers and glass corridors rise in layers across the campus.\\n\\nStudents are arriving from every direction. Some step down from polished carriages with trunks and attendants; others hurry through the gates with their belongings tucked under one arm. Their conversations overlap into a bright, restless murmur. Somewhere inside, a bell marks the approach of the opening ceremony. You have reached the place where your new life will begin.",
+        "first_visit": "The carriage slows before a pair of monumental iron gates set between pale stone pillars. Silver inlays trace intricate patterns across the metal, meeting beneath the Academy's crest: a star enclosed by a ring of fine geometric lines. Beyond the entrance, rooftops, towers and glass corridors rise in layers across the campus.\n\nStudents are arriving from every direction. Some step down from polished carriages with trunks and attendants; others hurry through the gates with their belongings tucked under one arm. Their conversations overlap into a bright, restless murmur. Somewhere inside, a bell marks the approach of the opening ceremony. You have reached the place where your new life will begin.",
         "return_visit": "The Academy gates are busy as ever. New students and familiar faces pass beneath the crest while carriages gather along the road."
       },
       "exits": [
@@ -45,7 +45,7 @@
       "name": "Main Walkway",
       "region": "ASTERIA ACADEMY",
       "description": {
-        "first_visit": "The main walkway passes beneath a sequence of high stone arches. Sunlight slips between them in long bands, catching on the glass details set into the walls and on the bright banners hanging from the upper balconies. Small signs point toward lecture rooms, gardens and public halls, though most newcomers seem content to follow the stream of students ahead.\\n\\nThe crowd moves at an uneven pace: excited conversations, last-minute introductions and the occasional hurried apology as someone changes direction. The assembly hall stands at the far end of the path, its broad doors already open.",
+        "first_visit": "The main walkway passes beneath a sequence of high stone arches. Sunlight slips between them in long bands, catching on the glass details set into the walls and on the bright banners hanging from the upper balconies. Small signs point toward lecture rooms, gardens and public halls, though most newcomers seem content to follow the stream of students ahead.\n\nThe crowd moves at an uneven pace: excited conversations, last-minute introductions and the occasional hurried apology as someone changes direction. The assembly hall stands at the far end of the path, its broad doors already open.",
         "return_visit": "Students continue to cross the arched walkway between classes and campus activities. The assembly hall is easy to find at the far end."
       },
       "exits": [
@@ -59,7 +59,7 @@
       "name": "Fountain Courtyard",
       "region": "ASTERIA ACADEMY",
       "description": {
-        "first_visit": "A stone fountain rests in a quiet corner beside the main walkway. Water spills from the hands of a sculpted figure into a shallow circular basin, softening the noise of the crowd without quite hiding it. A few students have paused here to check their directions or adjust their bags before joining the flow toward the ceremony.\\n\\nIt is a convenient place to catch your breath. From the fountain, the assembly hall is only a short walk away, though the paths divide often enough that a newcomer could easily take the wrong turn.",
+        "first_visit": "A stone fountain rests in a quiet corner beside the main walkway. Water spills from the hands of a sculpted figure into a shallow circular basin, softening the noise of the crowd without quite hiding it. A few students have paused here to check their directions or adjust their bags before joining the flow toward the ceremony.\n\nIt is a convenient place to catch your breath. From the fountain, the assembly hall is only a short walk away, though the paths divide often enough that a newcomer could easily take the wrong turn.",
         "return_visit": "The fountain keeps its steady rhythm beside the walkway. Students occasionally pause here before continuing toward the main buildings."
       },
       "exits": [
@@ -105,7 +105,7 @@
       "name": "Grand Assembly Hall",
       "region": "ASTERIA ACADEMY",
       "description": {
-        "first_visit": "The assembly hall is larger than it first appeared from the outside. Pale stone columns frame the entrance, while tall stained-glass windows climb toward a ceiling crossed by dark wooden beams. Colored light falls across the polished floor, shifting as people move past the windows. The Academy crest is repeated in the banners above the seats.\\n\\nRows of benches fill the chamber, and the steady murmur of arriving students gives the space an expectant energy. Faculty members gather near a raised platform at the front. Every detail seems designed to make an ordinary gathering feel like the beginning of something important.",
+        "first_visit": "The assembly hall is larger than it first appeared from the outside. Pale stone columns frame the entrance, while tall stained-glass windows climb toward a ceiling crossed by dark wooden beams. Colored light falls across the polished floor, shifting as people move past the windows. The Academy crest is repeated in the banners above the seats.\n\nRows of benches fill the chamber, and the steady murmur of arriving students gives the space an expectant energy. Faculty members gather near a raised platform at the front. Every detail seems designed to make an ordinary gathering feel like the beginning of something important.",
         "return_visit": "The hall is familiar now. Students come and go between ceremonies, announcements and gatherings, while the stained-glass light moves slowly across the floor."
       },
       "exits": [
@@ -153,7 +153,7 @@
       "name": "Dormitory",
       "region": "STUDENT QUARTERS",
       "description": {
-        "first_visit": "Your dormitory room is modest, but it has the quiet comfort of a place that can become your own. A narrow bed stands beside a small desk; a wardrobe and a low shelf occupy the opposite wall. The window looks over part of the Academy grounds, where rooftops and walking paths catch the last traces of daylight.\\n\\nSomeone has left the room clean and ready for its new resident. There is space for your belongings, a place to rest, and enough privacy to make the unfamiliar campus feel a little less overwhelming.",
+        "first_visit": "Your dormitory room is modest, but it has the quiet comfort of a place that can become your own. A narrow bed stands beside a small desk; a wardrobe and a low shelf occupy the opposite wall. The window looks over part of the Academy grounds, where rooftops and walking paths catch the last traces of daylight.\n\nSomeone has left the room clean and ready for its new resident. There is space for your belongings, a place to rest, and enough privacy to make the unfamiliar campus feel a little less overwhelming.",
         "return_visit": "Your room is quiet and familiar. The bed, desk and wardrobe are just as you left them."
       },
       "exits": [
@@ -177,7 +177,7 @@
       "name": "Academy Courtyard",
       "region": "ASTERIA ACADEMY",
       "description": {
-        "first_visit": "The courtyard forms the heart of the Academy. Broad stone paths cross an open square, meeting beneath old trees and around low flower beds that soften the formal architecture. Buildings of different ages face one another across the space: some with severe stone façades, others with tall windows, copper roofs and delicate mechanical fittings.\\n\\nStudents use the courtyard as a shortcut, a meeting place and, when the weather allows, an outdoor study room. From here the Academy seems to branch in every direction, making it an ideal place to decide where to go next.",
+        "first_visit": "The courtyard forms the heart of the Academy. Broad stone paths cross an open square, meeting beneath old trees and around low flower beds that soften the formal architecture. Buildings of different ages face one another across the space: some with severe stone façades, others with tall windows, copper roofs and delicate mechanical fittings.\n\nStudents use the courtyard as a shortcut, a meeting place and, when the weather allows, an outdoor study room. From here the Academy seems to branch in every direction, making it an ideal place to decide where to go next.",
         "return_visit": "The courtyard remains the campus crossroads. Students pass between buildings, pause beneath the trees and gather in small groups along the paths."
       },
       "exits": [
@@ -265,7 +265,7 @@
       "name": "Academy Canteen",
       "region": "STUDENT QUARTERS",
       "description": {
-        "first_visit": "The canteen occupies a bright hall lined with long wooden tables. Tall windows look out over the inner grounds, and the serving counter stretches along one wall beneath a row of brass lamps. The smell of warm bread, roasted vegetables and something sweet drifts through the room.\\n\\nStudents have already claimed many of the seats. Some compare their first impressions of the Academy; others are more concerned with food, schedules or finding someone they know. It is noisy, welcoming and a little overwhelming—the sort of place where a stranger can become part of a conversation simply by choosing the right table.",
+        "first_visit": "The canteen occupies a bright hall lined with long wooden tables. Tall windows look out over the inner grounds, and the serving counter stretches along one wall beneath a row of brass lamps. The smell of warm bread, roasted vegetables and something sweet drifts through the room.\n\nStudents have already claimed many of the seats. Some compare their first impressions of the Academy; others are more concerned with food, schedules or finding someone they know. It is noisy, welcoming and a little overwhelming—the sort of place where a stranger can become part of a conversation simply by choosing the right table.",
         "return_visit": "The canteen carries its familiar mix of conversation and clattering dishes. The serving counter is open and students drift between the tables."
       },
       "exits": [
@@ -369,7 +369,7 @@
       "name": "Practical Classroom",
       "region": "EAST WING",
       "description": {
-        "first_visit": "This classroom looks prepared for both theory and practice. Field maps cover one wall, marked with routes, elevations and handwritten notes. Along the other side, sturdy desks sit beside cabinets of measuring tools and carefully labelled magical components. The instructor's desk faces a wide board where diagrams have been left from an earlier lesson.\\n\\nIt feels like a place where curiosity is expected to become work: questions written down, experiments repeated and mistakes examined rather than hidden.",
+        "first_visit": "This classroom looks prepared for both theory and practice. Field maps cover one wall, marked with routes, elevations and handwritten notes. Along the other side, sturdy desks sit beside cabinets of measuring tools and carefully labelled magical components. The instructor's desk faces a wide board where diagrams have been left from an earlier lesson.\n\nIt feels like a place where curiosity is expected to become work: questions written down, experiments repeated and mistakes examined rather than hidden.",
         "return_visit": "The classroom is ready for its next lesson. Field maps and neatly arranged training materials remain on the walls and desks."
       },
       "exits": [
@@ -411,7 +411,7 @@
       "name": "Academy Library",
       "region": "EAST WING",
       "description": {
-        "first_visit": "The Academy library rises through several interconnected levels. Shelves climb toward the upper galleries, linked by narrow staircases and bridges; brass ladders slide along rails to reach the highest rows. Sunlight filters through high windows and settles over reading tables where students have already opened books and notebooks.\\n\\nThe air carries the dry scent of paper, polished wood and old bindings. At the front desk, the librarian keeps watch over a catalogue of subjects that seems far larger than any first-year could explore in a lifetime.",
+        "first_visit": "The Academy library rises through several interconnected levels. Shelves climb toward the upper galleries, linked by narrow staircases and bridges; brass ladders slide along rails to reach the highest rows. Sunlight filters through high windows and settles over reading tables where students have already opened books and notebooks.\n\nThe air carries the dry scent of paper, polished wood and old bindings. At the front desk, the librarian keeps watch over a catalogue of subjects that seems far larger than any first-year could explore in a lifetime.",
         "return_visit": "The library is quieter than the rest of the campus. Students browse the shelves and the librarian continues to manage the reading desks."
       },
       "exits": [
@@ -435,7 +435,7 @@
       "name": "Academy Garden",
       "region": "ASTERIA ACADEMY",
       "description": {
-        "first_visit": "The Academy garden is a carefully kept pocket of calm between its larger buildings. Trimmed hedges border winding paths, and a shallow pond reflects the branches of the trees above it. Small magical lamps are set among the flower beds, their glass shades catching the light even during the day.\\n\\nA few students read beneath the trees or sit near the water with their shoes tucked out of the grass. The garden feels deliberately removed from the rush of lessons and announcements, though the distant sounds of the campus never disappear completely.",
+        "first_visit": "The Academy garden is a carefully kept pocket of calm between its larger buildings. Trimmed hedges border winding paths, and a shallow pond reflects the branches of the trees above it. Small magical lamps are set among the flower beds, their glass shades catching the light even during the day.\n\nA few students read beneath the trees or sit near the water with their shoes tucked out of the grass. The garden feels deliberately removed from the rush of lessons and announcements, though the distant sounds of the campus never disappear completely.",
         "return_visit": "The garden remains a quiet retreat. The pond reflects the trees, and a few students rest along the paths."
       },
       "exits": [
@@ -463,7 +463,7 @@
       "name": "Practice Yard",
       "region": "WEST GROUNDS",
       "description": {
-        "first_visit": "The practice yard opens into a broad, walled space on the western grounds. Wooden training dummies stand in neat rows, their surfaces marked by years of careful use. Practice weapons are arranged near a covered rack, and faint lines of protective enchantment run through the stone beneath the training area.\\n\\nAn instructor watches a small group repeat basic movements. Their footwork is uneven, their timing occasionally worse, but each attempt is met with another correction rather than ridicule. The yard is less intimidating than it first looks—provided you are willing to learn.",
+        "first_visit": "The practice yard opens into a broad, walled space on the western grounds. Wooden training dummies stand in neat rows, their surfaces marked by years of careful use. Practice weapons are arranged near a covered rack, and faint lines of protective enchantment run through the stone beneath the training area.\n\nAn instructor watches a small group repeat basic movements. Their footwork is uneven, their timing occasionally worse, but each attempt is met with another correction rather than ridicule. The yard is less intimidating than it first looks—provided you are willing to learn.",
         "return_visit": "The practice yard is active with familiar drills. Students repeat their movements while instructors correct their form."
       },
       "exits": [
@@ -486,7 +486,7 @@
       "name": "Guild Hall",
       "region": "EXPEDITION QUARTER",
       "description": {
-        "first_visit": "The Guild Hall is arranged around a broad counter where expedition clerks receive reports and distribute requests. Behind them, wooden boards display maps, notices and pinned documents, while shelves hold sealed records from previous expeditions. A few students study the available work with the seriousness of people trying to appear more experienced than they are.\\n\\nThe hall feels practical rather than ceremonial. Every form, map and notice suggests that adventures beyond the Academy grounds are treated as real work—with preparation, records and responsibilities attached.",
+        "first_visit": "The Guild Hall is arranged around a broad counter where expedition clerks receive reports and distribute requests. Behind them, wooden boards display maps, notices and pinned documents, while shelves hold sealed records from previous expeditions. A few students study the available work with the seriousness of people trying to appear more experienced than they are.\n\nThe hall feels practical rather than ceremonial. Every form, map and notice suggests that adventures beyond the Academy grounds are treated as real work—with preparation, records and responsibilities attached.",
         "return_visit": "The Guild Hall is busy with students checking notices and clerks sorting expedition reports behind the counter."
       },
       "exits": [
@@ -521,7 +521,7 @@
       "name": "Academy Infirmary",
       "region": "EAST WING",
       "description": {
-        "first_visit": "The infirmary is quieter than the busy buildings outside. Clean beds are arranged along pale walls, each separated by a light curtain that can be drawn for privacy. Cabinets hold labelled bottles, folded linens and carefully arranged instruments; the faint scent of herbs sits beneath the sharper smell of disinfectant.\\n\\nA member of the medical staff moves between the beds with practiced calm. Even the magical equipment here seems designed to be reassuring rather than impressive.",
+        "first_visit": "The infirmary is quieter than the busy buildings outside. Clean beds are arranged along pale walls, each separated by a light curtain that can be drawn for privacy. Cabinets hold labelled bottles, folded linens and carefully arranged instruments; the faint scent of herbs sits beneath the sharper smell of disinfectant.\n\nA member of the medical staff moves between the beds with practiced calm. Even the magical equipment here seems designed to be reassuring rather than impressive.",
         "return_visit": "The infirmary remains orderly and quiet. Staff move between the beds while the shelves and medical supplies stay neatly arranged."
       },
       "exits": [
@@ -548,7 +548,7 @@
       "name": "Academy Carriage Stop",
       "region": "ACADEMY ROAD",
       "description": {
-        "first_visit": "The carriage stop lies just beyond the main Academy paths, where the campus road meets the route toward town. Several carriages wait beneath a simple covered shelter, their drivers chatting or checking harnesses while students consult the posted destinations. From here, the Academy's towers remain visible behind the trees, but the rooftops of the nearby town can be seen in the opposite direction.\\n\\nThe stop gives the campus a sense of connection to the wider world. A short ride can take you from lecture halls and dormitories to shops, workshops and streets that have their own rhythm.",
+        "first_visit": "The carriage stop lies just beyond the main Academy paths, where the campus road meets the route toward town. Several carriages wait beneath a simple covered shelter, their drivers chatting or checking harnesses while students consult the posted destinations. From here, the Academy's towers remain visible behind the trees, but the rooftops of the nearby town can be seen in the opposite direction.\n\nThe stop gives the campus a sense of connection to the wider world. A short ride can take you from lecture halls and dormitories to shops, workshops and streets that have their own rhythm.",
         "return_visit": "Carriages wait along the road between the Academy and town. Drivers continue to call destinations as students arrive and depart."
       },
       "exits": [
@@ -564,7 +564,7 @@
       "name": "Town Square",
       "region": "NEARBY TOWN",
       "description": {
-        "first_visit": "The town square gathers several streets around an old stone fountain and a row of public notice boards. Shops and workshops face the open space, their signs swinging gently above the doors. Residents cross with baskets and parcels, while carriages turn carefully around the square to avoid the busiest footpaths.\\n\\nUnlike the Academy, the town does not seem to move according to a single schedule. Merchants open when they are ready, craftspeople carry materials between workshops, and conversations begin wherever neighbours happen to meet.",
+        "first_visit": "The town square gathers several streets around an old stone fountain and a row of public notice boards. Shops and workshops face the open space, their signs swinging gently above the doors. Residents cross with baskets and parcels, while carriages turn carefully around the square to avoid the busiest footpaths.\n\nUnlike the Academy, the town does not seem to move according to a single schedule. Merchants open when they are ready, craftspeople carry materials between workshops, and conversations begin wherever neighbours happen to meet.",
         "return_visit": "The town square continues at its own steady pace. Residents cross between shops and workshops while carriages pass through the open space."
       },
       "exits": [
@@ -587,7 +587,7 @@
       "name": "Market Street",
       "region": "NEARBY TOWN",
       "description": {
-        "first_visit": "Market Street narrows between closely packed shops and rows of canvas awnings. Stalls display fruit, baked goods, cloth, tools and small curiosities brought in by travelling merchants. The calls of vendors mingle with the scrape of crates being moved and the clink of coins changing hands.\\n\\nSome shops look carefully established, with polished signs and wide windows; others are little more than counters beneath patched fabric. The street offers a glimpse of the town's everyday life, one purchase and passing conversation at a time.",
+        "first_visit": "Market Street narrows between closely packed shops and rows of canvas awnings. Stalls display fruit, baked goods, cloth, tools and small curiosities brought in by travelling merchants. The calls of vendors mingle with the scrape of crates being moved and the clink of coins changing hands.\n\nSome shops look carefully established, with polished signs and wide windows; others are little more than counters beneath patched fabric. The street offers a glimpse of the town's everyday life, one purchase and passing conversation at a time.",
         "return_visit": "The market is still lined with familiar stalls and shopfronts. Merchants call to passers-by while customers browse the displays."
       },
       "exits": [
