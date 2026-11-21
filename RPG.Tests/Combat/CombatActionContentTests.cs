@@ -11,13 +11,15 @@ public sealed class CombatActionContentTests
     {
         string path = Path.Combine(AppContext.BaseDirectory, "Data", "Combat", "CombatActions.json");
         CombatActionDefinition[] actions = CombatActionJsonReader.Read(File.ReadAllText(path));
-        Assert.Equal(9, actions.Length);
+        Assert.Equal(13, actions.Length);
         Assert.Equal("quick_strike", actions[0].Id);
         Assert.Equal(CombatActionBehavior.Attack, actions[0].Behavior);
         Assert.Equal(8, actions[0].Damage);
         Assert.Equal(70, actions[0].RecoveryCost);
         Assert.Equal(35, actions[5].DelayAmount);
         Assert.Equal(0.5, actions[8].StunDuration);
+        Assert.Equal(13, actions[9].Damage);
+        Assert.Equal(0.85, actions[11].StunDuration);
     }
 
     [Fact]
