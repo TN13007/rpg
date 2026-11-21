@@ -4,6 +4,50 @@ using Xunit;
 public sealed class LocationEventLoopTests
 {
     private readonly AcademyContent _academy = new AcademyContent();
+
+    [Fact]
+    public void AcademyContent_LoadsFirstAndReturnVisitDescriptions()
+    {
+        const string json = "{"
+            + "\\"locations\\":[{"
+            + "\\"id\\":\\"gate\\","
+            + "\\"name\\":\\"Gate\\","
+            + "\\"region\\":\\"REGION\\","
+            + "\\"description\\":{"
+            + "\\"first_visit\\":\\"A long first introduction.\\","
+            + "\\"return_visit\\":\\"A short familiar description.\\"},"
+            + "\\"exits\\":[],"
+            + "\\"actions\\":[]"
+            + "}]"
+            + "}";
+
+        _academy.LoadJson(json);
+
+        LocationContent location = _academy.Get("gate");
+        Assert.Equal("A long first introduction.", location.GetDescription(true));
+        Assert.Equal("A short familiar description.", location.GetDescription(false));
+    }
+
+    [Fact]
+    public void AcademyContent_LegacyStringDescriptionRemainsCompatible()
+    {
+        const string json = "{"
+            + "\\"locations\\":[{"
+            + "\\"id\\":\\"gate\\","
+            + "\\"name\\":\\"Gate\\","
+            + "\\"region\\":\\"REGION\\","
+            + "\\"description\\":\\"The old single description.\\","
+            + "\\"exits\\":[],"
+            + "\\"actions\\":[]"
+            + "}]"
+            + "}";
+
+        _academy.LoadJson(json);
+
+        LocationContent location = _academy.Get("gate");
+        Assert.Equal("The old single description.", location.GetDescription(true));
+        Assert.Equal("The old single description.", location.GetDescription(false));
+    }
     [Fact]
     public void AcademyContent_LoadsCourtyardEventAndItsChoices()
     {
@@ -13,7 +57,7 @@ public sealed class LocationEventLoopTests
 
         Assert.Single(courtyard.Events);
         Assert.Equal("courtyard_goblin_ambush", courtyard.Events[0].Id);
-        Assert.Equal(0.5, courtyard.Events[0].Chance);
+        Assert.Equal(0, courtyard.Events[0].Chance);
         Assert.Equal(2, courtyard.Events[0].Choices.Length);
         Assert.Equal("encounter_goblin", courtyard.Events[0].Choices[0].EncounterActionId);
         Assert.Null(courtyard.Events[0].Choices[1].EncounterActionId);
