@@ -12,60 +12,56 @@
 | Magic | Common |
 | World scale | Unknown |
 
-The setting combines everyday magic, research and practical technology with Renaissance-era social and material culture. The exact source of magic, geography, political structure, history and total world scale remain open. Do not decide them until they are needed to create a coherent playable location or activity.
+The setting combines everyday magic, research and practical technology with Renaissance-era social and material culture. The exact source of magic, geography, political structure, history and total world scale remain open. Decide them only when needed to create a coherent playable location or activity.
 
 ## Player and world relationship
 
-The player is a person living in the world, not a chosen one required to resolve a central plot. The world should offer places to visit, people to meet and activities to discover. The player chooses which opportunities to pursue and may ignore others.
+The player is a person living in the world, not a chosen one required to resolve a central plot. The world offers places to visit, people to meet and activities to discover. The player chooses which opportunities to pursue and may ignore others.
 
 The world does not need a mandatory main storyline to give the player direction. Personal goals can emerge from interests, relationships, discoveries and consequences.
 
 ## Narrative approach
 
-Narrative is primarily discovered through:
-- Conversations and repeated encounters.
-- NPC routines, preferences and relationships.
-- Activities and local events.
-- Changes caused by player actions or by events the player did not attend.
-- Optional personal stories and mysteries.
+Narrative is discovered through location descriptions, authored events, choices, conversations and repeated encounters. A story scene does not need to become a quest. Small everyday moments can be meaningful without escalating into a crisis.
 
-Stories may be authored, systemic or a combination. They should not require every player to follow the same sequence. A small event can be meaningful without escalating into a world-threatening crisis.
+For the current prototype, authored narrative content should fit the existing interaction model:
+- Locations describe where the player is and connect to other places.
+- Actions represent activities and advance time.
+- Effects change supported player state.
+- Location Events present a scene and its choices.
+- A sequential passage feature may be added narrowly if required for a multi-part scene such as the opening ceremony.
 
 ## NPC principles
 
 NPCs should be understandable as people before they become simulation systems.
 
-Add only the behavior needed to support the current playable experience:
-- Identity and a small set of authored traits.
-- Current location and availability.
-- A simple schedule when the player needs to observe or meet them at different times.
-- Dialogue and interactions.
-- Memory of selected meaningful events when it changes future behavior.
-- Relationships when repeated interactions create visible consequences.
+For the first playable day, named NPCs such as Mira can be represented by authored location interactions and events. This is enough to test first meetings and short conversations.
 
-A desire is not the same as an action: an NPC may be unable to do something because of time, location, resources or another event. Do not implement universal needs, planning or autonomous decision frameworks before a concrete scenario requires them.
+Add presence, schedules, memory and relationship rules later, only when the intended player experience requires the player to observe NPCs moving or reacting outside a scripted interaction. Do not implement universal needs, planning or autonomous decision frameworks before a concrete scenario requires them.
 
 ## Time and events
 
-Time provides structure for daily activities and NPC availability. Events may be scheduled, location-based, conditional or initiated by the player.
+Time provides structure for daily activities and NPC availability. Actions advance the GameClock according to their authored duration. Events may be triggered by entering a Location or choosing an interaction.
 
 Events should:
 - Have a clear trigger and state.
-- Resolve consistently when the player participates, arrives late or ignores them.
+- Resolve consistently when the player participates or ignores them.
 - Produce proportionate and understandable outcomes.
-- Avoid blocking unrelated player activities unless the world fiction gives a clear reason.
+- Avoid blocking unrelated player activities without a clear reason.
 
 ## Opening Day
 
-The first authored day introduces the Academy as the player's new environment.
+The first authored day introduces the Academy as the player's new environment. No character creator is required for this prototype; use the existing protagonist data.
 
-- Morning: character creation, horse-carriage journey and arrival among new students.
-- Arrival: the player can follow the crowd or meet Mira; both routes reach the opening ceremony.
-- Late morning: a concise ceremony introduces the Academy and a few people.
-- Afternoon: the player freely explores selected Academy and nearby town locations.
-- Evening: the player returns to the dormitory and sleeps.
+- Morning: begin at a horse-carriage location around 07:00–08:00 and travel to the Academy.
+- Arrival: the crowd is established through description and content, not hundreds of simulated NPCs.
+- Route choice: follow the students or encounter Mira and walk with her. Both paths reach the opening ceremony.
+- Ceremony: an authored event describes the hall, the headmaster and the address, with readable passages and simple choices.
+- Canteen: eat to restore Stamina and interact with Mira or a few students through authored actions/events.
+- Afternoon: visit a small set of connected Academy and town locations, with carriage/travel connections where appropriate.
+- Evening: return to the Dormitory and use the existing eight-hour Sleep action.
 
-This is a welcoming introduction, not a mandatory quest chain. Mira is an optional early connection, not a companion who must accompany the player throughout the day.
+This is a welcoming introduction, not a mandatory quest chain. Mira is an optional early connection, not a companion who must follow the player all day.
 
 ## Content boundaries
 
