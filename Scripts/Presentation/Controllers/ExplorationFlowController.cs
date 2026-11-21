@@ -27,9 +27,9 @@ public sealed class ExplorationFlowController
     private string _descriptionLocationId;
     private string _selectedNpcId;
 
-    private const string SeeAroundChoiceId = "navigation|see-around";
-    private const string BackToPeopleChoiceId = "navigation|back-to-people";
-    private const string SelectNpcActionId = "select";
+    private const string _seeAroundChoiceId = "navigation|see-around";
+    private const string _backToPeopleChoiceId = "navigation|back-to-people";
+    private const string _selectNpcActionId = "select";
     private string _currentLocationDescription;
 
     public ExplorationFlowController(
@@ -93,7 +93,7 @@ public sealed class ExplorationFlowController
         if (_player.CanAct && presentNpcs.Count > 0)
         {
             choices.Add(new ActionChoiceViewData(
-                SeeAroundChoiceId,
+                _seeAroundChoiceId,
                 "See around",
                 string.Empty,
                 "OBSERVE"));
@@ -145,7 +145,7 @@ public sealed class ExplorationFlowController
             ActionSelectionRequest request = new ActionSelectionRequest(
                 InteractionSourceKind.Npc,
                 presence.CharacterId,
-                SelectNpcActionId);
+                _selectNpcActionId);
             choices.Add(new ActionChoiceViewData(
                 request.Encode(),
                 presence.Name,
@@ -191,7 +191,7 @@ public sealed class ExplorationFlowController
             _currentLocationId);
         List<ActionChoiceViewData> choices = _actionChoiceMapper.Map(interactions, _player);
         choices.Add(new ActionChoiceViewData(
-            BackToPeopleChoiceId,
+            _backToPeopleChoiceId,
             "Back to people",
             string.Empty,
             "NAVIGATION"));
@@ -289,13 +289,13 @@ public sealed class ExplorationFlowController
             return;
         }
 
-        if (choiceId == SeeAroundChoiceId)
+        if (choiceId == _seeAroundChoiceId)
         {
             ShowPeopleHere();
             return;
         }
 
-        if (choiceId == BackToPeopleChoiceId)
+        if (choiceId == _backToPeopleChoiceId)
         {
             ShowPeopleHere();
             return;
@@ -339,7 +339,7 @@ public sealed class ExplorationFlowController
                 return;
 
             case InteractionSourceKind.Npc:
-                if (request.ActionId == SelectNpcActionId)
+                if (request.ActionId == _selectNpcActionId)
                 {
                     if (_selectedNpcId != null)
                     {
