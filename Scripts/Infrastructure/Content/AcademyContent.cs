@@ -271,11 +271,11 @@ public sealed class AcademyContent
         if (data.ValueKind != JsonValueKind.Object)
         {
             throw new InvalidOperationException(
-                "Location description must be a string or an object with first_visit and return_visit.");
+                "Location description must be a string or an object with firstVisit and returnVisit.");
         }
 
-        firstVisitDescription = ReadString(data, "first_visit");
-        returnVisitDescription = ReadString(data, "return_visit");
+        firstVisitDescription = ReadString(data, "firstVisit");
+        returnVisitDescription = ReadString(data, "returnVisit");
     }
 
     private static string ReadString(JsonElement data, string propertyName)
