@@ -35,22 +35,22 @@ public sealed class ExplorationFlowController
     private string _currentLocationDescription;
 
     /// <summary>Initializes a new instance of <see cref="ExplorationFlowController"/>.</summary>
-    /// <param name="storyPanel">The story panel used to initialize the instance.</param>
-    /// <param name="characterPanel">The character panel used to initialize the instance.</param>
-    /// <param name="gameModeController">The game mode controller used to initialize the instance.</param>
-    /// <param name="player">The player used to initialize the instance.</param>
-    /// <param name="playerActions">The player actions used to initialize the instance.</param>
-    /// <param name="locations">The locations used to initialize the instance.</param>
-    /// <param name="getLocation">Resolves a location ID to its location content.</param>
-    /// <param name="travelAction">The travel action used to initialize the instance.</param>
-    /// <param name="gameClock">The game clock used to initialize the instance.</param>
-    /// <param name="actionExecutionService">The action execution service used to initialize the instance.</param>
-    /// <param name="availableInteractionQuery">The available interaction query used to initialize the instance.</param>
-    /// <param name="actionChoiceMapper">The action choice mapper used to initialize the instance.</param>
-    /// <param name="locationEventService">The location event service used to initialize the instance.</param>
-    /// <param name="npcPresenceQuery">The npc presence query used to initialize the instance.</param>
-    /// <param name="npcInteractionQuery">The npc interaction query used to initialize the instance.</param>
-    /// <param name="startEncounter">Attempts to start an encounter using the supplied entry action.</param>
+    /// <param name="storyPanel">The StoryPanel that displays location pages, choices, NPC information and feedback.</param>
+    /// <param name="characterPanel">The CharacterPanel refreshed when player-facing character data changes.</param>
+    /// <param name="gameModeController">Switches the presentation between Exploration and Combat modes.</param>
+    /// <param name="player">The live player character whose state is used to validate and execute Exploration actions.</param>
+    /// <param name="playerActions">The authored actions available to the player during Exploration.</param>
+    /// <param name="locations">The known location definitions used when resolving travel destinations.</param>
+    /// <param name="getLocation">Looks up a location definition by its ID, including the current location and selected destinations.</param>
+    /// <param name="travelAction">The authored action used to validate and charge the cost of travelling between locations.</param>
+    /// <param name="gameClock">The shared world clock used to determine NPC schedules and display in-game time.</param>
+    /// <param name="actionExecutionService">Validates and applies player, location and NPC actions, including their time and effect costs.</param>
+    /// <param name="availableInteractionQuery">Builds the interactions currently available to the player at a location.</param>
+    /// <param name="actionChoiceMapper">Converts available interactions into the choice data consumed by StoryPanel.</param>
+    /// <param name="locationEventService">Selects and resolves location events triggered by Exploration actions.</param>
+    /// <param name="npcPresenceQuery">Determines which scheduled NPCs are present at a location at the current world-clock time.</param>
+    /// <param name="npcInteractionQuery">Retrieves the interactions authored for a specific NPC at a specific location.</param>
+    /// <param name="startEncounter">Requests Combat startup with an entry action and reports whether the Combat flow accepted the request.</param>
     public ExplorationFlowController(
         StoryPanel storyPanel,
         CharacterPanel characterPanel,
