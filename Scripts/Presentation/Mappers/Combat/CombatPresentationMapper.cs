@@ -1,8 +1,12 @@
 using System;
 using System.Collections.Generic;
 
+/// <summary>Maps application data into combat presentation presentation models.</summary>
 public sealed class CombatPresentationMapper
 {
+    /// <summary>Maps the supplied map data into presentation data.</summary>
+    /// <param name="snapshot">The snapshot used by this operation.</param>
+    /// <returns>The resulting combat view data.</returns>
     public CombatViewData Map(CombatSnapshot snapshot)
     {
         if (snapshot == null) throw new ArgumentNullException(nameof(snapshot));
@@ -18,6 +22,9 @@ public sealed class CombatPresentationMapper
             snapshot.ActiveCombatantId);
     }
 
+    /// <summary>Maps the supplied map data into presentation data.</summary>
+    /// <param name="result">The result used by this operation.</param>
+    /// <returns>The resulting combat view data.</returns>
     public CombatViewData Map(CombatResult result)
     {
         if (result == null) throw new ArgumentNullException(nameof(result));
