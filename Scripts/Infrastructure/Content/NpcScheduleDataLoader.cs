@@ -3,8 +3,12 @@ using System.Collections.Generic;
 using System.Text.Json;
 using Godot;
 
+/// <summary>Loads npc schedule data data from the configured content source.</summary>
 public static class NpcScheduleDataLoader
 {
+    /// <summary>Performs the load operation for npc schedule data loader.</summary>
+    /// <param name="path">The path used by this operation.</param>
+    /// <returns>The resulting npc schedule catalog.</returns>
     public static NpcScheduleCatalog Load(string path)
     {
         if (string.IsNullOrWhiteSpace(path))
@@ -20,6 +24,9 @@ public static class NpcScheduleDataLoader
         return LoadJson(FileAccess.GetFileAsString(path));
     }
 
+    /// <summary>Performs the load json operation for npc schedule data loader.</summary>
+    /// <param name="json">The json used by this operation.</param>
+    /// <returns>The resulting npc schedule catalog.</returns>
     public static NpcScheduleCatalog LoadJson(string json)
     {
         if (string.IsNullOrWhiteSpace(json))
