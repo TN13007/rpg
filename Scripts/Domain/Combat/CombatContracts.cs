@@ -165,6 +165,10 @@ public sealed class PartyCombatStatus
     public int MaxHealth { get; }
     /// <summary>Gets the current condition label.</summary>
     public string Condition { get; }
+    /// <summary>Gets the current Stamina value.</summary>
+    public int CurrentStamina { get; }
+    /// <summary>Gets the maximum Stamina value.</summary>
+    public int MaxStamina { get; }
     /// <summary>Gets whether the member is eligible to act during the current Player Turn.</summary>
     public bool IsActive { get; }
 
@@ -175,7 +179,9 @@ public sealed class PartyCombatStatus
         int currentHealth,
         int maxHealth,
         string condition,
-        bool isActive)
+        bool isActive,
+        int currentStamina = 0,
+        int maxStamina = 0)
     {
         if (maxHealth < 1)
         {
@@ -187,12 +193,19 @@ public sealed class PartyCombatStatus
             throw new ArgumentOutOfRangeException(nameof(currentHealth));
         }
 
+        if (maxStamina < 0 || currentStamina < 0 || currentStamina > maxStamina)
+        {
+            throw new ArgumentOutOfRangeException(nameof(currentStamina));
+        }
+
         Id = id ?? string.Empty;
         Name = name ?? string.Empty;
         CurrentHealth = currentHealth;
         MaxHealth = maxHealth;
         Condition = condition ?? string.Empty;
         IsActive = isActive;
+        CurrentStamina = currentStamina;
+        MaxStamina = maxStamina;
     }
 }
 
