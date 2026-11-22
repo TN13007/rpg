@@ -1,7 +1,7 @@
 # Game Vision — Modern Student Life
 
 **Status:** Accepted product direction  
-**Last updated:** 2026-11-21
+**Last updated:** 2026-11-23
 
 ## High concept
 
@@ -41,9 +41,9 @@ Phones, laptops, cameras, online forums and messaging are normal parts of contem
 
 NPCs should feel like students, friends, coworkers, residents and professionals before they become sources of quests or combat statistics. Their routines and interactions should support recognizable relationships and choices.
 
-### Tactical Timeline Combat
+### Specialized Turn-Based Combat
 
-Combat remains a separate rules domain for dangerous confrontations. It uses its own Timeline, party decisions and action resolution. A paranormal incident may never reach combat if the player observes, retreats or seeks help.
+Combat is a separate rules domain for dangerous confrontations. The current direction uses discrete Player and Enemy Turns, a shared Party Action Point pool and authored Enemy patterns. A paranormal incident may never reach combat if the player observes, retreats or seeks help.
 
 ## Shared world-interaction model
 
@@ -68,7 +68,7 @@ Current life and world context
  The next day and later situations reflect it
 ```
 
-Daily-life actions may advance GameClock by minutes or hours. Combat uses its own Combat Timeline and pauses for player decisions. Travel changes the current Location through the supported navigation flow. Events may present a situation and choices; a choice may resolve as an ordinary action or start a specialized Combat flow.
+Daily-life actions may advance GameClock by minutes or hours. Combat uses discrete turns and pauses while the player chooses actions. Travel changes the current Location through the supported navigation flow. Events may present a situation and choices; a choice may resolve as an ordinary action or start a specialized Combat flow.
 
 This is a shared design model, not a requirement for one universal interaction executor in code. Keep each gameplay domain responsible for its own rules.
 
@@ -90,7 +90,7 @@ The former fantasy Academy setting is superseded. New player-facing content must
 - Give the player at least one optional paranormal incident with multiple understandable responses.
 - Keep the ordinary-life loop worthwhile when the player ignores the incident.
 - Add durable consequences only when a concrete journey needs them.
-- Preserve the existing Tactical Timeline combat implementation without making combat mandatory for every incident.
+- Preserve the existing discrete turn-based combat implementation without making combat mandatory for every incident.
 - Prefer authored content and the smallest supported rules before introducing general systems for quests, incidents, social feeds or autonomous world simulation.
 
 ## Scope test
