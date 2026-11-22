@@ -31,7 +31,7 @@ public partial class PartyRosterPanel : PanelContainer
     }
 
     /// <summary>Updates Party member cards and retains or chooses an eligible acting member.</summary>
-    public void SetMembers(PartyCombatStatus[] members)
+    public void SetMembers(PartyMemberCardViewData[] members)
     {
         HashSet<string> currentIds = new HashSet<string>(StringComparer.Ordinal);
         int cardIndex = 0;
@@ -39,7 +39,7 @@ public partial class PartyRosterPanel : PanelContainer
 
         if (members != null)
         {
-            foreach (PartyCombatStatus member in members)
+            foreach (PartyMemberCardViewData member in members)
             {
                 if (member == null || string.IsNullOrWhiteSpace(member.Id))
                 {
@@ -47,7 +47,7 @@ public partial class PartyRosterPanel : PanelContainer
                 }
 
                 currentIds.Add(member.Id);
-                if (member.IsActive && string.IsNullOrEmpty(firstEligibleId))
+                if (member.CanAct && string.IsNullOrEmpty(firstEligibleId))
                 {
                     firstEligibleId = member.Id;
                 }
@@ -86,7 +86,7 @@ public partial class PartyRosterPanel : PanelContainer
         }
 
         if (!_memberCards.TryGetValue(_selectedMemberId, out PartyMemberCard selectedCard) ||
-            !selectedCard.IsActive)
+            !selectedCard.CanAct)
         {
             _selectedMemberId = firstEligibleId;
         }
@@ -109,7 +109,7 @@ public partial class PartyRosterPanel : PanelContainer
 
     private void HandleMemberSelected(string memberId)
     {
-        if (!_memberCards.TryGetValue(memberId, out PartyMemberCard card) || !card.IsActive)
+        if (!_memberCards.TryGetValue(memberId, out PartyMemberCard card) || !card.CanAct)
         {
             return;
         }
