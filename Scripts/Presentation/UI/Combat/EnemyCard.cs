@@ -1,73 +1,79 @@
 using System;
 using Godot;
 
-/// <summary>Presents an enemy combat status card and target-selection feedback.</summary>
+/// <summary>Displays one Enemy's identity and the two combat meters used by the interface.</summary>
 public partial class EnemyCard : Button
 {
-    /// <summary>Raised when the player selects this Enemy during target selection.</summary>
+    /// <summary>Raised when the player selects this valid Enemy target.</summary>
     public event Action<string> Selected;
 
     private Label _nameLabel;
     private Label _healthLabel;
     private ProgressBar _healthBar;
-    private Label _conditionLabel;
+    private Label _lustLabel;
+    private ProgressBar _lustBar;
     private CombatCardVfx _vfx;
     private string _enemyId = string.Empty;
     private bool _selectable;
     private bool _selected;
     private bool _targetSelectionActive;
+    private bool _defeated;
 
-    /// <summary>Gets the displayed enemy name.</summary>
+    /// <summary>Gets the displayed Enemy name.</summary>
     public string EnemyName => _nameLabel?.Text ?? string.Empty;
 
-    /// <summary>Initializes child controls and connects the pressed signal.</summary>
+    /// <summary>Initializes controls and wires the target-selection interaction.</summary>
     public override void _Ready()
     {
-        _nameLabel = GetNode<Label>("Margin/Content/Header/Name");
+        _nameLabel = GetNode<Label>("Margin/Content/Name");
         _healthLabel = GetNode<Label>("Margin/Content/HealthLabel");
         _healthBar = GetNode<ProgressBar>("Margin/Content/HealthBar");
-        _conditionLabel = GetNode<Label>("Margin/Content/Condition");
+        _lustLabel = GetNode<Label>("Margin/Content/LustLabel");
+        _lustBar = GetNode<ProgressBar>("Margin/Content/LustBar");
         _vfx = GetNode<CombatCardVfx>("Vfx");
-
+        _lustLabel.Visible = false;
+        _lustBar.Visible = false;
         Pressed += HandlePressed;
         FocusMode = FocusModeEnum.All;
-        MouseDefaultCursorShape = CursorShape.PointingHand;
         UpdateVisualState();
     }
 
-    /// <summary>Initializes this card with one Enemy status.</summary>
-    public void Setup(EnemyCombatStatus enemy)
+    /// <summary>Initializes this reusable card with one Enemy's presentation data.</summary>
+    public void Setup(EnemyCardViewData enemy)
     {
         if (enemy == null)
-        {
             throw new ArgumentNullException(nameof(enemy));
-        }
 
         _enemyId = enemy.Id;
         UpdateDisplay(enemy);
     }
 
-    /// <summary>Updates HP and condition without exposing a future action or target.</summary>
-    public void UpdateDisplay(EnemyCombatStatus enemy)
+    /// <summary>Updates the Enemy's name and HP/Lust values without accessing gameplay objects.</summary>
+    public void UpdateDisplay(EnemyCardViewData enemy)
     {
         if (enemy == null)
-        {
             throw new ArgumentNullException(nameof(enemy));
-        }
 
         if (!string.IsNullOrEmpty(_enemyId) && _enemyId != enemy.Id)
-        {
             throw new InvalidOperationException("An EnemyCard cannot be reused for a different enemy.");
-        }
 
         _enemyId = enemy.Id;
         _nameLabel.Text = enemy.Name;
         _healthLabel.Text = "HP  " + enemy.CurrentHealth + " / " + enemy.MaxHealth;
         _healthBar.MaxValue = enemy.MaxHealth;
         _healthBar.Value = enemy.CurrentHealth;
-        _conditionLabel.Text = enemy.Condition;
 
-        if (string.Equals(enemy.Condition, "Defeated", StringComparison.OrdinalIgnoreCase))
+        _defeated = string.Equals(enemy.Condition, "Defeated", StringComparison.OrdinalIgnoreCase);
+        _lustLabel.Visible = enemy.Lust.HasValue;
+        _lustBar.Visible = enemy.Lust.HasValue;
+        if (enemy.Lust.HasValue)
+        {
+            _lustLabel.Text = "LUST  " + enemy.Lust.Value + " / 100";
+            _lustBar.MaxValue = 100;
+            _lustBar.Value = enemy.Lust.Value;
+        }
+
+        if (_defeated)
         {
             _selectable = false;
             _selected = false;
@@ -76,16 +82,16 @@ public partial class EnemyCard : Button
         UpdateVisualState();
     }
 
-    /// <summary>Sets whether this Enemy is a valid target and whether it is selected.</summary>
+    /// <summary>Sets the valid, invalid and selected target states supplied by the owning region.</summary>
     public void SetTargetSelectionState(bool selectionActive, bool selectable, bool selected)
     {
         _targetSelectionActive = selectionActive;
-        _selectable = selectionActive && selectable;
+        _selectable = selectionActive && selectable && !_defeated;
         _selected = _selectable && selected;
         UpdateVisualState();
     }
 
-    /// <summary>Plays the requested combat feedback cue.</summary>
+    /// <summary>Plays one presentation feedback cue.</summary>
     public void PlayFeedback(CombatFeedbackType feedbackType)
     {
         _vfx.PlayFeedback(feedbackType);
@@ -94,10 +100,10 @@ public partial class EnemyCard : Button
     private void HandlePressed()
     {
         if (!_selectable || string.IsNullOrWhiteSpace(_enemyId))
-        {
             return;
-        }
 
+        _selected = true;
+        UpdateVisualState();
         _vfx.PlayTargetSelected();
         Selected?.Invoke(_enemyId);
     }
@@ -128,8 +134,10 @@ public partial class EnemyCard : Button
         AddThemeStyleboxOverride("focus", CreateStyle(background, UiTheme.Accent, 2));
 
         Modulate = _targetSelectionActive && !_selectable
-            ? new Color(0.72f, 0.72f, 0.72f, 1.0f)
-            : Colors.White;
+            ? new Color(0.58f, 0.58f, 0.63f, 0.72f)
+            : _defeated
+                ? new Color(0.62f, 0.62f, 0.66f, 0.78f)
+                : Colors.White;
         MouseDefaultCursorShape = _selectable ? CursorShape.PointingHand : CursorShape.Arrow;
     }
 
@@ -148,11 +156,10 @@ public partial class EnemyCard : Button
             CornerRadiusBottomLeft = 6,
             CornerRadiusBottomRight = 6
         };
-
-        style.ContentMarginLeft = 8;
-        style.ContentMarginRight = 8;
-        style.ContentMarginTop = 7;
-        style.ContentMarginBottom = 7;
+        style.ContentMarginLeft = 9;
+        style.ContentMarginRight = 9;
+        style.ContentMarginTop = 9;
+        style.ContentMarginBottom = 9;
         return style;
     }
 }

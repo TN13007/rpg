@@ -1,208 +1,374 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 
-/// <summary>Presents combat action information and exposes its UI interactions.</summary>
+/// <summary>Coordinates category, action, detail and target selection for immediate combat actions.</summary>
 public partial class CombatActionPanel : PanelContainer
 {
-    /// <summary>Raised when action selected occurs.</summary>
-    public event Action<CombatActionRequest> ActionSelected;
-    /// <summary>Raised when enemy target selection requested occurs.</summary>
+    /// <summary>Raised when an action is ready to execute, including any required target.</summary>
+    public event Action<CombatActionSelection> ActionSelected;
+    /// <summary>Raised when valid Enemy targets should be highlighted in the Enemy region.</summary>
     public event Action<string[]> EnemyTargetSelectionRequested;
-    /// <summary>Raised when enemy target selection cancelled occurs.</summary>
+    /// <summary>Raised when Enemy target highlighting should be cleared.</summary>
     public event Action EnemyTargetSelectionCancelled;
 
-    private GridContainer _actionGrid;
-    private VBoxContainer _targetSelection;
-    private Label _targetHeading;
-    private GridContainer _targetGrid;
-    private Button _backButton;
+    private Button _attackButton;
+    private Button _defenceButton;
+    private Button _allureButton;
+    private Button _inventoryButton;
+    private Button _runButton;
+    private Button _otherButton;
+    private VBoxContainer _skillList;
+    private ScrollContainer _skillScroll;
+    private VBoxContainer _partyTargets;
+    private Label _listHeading;
+    private Label _detailTitle;
+    private Label _detailDescription;
+    private Label _effectSummary;
+    private Label _detailCost;
+    private Label _targetRule;
+    private Label _unavailableReason;
+    private Label _targetSelectionHint;
+    private Button _cancelTargetButton;
     private PackedScene _actionCardScene;
-    private CombatActionOption _pendingAction;
+    private CombatActionCardViewData[] _actions = Array.Empty<CombatActionCardViewData>();
+    private readonly List<CombatActionCard> _actionCards = new List<CombatActionCard>();
     private readonly HashSet<string> _validEnemyTargetIds =
         new HashSet<string>(StringComparer.Ordinal);
+    private CombatActionCardViewData _selectedAction;
+    private CombatActionCardViewData _pendingAction;
+    private CombatActionCategory _selectedCategory = CombatActionCategory.Attack;
 
-    /// <summary>Initializes the Godot control and connects its UI signals.</summary>
+    /// <summary>Initializes the three child scenes and connects all category controls.</summary>
     public override void _Ready()
     {
         UiTheme.StylePanel(this);
-        _actionGrid = GetNode<GridContainer>("Margin/Content/ActionGrid");
-        _targetSelection = GetNode<VBoxContainer>("Margin/Content/TargetSelection");
-        _targetHeading = GetNode<Label>("Margin/Content/TargetSelection/TargetHeading");
-        _targetGrid = GetNode<GridContainer>("Margin/Content/TargetSelection/TargetGrid");
-        _backButton = GetNode<Button>("Margin/Content/TargetSelection/BackButton");
+
+        _attackButton = GetNode<Button>("Margin/Content/CategoryList/Margin/Content/Categories/AttackButton");
+        _defenceButton = GetNode<Button>("Margin/Content/CategoryList/Margin/Content/Categories/DefenceButton");
+        _allureButton = GetNode<Button>("Margin/Content/CategoryList/Margin/Content/Categories/AllureButton");
+        _inventoryButton = GetNode<Button>("Margin/Content/CategoryList/Margin/Content/Categories/InventoryButton");
+        _runButton = GetNode<Button>("Margin/Content/CategoryList/Margin/Content/Categories/RunButton");
+        _otherButton = GetNode<Button>("Margin/Content/CategoryList/Margin/Content/Categories/OtherButton");
+
+        _listHeading = GetNode<Label>("Margin/Content/ActionList/Margin/Content/Heading");
+        _skillScroll = GetNode<ScrollContainer>("Margin/Content/ActionList/Margin/Content/SkillScroll");
+        _skillList = GetNode<VBoxContainer>("Margin/Content/ActionList/Margin/Content/SkillScroll/SkillList");
+        _partyTargets = GetNode<VBoxContainer>("Margin/Content/ActionList/Margin/Content/PartyTargets");
+
+        _detailTitle = GetNode<Label>("Margin/Content/DetailsPanel/Margin/Content/Title");
+        _detailDescription = GetNode<Label>("Margin/Content/DetailsPanel/Margin/Content/Description");
+        _effectSummary = GetNode<Label>("Margin/Content/DetailsPanel/Margin/Content/EffectSummary");
+        _detailCost = GetNode<Label>("Margin/Content/DetailsPanel/Margin/Content/Cost");
+        _targetRule = GetNode<Label>("Margin/Content/DetailsPanel/Margin/Content/TargetRule");
+        _unavailableReason = GetNode<Label>("Margin/Content/DetailsPanel/Margin/Content/UnavailableReason");
+        _targetSelectionHint = GetNode<Label>("Margin/Content/DetailsPanel/Margin/Content/TargetSelectionHint");
+        _cancelTargetButton = GetNode<Button>("Margin/Content/DetailsPanel/Margin/Content/CancelTargetButton");
+
         _actionCardScene = GD.Load<PackedScene>("res://Scenes/UI/Combat/CombatActionCard.tscn");
-        _backButton.Pressed += CancelTargetSelection;
-        UiTheme.StyleButton(_backButton);
-        _targetGrid.Visible = false;
+
+        _attackButton.Pressed += () => SelectCategory(CombatActionCategory.Attack);
+        _defenceButton.Pressed += () => SelectCategory(CombatActionCategory.Defence);
+        _allureButton.Pressed += () => SelectCategory(CombatActionCategory.Allure);
+        _inventoryButton.Pressed += () => SelectCategory(CombatActionCategory.Inventory);
+        _runButton.Pressed += () => SelectCategory(CombatActionCategory.Run);
+        _otherButton.Pressed += () => SelectCategory(CombatActionCategory.Other);
+        _cancelTargetButton.Pressed += ClearTargetSelection;
+
+        UiTheme.StyleButton(_attackButton);
+        UiTheme.StyleButton(_defenceButton);
+        UiTheme.StyleButton(_allureButton);
+        UiTheme.StyleButton(_inventoryButton);
+        UiTheme.StyleButton(_runButton);
+        UiTheme.StyleButton(_otherButton);
+        UiTheme.StyleButton(_cancelTargetButton);
+
+        _otherButton.Visible = false;
+        ClearDetails();
     }
 
-    /// <summary>Sets actions.</summary>
-    /// <param name="actions">The actions used by this operation.</param>
-    public void SetActions(CombatActionOption[] actions)
+    /// <summary>Replaces the actions belonging to the currently selected Party member.</summary>
+    public void SetActions(CombatActionCardViewData[] actions)
     {
-        bool wasSelectingEnemy = _pendingAction != null;
-        ClearChildren(_actionGrid);
-        ClearChildren(_targetGrid);
+        bool wasSelectingTarget = _pendingAction != null;
         ClearPendingTarget();
-        _actionGrid.Visible = true;
-        _targetSelection.Visible = false;
-        if (wasSelectingEnemy)
-        {
+        if (wasSelectingTarget)
             EnemyTargetSelectionCancelled?.Invoke();
-        }
 
-        if (actions == null || actions.Length == 0)
-        {
-            Label emptyLabel = new Label { Text = "No actions available." };
-            emptyLabel.AddThemeColorOverride("font_color", UiTheme.Muted);
-            _actionGrid.AddChild(emptyLabel);
-            return;
-        }
+        _actions = actions ?? Array.Empty<CombatActionCardViewData>();
+        _selectedAction = null;
+        _partyTargets.Visible = false;
+        _skillScroll.Visible = true;
+        ClearChildren(_partyTargets);
+        ClearDetails();
 
-        foreach (CombatActionOption action in actions)
-        {
-            CombatActionCard card = CreateActionCard(action);
-            if (card != null)
-            {
-                _actionGrid.AddChild(card);
-            }
-        }
+        _otherButton.Visible = _actions.Any(action => action.Category == CombatActionCategory.Other);
+        SelectCategory(GetInitialCategory());
     }
 
-    /// <summary>Sets selected enemy target.</summary>
-    /// <param name="enemyId">The enemy id used by this operation.</param>
-    /// <returns><see langword="true"/> when the operation succeeds; otherwise, <see langword="false"/>.</returns>
+    /// <summary>Completes a pending Enemy-targeted action after validating the selected Enemy ID.</summary>
     public bool SetSelectedEnemyTarget(string enemyId)
     {
         if (_pendingAction == null ||
+            _pendingAction.TargetKind != CombatActionTargetKind.Enemy ||
             string.IsNullOrWhiteSpace(enemyId) ||
             !_validEnemyTargetIds.Contains(enemyId))
-        {
             return false;
-        }
 
-        CombatActionRequest request = new CombatActionRequest(
-            _pendingAction.Id,
-            enemyId,
-            _pendingAction.ActorId);
-
-        ClearPendingTarget();
-        _targetSelection.Visible = false;
-        _actionGrid.Visible = true;
-        ActionSelected?.Invoke(request);
+        SubmitPendingAction(enemyId);
         return true;
     }
 
-    /// <summary>Clears target selection from the current UI state.</summary>
+    /// <summary>Cancels target selection and restores the current skill list.</summary>
     public void ClearTargetSelection()
     {
+        bool wasSelectingTarget = _pendingAction != null;
         ClearPendingTarget();
-        _targetSelection.Visible = false;
-        _actionGrid.Visible = true;
+        _partyTargets.Visible = false;
+        _skillScroll.Visible = true;
+        ClearChildren(_partyTargets);
+
+        if (wasSelectingTarget)
+            EnemyTargetSelectionCancelled?.Invoke();
+
+        RenderActions();
+        if (_selectedAction != null)
+        {
+            foreach (CombatActionCard card in _actionCards)
+                card.SetSelected(card.ActionId == _selectedAction.Id);
+            ShowSelectedAction(_selectedAction);
+        }
     }
 
-    private CombatActionCard CreateActionCard(CombatActionOption action)
+    private CombatActionCategory GetInitialCategory()
     {
-        if (_actionCardScene == null)
-        {
-            GD.PushError("CombatActionCard.tscn could not be loaded.");
-            return null;
-        }
-
-        CombatActionCard card = _actionCardScene.Instantiate<CombatActionCard>();
-        card.SetAction(action);
-        UiTheme.StyleButton(card);
-        card.Selected += SelectAction;
-        return card;
+        if (_actions.Any(action => action.Category == CombatActionCategory.Attack))
+            return CombatActionCategory.Attack;
+        if (_actions.Any(action => action.Category == CombatActionCategory.Defence))
+            return CombatActionCategory.Defence;
+        if (_actions.Any(action => action.Category == CombatActionCategory.Allure))
+            return CombatActionCategory.Allure;
+        if (_actions.Any(action => action.Category == CombatActionCategory.Inventory))
+            return CombatActionCategory.Inventory;
+        if (_actions.Any(action => action.Category == CombatActionCategory.Run))
+            return CombatActionCategory.Run;
+        return CombatActionCategory.Attack;
     }
 
-    private void SelectAction(CombatActionOption action)
+    private void SelectCategory(CombatActionCategory category)
     {
-        if (action.Targets.Length == 0)
-        {
-            ActionSelected?.Invoke(new CombatActionRequest(
-                action.Id,
-                string.Empty,
-                action.ActorId));
-            return;
-        }
+        if (_pendingAction != null)
+            ClearTargetSelection();
 
-        // Revive targets are Party members, so they use this dedicated ally list
-        // rather than the EnemyCard target-selection flow.
-        if (action.Id == "revive_ally")
-        {
-            ShowPartyTargetButtons(action);
-            return;
-        }
-
-        _pendingAction = action;
-        _validEnemyTargetIds.Clear();
-        foreach (CombatActionTargetOption target in action.Targets)
-        {
-            _validEnemyTargetIds.Add(target.Id);
-        }
-
-        _targetHeading.Text = "Choose a highlighted enemy from the sidebar. Selecting one executes the action.";
-        _targetGrid.Visible = false;
-        _actionGrid.Visible = false;
-        _targetSelection.Visible = true;
-        EnemyTargetSelectionRequested?.Invoke(ToArray(_validEnemyTargetIds));
+        _selectedCategory = category;
+        _selectedAction = null;
+        _partyTargets.Visible = false;
+        _skillScroll.Visible = true;
+        ClearChildren(_partyTargets);
+        UpdateCategoryButtonState();
+        ClearDetails();
+        RenderActions();
     }
 
-    private void ShowPartyTargetButtons(CombatActionOption action)
+    private void UpdateCategoryButtonState()
     {
-        ClearChildren(_targetGrid);
-        _targetHeading.Text = "Choose an ally to revive.";
-        foreach (CombatActionTargetOption target in action.Targets)
+        _attackButton.ButtonPressed = _selectedCategory == CombatActionCategory.Attack;
+        _defenceButton.ButtonPressed = _selectedCategory == CombatActionCategory.Defence;
+        _allureButton.ButtonPressed = _selectedCategory == CombatActionCategory.Allure;
+        _inventoryButton.ButtonPressed = _selectedCategory == CombatActionCategory.Inventory;
+        _runButton.ButtonPressed = _selectedCategory == CombatActionCategory.Run;
+        _otherButton.ButtonPressed = _selectedCategory == CombatActionCategory.Other;
+    }
+
+    private void RenderActions()
+    {
+        ClearChildren(_skillList);
+        _actionCards.Clear();
+        ClearChildren(_partyTargets);
+        _listHeading.Text = GetCategoryLabel(_selectedCategory).ToUpperInvariant();
+
+        CombatActionCardViewData[] filtered = _actions
+            .Where(action => action.Category == _selectedCategory)
+            .ToArray();
+
+        if (filtered.Length == 0)
         {
-            CombatActionButton button = new CombatActionButton
+            Label empty = new Label
             {
-                Request = new CombatActionRequest(action.Id, target.Id, action.ActorId),
+                Text = "No actions available in this category.",
+                SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
+                AutowrapMode = TextServer.AutowrapMode.WordSmart
+            };
+            empty.AddThemeColorOverride("font_color", UiTheme.Muted);
+            _skillList.AddChild(empty);
+            return;
+        }
+
+        foreach (CombatActionCardViewData action in filtered)
+        {
+            if (_actionCardScene == null)
+            {
+                GD.PushError("CombatActionCard.tscn could not be loaded.");
+                return;
+            }
+
+            CombatActionCard card = _actionCardScene.Instantiate<CombatActionCard>();
+            card.SetAction(action);
+            card.SizeFlagsHorizontal = Control.SizeFlags.ExpandFill;
+            UiTheme.StyleButton(card);
+            card.SetSelected(false);
+            card.Selected += SelectAction;
+            _skillList.AddChild(card);
+            _actionCards.Add(card);
+        }
+    }
+
+    private void SelectAction(CombatActionCardViewData action)
+    {
+        _selectedAction = action;
+        foreach (CombatActionCard card in _actionCards)
+            card.SetSelected(card.ActionId == action.Id);
+
+        ShowSelectedAction(action);
+        if (!action.IsAvailable)
+            return;
+
+        switch (action.TargetKind)
+        {
+            case CombatActionTargetKind.Enemy:
+                _pendingAction = action;
+                _validEnemyTargetIds.Clear();
+                foreach (CombatActionTargetViewData target in action.Targets)
+                    _validEnemyTargetIds.Add(target.Id);
+
+                _targetSelectionHint.Text = "Choose a highlighted Enemy. The action executes when you select it.";
+                _targetSelectionHint.Visible = true;
+                _cancelTargetButton.Visible = true;
+                EnemyTargetSelectionRequested?.Invoke(ToArray(_validEnemyTargetIds));
+                break;
+
+            case CombatActionTargetKind.Party:
+                _pendingAction = action;
+                ShowPartyTargets(action);
+                _targetSelectionHint.Text = "Choose an ally to perform the action.";
+                _targetSelectionHint.Visible = true;
+                _cancelTargetButton.Visible = true;
+                break;
+
+            default:
+                ActionSelected?.Invoke(new CombatActionSelection(action.Id, action.ActorId, string.Empty));
+                break;
+        }
+    }
+
+    private void ShowSelectedAction(CombatActionCardViewData action)
+    {
+        _detailTitle.Text = action.Label;
+        _detailDescription.Text = action.Description;
+        _detailCost.Text = string.IsNullOrWhiteSpace(action.CostLabel)
+            ? string.Empty
+            : "Cost  ·  " + action.CostLabel;
+        _effectSummary.Text = action.EffectSummary;
+        _effectSummary.Visible = !string.IsNullOrWhiteSpace(action.EffectSummary);
+        _targetRule.Text = action.TargetKind switch
+        {
+            CombatActionTargetKind.Enemy => "Target  ·  Single enemy",
+            CombatActionTargetKind.Party => "Target  ·  One ally",
+            _ => "Target  ·  Self / no target"
+        };
+        _targetRule.Visible = true;
+        _unavailableReason.Text = action.UnavailableReason;
+        _unavailableReason.Visible = !action.IsAvailable &&
+            !string.IsNullOrWhiteSpace(action.UnavailableReason);
+        _targetSelectionHint.Visible = false;
+        _cancelTargetButton.Visible = false;
+    }
+
+    private void ShowPartyTargets(CombatActionCardViewData action)
+    {
+        _skillScroll.Visible = false;
+        _partyTargets.Visible = true;
+        ClearChildren(_partyTargets);
+
+        Label heading = new Label
+        {
+            Text = "SELECT ALLY",
+            SizeFlagsHorizontal = Control.SizeFlags.ExpandFill
+        };
+        heading.AddThemeColorOverride("font_color", UiTheme.Accent);
+        _partyTargets.AddChild(heading);
+
+        foreach (CombatActionTargetViewData target in action.Targets)
+        {
+            Button targetButton = new Button
+            {
                 Text = target.Name,
                 CustomMinimumSize = new Vector2(0, 42),
-                Disabled = !action.IsAvailable,
+                SizeFlagsHorizontal = Control.SizeFlags.ExpandFill,
                 Alignment = HorizontalAlignment.Left,
                 FocusMode = FocusModeEnum.All,
                 MouseDefaultCursorShape = CursorShape.PointingHand
             };
-            UiTheme.StyleButton(button);
-            button.ActionSelected += HandleActionSelected;
-            _targetGrid.AddChild(button);
+            UiTheme.StyleButton(targetButton);
+            targetButton.Pressed += () => SubmitPendingAction(target.Id);
+            _partyTargets.AddChild(targetButton);
         }
-
-        _pendingAction = null;
-        _targetGrid.Visible = true;
-        _actionGrid.Visible = false;
-        _targetSelection.Visible = true;
     }
 
-
-    private void CancelTargetSelection()
+    private void SubmitPendingAction(string targetId)
     {
-        bool wasSelectingEnemy = _pendingAction != null;
+        if (_pendingAction == null)
+            return;
+
+        CombatActionSelection selection = new CombatActionSelection(
+            _pendingAction.Id,
+            _pendingAction.ActorId,
+            targetId);
+
         ClearPendingTarget();
-        _targetSelection.Visible = false;
-        _actionGrid.Visible = true;
-        _targetGrid.Visible = false;
-        if (wasSelectingEnemy)
-        {
-            EnemyTargetSelectionCancelled?.Invoke();
-        }
-    }
-
-    private void HandleActionSelected(CombatActionRequest request)
-    {
-        _targetSelection.Visible = false;
-        _actionGrid.Visible = true;
-        _targetGrid.Visible = false;
-        ActionSelected?.Invoke(request);
+        _partyTargets.Visible = false;
+        _skillScroll.Visible = true;
+        ClearChildren(_partyTargets);
+        _targetSelectionHint.Visible = false;
+        _cancelTargetButton.Visible = false;
+        EnemyTargetSelectionCancelled?.Invoke();
+        ActionSelected?.Invoke(selection);
     }
 
     private void ClearPendingTarget()
     {
         _pendingAction = null;
         _validEnemyTargetIds.Clear();
+    }
+
+    private void ClearDetails()
+    {
+        _detailTitle.Text = "Select a skill";
+        _detailDescription.Text = "Choose a command, then select a skill from the list.";
+        _detailCost.Text = string.Empty;
+        _effectSummary.Text = string.Empty;
+        _effectSummary.Visible = false;
+        _targetRule.Text = string.Empty;
+        _targetRule.Visible = false;
+        _unavailableReason.Text = string.Empty;
+        _unavailableReason.Visible = false;
+        _targetSelectionHint.Text = string.Empty;
+        _targetSelectionHint.Visible = false;
+        _cancelTargetButton.Visible = false;
+    }
+
+    private static string GetCategoryLabel(CombatActionCategory category)
+    {
+        return category switch
+        {
+            CombatActionCategory.Attack => "Attack",
+            CombatActionCategory.Defence => "Defence",
+            CombatActionCategory.Allure => "Allure",
+            CombatActionCategory.Inventory => "Inventory",
+            CombatActionCategory.Run => "Run",
+            _ => "Other"
+        };
     }
 
     private static string[] ToArray(HashSet<string> values)

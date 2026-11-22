@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using Godot;
 
 /// <summary>Composes runtime services and connects the top-level exploration and combat signals.</summary>
@@ -10,7 +9,6 @@ public partial class MainController : Control
     private ExplorationFlowController _explorationController;
     private CombatFlowController _combatController;
     private ActionDefinition _debugEncounterAction;
-    private string[] _pendingEnemyTargetIds = Array.Empty<string>();
     private const int _unit213ActionCapacity = 2;
 
     /// <summary>Builds the application graph, connects presentation signals and shows the initial Location.</summary>
@@ -91,13 +89,10 @@ public partial class MainController : Control
 
         _sidebar.TabSelected += OpenTab;
         _sidebar.DebugEncounterRequested += StartDebugEncounter;
-        _sidebar.EnemySelected += HandleEnemySelected;
         storyPanel.ChoiceSelected += _explorationController.HandleChoice;
         storyPanel.ReturnToLocationRequested += _explorationController.ShowLocation;
         combatPanel.ActionSelected += HandleCombatAction;
         combatPanel.EndPlayerTurnRequested += HandleEndPlayerTurn;
-        combatPanel.EnemyTargetSelectionRequested += BeginEnemyTargetSelection;
-        combatPanel.EnemyTargetSelectionCancelled += ClearEnemyTargetSelection;
         combatPanel.ContinueRequested += ReturnToExploration;
         characterPanel.SetCharacter(new CharacterViewModel(player));
         _explorationController.ShowLocation();
@@ -126,46 +121,30 @@ public partial class MainController : Control
             "An unstable presence appears.");
     }
 
-    private void BeginEnemyTargetSelection(string[] targetIds)
+    private void HandleCombatAction(CombatActionSelection selection)
     {
-        _pendingEnemyTargetIds = targetIds ?? Array.Empty<string>();
-        _sidebar.SetEnemyTargetSelection(_pendingEnemyTargetIds);
-    }
-
-    private void HandleEnemySelected(string enemyId)
-    {
-        if (!_pendingEnemyTargetIds.Contains(enemyId, StringComparer.Ordinal))
+        if (selection == null)
         {
             return;
         }
 
-        CombatPanel combatPanel = GetNode<CombatPanel>("SafeArea/Layout/CombatPanel");
-        combatPanel.SetSelectedEnemyTarget(enemyId);
-    }
-
-    private void ClearEnemyTargetSelection()
-    {
-        _pendingEnemyTargetIds = Array.Empty<string>();
-        _sidebar.ClearEnemyTargetSelection();
-    }
-
-    private void HandleCombatAction(CombatActionRequest request)
-    {
-        ClearEnemyTargetSelection();
         GetNode<CombatPanel>("SafeArea/Layout/CombatPanel").ClearTargetSelection();
+        CombatActionRequest request = new CombatActionRequest(
+            selection.ActionId,
+            selection.TargetId,
+            selection.ActorId);
         _combatController.HandleCombatAction(request);
     }
 
     private void HandleEndPlayerTurn()
     {
-        ClearEnemyTargetSelection();
         GetNode<CombatPanel>("SafeArea/Layout/CombatPanel").ClearTargetSelection();
         _combatController.HandleEndPlayerTurn();
     }
 
     private void ReturnToExploration()
     {
-        ClearEnemyTargetSelection();
+        GetNode<CombatPanel>("SafeArea/Layout/CombatPanel").ClearTargetSelection();
         _combatController.ReturnToExploration(_explorationController.ShowLocation);
     }
 }
