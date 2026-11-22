@@ -1,17 +1,17 @@
 # Presentation User Interface and Contracts
 
-**Status:** Describes the current repository UI composition and presentation contracts  
-**Boundary:** This document owns current UI composition and presentation contracts. Product experience goals belong in [Design](../Design/README.md).
+**Status:** Describes current UI composition and presentation contracts  
+**Boundary:** Player experience goals live in [Combat Design](../Design/Combat.md); this document describes the current implementation and layer contracts.
 
 ## 1. Main screen composition
 
-| Region | Current responsibility |
-|---|---|
-| Sidebar | Navigation between available pages |
-| Main Panel | Current Location exploration or dedicated activity mode |
-| Character Panel | Persistent display of current Player state |
+| Region | Exploration | Combat |
+|---|---|---|
+| Sidebar | Navigation and location context | Compact Enemy cards and target selection |
+| Main Panel | Story and available interactions | Combat header, Party roster, AP status, action flow and combat log |
+| Character Panel | Full Player profile: HP, Fatigue, Stamina, Mood and Gold | Active Party member focus: HP, Stamina and Arousal only when real data is available |
 
-The Main Panel changes mode between Exploration and Combat. The Character Panel remains visible across both.
+The Main Panel switches between Exploration and Combat. The persistent Character Panel switches its display mode rather than showing the full Exploration profile during combat.
 
 ## 2. Exploration presentation
 
@@ -28,80 +28,91 @@ AvailableInteractionQuery
   -> ExplorationFlowController
 ```
 
-The UI renders the groups and ordering supplied by its view data. It does not decide which actions are valid, inspect JSON or mutate Domain state.
-
-The current request identifies:
-- Source kind.
-- Source ID.
-- Action ID.
-- Optional target/destination ID.
-
-Action IDs alone are not globally unique. The owning flow/service revalidates each request because UI availability is advisory and state may have changed.
+The UI renders the groups and ordering supplied by its view data. It does not decide which actions are valid, inspect JSON or mutate Domain state. The owning service revalidates every request because displayed availability is advisory and state may have changed.
 
 ## 3. Combat presentation
 
-Combat uses a dedicated Combat Panel rather than reusing the Exploration choice groups.
+Combat uses a dedicated Combat Panel. It does not reuse Exploration choice groups and does not display Timeline markers or future Enemy Intent.
 
-The combat flow is:
+Current flow:
 
-CombatPanel → CombatFlowController → CombatSessionService → CombatService → CombatSnapshot / CombatResult / ordered CombatEvent[] → CombatPresentationMapper → CombatViewData → CombatPanel.
+```text
+CombatPanel
+  -> CombatFlowController
+  -> CombatSessionService
+  -> CombatService
+  -> CombatSnapshot / CombatResult / ordered CombatEvent[]
+  -> CombatPresentationMapper
+  -> Presentation-owned CombatViewData
+  -> CombatPanel + Sidebar + CharacterPanel
+```
 
-The combat panel presents:
-- Current Round, Player/Enemy phase and shared Party AP.
-- The current Party roster, including Downed state and which members are eligible to act this Round.
-- Current Enemy HP and condition only; no future Enemy action or target is displayed.
-- Select an eligible Party member from the roster, then view only that member's actions. Every action option carries an ActorId; the UI submits that ID with the selected action. If that member has already acted, the roster selection moves to another eligible member.
-- A target-selection state for Enemy-targeting actions and a dedicated ally-target list for Revive.
-- An explicit End Player Turn control. When AP reaches zero, the Domain resolves the Enemy Turn automatically.
+The combat interface presents:
 
-The Domain owns authoritative combat state. CombatSnapshot contains statuses and action options suitable for display; it does not expose mutable Character objects. The presentation mapper converts ordered Domain events into messages and visual feedback cues. The UI renders those values and does not calculate damage, spend AP/Stamina or decide Enemy behavior.
+- **Header:** encounter title, Round, Player/Enemy phase and shared Party AP.
+- **Enemy area:** compact Enemy cards with name, HP and condition. Each card has a target-selection state; an optional Arousal meter is displayed only when a real value is supplied.
+- **Party roster:** all four Party members remain visible. Cards display HP, condition, Stamina and current-Round action eligibility. Arousal is optional and stays hidden while the runtime provides no value.
+- **Active character:** the Character Panel focuses the selected Party member. In Combat mode it hides Exploration-only Fatigue, Mood and Gold, and displays HP, Stamina and Arousal only when available. During the Enemy Turn it shows a Party-on-standby state.
+- **Action flow:** category filters → action list → selected-action details → confirmation → target selection when required. Unavailable actions remain inspectable so their disabled reason can be read.
+- **Combat log:** newly mapped messages append in the exact order of resolved Domain events.
+- **End Player Turn:** remains available throughout the Player Turn; the Domain also starts Enemy Turn automatically when AP reaches zero.
 
-### Ownership
+### Presentation ownership and mapping
 
-- CombatService owns Player/Enemy Turn rules, action validation, AP spending, one-action-per-Party-member-per-Round eligibility, EnemyPattern resolution and terminal conditions.
-- CombatSessionService coordinates the entry action, encounter completion costs and one-time world-time feedback. GameClock does not advance per action or Round.
-- CombatSnapshot, CombatActionRequest, CombatResult, CombatEvent and ICombatService are Domain contracts in Scripts/Domain/Combat/CombatContracts.cs. Presentation depends on these lower-level contracts; Domain does not depend on Presentation.
-- CombatPresentationMapper converts Domain results into CombatViewData. CombatPanel renders that data and emits actor/action/target requests.
-- The latest snapshot replaces current status and available actions; new messages append to history. Events remain in the exact order resolved by Domain.
+- `CombatPresentationMapper` converts Domain snapshots/results into Presentation-owned classes in `Scripts/Presentation/ViewModels/Combat/CombatPresentation.cs`.
+- Reusable controls consume `EnemyCardViewData`, `PartyMemberCardViewData`, `CombatActionCardViewData`, `CombatMessage` and `CombatFeedbackViewData`. UI controls do not receive Domain `EnemyCombatStatus`, `PartyCombatStatus` or `CombatActionOption` objects directly.
+- `CombatViewData` contains a boolean `IsPlayerTurn`, Round, AP values, Presentation-owned Enemy/Party/action arrays, messages and feedback. Domain enums and contracts do not leak into the reusable UI controls.
+- `EnemyCard`, `PartyMemberCard`, `CombatActionCard` and `CombatActionButton` render supplied values and emit selection events/IDs only. Parent panels own instance lifetimes and selected state.
+- `CombatActionSelection` is a Presentation-owned intent containing only `ActionId`, `ActorId` and `TargetId`. `MainController` converts it into the Domain `CombatActionRequest` at the composition boundary. CombatService revalidates actor, action, target, AP and Stamina before mutation.
+- `CombatActionCardViewData` contains category, target kind, valid targets, cost, description and availability reason. The mapper groups the currently authored actions: Attack variants under Offense, Guard/Evade under Defense and Recover/Revive under Support.
+- Target validity comes from the current action options returned by Domain. During selection the Sidebar highlights only valid target IDs; valid cards use a pointing-hand cursor, invalid cards are dimmed and ignore clicks. A successful target selection produces a short selected-state cue. Cancelling clears the visual state.
+- The mapper emits distinct cues for Quick Strike, Heavy Strike, Disrupting Strike, Guard, Evade, Catch Breath, Revive and Hit. The cue is visual feedback only; it never changes combat resolution.
+- Presentation view data reserves nullable Arousal values. Current Enemy/Party combat contracts do not yet supply Arousal; therefore the Arousal labels/bars remain hidden rather than displaying fabricated placeholder values. Issue #134 owns the runtime meter and events.
 
-### Reusable presentation components
+### Component responsibilities
 
-Combat UI components consume presentation contracts and do not access Domain entities or services directly:
-
-| Component | Input contract | Responsibility |
+| Component | Input | Responsibility |
 |---|---|---|
-| EnemyCard | EnemyCombatStatus | Render Enemy name, HP and condition; expose target-selection state and selection event |
-| PartyMemberCard | PartyCombatStatus | Render one Party member's status and current-round action eligibility |
-| CombatActionCard | CombatActionOption | Render an actor-labelled action and emit the selected option |
-| CombatMessageEntry | CombatMessage | Render one historical combat message |
+| `EnemyCard` | `EnemyCardViewData` | Render Enemy identity, HP, condition and optional Arousal; expose target hover/selected states and a selection event |
+| `PartyMemberCard` | `PartyMemberCardViewData` | Render compact Party status, relevant Stamina/Arousal and action eligibility; expose actor selection |
+| `PartyRosterPanel` | `PartyMemberCardViewData[]` | Own Party card collection, stable ordering and selected eligible actor |
+| `CharacterPanel` | `CharacterViewModel` or `PartyMemberCardViewData` | Show the full Exploration profile or the active combat member's relevant state |
+| `CombatActionCard` | `CombatActionCardViewData` | Render an action and emit selection for the details panel |
+| `CombatActionPanel` | `CombatActionCardViewData[]` | Manage categories, action list, details, confirmation and target-selection states |
+| `CombatMessageEntry` | `CombatMessage` | Render one historical combat message |
 
-Parent panels own component collections and lifecycle. They create, update, reorder and release instances by stable entity ID. A component receives a presentation object through Set... methods; it must not look up Character, query CombatService, parse content files or decide whether an action is legal. Components may expose UI events, but the owning controller/service revalidates the request.
-
-CombatPresentationMapper also maps resolved action events into CombatFeedbackViewData. The orchestrator routes those cues to the matching PartyMemberCard or EnemyCard. Attack, Guard, Evade, Catch Breath, Revive and Hit currently use short visual color pulses; these are presentation-only and do not affect combat resolution.
+Components must not look up Character objects, query CombatService, parse content files or decide whether an action is legal. The owning flow/service revalidates interactions. Do not add a generic UI framework or duplicate combat state.
 
 ### Message semantics
 
 Messages use Player, Enemy or System identity. Speaker/category labels remain visible; alignment or color is not the only identity cue. Completed events are historical facts, while observations/inferences must be presented as such.
 
-The current prototype uses exact Enemy HP in status and records damage deltas in the log. The log is bounded and preserves reading position when the user scrolls older messages. Target selection is confirmed before execution; invalid targets are not selectable and the Sidebar cursor changes only for valid EnemyCards.
+The current prototype uses exact Enemy HP in status and records damage deltas in the log. The log is bounded and preserves reading position when the user scrolls older messages. Enemy-targeting actions are confirmed before target selection; invalid targets are not selectable.
 
-## 4. Character Panel
+## 4. Character Panel modes
 
-The current Character Panel displays Health, Fatigue, Stamina, Mood and Gold. These are current prototype resources, not a commitment to the final game HUD.
+**Exploration mode:** displays Health, Fatigue, Stamina, Mood and Gold from the current `CharacterViewModel`.
+
+**Combat mode:** displays only the selected Party member's name, condition, HP and Stamina. Arousal appears only when the combat runtime supplies a value. The generic portrait is hidden because current Party combat view data does not provide separate portraits for every member. During Enemy Turn, the panel shows that the Party is on standby.
 
 The panel presents state; it does not own resource rules or mutate the Character.
 
 ## 5. Mode transitions
 
-- Exploration → Combat: show the dedicated Combat Panel.
-- During Combat: replace status/action data from the latest view.
-- Combat → Exploration: return to the current Location's Exploration presentation.
-- Character Panel remains persistent.
+- Exploration → Combat: show the dedicated Combat Panel, Enemy cards and active-Party focus.
+- During Combat: replace status/action data from the latest view; append new event messages.
+- Player → Enemy Turn: clear actor selection and show the Party-on-standby state.
+- Enemy Turn → next Player Turn: select the first eligible Party member unless the player has already selected another eligible member.
+- Combat → Exploration: return to the current Location's Exploration presentation and restore the full Character Panel.
 
-MainController composes the screen and top-level signals. ExplorationFlowController and CombatFlowController own their respective presentation flows and delegate gameplay rules to Application/Domain services.
+MainController remains the composition root. ExplorationFlowController and CombatFlowController own their respective presentation flows and delegate gameplay rules to Application/Domain services.
 
 ## 6. Current limitations
 
-The current UI is a prototype, not a final interface specification. The playable MainController encounter is wired with Alex, Noah, Mira and Sera against the Unit 213 manifestations. The current Enemy patterns are fixed authored action sequences; richer conditional behavior rules, sequential animation/event playback and polished Party actor selection remain incomplete. Interactive Godot acceptance is still required to verify target selection, action feedback, End Player Turn and the complete encounter flow. Arousal/Tease/Orgasm is still an MVP runtime follow-up. Broad skill selection, inventory, relationships, diary, responsive narrow-screen behavior and full assistive-technology verification remain incomplete.
+This is a functional prototype interface, not a final visual specification. The MainController encounter uses Alex, Noah, Mira and Sera against the Unit 213 manifestations. The current Enemy patterns are fixed authored action sequences. Sequential event/animation playback is still a follow-up; ordered Domain results are currently presented synchronously.
 
-When the intended UI changes, first update the relevant Design document if the player experience changes; update this document only when the current presentation contract changes.
+Arousal/Tease/Orgasm remains an MVP runtime task under Issue #134. The UI can display an optional Arousal value once the Domain snapshot and mapper supply it, but it does not invent values or implement threshold behavior. Interactive Godot acceptance is still required for action confirmation, target hover/selection/cancel, card focus, feedback cues, End Player Turn and the full Unit 213 encounter.
+
+Broad skill selection, inventory, relationships, diary, responsive narrow-screen behavior and full assistive-technology verification remain incomplete.
+
+When the intended player experience changes, update the relevant Design document first; update this document when the current UI contract or implementation changes.
