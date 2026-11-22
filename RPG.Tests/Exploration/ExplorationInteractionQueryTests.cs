@@ -5,7 +5,7 @@ using Xunit;
 
 public sealed class ExplorationInteractionQueryTests
 {
-    private readonly LocationCatalog _locations = new LocationCatalog();
+    private LocationCatalog _locations;
     [Fact]
     public void Query_OffersRestEverywhereAndSleepOnlyInStudentApartment()
     {
@@ -199,7 +199,7 @@ public sealed class ExplorationInteractionQueryTests
 
     private void LoadContent()
     {
-        _locations.LoadJson(File.ReadAllText(
+        _locations = LocationDataLoader.LoadJson(File.ReadAllText(
             Path.Combine(AppContext.BaseDirectory, "Data", "Locations.json")));
     }
 
