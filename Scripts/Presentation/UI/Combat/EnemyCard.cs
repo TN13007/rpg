@@ -1,35 +1,32 @@
 using System;
 using Godot;
 
-/// <summary>Presents a combatant card and its current selection and feedback state.</summary>
+/// <summary>Presents an enemy combat status card and target-selection feedback.</summary>
 public partial class EnemyCard : Button
 {
-    /// <summary>Raised when selected occurs.</summary>
+    /// <summary>Raised when the player selects this Enemy during target selection.</summary>
     public event Action<string> Selected;
 
     private Label _nameLabel;
     private Label _healthLabel;
     private ProgressBar _healthBar;
     private Label _conditionLabel;
-    private Label _intentLabel;
     private CombatCardVfx _vfx;
-
     private string _enemyId = string.Empty;
     private bool _selectable;
     private bool _selected;
     private bool _targetSelectionActive;
 
-    /// <summary>Gets the enemy name.</summary>
+    /// <summary>Gets the displayed enemy name.</summary>
     public string EnemyName => _nameLabel?.Text ?? string.Empty;
 
-    /// <summary>Initializes the Godot control and connects its UI signals.</summary>
+    /// <summary>Initializes child controls and connects the pressed signal.</summary>
     public override void _Ready()
     {
         _nameLabel = GetNode<Label>("Margin/Content/Header/Name");
         _healthLabel = GetNode<Label>("Margin/Content/HealthLabel");
         _healthBar = GetNode<ProgressBar>("Margin/Content/HealthBar");
         _conditionLabel = GetNode<Label>("Margin/Content/Condition");
-        _intentLabel = GetNode<Label>("Margin/Content/Intent");
         _vfx = GetNode<CombatCardVfx>("Vfx");
 
         Pressed += HandlePressed;
@@ -38,8 +35,7 @@ public partial class EnemyCard : Button
         UpdateVisualState();
     }
 
-    /// <summary>Sets setup.</summary>
-    /// <param name="enemy">The enemy used by this operation.</param>
+    /// <summary>Initializes this card with one Enemy status.</summary>
     public void Setup(EnemyCombatStatus enemy)
     {
         if (enemy == null)
@@ -51,8 +47,7 @@ public partial class EnemyCard : Button
         UpdateDisplay(enemy);
     }
 
-    /// <summary>Updates display to reflect the latest combat state.</summary>
-    /// <param name="enemy">The enemy used by this operation.</param>
+    /// <summary>Updates HP and condition without exposing a future action or target.</summary>
     public void UpdateDisplay(EnemyCombatStatus enemy)
     {
         if (enemy == null)
@@ -72,10 +67,6 @@ public partial class EnemyCard : Button
         _healthBar.Value = enemy.CurrentHealth;
         _conditionLabel.Text = enemy.Condition;
 
-        bool hasIntent = !string.IsNullOrWhiteSpace(enemy.IntentDescription);
-        _intentLabel.Visible = hasIntent;
-        _intentLabel.Text = hasIntent ? "Intent: " + enemy.IntentDescription : string.Empty;
-
         if (string.Equals(enemy.Condition, "Defeated", StringComparison.OrdinalIgnoreCase))
         {
             _selectable = false;
@@ -85,10 +76,7 @@ public partial class EnemyCard : Button
         UpdateVisualState();
     }
 
-    /// <summary>Sets target selection state.</summary>
-    /// <param name="selectionActive">The selection active used by this operation.</param>
-    /// <param name="selectable">The selectable used by this operation.</param>
-    /// <param name="selected">The selected used by this operation.</param>
+    /// <summary>Sets whether this Enemy is a valid target and whether it is selected.</summary>
     public void SetTargetSelectionState(bool selectionActive, bool selectable, bool selected)
     {
         _targetSelectionActive = selectionActive;
@@ -97,8 +85,7 @@ public partial class EnemyCard : Button
         UpdateVisualState();
     }
 
-    /// <summary>Plays feedback feedback for the selected combatant or action.</summary>
-    /// <param name="feedbackType">The feedback type used by this operation.</param>
+    /// <summary>Plays the requested combat feedback cue.</summary>
     public void PlayFeedback(CombatFeedbackType feedbackType)
     {
         _vfx.PlayFeedback(feedbackType);

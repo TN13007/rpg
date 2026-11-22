@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-/// <summary>Coordinates combat presentation across the panels and view models.</summary>
+/// <summary>Coordinates combat presentation across the panels and presentation view models.</summary>
 public sealed class CombatPresentationOrchestrator
 {
     private readonly GameModeController _gameModeController;
@@ -13,13 +13,7 @@ public sealed class CombatPresentationOrchestrator
     private readonly Character[] _partyMembers;
     private readonly Character _primaryCharacter;
 
-    /// <summary>Initializes a new instance of <see cref="CombatPresentationOrchestrator"/>.</summary>
-    /// <param name="gameModeController">The game mode controller used to initialize the instance.</param>
-    /// <param name="sidebar">The sidebar used to initialize the instance.</param>
-    /// <param name="combatPanel">The combat panel used to initialize the instance.</param>
-    /// <param name="characterPanel">The character panel used to initialize the instance.</param>
-    /// <param name="mapper">The mapper used to initialize the instance.</param>
-    /// <param name="partyMembers">The party members used to initialize the instance.</param>
+    /// <summary>Creates the orchestrator with the presentation components and ordered Party roster.</summary>
     public CombatPresentationOrchestrator(
         GameModeController gameModeController,
         Sidebar sidebar,
@@ -41,16 +35,14 @@ public sealed class CombatPresentationOrchestrator
         _partyMembers = partyMembers.ToArray();
         if (_partyMembers.Length == 0 || _partyMembers.Any(character => character == null))
         {
-            throw new ArgumentException("The presentation roster requires at least one valid party member.", nameof(partyMembers));
+            throw new ArgumentException("The presentation roster requires at least one valid Party member.", nameof(partyMembers));
         }
 
         _primaryCharacter = _partyMembers[0];
+        _combatPanel.PartyMemberSelected += HandlePartyMemberSelected;
     }
 
-    /// <summary>Begins encounter and initializes the corresponding UI state.</summary>
-    /// <param name="title">The title used by this operation.</param>
-    /// <param name="snapshot">The snapshot used by this operation.</param>
-    /// <param name="openingMessage">The opening message used by this operation.</param>
+    /// <summary>Enters combat mode, shows the initial statuses and adds the opening message.</summary>
     public void BeginEncounter(string title, CombatSnapshot snapshot, string openingMessage)
     {
         if (snapshot == null)
@@ -76,8 +68,7 @@ public sealed class CombatPresentationOrchestrator
         Present(_mapper.Map(snapshot));
     }
 
-    /// <summary>Presents the latest combat result and its feedback.</summary>
-    /// <param name="result">The result used by this operation.</param>
+    /// <summary>Maps and presents the latest Domain result, including its ordered events.</summary>
     public void Present(CombatResult result)
     {
         if (result == null)
@@ -88,28 +79,14 @@ public sealed class CombatPresentationOrchestrator
         Present(_mapper.Map(result));
     }
 
-    /// <summary>Updates timeline to reflect the latest game state.</summary>
-    /// <param name="snapshot">The snapshot used by this operation.</param>
-    public void UpdateTimeline(CombatSnapshot snapshot)
-    {
-        if (snapshot == null)
-        {
-            throw new ArgumentNullException(nameof(snapshot));
-        }
-
-        CombatViewData viewData = _mapper.Map(snapshot);
-        _combatPanel.SetTimeline(viewData.Timeline);
-    }
-
-    /// <summary>Presents the completion state for encounter.</summary>
-    /// <param name="isVictory">The is victory used by this operation.</param>
+    /// <summary>Displays the terminal outcome after the Domain encounter has ended.</summary>
     public void CompleteEncounter(bool isVictory)
     {
         _combatPanel.ShowEncounterComplete(isVictory ? "VICTORY" : "DEFEAT");
         _characterPanel.SetCharacter(new CharacterViewModel(_primaryCharacter));
     }
 
-    /// <summary>Ends encounter and clears its presentation state.</summary>
+    /// <summary>Leaves combat mode and restores the primary Party member in the character panel.</summary>
     public void EndEncounter()
     {
         _sidebar.ExitCombat();
@@ -121,6 +98,7 @@ public sealed class CombatPresentationOrchestrator
     {
         _sidebar.UpdateCombatEnemies(viewData.Enemies);
         _combatPanel.ApplyViewData(viewData);
+
         foreach (CombatFeedbackViewData feedback in viewData.Feedback)
         {
             if (!string.IsNullOrWhiteSpace(feedback.ActorName))
@@ -131,23 +109,22 @@ public sealed class CombatPresentationOrchestrator
 
             if (!string.IsNullOrWhiteSpace(feedback.TargetName))
             {
-                _combatPanel.PlayPartyFeedback(feedback.TargetName, feedback.Type == CombatFeedbackType.Hit
+                CombatFeedbackType targetFeedback = feedback.Type == CombatFeedbackType.Hit
                     ? CombatFeedbackType.Hit
-                    : feedback.Type);
-                _sidebar.PlayEnemyFeedback(feedback.TargetName, feedback.Type == CombatFeedbackType.Hit
-                    ? CombatFeedbackType.Hit
-                    : feedback.Type);
+                    : feedback.Type;
+                _combatPanel.PlayPartyFeedback(feedback.TargetName, targetFeedback);
+                _sidebar.PlayEnemyFeedback(feedback.TargetName, targetFeedback);
             }
         }
 
-        Character activeCharacter = _partyMembers.FirstOrDefault(
-            character => character.Id == viewData.ActiveCombatantId);
+    }
 
-        if (activeCharacter == null)
-        {
-            activeCharacter = _primaryCharacter;
-        }
+    private void HandlePartyMemberSelected(string characterId)
+    {
+        Character selectedCharacter = _partyMembers.FirstOrDefault(
+            character => character.Id == characterId);
 
-        _characterPanel.SetCharacter(new CharacterViewModel(activeCharacter));
+        _characterPanel.SetCharacter(
+            new CharacterViewModel(selectedCharacter ?? _primaryCharacter));
     }
 }

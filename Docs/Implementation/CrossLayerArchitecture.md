@@ -109,7 +109,7 @@ CombatPanel
   -> CombatPanel
 ```
 
-CombatService owns turn validation, resolution, enemy response and combat-state mutation in the current prototype. CombatSessionService coordinates encounter entry and completion. The mapper converts results/events into presentation-safe data. UI does not calculate damage or mutate combat resources.
+CombatService owns shared AP, Party action eligibility, Player/Enemy Turn transitions, deterministic EnemyPattern resolution, action resolution and combat-state mutation. Domain combat request/snapshot/result/event contracts live in Scripts/Domain/Combat/CombatContracts.cs. CombatSessionService coordinates encounter entry and one-time completion costs. The mapper converts results/events into presentation-safe data. UI does not calculate damage or mutate combat resources.
 
 ### Content loading
 

@@ -5,7 +5,7 @@
 
 ## 1. Current prototype overview
 
-The current build combines an authored, location-based modern student-life slice, a bounded daily NPC presence schedule and the four-person Tactical Timeline combat prototype. The Campus Day path exercises Location, Travel, Action, Effect and Location Event content. NPC presence is schedule-driven, but NPCs do not yet make autonomous decisions or simulate needs, memory or relationships.
+The current build combines an authored, location-based modern student-life slice, a bounded daily NPC presence schedule and a four-person, shared-AP, turn-based combat prototype. The Campus Day path exercises Location, Travel, Action, Effect and Location Event content. NPC presence is schedule-driven, but NPCs do not yet make autonomous decisions or simulate needs, memory or relationships.
 
 Implemented areas include:
 - Character state and resources, plus the Alex/Noah/Mira/Sera StartingParty composition.
@@ -13,7 +13,7 @@ Implemented areas include:
 - A connected modern city route through university campus, lecture hall, library, campus café, student housing, East District and the old apartment block.
 - Location travel, context-sensitive Location Actions and source-aware Exploration choices.
 - Authored Location Events for a campus conversation and the Unit 213 incident. The first introduces a local rumor; the second offers observation, cautious entry and retreat without forcing Combat.
-- Four-person Combat with a shared Continuous Timeline, player decision pauses, action-specific Recovery Cost, Delay/Stun, Downed/Revive and Victory/Defeat.
+- Four-person Combat with a shared Party Action Point pool, discrete Player and Enemy Turns, deterministic authored enemy patterns, Downed/Revive and Victory/Defeat.
 - Exploration rescue when Alex returns from an encounter at 0 HP.
 - Dedicated Combat presentation and authored JSON definitions loaded into runtime catalogs.
 
@@ -36,7 +36,7 @@ Do not infer that the repository already contains a generalized NPC presence, ob
 
 The current prototype exposes Health, Fatigue, Stamina, Mood and Gold.
 
-- Outside Combat, zero Health prevents ordinary Character actions. During Combat, CombatService tracks Party members at zero Health as Downed, removes them from the Timeline and retains them in the Party roster for possible revival.
+- Outside Combat, zero Health prevents ordinary Character actions. During Combat, CombatService tracks Party members at zero Health as Downed, prevents them from acting and retains them in the Party roster for possible revival.
 - Fatigue is a cumulative daily-life exertion value. It does not currently cause unconsciousness or block ordinary actions.
 - Stamina is a separate Combat resource used by defensive actions. Insufficient Stamina rejects the requested action; it does not end Combat.
 - Mood is a tracked character value; current effects may change it, but it is not the future party progression system.
@@ -79,20 +79,46 @@ The current Event definition still contains one description and a set of choices
 
 ## 6. Current Combat implementation
 
-Combat now uses a shared Continuous Timeline driven in real time at 1.0x. `MainController._Process(delta)` forwards each Godot frame delta through `CombatFlowController` and `CombatSessionService` to `CombatService.AdvanceCombatTime`. The service advances all eligible combatants together, clamps each frame step at the next Ready or Stun-expiry event, resolves one Ready Enemy at a time, and stops immediately when a Party member becomes Ready. Time does not advance while the player chooses an action. After an action resolves, its Recovery Cost is applied and the next frame resumes the shared clock. Every party member is player-controlled. Enemy actions are selected from the actions authored for that enemy.
+Combat uses discrete Player Turns and Enemy Turns. A Round consists of one Player Turn followed by one complete Enemy Turn. CombatService owns the encounter roster, action validation, resource spending, actor eligibility, enemy pattern progression, terminal conditions and the authoritative combat snapshot.
 
-Each combatant has Remaining Progress and Speed. At encounter start, CombatService calculates one Progress Scale from the slowest active Base Speed and the largest Recovery Cost in the active roster. The current target is a maximum 4-second recovery for the slowest combatant. CombatTimeline applies that same scale to Initial Progress, Recovery Cost and Delay; Stun durations remain unscaled Combat Time. This keeps quick and heavy actions proportionate while shortening idle gaps. An action applies its scaled Recovery Cost as the actor's next Remaining Progress. The simulation supports Delay and Stun through the combat effect resolver/dispatcher. Stun preserves progress while freezing the target; its duration is measured in Combat Time.
+### Party Turn and shared AP
 
-The presentation pipeline maps combat timing into `TimelineMarkerViewData.TimeToReadySeconds`. For normal combatants this is `RemainingProgress / Speed`; for Stunned combatants it also includes the remaining Stun duration. `TimelineTrack.tscn` displays the next 10 seconds by default, with NOW at the left and the future horizon at the right. The Timeline is refreshed from the current snapshot each runtime frame, so marker movement matches the 1.0x Combat Clock without a lagging fixed-duration Tween. Party markers occupy the upper side of the rail and Enemy markers the lower side; overlapping markers stack within their own side without changing their horizontal time. It creates and reuses `TimelineMarker.tscn` instances by combatant ID. Hidden enemies are filtered from the UI but remain registered in the simulation.
+- The encounter starts at Round 1 with 2/2 shared Party Action Points (AP). CombatService accepts an authored capacity from 1 to 4; MainController explicitly supplies the Unit 213 encounter capacity of 2 AP.
+- Every successful Party action in the current slice costs exactly 1 AP, including Revive. Defensive and recovery actions may also spend Stamina as authored.
+- The player can choose any living, non-Downed Party member who has not acted in the current Round. A Party member may perform only one AP-funded action per Round, even when AP remains.
+- Action options are generated for every eligible Party member and carry the required ActorId. The UI labels each option with its actor; it does not choose the actor from Agility, Luck or an initiative order.
+- The Domain revalidates actor, action, target, availability and Stamina before spending AP or locking that actor. A rejected request changes neither AP nor actor eligibility.
+- When AP reaches zero, the Enemy Turn begins automatically. The player can also explicitly end the Player Turn; unused AP is discarded.
 
-Current limitations:
-- The playable `MainController` encounter is composed from Alex, Noah, Mira and Sera through `StartingParty`, plus one Unstable Presence. The helper reuses Alex's Exploration `Character` instance and creates the other members from their character content. All four are passed to the existing Party Roster presentation and remain individually player-controlled.
-- Current Timeline markers use faction-colored circles. The marker scene has an icon slot, but no combatant portrait textures are currently supplied.
-- A Party member reaching zero HP enters Downed, remains visible in the Party roster and leaves the Timeline. Any active ally can spend 4 Stamina to revive that member once per encounter at 25% maximum HP (rounded up). The revived member and the reviving actor both receive the largest authored Recovery Cost in the encounter; the revived member is re-registered on the Timeline. If every Party member is Downed, the encounter ends in defeat. Enemies at zero HP are defeated rather than Downed.
-- Speed modifiers, Acceleration, Interrupt, casting/channeling and Cooldowns are not implemented.
-- Enemy behavior remains limited to the currently authored Unstable Presence actions; distinct enemy behavior archetypes and multi-enemy playable encounters remain incomplete.
+ActionPool owns AP capacity/current AP and the one-point control penalty queued for the next Player Turn. Multiple control effects coalesce into one penalty; the refreshed AP cannot fall below one. The current migration does not persist capacity progression/training milestones.
 
-The intended rules and open decisions are defined in [Design/Combat](../Design/Combat.md). Do not treat numeric balance or explicitly open design decisions as finalized implementation contracts.
+### Enemy Turn and authored patterns
+
+Each living Enemy resolves at most one action per Enemy Turn, in stable encounter roster order. CombatantDefinition may provide an EnemyPattern, an ordered sequence of action IDs. EnemyPattern advances a per-encounter runtime cursor and wraps deterministically when the sequence ends. If no explicit pattern is supplied, the authored action list is used as the sequence.
+
+Enemy targets are selected at execution time from the currently living Party roster; a Downed member is not a valid target. A missing target, unavailable action or unaffordable Stamina cost causes that Enemy to skip its step rather than pre-commit an action or target. The UI does not expose a future Intent. The Unit 213 playable roster currently gives Unstable Presence a fixed Heavy Impact pattern and Unstable Echo a fixed Disorienting Pulse pattern; the pulse applies damage and queues the bounded -1 AP penalty for the next Player Turn.
+
+After the complete Enemy Turn, and only if the encounter remains active, Round increments once, Party action eligibility resets, and the ActionPool refreshes for the next Player Turn. Enemy actions and resulting events are resolved synchronously in Domain and returned in encounter order.
+
+### Downed, Revive and encounter completion
+
+- A Party member reaching zero HP becomes Downed, remains visible in the Party roster and cannot act or be selected as an Enemy target.
+- Revive costs 1 AP and 4 Stamina, restores 25% of maximum HP rounded up, and can be used only once per character per encounter.
+- If every Party member is Downed, the encounter ends in defeat. Enemies at zero HP are defeated rather than Downed.
+- CombatSessionService coordinates the entry action and encounter lifecycle. GameClock does not advance per Party action, Enemy action or Round. On encounter completion, the configured world-time and Fatigue costs are applied exactly once; the resulting time interval can be consumed once by the return-to-Exploration flow.
+
+### Ownership and current limits
+
+- CombatService mutates the live Character instances retained by the ordered CombatantDefinition[] roster. It partitions that roster into Party and Enemy lists; it does not create Godot scenes.
+- Domain contracts (CombatActionRequest, CombatSnapshot, CombatResult, CombatEvent and ICombatService) live in Scripts/Domain/Combat/CombatContracts.cs. Presentation owns only view data, formatted messages and visual feedback models.
+- CombatPresentationMapper maps the ordered Domain result into CombatViewData. CombatPanel displays Round, phase, shared AP, Party statuses, Enemy statuses, action options, the event history and an End Player Turn control.
+- Enemy cards display current status only. They do not show the next Enemy action or its target.
+- The simulation no longer uses CombatTimeline, Remaining Progress, Speed, Recovery Cost, Delay/Stun durations, frame-delta advancement or weighted Enemy Intent.
+- The current UI presents the entire ordered result immediately. A dedicated sequential animation/event queue and polished action-selection feedback remain follow-up presentation work.
+- Tease/Arousal/Orgasm remains an MVP requirement in Design/Combat, but is not implemented in this turn-based runtime migration yet. Party-side consequences for reaching the Arousal threshold remain an open design decision.
+- Persistent Action Capacity training progression and body-region/Exposure/Accessibility/Enemy Preference rules are not implemented in this migration.
+
+The intended rules and open decisions are defined in Design/Combat. Do not treat numeric balance or explicitly open design decisions as finalized implementation contracts.
 
 ## 7. Content and identity constraints
 

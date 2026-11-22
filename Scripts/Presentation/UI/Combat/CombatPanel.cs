@@ -1,62 +1,73 @@
 using System;
+using System.Linq;
 using Godot;
 
-/// <summary>Presents combat information and exposes its UI interactions.</summary>
+/// <summary>Presents combat data and exposes action, End Turn and encounter-exit interactions.</summary>
 public partial class CombatPanel : PanelContainer
 {
-    /// <summary>Raised when action selected occurs.</summary>
+    /// <summary>Raised when the player selects an action.</summary>
     public event Action<CombatActionRequest> ActionSelected;
-    /// <summary>Raised when continue requested occurs.</summary>
+    /// <summary>Raised when the player chooses to end the Player Turn.</summary>
+    public event Action EndPlayerTurnRequested;
+    /// <summary>Raised when the roster's selected acting member changes.</summary>
+    public event Action<string> PartyMemberSelected;
+    /// <summary>Raised when the player acknowledges completion and returns to Exploration.</summary>
     public event Action ContinueRequested;
-    /// <summary>Raised when enemy target selection requested occurs.</summary>
+    /// <summary>Raised when the player begins target selection for an action.</summary>
     public event Action<string[]> EnemyTargetSelectionRequested;
-    /// <summary>Raised when enemy target selection cancelled occurs.</summary>
+    /// <summary>Raised when the current target selection is cancelled.</summary>
     public event Action EnemyTargetSelectionCancelled;
 
     private Label _encounterTitle;
     private Label _mode;
     private Button _continueButton;
+    private Button _endTurnButton;
     private PartyRosterPanel _partyRosterPanel;
     private CombatStatusPanel _statusPanel;
     private CombatMessageLog _messageLog;
     private CombatActionPanel _actionPanel;
+    private CombatActionOption[] _availableActions = Array.Empty<CombatActionOption>();
 
-    /// <summary>Initializes the Godot control and connects its UI signals.</summary>
+    /// <summary>Resolves child controls, connects UI signals and applies the panel style.</summary>
     public override void _Ready()
     {
         UiTheme.StylePanel(this);
         _encounterTitle = GetNode<Label>("Margin/Content/Header/EncounterTitle");
         _mode = GetNode<Label>("Margin/Content/Header/Mode");
         _continueButton = GetNode<Button>("Margin/Content/ContinueButton");
+        _endTurnButton = GetNode<Button>("Margin/Content/EndTurnButton");
         _partyRosterPanel = GetNode<PartyRosterPanel>("Margin/Content/PartyRosterPanel");
         _statusPanel = GetNode<CombatStatusPanel>("Margin/Content/CombatStatusPanel");
         _messageLog = GetNode<CombatMessageLog>("Margin/Content/CombatMessageLog");
         _actionPanel = GetNode<CombatActionPanel>("Margin/Content/CombatActionPanel");
+
         _actionPanel.ActionSelected += HandleActionSelected;
         _actionPanel.EnemyTargetSelectionRequested += HandleEnemyTargetSelectionRequested;
         _actionPanel.EnemyTargetSelectionCancelled += HandleEnemyTargetSelectionCancelled;
+        _partyRosterPanel.MemberSelected += HandlePartyMemberSelected;
         _continueButton.Pressed += HandleContinuePressed;
+        _endTurnButton.Pressed += HandleEndTurnPressed;
         _continueButton.Visible = false;
-        _mode.Text = "TACTICAL TIMELINE";
+        _endTurnButton.Visible = false;
+        _mode.Text = "TURN-BASED COMBAT";
         UiTheme.StyleButton(_continueButton, true);
+        UiTheme.StyleButton(_endTurnButton, true);
     }
 
-    /// <summary>Begins encounter and initializes the combat UI.</summary>
-    /// <param name="title">The title used by this operation.</param>
+    /// <summary>Initializes the visible state for a new encounter.</summary>
     public void BeginEncounter(string title)
     {
         _encounterTitle.Text = title;
         _partyRosterPanel.SetMembers(Array.Empty<PartyCombatStatus>());
-        _statusPanel.SetTurn(1, "PLAYER DECISION");
-        _statusPanel.SetTimeline(Array.Empty<TimelineMarkerViewData>());
-        _statusPanel.SetIntent(null);
+        _availableActions = Array.Empty<CombatActionOption>();
+        _statusPanel.SetTurn(1, "PLAYER TURN", CombatPhase.PlayerTurn, 0, 0);
         _messageLog.Clear();
         _actionPanel.SetActions(Array.Empty<CombatActionOption>());
         _continueButton.Visible = false;
+        _endTurnButton.Visible = false;
     }
 
-    /// <summary>Performs the apply view data operation for combat panel.</summary>
-    /// <param name="viewData">The view data used by this operation.</param>
+    /// <summary>Applies the latest Domain-derived view data and appends its new messages.</summary>
     public void ApplyViewData(CombatViewData viewData)
     {
         if (viewData == null)
@@ -66,61 +77,75 @@ public partial class CombatPanel : PanelContainer
         }
 
         _partyRosterPanel.SetMembers(viewData.Party);
-        _statusPanel.SetTurn(viewData.Round, viewData.ActiveTurnLabel);
-        _statusPanel.SetTimeline(viewData.Timeline);
-        _statusPanel.SetIntent(viewData.Intent);
-        _actionPanel.SetActions(viewData.AvailableActions);
+        PartyMemberSelected?.Invoke(_partyRosterPanel.SelectedMemberId);
+        _availableActions = viewData.AvailableActions;
+        UpdateActionOptions();
+        _statusPanel.SetTurn(
+            viewData.Round,
+            viewData.ActiveTurnLabel,
+            viewData.Phase,
+            viewData.CurrentActionPoints,
+            viewData.ActionCapacity);
+        _endTurnButton.Visible = viewData.Phase == CombatPhase.PlayerTurn;
+        _continueButton.Visible = false;
+
         foreach (CombatMessage message in viewData.NewMessages)
         {
             _messageLog.Append(message);
         }
     }
 
-    /// <summary>Sets timeline.</summary>
-    /// <param name="entries">The entries used by this operation.</param>
-    public void SetTimeline(TimelineMarkerViewData[] entries)
-    {
-        _statusPanel.SetTimeline(entries);
-    }
-
-    /// <summary>Plays party feedback feedback for the selected combatant or action.</summary>
-    /// <param name="characterName">The character name used by this operation.</param>
-    /// <param name="feedbackType">The feedback type used by this operation.</param>
+    /// <summary>Plays the Party member's action feedback cue.</summary>
     public void PlayPartyFeedback(string characterName, CombatFeedbackType feedbackType)
     {
         _partyRosterPanel.PlayFeedback(characterName, feedbackType);
     }
 
-    /// <summary>Sets selected enemy target.</summary>
-    /// <param name="enemyId">The enemy id used by this operation.</param>
-    /// <returns><see langword="true"/> when the operation succeeds; otherwise, <see langword="false"/>.</returns>
+    /// <summary>Selects an enemy target in the action panel.</summary>
     public bool SetSelectedEnemyTarget(string enemyId)
     {
         return _actionPanel.SetSelectedEnemyTarget(enemyId);
     }
 
-    /// <summary>Clears target selection from the current UI state.</summary>
+    /// <summary>Clears the current action panel target selection.</summary>
     public void ClearTargetSelection()
     {
         _actionPanel.ClearTargetSelection();
     }
 
-    /// <summary>Appends message to the combat message log.</summary>
-    /// <param name="message">The message used by this operation.</param>
+    /// <summary>Appends one message to the combat history.</summary>
     public void AppendMessage(CombatMessage message)
     {
         _messageLog.Append(message);
     }
 
-    /// <summary>Displays encounter complete in the combat interface.</summary>
-    /// <param name="resultText">The result text used by this operation.</param>
+    /// <summary>Displays the final encounter outcome and the Exploration return action.</summary>
     public void ShowEncounterComplete(string resultText)
     {
+        _availableActions = Array.Empty<CombatActionOption>();
         _actionPanel.SetActions(Array.Empty<CombatActionOption>());
-        _statusPanel.SetIntent(null);
+        _endTurnButton.Visible = false;
         _continueButton.Text = "Return to Exploration";
         _continueButton.Visible = true;
         _encounterTitle.Text = resultText;
+    }
+
+    private void UpdateActionOptions()
+    {
+        string selectedActorId = _partyRosterPanel.SelectedMemberId;
+        CombatActionOption[] selectedActorActions = string.IsNullOrWhiteSpace(selectedActorId)
+            ? Array.Empty<CombatActionOption>()
+            : _availableActions
+                .Where(action => action.ActorId == selectedActorId)
+                .ToArray();
+
+        _actionPanel.SetActions(selectedActorActions);
+    }
+
+    private void HandlePartyMemberSelected(string memberId)
+    {
+        UpdateActionOptions();
+        PartyMemberSelected?.Invoke(memberId);
     }
 
     private void HandleActionSelected(CombatActionRequest request)
@@ -141,5 +166,10 @@ public partial class CombatPanel : PanelContainer
     private void HandleContinuePressed()
     {
         ContinueRequested?.Invoke();
+    }
+
+    private void HandleEndTurnPressed()
+    {
+        EndPlayerTurnRequested?.Invoke();
     }
 }

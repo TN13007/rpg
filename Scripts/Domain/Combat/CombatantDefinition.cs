@@ -2,41 +2,36 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-/// <summary>Identifies whether a combatant belongs to the party or the enemy side.</summary>
+/// <summary>Identifies whether a combatant belongs to the Party or Enemy side.</summary>
 public enum CombatantSide
 {
-    /// <summary>Identifies a combatant controlled by the player's party.</summary>
+    /// <summary>A combatant controlled by the player.</summary>
     Party,
-    /// <summary>Identifies a combatant opposing the player's party.</summary>
+    /// <summary>A combatant controlled by the combat encounter.</summary>
     Enemy
 }
 
-/// <summary>Defines the combatant data and its validation rules.</summary>
+/// <summary>Defines the immutable combatant data used to compose an encounter roster.</summary>
 public sealed class CombatantDefinition
 {
-    /// <summary>Gets the character.</summary>
+    /// <summary>Gets the character instance retained and mutated by the combat service.</summary>
     public Character Character { get; }
-    /// <summary>Gets the side.</summary>
+    /// <summary>Gets the combatant's side.</summary>
     public CombatantSide Side { get; }
-    /// <summary>Gets the actions.</summary>
+    /// <summary>Gets the actions authored for this combatant.</summary>
     public CombatActionDefinition[] Actions { get; }
-    /// <summary>Gets a value indicating whether visible.</summary>
+    /// <summary>Gets whether this enemy is visible to the player.</summary>
     public bool IsVisible { get; }
-    /// <summary>Gets the behavior profile.</summary>
-    public EnemyBehaviorProfile BehaviorProfile { get; }
+    /// <summary>Gets the authored deterministic pattern for an enemy, or null for Party members.</summary>
+    public EnemyPattern EnemyPattern { get; }
 
-    /// <summary>Initializes a new instance of <see cref="CombatantDefinition"/>.</summary>
-    /// <param name="character">The character used to initialize the instance.</param>
-    /// <param name="side">The side used to initialize the instance.</param>
-    /// <param name="actions">The actions used to initialize the instance.</param>
-    /// <param name="isVisible">The is visible used to initialize the instance.</param>
-    /// <param name="behaviorProfile">The behavior profile used to initialize the instance.</param>
+    /// <summary>Creates a combatant definition and validates its actions and optional enemy pattern.</summary>
     public CombatantDefinition(
         Character character,
         CombatantSide side,
         IEnumerable<CombatActionDefinition> actions,
         bool isVisible = true,
-        EnemyBehaviorProfile behaviorProfile = null)
+        EnemyPattern enemyPattern = null)
     {
         Character = character ?? throw new ArgumentNullException(nameof(character));
         if (!Enum.IsDefined(typeof(CombatantSide), side))
@@ -64,21 +59,18 @@ public sealed class CombatantDefinition
             }
         }
 
-        if (behaviorProfile != null && side != CombatantSide.Enemy)
+        if (side == CombatantSide.Party && enemyPattern != null)
         {
-            throw new ArgumentException("Only enemies can have an enemy behavior profile.", nameof(behaviorProfile));
+            throw new ArgumentException("Only enemies can have an authored enemy pattern.", nameof(enemyPattern));
         }
-        if (behaviorProfile != null && Actions.Any(action => !behaviorProfile.ActionWeights.ContainsKey(action.Id)))
+
+        if (enemyPattern != null && enemyPattern.ActionIds.Any(id => !actionIds.Contains(id)))
         {
-            throw new ArgumentException("A behavior profile must define a weight for every enemy action.", nameof(behaviorProfile));
-        }
-        if (behaviorProfile != null && behaviorProfile.ActionWeights.Keys.Any(id => !actionIds.Contains(id)))
-        {
-            throw new ArgumentException("A behavior profile cannot reference an action the enemy does not have.", nameof(behaviorProfile));
+            throw new ArgumentException("An enemy pattern can reference only actions authored for that enemy.", nameof(enemyPattern));
         }
 
         Side = side;
         IsVisible = side == CombatantSide.Party || isVisible;
-        BehaviorProfile = behaviorProfile;
+        EnemyPattern = enemyPattern;
     }
 }

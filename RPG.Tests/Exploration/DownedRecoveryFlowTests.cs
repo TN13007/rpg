@@ -14,15 +14,18 @@ public sealed class DownedRecoveryFlowTests
         Character player = new Character(playerData);
         Character enemy = CreateFastTestEnemy();
         CombatantDefinition[] party = StartingParty.CreateCombatants(content, player);
+        CombatActionDefinition enemyAttack = CreateLethalEnemyAttack();
+
         List<CombatantDefinition> encounter = new List<CombatantDefinition>(party)
         {
             new CombatantDefinition(
                 enemy,
                 CombatantSide.Enemy,
-                new[] { CreateLethalEnemyAttack() })
+                new[] { enemyAttack },
+                enemyPattern: new EnemyPattern(new[] { enemyAttack.Id }))
         };
 
-        CombatService combat = new CombatService(encounter, new FirstIndexRandom());
+        CombatService combat = new CombatService(encounter);
         GameClock clock = new GameClock(1, 7, 30);
         ActivityTimeCalculator timeCalculator = new ActivityTimeCalculator();
         ActivityFatigueCalculator fatigueCalculator = new ActivityFatigueCalculator();
@@ -43,13 +46,16 @@ public sealed class DownedRecoveryFlowTests
             new ActionDefinition("enter_encounter", "Enter encounter", 0),
             out string startFailure), startFailure);
 
-        CombatResult openingEvents = session.AdvanceCombatTime(4.0);
+        CombatResult enemyTurn = session.EndPlayerTurn();
 
         Assert.Contains(
-            openingEvents.Events,
+            enemyTurn.Events,
             item => item.Type == CombatEventType.EnemyAction && item.TargetName == "Alex");
         Assert.Equal(0, player.Health);
-        Assert.Equal("sera", combat.ActiveCombatantId);
+        Assert.Equal(
+            "Downed",
+            enemyTurn.Snapshot.Party.Single(member => member.Id == player.Id).Condition);
+        Assert.True(enemyTurn.Snapshot.Party.Single(member => member.Id == "sera").IsActive);
 
         CombatResult victory = session.ExecuteAction(
             new CombatActionRequest("quick_strike", enemy.Id, "sera"));
@@ -60,12 +66,12 @@ public sealed class DownedRecoveryFlowTests
         Assert.Equal(0, player.Health);
 
         LocationCatalog locations = LoadLocations();
-        LocationContent university_campus = locations.Get("university_campus");
+        LocationContent universityCampus = locations.Get("university_campus");
         AvailableInteractionQuery interactionQuery = new AvailableInteractionQuery();
         IReadOnlyList<AvailableInteraction> incapacitatedChoices = interactionQuery.Query(
             player,
             playerData.PlayerActions,
-            university_campus,
+            universityCampus,
             locations.Get,
             locations.Travel);
 
@@ -95,7 +101,7 @@ public sealed class DownedRecoveryFlowTests
         IReadOnlyList<AvailableInteraction> recoveredChoices = interactionQuery.Query(
             player,
             playerData.PlayerActions,
-            university_campus,
+            universityCampus,
             locations.Get,
             locations.Travel);
 
@@ -117,7 +123,7 @@ public sealed class DownedRecoveryFlowTests
             new ActivityTimeCalculator(),
             new ActionEffectExecutor());
         AvailableInteractionQuery interactionQuery = new AvailableInteractionQuery();
-        LocationContent university_campus = locations.Get("university_campus");
+        LocationContent universityCampus = locations.Get("university_campus");
         ActionDefinition rescueAction = playerData.PlayerActions
             .Single(item => item.Action.Id == "request_rescue")
             .Action;
@@ -126,7 +132,7 @@ public sealed class DownedRecoveryFlowTests
         IReadOnlyList<AvailableInteraction> healthyChoices = interactionQuery.Query(
             player,
             playerData.PlayerActions,
-            university_campus,
+            universityCampus,
             locations.Get,
             locations.Travel);
 
@@ -139,7 +145,7 @@ public sealed class DownedRecoveryFlowTests
         IReadOnlyList<AvailableInteraction> downedChoices = interactionQuery.Query(
             player,
             playerData.PlayerActions,
-            university_campus,
+            universityCampus,
             locations.Get,
             locations.Travel);
 
@@ -216,15 +222,6 @@ public sealed class DownedRecoveryFlowTests
             20,
             0,
             string.Empty,
-            "The enemy strikes Alex.",
-            1000);
-    }
-
-    private sealed class FirstIndexRandom : Random
-    {
-        public override int Next(int maxValue)
-        {
-            return 0;
-        }
+            "The enemy strikes Alex.");
     }
 }

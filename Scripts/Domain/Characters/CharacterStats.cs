@@ -5,7 +5,7 @@ public enum CharacterStat
 {
     /// <summary>Represents physical strength.</summary>
     Strength,
-    /// <summary>Represents agility and contributes to combat speed.</summary>
+    /// <summary>Represents agility. It does not determine turn order in the current combat system.</summary>
     Agility,
     /// <summary>Represents intelligence.</summary>
     Intelligence,
@@ -13,7 +13,7 @@ public enum CharacterStat
     Endurance,
     /// <summary>Represents wisdom.</summary>
     Wisdom,
-    /// <summary>Represents luck and breaks combat timeline ties.</summary>
+    /// <summary>Represents luck. It does not determine turn order or initiative in the current combat system.</summary>
     Luck
 }
 

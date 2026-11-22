@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Xunit;
@@ -11,7 +10,6 @@ public sealed class StartingPartyTests
     {
         GameContentCatalog content = LoadContent();
         Character primaryCharacter = new Character(content.GetCharacter("player_student"));
-
         CombatantDefinition[] party = StartingParty.CreateCombatants(content, primaryCharacter);
 
         Assert.Equal(4, party.Length);
@@ -28,72 +26,63 @@ public sealed class StartingPartyTests
     {
         GameContentCatalog content = LoadContent();
         Character primaryCharacter = new Character(content.GetCharacter("player_student"));
-
         CombatantDefinition[] party = StartingParty.CreateCombatants(content, primaryCharacter);
 
-        Assert.Equal(
-            new[] { "heavy_strike", "guard", "catch_breath" },
-            GetActionIds(party, "noah"));
-        Assert.Equal(
-            new[] { "quick_strike", "disrupting_strike", "evade", "catch_breath" },
-            GetActionIds(party, "mira"));
-        Assert.Equal(
-            new[] { "quick_strike", "heavy_strike", "evade" },
-            GetActionIds(party, "sera"));
+        Assert.Equal(new[] { "heavy_strike", "guard", "catch_breath" }, GetActionIds(party, "noah"));
+        Assert.Equal(new[] { "quick_strike", "disrupting_strike", "evade", "catch_breath" }, GetActionIds(party, "mira"));
+        Assert.Equal(new[] { "quick_strike", "heavy_strike", "evade" }, GetActionIds(party, "sera"));
     }
 
     [Fact]
-    public void FourPersonPartyCanStartAnEncounterWithTheExistingCombatService()
+    public void AllFourStartingPartyMembersCanSpendOnePointEachWhenCapacityIsFour()
     {
         GameContentCatalog content = LoadContent();
         Character primaryCharacter = new Character(content.GetCharacter("player_student"));
-        CombatService combat = CreateCombat(content, primaryCharacter);
+        CombatantDefinition[] partyDefinitions = StartingParty.CreateCombatants(content, primaryCharacter);
+        Character enemy = new Character(content.GetCharacter("hostile_presence"));
 
-        Assert.True(combat.TryStartEncounter(out string failureReason), failureReason);
-        Assert.Equal(4, combat.PartyMembers.Count);
-        Assert.Equal(
-            new[] { "player_student", "noah", "mira", "sera" },
-            combat.PartyMembers.Select(character => character.Id));
-    }
+        CombatantDefinition[] roster = partyDefinitions
+            .Concat(new[]
+            {
+                new CombatantDefinition(
+                    enemy,
+                    CombatantSide.Enemy,
+                    content.GetCombatActionsForCharacter(enemy.Id),
+                    enemyPattern: new EnemyPattern(new[] { "presence_quick_jab" }))
+            })
+            .ToArray();
 
-    [Fact]
-    public void EveryPartyMemberReceivesAnIndependentPlayerDecisionWindow()
-    {
-        GameContentCatalog content = LoadContent();
-        Character primaryCharacter = new Character(content.GetCharacter("player_student"));
-        CombatService combat = CreateCombat(content, primaryCharacter);
-
-        string[] expectedActorIds = { "player_student", "sera", "mira", "noah" };
-        string[] expectedActionIds = { "quick_strike", "quick_strike", "quick_strike", "heavy_strike" };
-
+        CombatService combat = new CombatService(roster, actionCapacity: 4);
         Assert.True(combat.TryStartEncounter(out string failureReason), failureReason);
 
-        for (int index = 0; index < expectedActorIds.Length; index++)
+        Assert.Equal(4, combat.GetSnapshot().AvailableActions.Select(action => action.ActorId).Distinct().Count());
+        string[] expectedActors = { "player_student", "noah", "mira", "sera" };
+        string[] expectedActions = { "quick_strike", "heavy_strike", "quick_strike", "quick_strike" };
+
+        for (int index = 0; index < expectedActors.Length; index++)
         {
-            combat.AdvanceCombatTime(4.0);
-
             CombatSnapshot snapshot = combat.GetSnapshot();
-            string actorId = expectedActorIds[index];
-            string actionId = expectedActionIds[index];
+            Assert.Contains(snapshot.AvailableActions, option =>
+                option.ActorId == expectedActors[index] &&
+                option.Id == expectedActions[index] &&
+                option.IsAvailable);
 
-            Assert.True(combat.IsAwaitingPlayerDecision);
-            Assert.Equal(actorId, snapshot.ActiveCombatantId);
-            Assert.NotEmpty(snapshot.AvailableActions);
-            Assert.All(
-                snapshot.AvailableActions,
-                action => Assert.Equal(actorId, action.ActorId));
-
-            Assert.Contains(
-                snapshot.AvailableActions,
-                action => action.Id == actionId
-                    && action.Targets.Any(target => target.Id == "hostile_presence")
-                    && action.IsAvailable);
-
-            CombatResult result = combat.ExecuteAction(
-                new CombatActionRequest(actionId, "hostile_presence", actorId));
+            CombatResult result = combat.ExecuteAction(new CombatActionRequest(
+                expectedActions[index],
+                enemy.Id,
+                expectedActors[index]));
 
             Assert.True(result.Success, result.FailureReason);
+            int expectedRound = index == expectedActors.Length - 1 ? 2 : 1;
+            int expectedActionPoints = index == expectedActors.Length - 1 ? 4 : 3 - index;
+            Assert.Equal(expectedRound, result.Snapshot.Round);
+            Assert.Equal(expectedActionPoints, result.Snapshot.CurrentActionPoints);
         }
+
+        CombatSnapshot nextRound = combat.GetSnapshot();
+        Assert.Equal(2, nextRound.Round);
+        Assert.Equal(4, nextRound.CurrentActionPoints);
+        Assert.All(nextRound.Party, member => Assert.True(member.IsActive));
     }
 
     [Fact]
@@ -101,45 +90,15 @@ public sealed class StartingPartyTests
     {
         GameContentCatalog content = LoadContent();
         Character outsider = new Character(new CharacterData(
-            "outsider",
-            "Outsider",
-            "Test",
-            1,
-            10,
-            100,
-            10,
-            100,
-            10,
-            0,
-            10,
-            70,
-            0));
+            "outsider", "Outsider", "Test", 1, 10, 100, 10, 100, 10, 0, 10, 50, 0));
 
         Assert.Throws<ArgumentException>(
             () => StartingParty.CreateCombatants(content, outsider));
     }
 
-    private static CombatService CreateCombat(
-        GameContentCatalog content,
-        Character primaryCharacter)
-    {
-        Character goblin = new Character(content.GetCharacter("hostile_presence"));
-        List<CombatantDefinition> encounter = new List<CombatantDefinition>(
-            StartingParty.CreateCombatants(content, primaryCharacter));
-
-        encounter.Add(new CombatantDefinition(
-            goblin,
-            CombatantSide.Enemy,
-            content.GetCombatActionsForCharacter(goblin.Id)));
-
-        return new CombatService(encounter, new Random(7));
-    }
-
     private static string[] GetActionIds(CombatantDefinition[] party, string characterId)
     {
-        CombatantDefinition member = party.Single(
-            combatant => combatant.Character.Id == characterId);
-
+        CombatantDefinition member = party.Single(combatant => combatant.Character.Id == characterId);
         return member.Actions.Select(action => action.Id).ToArray();
     }
 
@@ -149,7 +108,6 @@ public sealed class StartingPartyTests
             AppContext.BaseDirectory,
             "Data",
             "Characters");
-
         CharacterData[] characters = Directory.GetFiles(charactersDirectory, "*.json")
             .Select(path => CharacterDataLoader.LoadJson(File.ReadAllText(path), path))
             .ToArray();

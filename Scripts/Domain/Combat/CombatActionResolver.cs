@@ -1,19 +1,24 @@
 using System;
 using System.Collections.Generic;
 
-/// <summary>Resolves a combat action into the effects that should be applied.</summary>
+/// <summary>Resolves an authored combat action into its domain effects.</summary>
 public sealed class CombatActionResolver
 {
-    /// <summary>Resolves resolve into combat effects.</summary>
-    /// <param name="action">The action used by this operation.</param>
-    /// <param name="actorId">The actor id used by this operation.</param>
-    /// <param name="targetId">The target id used by this operation.</param>
-    /// <returns>The resulting combat effect request.</returns>
+    /// <summary>Creates the ordered effect requests produced by the supplied action.</summary>
     public CombatEffectRequest[] Resolve(CombatActionDefinition action, string actorId, string targetId)
     {
-        if (action == null) throw new ArgumentNullException(nameof(action));
-        if (string.IsNullOrWhiteSpace(actorId)) throw new ArgumentException("Actor ID is required.", nameof(actorId));
+        if (action == null)
+        {
+            throw new ArgumentNullException(nameof(action));
+        }
+
+        if (string.IsNullOrWhiteSpace(actorId))
+        {
+            throw new ArgumentException("Actor ID is required.", nameof(actorId));
+        }
+
         List<CombatEffectRequest> effects = new List<CombatEffectRequest>();
+
         switch (action.Behavior)
         {
             case CombatActionBehavior.Attack:
@@ -28,13 +33,12 @@ public sealed class CombatActionResolver
             case CombatActionBehavior.RecoverStamina:
                 effects.Add(new CombatEffectRequest(CombatEffectType.RestoreStamina, actorId, action.RecoveryAmount));
                 break;
-            case CombatActionBehavior.Delay:
-                if (action.Damage > 0) effects.Add(new CombatEffectRequest(CombatEffectType.Damage, targetId, action.Damage));
-                effects.Add(new CombatEffectRequest(CombatEffectType.Delay, targetId, duration: action.DelayAmount));
-                break;
-            case CombatActionBehavior.Stun:
-                if (action.Damage > 0) effects.Add(new CombatEffectRequest(CombatEffectType.Damage, targetId, action.Damage));
-                effects.Add(new CombatEffectRequest(CombatEffectType.Stun, targetId, duration: action.StunDuration));
+            case CombatActionBehavior.Control:
+                if (action.Damage > 0)
+                {
+                    effects.Add(new CombatEffectRequest(CombatEffectType.Damage, targetId, action.Damage));
+                }
+                effects.Add(new CombatEffectRequest(CombatEffectType.Control, targetId));
                 break;
             case CombatActionBehavior.Revive:
                 effects.Add(new CombatEffectRequest(CombatEffectType.Revive, targetId));
@@ -42,6 +46,7 @@ public sealed class CombatActionResolver
             default:
                 throw new ArgumentOutOfRangeException(nameof(action.Behavior));
         }
+
         return effects.ToArray();
     }
 }

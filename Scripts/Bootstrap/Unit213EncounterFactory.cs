@@ -1,13 +1,10 @@
 using System;
 using System.Collections.Generic;
 
-/// <summary>Builds the playable Unit 213 encounter roster from authored game content.</summary>
+/// <summary>Builds the Unit 213 encounter roster from validated content data.</summary>
 public static class Unit213EncounterFactory
 {
-    /// <summary>Creates the four-member starting party and two Unit 213 manifestations with distinct threat profiles.</summary>
-    /// <param name="content">The validated game content catalog containing the party and manifestation definitions.</param>
-    /// <param name="primaryCharacter">The already-created primary party character whose runtime state must be preserved.</param>
-    /// <returns>The complete encounter roster in party-first, enemy-second order.</returns>
+    /// <summary>Creates the starting Party and the two manifestations with fixed authored action patterns.</summary>
     public static CombatantDefinition[] CreateCombatants(
         GameContentCatalog content,
         Character primaryCharacter)
@@ -30,14 +27,14 @@ public static class Unit213EncounterFactory
             new Character(presenceData),
             CombatantSide.Enemy,
             content.GetCombatActionsForCharacter(presenceData.Id),
-            behaviorProfile: EnemyBehaviorProfiles.CreateHeavyPressurePresence()));
+            enemyPattern: new EnemyPattern(new[] { "presence_heavy_swing" })));
 
         CharacterData echoData = content.GetCharacter("hostile_echo");
         combatants.Add(new CombatantDefinition(
             new Character(echoData),
             CombatantSide.Enemy,
             content.GetCombatActionsForCharacter(echoData.Id),
-            behaviorProfile: EnemyBehaviorProfiles.CreateDisruptiveEcho()));
+            enemyPattern: new EnemyPattern(new[] { "presence_staggering_blow" })));
 
         return combatants.ToArray();
     }

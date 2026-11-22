@@ -1,39 +1,44 @@
 using System;
 using System.Collections.Generic;
 
-/// <summary>Maps application data into combat presentation presentation models.</summary>
+/// <summary>Maps Domain combat results and snapshots into presentation-only view data.</summary>
 public sealed class CombatPresentationMapper
 {
-    /// <summary>Maps the supplied map data into presentation data.</summary>
-    /// <param name="snapshot">The snapshot used by this operation.</param>
-    /// <returns>The resulting combat view data.</returns>
+    /// <summary>Maps a Domain snapshot without adding historical messages.</summary>
     public CombatViewData Map(CombatSnapshot snapshot)
     {
-        if (snapshot == null) throw new ArgumentNullException(nameof(snapshot));
+        if (snapshot == null)
+        {
+            throw new ArgumentNullException(nameof(snapshot));
+        }
+
         return new CombatViewData(
             snapshot.Round,
+            snapshot.Phase,
+            snapshot.CurrentActionPoints,
+            snapshot.ActionCapacity,
             snapshot.ActiveTurnLabel,
             snapshot.Enemies,
-            snapshot.Intent,
-            snapshot.AvailableActions,
-            Array.Empty<CombatMessage>(),
-            MapTimeline(snapshot.Timeline),
             snapshot.Party,
-            snapshot.ActiveCombatantId);
+            snapshot.AvailableActions,
+            Array.Empty<CombatMessage>());
     }
 
-    /// <summary>Maps the supplied map data into presentation data.</summary>
-    /// <param name="result">The result used by this operation.</param>
-    /// <returns>The resulting combat view data.</returns>
+    /// <summary>Maps a Domain result, preserving the order of its resolved events.</summary>
     public CombatViewData Map(CombatResult result)
     {
-        if (result == null) throw new ArgumentNullException(nameof(result));
+        if (result == null)
+        {
+            throw new ArgumentNullException(nameof(result));
+        }
+
         CombatSnapshot snapshot = result.Snapshot;
         int extraMessageCount = result.Success || string.IsNullOrWhiteSpace(result.FailureReason) ? 0 : 1;
         CombatMessage[] messages = new CombatMessage[result.Events.Length + extraMessageCount];
-        for (int i = 0; i < result.Events.Length; i++)
+
+        for (int index = 0; index < result.Events.Length; index++)
         {
-            messages[i] = MapEvent(result.Events[i]);
+            messages[index] = MapEvent(result.Events[index]);
         }
 
         if (extraMessageCount == 1)
@@ -49,15 +54,15 @@ public sealed class CombatPresentationMapper
 
         return new CombatViewData(
             snapshot.Round,
+            snapshot.Phase,
+            snapshot.CurrentActionPoints,
+            snapshot.ActionCapacity,
             snapshot.ActiveTurnLabel,
             snapshot.Enemies,
-            snapshot.Intent,
+            snapshot.Party,
             snapshot.AvailableActions,
             messages,
-            MapTimeline(snapshot.Timeline),
-            snapshot.Party,
-            snapshot.ActiveCombatantId,
-            MapFeedback(result.Events));
+            feedback: MapFeedback(result.Events));
     }
 
     private static CombatFeedbackViewData[] MapFeedback(CombatEvent[] events)
@@ -122,37 +127,7 @@ public sealed class CombatPresentationMapper
         return feedback.ToArray();
     }
 
-    private static TimelineMarkerViewData[] MapTimeline(TimelineCombatantStatus[] entries)
-    {
-        if (entries == null || entries.Length == 0)
-        {
-            return Array.Empty<TimelineMarkerViewData>();
-        }
-
-        TimelineMarkerViewData[] mapped = new TimelineMarkerViewData[entries.Length];
-        for (int index = 0; index < entries.Length; index++)
-        {
-            TimelineCombatantStatus entry = entries[index];
-            double timeToReady = entry.RemainingStunTime +
-                entry.RemainingProgress / entry.Speed;
-
-            mapped[index] = new TimelineMarkerViewData(
-                entry.Id,
-                entry.Name,
-                entry.IsEnemy,
-                entry.IsPrimaryPartyMember,
-                entry.IsVisible,
-                entry.IsReady,
-                entry.IsStunned,
-                entry.Luck,
-                timeToReady,
-                entry.IntentDescription);
-        }
-
-        return mapped;
-    }
-
-    private CombatMessage MapEvent(CombatEvent combatEvent)
+    private static CombatMessage MapEvent(CombatEvent combatEvent)
     {
         CombatMessageType type = CombatMessageType.System;
         CombatMessageCategory category = CombatMessageCategory.None;
@@ -171,6 +146,7 @@ public sealed class CombatPresentationMapper
                     text = combatEvent.Detail + " (Target: " + combatEvent.TargetName + ")";
                 }
                 break;
+
             case CombatEventType.EnemyAction:
                 type = CombatMessageType.Enemy;
                 speaker = combatEvent.ActorName;
@@ -179,28 +155,24 @@ public sealed class CombatPresentationMapper
                     text = combatEvent.Detail + " (Target: " + combatEvent.TargetName + ")";
                 }
                 break;
+
             case CombatEventType.Damage:
                 category = CombatMessageCategory.Damage;
                 text = combatEvent.TargetName + " loses " + combatEvent.Amount + " HP.";
                 break;
+
             case CombatEventType.Check:
                 category = CombatMessageCategory.Check;
                 break;
+
             case CombatEventType.TurnChanged:
                 category = CombatMessageCategory.Turn;
                 break;
-            case CombatEventType.EnvironmentChanged:
-                category = CombatMessageCategory.Environment;
-                break;
-            case CombatEventType.Inference:
-                category = CombatMessageCategory.Inference;
-                break;
-            case CombatEventType.Emotion:
-                category = CombatMessageCategory.Emotion;
-                break;
+
             case CombatEventType.StatusChanged:
                 category = CombatMessageCategory.StatusChange;
                 break;
+
             case CombatEventType.RoundStarted:
                 category = CombatMessageCategory.Round;
                 break;
