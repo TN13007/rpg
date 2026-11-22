@@ -11,6 +11,7 @@ public partial class MainController : Control
     private CombatFlowController _combatController;
     private ActionDefinition _debugEncounterAction;
     private string[] _pendingEnemyTargetIds = Array.Empty<string>();
+    private const int _unit213ActionCapacity = 2;
 
     /// <summary>Builds the application graph, connects presentation signals and shows the initial Location.</summary>
     public override void _Ready()
@@ -37,7 +38,9 @@ public partial class MainController : Control
         CombatantDefinition[] encounterCombatants =
             Unit213EncounterFactory.CreateCombatants(content, player);
 
-        CombatService combatService = new CombatService(encounterCombatants);
+        CombatService combatService = new CombatService(
+            encounterCombatants,
+            actionCapacity: _unit213ActionCapacity);
         CombatPresentationMapper combatPresentationMapper = new CombatPresentationMapper();
         LocationEventService locationEventService = new LocationEventService();
         NpcPresenceQuery npcPresenceQuery = new NpcPresenceQuery(
