@@ -10,6 +10,9 @@ public partial class CombatActionCard : Button
     private CombatActionCardViewData _action;
     private bool _isSelected;
 
+    /// <summary>Gets the stable action ID represented by this card.</summary>
+    public string ActionId => _action?.Id ?? string.Empty;
+
     public override void _Ready()
     {
         FocusMode = FocusModeEnum.All;
