@@ -35,22 +35,36 @@ public sealed class GameClock
         MinutesOfDay = startingHour * 60 + startingMinute;
     }
 
-    /// <summary>Advances minutes by the supplied amount.</summary>
-    /// <param name="amount">The amount used by this operation.</param>
-    public void AdvanceMinutes(int amount)
+    /// <summary>Checks whether the clock can advance without overflowing its day counter.</summary>
+    /// <param name="amount">The non-negative number of minutes to advance.</param>
+    /// <returns>True when the requested advancement can be represented; otherwise false.</returns>
+    public bool CanAdvanceMinutes(int amount)
     {
         if (amount < 0)
         {
-            throw new ArgumentOutOfRangeException(nameof(amount));
+            return false;
+        }
+
+        long totalMinutes = (long)MinutesOfDay + amount;
+        long elapsedDays = totalMinutes / _minutesPerDay;
+        return elapsedDays <= int.MaxValue - (long)Day;
+    }
+
+    /// <summary>Advances minutes by the supplied amount.</summary>
+    /// <param name="amount">The non-negative number of minutes to advance.</param>
+    public void AdvanceMinutes(int amount)
+    {
+        if (!CanAdvanceMinutes(amount))
+        {
+            throw new ArgumentOutOfRangeException(nameof(amount), "The GameClock cannot represent this advancement.");
         }
 
         long totalMinutes = (long)MinutesOfDay + amount;
         int elapsedDays = (int)(totalMinutes / _minutesPerDay);
-        int nextDay = checked(Day + elapsedDays);
+        int nextDay = Day + elapsedDays;
         int nextMinutesOfDay = (int)(totalMinutes % _minutesPerDay);
 
         Day = nextDay;
         MinutesOfDay = nextMinutesOfDay;
     }
-
 }
