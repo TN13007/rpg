@@ -149,10 +149,19 @@ public partial class MainController : Control
         _sidebar.ClearEnemyTargetSelection();
     }
 
-    private void HandleCombatAction(CombatActionRequest request)
+    private void HandleCombatAction(CombatActionSelection selection)
     {
+        if (selection == null)
+        {
+            return;
+        }
+
         ClearEnemyTargetSelection();
         GetNode<CombatPanel>("SafeArea/Layout/CombatPanel").ClearTargetSelection();
+        CombatActionRequest request = new CombatActionRequest(
+            selection.ActionId,
+            selection.TargetId,
+            selection.ActorId);
         _combatController.HandleCombatAction(request);
     }
 
