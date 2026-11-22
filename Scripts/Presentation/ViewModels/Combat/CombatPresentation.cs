@@ -57,19 +57,29 @@ public sealed class EnemyCardViewData
     public int CurrentHealth { get; }
     public int MaxHealth { get; }
     public string Condition { get; }
+    public int? Arousal { get; }
 
-    public EnemyCardViewData(string id, string name, int currentHealth, int maxHealth, string condition)
+    public EnemyCardViewData(
+        string id,
+        string name,
+        int currentHealth,
+        int maxHealth,
+        string condition,
+        int? arousal = null)
     {
         if (string.IsNullOrWhiteSpace(id))
             throw new ArgumentException("Enemy card ID is required.", nameof(id));
         if (maxHealth < 1 || currentHealth < 0 || currentHealth > maxHealth)
             throw new ArgumentOutOfRangeException(nameof(currentHealth));
+        if (arousal.HasValue && (arousal.Value < 0 || arousal.Value > 100))
+            throw new ArgumentOutOfRangeException(nameof(arousal));
 
         Id = id;
         Name = name ?? string.Empty;
         CurrentHealth = currentHealth;
         MaxHealth = maxHealth;
         Condition = condition ?? string.Empty;
+        Arousal = arousal;
     }
 }
 
@@ -80,8 +90,11 @@ public sealed class PartyMemberCardViewData
     public string Name { get; }
     public int CurrentHealth { get; }
     public int MaxHealth { get; }
+    public int CurrentStamina { get; }
+    public int MaxStamina { get; }
     public string Condition { get; }
     public bool CanAct { get; }
+    public int? Arousal { get; }
 
     public PartyMemberCardViewData(
         string id,
@@ -89,12 +102,19 @@ public sealed class PartyMemberCardViewData
         int currentHealth,
         int maxHealth,
         string condition,
-        bool canAct)
+        bool canAct,
+        int currentStamina,
+        int maxStamina,
+        int? arousal = null)
     {
         if (string.IsNullOrWhiteSpace(id))
             throw new ArgumentException("Party member card ID is required.", nameof(id));
         if (maxHealth < 1 || currentHealth < 0 || currentHealth > maxHealth)
             throw new ArgumentOutOfRangeException(nameof(currentHealth));
+        if (maxStamina < 0 || currentStamina < 0 || currentStamina > maxStamina)
+            throw new ArgumentOutOfRangeException(nameof(currentStamina));
+        if (arousal.HasValue && (arousal.Value < 0 || arousal.Value > 100))
+            throw new ArgumentOutOfRangeException(nameof(arousal));
 
         Id = id;
         Name = name ?? string.Empty;
@@ -102,6 +122,9 @@ public sealed class PartyMemberCardViewData
         MaxHealth = maxHealth;
         Condition = condition ?? string.Empty;
         CanAct = canAct;
+        CurrentStamina = currentStamina;
+        MaxStamina = maxStamina;
+        Arousal = arousal;
     }
 }
 
