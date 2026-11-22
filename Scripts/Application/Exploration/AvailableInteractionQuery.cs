@@ -71,7 +71,7 @@ public sealed class AvailableInteractionQuery
                 choice.EncounterActionId ?? string.Empty,
                 choice.Action));
         }
-        return interactions;
+        return interactions.AsReadOnly();
     }
 
     private static void AddLocationActions(
