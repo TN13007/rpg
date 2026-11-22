@@ -59,10 +59,10 @@ public partial class CombatPanel : PanelContainer
     {
         _encounterTitle.Text = title;
         _partyRosterPanel.SetMembers(Array.Empty<PartyMemberCardViewData>());
-        _availableActions = Array.Empty<CombatActionOption>();
+        _availableActions = Array.Empty<CombatActionCardViewData>();
         _statusPanel.SetTurn(1, "PLAYER TURN", CombatPhase.PlayerTurn, 0, 0);
         _messageLog.Clear();
-        _actionPanel.SetActions(Array.Empty<CombatActionOption>());
+        _actionPanel.SetActions(Array.Empty<CombatActionCardViewData>());
         _continueButton.Visible = false;
         _endTurnButton.Visible = false;
     }
@@ -122,8 +122,8 @@ public partial class CombatPanel : PanelContainer
     /// <summary>Displays the final encounter outcome and the Exploration return action.</summary>
     public void ShowEncounterComplete(string resultText)
     {
-        _availableActions = Array.Empty<CombatActionOption>();
-        _actionPanel.SetActions(Array.Empty<CombatActionOption>());
+        _availableActions = Array.Empty<CombatActionCardViewData>();
+        _actionPanel.SetActions(Array.Empty<CombatActionCardViewData>());
         _endTurnButton.Visible = false;
         _continueButton.Text = "Return to Exploration";
         _continueButton.Visible = true;
@@ -134,7 +134,7 @@ public partial class CombatPanel : PanelContainer
     {
         string selectedActorId = _partyRosterPanel.SelectedMemberId;
         CombatActionCardViewData[] selectedActorActions = string.IsNullOrWhiteSpace(selectedActorId)
-            ? Array.Empty<CombatActionOption>()
+            ? Array.Empty<CombatActionCardViewData>()
             : _availableActions
                 .Where(action => action.ActorId == selectedActorId)
                 .ToArray();
