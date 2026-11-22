@@ -2,11 +2,7 @@ using System;
 using System.Linq;
 using Godot;
 
-/*
- * MainController is the Godot composition root.
- * It discovers scene nodes, constructs the application graph and connects top-level signals.
- */
-/// <summary>Acts as the Godot composition root: builds the application dependency graph and connects top-level scene signals.</summary>
+/// <summary>Composes runtime services and connects the top-level exploration and combat signals.</summary>
 public partial class MainController : Control
 {
     private Sidebar _sidebar;
@@ -16,7 +12,7 @@ public partial class MainController : Control
     private ActionDefinition _debugEncounterAction;
     private string[] _pendingEnemyTargetIds = Array.Empty<string>();
 
-    /// <summary>Resolves the main scene nodes, loads game content, composes runtime services and controllers, connects UI signals and displays the initial Location.</summary>
+    /// <summary>Builds the application graph, connects presentation signals and shows the initial Location.</summary>
     public override void _Ready()
     {
         _sidebar = GetNode<Sidebar>("SafeArea/Layout/Sidebar");
@@ -51,8 +47,13 @@ public partial class MainController : Control
 
         _gameModeController = new GameModeController(storyPanel, combatPanel);
         CombatSessionService combatSessionService = new CombatSessionService(
-            player, combatService, gameClock, activityTimeCalculator,
-            activityFatigueCalculator, actionExecutionService, content.CombatEncounter);
+            player,
+            combatService,
+            gameClock,
+            activityTimeCalculator,
+            activityFatigueCalculator,
+            actionExecutionService,
+            content.CombatEncounter);
         CombatPresentationOrchestrator combatPresentation = new CombatPresentationOrchestrator(
             _gameModeController,
             _sidebar,
@@ -65,11 +66,25 @@ public partial class MainController : Control
             combatPresentation,
             combatSessionService);
         _explorationController = new ExplorationFlowController(
-            storyPanel, characterPanel, _gameModeController, player,
-            playerData.PlayerActions, content.Locations, content.GetLocation,
-            content.Travel, gameClock, actionExecutionService, availableInteractionQuery,
-            actionChoiceMapper, locationEventService, npcPresenceQuery, npcInteractionQuery,
-            action => _combatController.StartEncounter(action, "Unit 213 Incident", "An unstable presence emerges from the dark apartment."));
+            storyPanel,
+            characterPanel,
+            _gameModeController,
+            player,
+            playerData.PlayerActions,
+            content.Locations,
+            content.GetLocation,
+            content.Travel,
+            gameClock,
+            actionExecutionService,
+            availableInteractionQuery,
+            actionChoiceMapper,
+            locationEventService,
+            npcPresenceQuery,
+            npcInteractionQuery,
+            action => _combatController.StartEncounter(
+                action,
+                "Unit 213 Incident",
+                "An unstable presence emerges from the dark apartment."));
 
         _sidebar.TabSelected += OpenTab;
         _sidebar.DebugEncounterRequested += StartDebugEncounter;
@@ -77,6 +92,7 @@ public partial class MainController : Control
         storyPanel.ChoiceSelected += _explorationController.HandleChoice;
         storyPanel.ReturnToLocationRequested += _explorationController.ShowLocation;
         combatPanel.ActionSelected += HandleCombatAction;
+        combatPanel.EndPlayerTurnRequested += HandleEndPlayerTurn;
         combatPanel.EnemyTargetSelectionRequested += BeginEnemyTargetSelection;
         combatPanel.EnemyTargetSelectionCancelled += ClearEnemyTargetSelection;
         combatPanel.ContinueRequested += ReturnToExploration;
@@ -84,16 +100,13 @@ public partial class MainController : Control
         _explorationController.ShowLocation();
     }
 
-    /// <summary>Forwards each Godot frame's elapsed time to the Combat flow so the shared Timeline can advance.</summary>
-    /// <param name="delta">The elapsed frame time in seconds supplied by Godot.</param>
-    public override void _Process(double delta)
-    {
-        _combatController?.AdvanceCombatTime(delta);
-    }
-
     private void OpenTab(string tab)
     {
-        if (_gameModeController.IsCombatMode) return;
+        if (_gameModeController.IsCombatMode)
+        {
+            return;
+        }
+
         _explorationController.ShowPage(tab);
     }
 
@@ -104,7 +117,10 @@ public partial class MainController : Control
             return;
         }
 
-        _combatController.StartEncounter(_debugEncounterAction, "Debug Encounter", "An unstable presence appears.");
+        _combatController.StartEncounter(
+            _debugEncounterAction,
+            "Debug Encounter",
+            "An unstable presence appears.");
     }
 
     private void BeginEnemyTargetSelection(string[] targetIds)
@@ -135,6 +151,13 @@ public partial class MainController : Control
         ClearEnemyTargetSelection();
         GetNode<CombatPanel>("SafeArea/Layout/CombatPanel").ClearTargetSelection();
         _combatController.HandleCombatAction(request);
+    }
+
+    private void HandleEndPlayerTurn()
+    {
+        ClearEnemyTargetSelection();
+        GetNode<CombatPanel>("SafeArea/Layout/CombatPanel").ClearTargetSelection();
+        _combatController.HandleEndPlayerTurn();
     }
 
     private void ReturnToExploration()

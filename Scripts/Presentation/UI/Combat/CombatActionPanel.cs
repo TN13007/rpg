@@ -41,11 +41,16 @@ public partial class CombatActionPanel : PanelContainer
     /// <param name="actions">The actions used by this operation.</param>
     public void SetActions(CombatActionOption[] actions)
     {
+        bool wasSelectingEnemy = _pendingAction != null;
         ClearChildren(_actionGrid);
         ClearChildren(_targetGrid);
         ClearPendingTarget();
         _actionGrid.Visible = true;
         _targetSelection.Visible = false;
+        if (wasSelectingEnemy)
+        {
+            EnemyTargetSelectionCancelled?.Invoke();
+        }
 
         if (actions == null || actions.Length == 0)
         {
@@ -123,8 +128,8 @@ public partial class CombatActionPanel : PanelContainer
             return;
         }
 
-        // Revive targets are party members, not EnemyCards. Keep their dedicated
-        // target list until party roster cards become selectable components.
+        // Revive targets are Party members, so they use this dedicated ally list
+        // rather than the EnemyCard target-selection flow.
         if (action.Id == "revive_ally")
         {
             ShowPartyTargetButtons(action);

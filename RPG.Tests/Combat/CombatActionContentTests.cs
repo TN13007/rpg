@@ -1,23 +1,37 @@
 using System;
 using System.IO;
-using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
 public sealed class CombatActionContentTests
 {
     [Fact]
-    public void CombatActionJsonReaderLoadsPlayerAndPresenceActionDefinitions()
+    public void CombatActionJsonReaderLoadsTurnBasedPlayerAndEnemyActionDefinitions()
     {
-        string path = Path.Combine(AppContext.BaseDirectory, "Data", "Combat", "CombatActions.json");
+        string path = Path.Combine(
+            AppContext.BaseDirectory,
+            "Data",
+            "Combat",
+            "CombatActions.json");
         CombatActionDefinition[] actions = CombatActionJsonReader.Read(File.ReadAllText(path));
+
         Assert.Equal(9, actions.Length);
         Assert.Equal("quick_strike", actions[0].Id);
         Assert.Equal(CombatActionBehavior.Attack, actions[0].Behavior);
         Assert.Equal(8, actions[0].Damage);
-        Assert.Equal(70, actions[0].RecoveryCost);
-        Assert.Equal(35, actions[5].DelayAmount);
-        Assert.Equal(0.5, actions[8].StunDuration);
+        Assert.Equal("1 AP", actions[0].CostLabel);
+
+        CombatActionDefinition disrupt = Assert.Single(
+            actions,
+            action => action.Id == "disrupting_strike");
+        Assert.Equal(CombatActionBehavior.Attack, disrupt.Behavior);
+        Assert.Equal(5, disrupt.Damage);
+
+        CombatActionDefinition control = Assert.Single(
+            actions,
+            action => action.Id == "presence_staggering_blow");
+        Assert.Equal(CombatActionBehavior.Control, control.Behavior);
+        Assert.Equal(3, control.Damage);
     }
 
     [Fact]
@@ -32,18 +46,8 @@ public sealed class CombatActionContentTests
     public void CatalogRejectsDuplicateDefinitionIds()
     {
         CombatActionDefinition action = TestCharacterFactory.CreateCombatActions()[0];
-        InvalidOperationException exception = Assert.Throws<InvalidOperationException>(
+        Assert.Throws<InvalidOperationException>(
             () => new CombatActionCatalog(new[] { action, action }));
-        Assert.Contains("Duplicate combat action ID", exception.Message);
-    }
-
-    [Fact]
-    public void CatalogRejectsUnknownCharacterActionReference()
-    {
-        CombatActionCatalog catalog = new CombatActionCatalog(TestCharacterFactory.CreateCombatActions());
-        KeyNotFoundException exception = Assert.Throws<KeyNotFoundException>(
-            () => catalog.Resolve(new[] { "missing_action" }));
-        Assert.Contains("missing_action", exception.Message);
     }
 
     [Fact]
@@ -51,7 +55,9 @@ public sealed class CombatActionContentTests
     {
         string path = Path.Combine(AppContext.BaseDirectory, "Data", "Player.json");
         CharacterData character = CharacterDataLoader.LoadJson(File.ReadAllText(path));
-        Assert.Equal(new[] { "quick_strike", "heavy_strike", "guard", "evade", "catch_breath", "disrupting_strike" }, character.CombatActionIds);
+        Assert.Equal(
+            new[] { "quick_strike", "heavy_strike", "guard", "evade", "catch_breath", "disrupting_strike" },
+            character.CombatActionIds);
     }
 
     [Fact]
@@ -65,14 +71,15 @@ public sealed class CombatActionContentTests
     [Fact]
     public void GameContentCatalogRejectsUnknownCharacterActionReferences()
     {
-        LocationCatalog academy = new LocationCatalog();
-        academy.LoadJson("{\"locations\":[{\"id\":\"test_location\",\"name\":\"Test\",\"region\":\"Test\",\"description\":\"Test\",\"exits\":[],\"actions\":[]}]}");
-        CharacterData character = new CharacterData("test_character", "Test", "Test", 1, 10, 100, 10, 100, 10, 0, 10, 50, 0,
+        LocationCatalog locations = new LocationCatalog();
+        locations.LoadJson("{\"locations\":[{\"id\":\"test_location\",\"name\":\"Test\",\"region\":\"Test\",\"description\":\"Test\",\"exits\":[],\"actions\":[]}]}");
+        CharacterData character = new CharacterData(
+            "test_character", "Test", "Test", 1, 10, 100, 10, 100, 10, 0, 10, 50, 0,
             combatActionIds: new[] { "unknown_action" });
         CharacterCatalog characters = new CharacterCatalog(new[] { character });
         CombatActionCatalog actions = new CombatActionCatalog(TestCharacterFactory.CreateCombatActions());
-        Assert.Throws<KeyNotFoundException>(() => new GameContentCatalog(
-            academy,
+        Assert.Throws<System.Collections.Generic.KeyNotFoundException>(() => new GameContentCatalog(
+            locations,
             characters,
             actions,
             new NpcScheduleCatalog(Array.Empty<NpcScheduleDefinition>())));
@@ -81,7 +88,8 @@ public sealed class CombatActionContentTests
     [Fact]
     public void CharacterDataRejectsDuplicateCombatActionReferences()
     {
-        Assert.Throws<ArgumentException>(() => new CharacterData("test", "Test", "Test", 1, 10, 100, 10, 100, 10, 0, 10, 50, 0,
+        Assert.Throws<ArgumentException>(() => new CharacterData(
+            "test", "Test", "Test", 1, 10, 100, 10, 100, 10, 0, 10, 50, 0,
             combatActionIds: new[] { "quick_strike", "quick_strike" }));
     }
 }

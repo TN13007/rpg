@@ -1,61 +1,58 @@
 using Godot;
 
-/// <summary>Provides a Godot preview of the current combat presentation.</summary>
+/// <summary>Provides a Godot preview of the turn-based combat presentation.</summary>
 public partial class CombatPreview : Control
 {
     private CombatPanel _combatPanel;
     private CombatPresentationMapper _mapper;
 
-    /// <summary>Initializes the Godot control and connects its UI signals.</summary>
+    /// <summary>Initializes the preview with sample Party, Enemy, AP and action-card data.</summary>
     public override void _Ready()
     {
         _combatPanel = GetNode<CombatPanel>("Margin/CombatPanel");
         _mapper = new CombatPresentationMapper();
         _combatPanel.ActionSelected += OnActionSelected;
+        _combatPanel.EndPlayerTurnRequested += OnEndPlayerTurn;
         _combatPanel.BeginEncounter("Unit 213 Incident");
 
         CombatSnapshot snapshot = new CombatSnapshot(
             2,
+            CombatPhase.PlayerTurn,
+            2,
+            2,
             "PLAYER TURN",
             new[]
             {
-                new EnemyCombatStatus("hostile_presence", "Unstable Presence", 40, 60, "Wounded")
+                new EnemyCombatStatus("hostile_presence", "Unstable Presence", 40, 60, "Wounded"),
+                new EnemyCombatStatus("hostile_echo", "Unstable Echo", 60, 60, "Healthy")
             },
-            new IntentObservation(
-                "hostile_presence",
-                "Unstable Presence",
-                "The enemy appears to be preparing a forward attack.",
-                IntentConfidence.Suspected),
             new[]
             {
-                new CombatActionOption("attack", "Attack", "No Stamina cost", "Deal damage with a basic attack.", targets: new[] { new CombatActionTargetOption("hostile_presence", "Unstable Presence") }),
-                new CombatActionOption("defend", "Defend", "1 Stamina", "Reduce the impact of the next incoming attack."),
-                new CombatActionOption("dodge", "Dodge", "2 Stamina", "Attempt to evade the incoming attack."),
-                new CombatActionOption("catch_breath", "Catch Breath", "Recover 3 Stamina", "Recover your composure before the enemy responds."),
-                new CombatActionOption("items", "Use Item", "Varies", "Choose an item from your inventory.")
+                new PartyCombatStatus("player_student", "Alex", 20, 20, "Healthy", true),
+                new PartyCombatStatus("noah", "Noah", 35, 40, "Healthy", true)
             },
-            timeline: new[]
+            new[]
             {
-                new TimelineCombatantStatus(
+                new CombatActionOption(
+                    "quick_strike",
                     "player_student",
-                    "Alex",
-                    false,
-                    20.0,
-                    10.0,
-                    15,
-                    false,
-                    false,
-                    true,
-                    true),
-                new TimelineCombatantStatus(
-                    "hostile_presence",
-                    "Unstable Presence",
-                    true,
-                    100.0,
-                    10.0,
-                    5,
-                    false,
-                    false)
+                    "Alex · Quick Strike",
+                    "1 AP",
+                    "Deal 8 damage with a fast attack.",
+                    targets: new[] { new CombatActionTargetOption("hostile_presence", "Unstable Presence") }),
+                new CombatActionOption(
+                    "heavy_strike",
+                    "noah",
+                    "Noah · Heavy Strike",
+                    "1 AP",
+                    "Deal 14 damage with a slower attack.",
+                    targets: new[] { new CombatActionTargetOption("hostile_presence", "Unstable Presence") }),
+                new CombatActionOption(
+                    "guard",
+                    "player_student",
+                    "Alex · Guard",
+                    "1 AP · 1 Stamina",
+                    "Reduce the next incoming hit.")
             });
 
         CombatResult previewResult = new CombatResult(
@@ -63,18 +60,22 @@ public partial class CombatPreview : Control
             snapshot,
             new[]
             {
-                new CombatEvent(CombatEventType.PlayerAction, 2, detail: "You attack Unstable Presence with a basic strike.", id: "preview-player-attack"),
-                new CombatEvent(CombatEventType.Damage, 2, targetName: "Unstable Presence", amount: 20, id: "preview-damage"),
-                new CombatEvent(CombatEventType.EnemyAction, 2, actorName: "UNSTABLE PRESENCE", detail: "The presence snarls angrily and lowers its stance.", id: "preview-enemy-reaction"),
-                new CombatEvent(CombatEventType.Check, 2, detail: "OBSERVATION · SUCCESS — You notice the presence shifting its weight forward.", id: "preview-perception")
+                new CombatEvent(CombatEventType.PlayerAction, 2, actorName: "Alex", targetName: "Unstable Presence", detail: "Alex performs a quick strike.", id: "preview-player-attack", actionId: "quick_strike"),
+                new CombatEvent(CombatEventType.Damage, 2, targetName: "Unstable Presence", amount: 8, id: "preview-damage"),
+                new CombatEvent(CombatEventType.TurnChanged, 2, detail: "The Enemy Turn begins.", id: "preview-enemy-turn"),
+                new CombatEvent(CombatEventType.EnemyAction, 2, actorName: "Unstable Echo", targetName: "Noah", detail: "The echo releases a disorienting pulse.", id: "preview-enemy-action")
             });
 
-        CombatViewData viewData = _mapper.Map(previewResult);
-        _combatPanel.ApplyViewData(viewData);
+        _combatPanel.ApplyViewData(_mapper.Map(previewResult));
     }
 
     private void OnActionSelected(CombatActionRequest request)
     {
-        GD.Print("Combat preview selected action: " + request.ActionId + ", target: " + request.TargetId + ". No combat service is connected.");
+        GD.Print("Combat preview selected action: " + request.ActionId + ", actor: " + request.ActorId + ", target: " + request.TargetId + ".");
+    }
+
+    private void OnEndPlayerTurn()
+    {
+        GD.Print("Combat preview received End Player Turn. No combat service is connected.");
     }
 }

@@ -2,16 +2,23 @@ using System;
 using System.Collections.Generic;
 using Godot;
 
-/// <summary>Presents party roster information and exposes its UI interactions.</summary>
+/// <summary>Presents the Party roster and lets the player choose an eligible acting member.</summary>
 public partial class PartyRosterPanel : PanelContainer
 {
+    /// <summary>Raised when the player selects an eligible Party member.</summary>
+    public event Action<string> MemberSelected;
+
     private HBoxContainer _roster;
     private PackedScene _memberCardScene;
     private readonly Dictionary<string, PartyMemberCard> _memberCards =
         new Dictionary<string, PartyMemberCard>(StringComparer.Ordinal);
     private Label _emptyLabel;
+    private string _selectedMemberId = string.Empty;
 
-    /// <summary>Initializes the Godot control and connects its UI signals.</summary>
+    /// <summary>Gets the selected eligible Party member identifier, or an empty string.</summary>
+    public string SelectedMemberId => _selectedMemberId;
+
+    /// <summary>Initializes the roster container and loads the member-card scene.</summary>
     public override void _Ready()
     {
         UiTheme.StylePanel(this);
@@ -23,12 +30,12 @@ public partial class PartyRosterPanel : PanelContainer
         }
     }
 
-    /// <summary>Sets members.</summary>
-    /// <param name="members">The members used by this operation.</param>
+    /// <summary>Updates Party member cards and retains or chooses an eligible acting member.</summary>
     public void SetMembers(PartyCombatStatus[] members)
     {
         HashSet<string> currentIds = new HashSet<string>(StringComparer.Ordinal);
         int cardIndex = 0;
+        string firstEligibleId = string.Empty;
 
         if (members != null)
         {
@@ -40,6 +47,11 @@ public partial class PartyRosterPanel : PanelContainer
                 }
 
                 currentIds.Add(member.Id);
+                if (member.IsActive && string.IsNullOrEmpty(firstEligibleId))
+                {
+                    firstEligibleId = member.Id;
+                }
+
                 if (!_memberCards.TryGetValue(member.Id, out PartyMemberCard card))
                 {
                     if (_memberCardScene == null)
@@ -48,6 +60,7 @@ public partial class PartyRosterPanel : PanelContainer
                     }
 
                     card = _memberCardScene.Instantiate<PartyMemberCard>();
+                    card.Selected += HandleMemberSelected;
                     _roster.AddChild(card);
                     _memberCards.Add(member.Id, card);
                 }
@@ -72,12 +85,17 @@ public partial class PartyRosterPanel : PanelContainer
             _memberCards.Remove(memberId);
         }
 
+        if (!_memberCards.TryGetValue(_selectedMemberId, out PartyMemberCard selectedCard) ||
+            !selectedCard.IsActive)
+        {
+            _selectedMemberId = firstEligibleId;
+        }
+
+        UpdateSelectionState();
         UpdateEmptyState();
     }
 
-    /// <summary>Plays feedback feedback for the selected combatant or action.</summary>
-    /// <param name="characterName">The character name used by this operation.</param>
-    /// <param name="feedbackType">The feedback type used by this operation.</param>
+    /// <summary>Plays feedback for the Party member with the supplied display name.</summary>
     public void PlayFeedback(string characterName, CombatFeedbackType feedbackType)
     {
         foreach (PartyMemberCard card in _memberCards.Values)
@@ -86,6 +104,26 @@ public partial class PartyRosterPanel : PanelContainer
             {
                 card.PlayFeedback(feedbackType);
             }
+        }
+    }
+
+    private void HandleMemberSelected(string memberId)
+    {
+        if (!_memberCards.TryGetValue(memberId, out PartyMemberCard card) || !card.IsActive)
+        {
+            return;
+        }
+
+        _selectedMemberId = memberId;
+        UpdateSelectionState();
+        MemberSelected?.Invoke(memberId);
+    }
+
+    private void UpdateSelectionState()
+    {
+        foreach (KeyValuePair<string, PartyMemberCard> entry in _memberCards)
+        {
+            entry.Value.SetSelected(entry.Key == _selectedMemberId);
         }
     }
 
