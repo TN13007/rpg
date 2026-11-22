@@ -137,7 +137,7 @@ Use one discrete Knowledge entry rather than generic XP:
 
 This is a concrete Knowledge outcome, not a universal XP reward. Attending class alone, repeating the Library action, or chatting with an NPC does not grant it. The Knowledge definition and Investigation use still require implementation and acceptance; this document does not claim they exist.
 
-The rumor from `lunch_table_conversation.join_the_conversation` or `east_district.browse_forum` may also be recorded as an optional Investigation-owned clue (`heard_unit_213_rumor`). It does not gate, trigger or suppress `apartment_213_incident`; the incident remains independently discoverable.
+The rumor from `lunch_table_conversation.join_the_conversation` or `east_district.browse_forum` may also be recorded as an optional, campaign-persistent Investigation-owned clue (`heard_unit_213_rumor`). It does not gate, trigger or suppress `apartment_213_incident`; the incident remains independently discoverable.
 
 ## 8. Example player journey
 
@@ -180,7 +180,7 @@ These are proposed authored content records. Existing action fields such as dura
 
 | Commitment | Action | Allowed start | Duration | Eligibility / outcome |
 |---|---|---:|---:|---|
-| `saturday_noah_training` | `noah_training_session` | 09:00–09:30 | 90 min | Requires the Social-owned weekend invitation and Noah present; completion records `trained_with_noah` as extracurricular activity evidence |
+| `saturday_noah_training` | `noah_training_session` | 09:00–09:30 | 90 min | Requires the Social-owned weekend invitation and Noah present; completion records permanent `trained_with_noah` extracurricular activity evidence |
 | `saturday_corner_cafe_shift` | `work_shift` | 11:00–11:15 | 180 min | Completion adds 30 Gold |
 | `saturday_club_riverside_outing` | `club_riverside_outing` | 13:00–13:15 | 120 min | Requires Campus Sports Club membership and costs a proposed 8 Gold; completion is an optional club outing |
 
@@ -193,7 +193,7 @@ The work shift (11:00–14:00) and club outing (13:00–15:00) intentionally ove
 ### 9.2 How Monday unlocks Saturday
 
 - Completing `monday_club_open_meeting` at the Student Union creates a permanent Campus Sports Club membership record owned by the Extracurricular domain. The current `join_club` action only asks about clubs and is not a substitute for this 60-minute meeting.
-- A conversation with Noah using the proposed `ask_about_weekend_training` interaction (10 minutes, Mood +1) grants a weekend invitation record owned by Social/Relationship. The interaction is available only at `sports_field`, `campus_cafe` or `student_union` while Noah is present.
+- A conversation with Noah using the proposed `ask_about_weekend_training` interaction (10 minutes, Mood +1) grants a permanent weekend invitation record owned by Social/Relationship. The interaction is available only at `sports_field`, `campus_cafe` or `student_union` while Noah is present.
 - The player may skip either Monday opportunity. Without the club membership, Saturday's outing is unavailable; without Noah's invitation, Saturday training is unavailable. Neither missing opportunity applies a hidden penalty.
 
 ### 9.3 Saturday NPC presence
