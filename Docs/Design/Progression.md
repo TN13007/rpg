@@ -43,16 +43,18 @@ Which attributes are active and what each changes; whether levels, activity-link
 
 ## Body Profile progression
 
-Body Profile is a candidate long-term character progression dimension. The selected direction is that body attributes can develop over time rather than remaining fixed constants. This direction is accepted; the attributes, growth sources, rates and trade-offs are not.
+**Status:** Long-term direction selected; deferred from the first Arousal implementation.
 
-Candidate regions include Mouth, Hands, Chest, Genitals, Anus and Skin. Candidate attributes include Sensitivity, Resilience and Familiarity. Do not assume every region needs every attribute. Each attribute must have a distinct gameplay effect and a clear reason to exist.
+Body Profile may become a long-term character progression dimension. The selected direction is that body attributes can develop over time rather than remaining fixed constants.
 
-Keep three kinds of data separate:
+This is not part of the first Tease/Arousal combat slice. The first slice uses a fixed Arousal amount authored on the Tease action. Do not introduce body-region data, hidden multipliers or progression rules until the basic action loop is implemented and tested.
 
-- **Persistent Body Profile:** attributes that can change through long-term progression.
-- **Current Body State:** temporary Exposure, Accessibility and encounter effects.
-- **Enemy Preference Profile:** an enemy-owned tendency that influences its choice among valid actions; it is not a player progression stat.
+Future candidates include:
+- Body regions and their individual attributes.
+- Persistent growth through authored activities or milestones.
+- Temporary body state during encounters.
+- Enemy preferences that influence target selection.
 
-Growth should create meaningful differences or trade-offs rather than universally increasing every value. Possible sources such as training, authored experiences and milestones remain candidates until validated in a playable slice. Body Profile values are not intended to appear as numeric combat UI meters.
+These are future design candidates, not accepted implementation requirements. Each must demonstrate a distinct gameplay outcome before being added.
 
-The relationship between Body Profile and combat Arousal/Satisfaction resolution is owned by [Combat Design](Combat.md). Progression must not independently calculate combat outcomes.
+The relationship between Body Profile and combat resolution is owned by [Combat Design](Combat.md). Progression must not independently calculate combat effects.
