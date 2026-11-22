@@ -1,4 +1,4 @@
-> **Historical proposal — not current combat authority.** This numeric model predates the accepted four-active-party, full-control Timeline direction. Do not use its timing, Stagger or action assumptions as current rules. See [Design/Combat](../Design/Combat.md). Revisit numeric balance only after a playable encounter validates the current design.
+> **Historical proposal — obsolete and not current combat authority.** This document describes an earlier Timeline / ATB combat model, including Recovery and Stagger assumptions. The current combat direction is discrete Player Turn → Enemy Turn rounds with a shared Party AP pool and authored Enemy patterns. Do not use the historical rules or values as current specifications. See [Design/Combat](../Design/Combat.md).
 
 # Combat Balance Specification v1
 
@@ -19,7 +19,7 @@ The model is based on these accepted design decisions:
 - Recovery Time determines when the combatant can act again.
 - Cooldown is time-based and independent of Recovery Time.
 - Combat simulation time pauses while waiting for the Player to choose an action.
-- No battlefield positions, formation, universal Cast Time, or interruption system in v1.
+- No battlefield positions, universal Cast Time, or interruption system in v1.
 - Combat outcomes are separate from their consequences.
 - Resource persistence after combat is hybrid.
 - Damage has both sustained and burst sources.

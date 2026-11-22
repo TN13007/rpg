@@ -1,7 +1,7 @@
 # World and Narrative Design
 
 **Status:** Accepted setting direction; incident details remain in development  
-**Last updated:** 2026-11-21
+**Last updated:** 2026-11-23
 
 ## World structure
 
@@ -76,7 +76,7 @@ Relationships should be represented through the smallest set of dimensions or fl
 
 ## Time and simulation boundaries
 
-Daily activities may advance GameClock in minutes or hours. Combat runs on its own Combat Timeline and pauses while the player chooses an action. The rule for translating a completed encounter back into world time must be defined by the relevant scenario; do not assume the two clocks are interchangeable.
+Daily activities may advance GameClock in minutes or hours. Combat uses discrete Player and Enemy Turns and pauses while the player chooses actions. The rule for translating a completed encounter back into world time must be defined by the relevant scenario; do not assume the two time models are interchangeable.
 
 The game does not need to simulate every NPC or Location continuously. Use authored presence, conditional events or coarse updates where they are sufficient. Add autonomous simulation only when the player can notice it and make a meaningful decision because of it.
 

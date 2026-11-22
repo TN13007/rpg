@@ -1,18 +1,17 @@
 # Product Roadmap
 
 **Status:** Directional player-facing sequence  
-**Last updated:** 2026-11-21
+**Last updated:** 2026-11-23
 
 This roadmap is organized around outcomes the player can experience. It is not an implementation task list. Current tasks, blockers and delivery status belong in GitHub Issues/PRs and [WORKFLOW.md](../../WORKFLOW.md).
 
 ## Current delivery focus
 
-The active direction is a single modern student-life setting. The former fantasy Academy content is being replaced, not retained as a parallel scenario.
+The active direction is a single modern student-life setting. The former fantasy Academy content has been replaced, not retained as a parallel scenario.
 
-- [Issue #110 — Modern student life and paranormal incident](https://github.com/TN13007/rpg/issues/110) tracks the setting migration and first bounded incident journey.
 - The first content slice centers on university, student housing, a part-time café, the East District and the Unit 213 rumor.
-- The first incident must support observation and retreat without forcing combat. Professional response is introduced as an ordinary service, while actual dispatch/payment behavior remains a later runtime gap.
-- [Issue #91 — Four-Person Tactical Timeline Encounter](https://github.com/TN13007/rpg/issues/91) remains a separate Combat delivery target. Combat should be available for situations that justify it, not mandatory for every anomaly.
+- The first incident should support observation and retreat without forcing combat. Professional response is introduced as an ordinary service; actual dispatch/payment behavior remains a runtime gap.
+- Combat is a separate, optional turn-based system for situations that justify confrontation. It must not become the mandatory resolution for every anomaly.
 
 The setting migration should preserve reusable runtime systems and avoid introducing a universal Quest, Incident, Social Network or World Simulation framework.
 
@@ -57,7 +56,7 @@ Add more classmates, coworkers, neighbors, local rumors and professional contact
 
 ## Phase 5 — Integrate specialized combat journeys
 
-Continue improving the Tactical Timeline as a separate combat domain. Connect it to the world only through concrete situations that require confrontation and define how injury, recovery and elapsed time affect daily life.
+Continue improving the discrete turn-based combat system as a separate domain. Connect it to the world only through concrete situations that require confrontation and define how injury, recovery and elapsed time affect daily life.
 
 **Exit criteria**
 - At least one complete journey can enter combat and return to the city with a visible consequence.
