@@ -21,6 +21,9 @@ public partial class CombatCardVfx : Node
     {
         Color color = feedbackType switch
         {
+            CombatFeedbackType.QuickAttack => new Color("#e7a45d"),
+            CombatFeedbackType.HeavyAttack => new Color("#f08b55"),
+            CombatFeedbackType.DisruptingAttack => new Color("#c58ae0"),
             CombatFeedbackType.Attack => new Color("#e7a45d"),
             CombatFeedbackType.Guard => new Color("#78a9d2"),
             CombatFeedbackType.Evade => new Color("#79c9d2"),
