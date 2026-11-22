@@ -29,9 +29,24 @@ These are candidate dimensions, not a commitment to implement six separate syste
 5. Make growth readable: the player should understand what changed and how to use it.
 6. Introduce only the progression dimensions required by the current playable slice.
 
+## Cross-layer ownership and growth sources
+
+Progression is a shared system used by Loop 2 and Loop 3; neither loop owns a separate copy of a character's capabilities.
+
+- **Attributes** describe broad character characteristics. They may influence several domains, but each use needs a concrete scenario. Repeating a routine action should not automatically raise an attribute.
+- **Skills** represent practical capabilities. Their value should be visible through new actions, changed action resolution or useful combinations, not only a larger displayed number.
+- **Knowledge** represents discrete information or understanding. It can reveal options, clarify a situation or support a later decision without being treated as a combat stat.
+- **Relationships** represent social state and reciprocal opportunities. They are not a substitute for Skills or Knowledge, and a casual conversation does not automatically award relationship progress.
+
+The activity domain owns the context and requirements for learning or practicing. Shared Progression owns the resulting capability state. For example, Loop 2 may provide instruction or deliberate practice, while Loop 3 may provide specialized practice or consequential use of the same capability.
+
+No universal XP pool, level curve, skill-point award, attribute-growth formula or anti-farming rule is approved yet. Mastery/proficiency remains optional until a playable scenario demonstrates that Skills alone cannot express the desired outcome. Do not implement a generic progression event/API before the required data and behavior are demonstrated.
+
 ## Student life and personal development
 
-University activities may provide learning, practice, research, recovery and access to classmates or mentors. Part-time work may provide money and contacts. Personal routines can create opportunities to develop capabilities, but they should not become a separate management game.
+University activities may provide learning, practice, research, recovery and access to classmates or mentors. Part-time work may provide money and contacts. These are sources of opportunity, not automatic numerical rewards. A specific activity must define what the player learns, practices, discovers or gains before it grants progression.
+
+The first Loop 2 slice should distinguish attending a class, studying independently and deliberately practicing a skill. They may share time/resource rules but should not all award the same generic XP. Exact outcomes remain open until the selected skills and knowledge content are defined.
 
 ## Paranormal knowledge
 
