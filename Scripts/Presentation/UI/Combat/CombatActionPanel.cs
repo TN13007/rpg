@@ -125,6 +125,7 @@ public partial class CombatActionPanel : PanelContainer
         ClearPendingTarget();
         ClearChildren(_targetGrid);
         _targetSelection.Visible = false;
+        _confirmActionButton.Visible = true;
         _actionGrid.Visible = true;
         if (wasSelectingEnemy)
         {
@@ -245,16 +246,7 @@ public partial class CombatActionPanel : PanelContainer
         _selectedAction = action;
         foreach (CombatActionCard card in _actionCards)
         {
-            card.SetSelected(false);
-        }
-
-        foreach (CombatActionCard card in _actionCards)
-        {
-            if (card.GetInstanceId() == 0)
-            {
-                continue;
-            }
-            // The cards are ordered from the same filtered action list.
+            card.SetSelected(card.ActionId == action.Id);
         }
 
         ShowSelectedActionDetails(action);
@@ -295,6 +287,7 @@ public partial class CombatActionPanel : PanelContainer
             }
 
             _targetHeading.Text = "Choose a highlighted Enemy. Click to execute the action.";
+            _confirmActionButton.Visible = false;
             _targetGrid.Visible = false;
             _actionGrid.Visible = false;
             _targetSelection.Visible = true;
@@ -334,6 +327,7 @@ public partial class CombatActionPanel : PanelContainer
             _targetGrid.AddChild(button);
         }
 
+        _confirmActionButton.Visible = false;
         _targetGrid.Visible = true;
         _actionGrid.Visible = false;
         _targetSelection.Visible = true;
