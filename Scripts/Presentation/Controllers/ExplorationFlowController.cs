@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.Text;
 
 /// <summary>Coordinates the Exploration presentation flow, including location navigation, player actions, NPC interactions and location events.</summary>
-/// <remarks>Queries application/domain services for available content, then maps the results into StoryPanel view data. It does not own the underlying character, world-clock or location definitions.</remarks>
+/// <remarks>Coordinates Exploration presentation and delegates current-Location and visit-history state to the Application session state.</remarks>
 public sealed class ExplorationFlowController
 {
     private readonly StoryPanel _storyPanel;
     private readonly CharacterPanel _characterPanel;
     private readonly GameModeController _gameModeController;
     private readonly Character _player;
+    private readonly ExplorationSessionState _sessionState;
     private readonly PlayerActionDefinition[] _playerActions;
     private readonly List<LocationContent> _locations;
     private readonly Func<string, LocationContent> _getLocation;
@@ -23,22 +24,19 @@ public sealed class ExplorationFlowController
     private readonly NpcInteractionQuery _npcInteractionQuery;
     private readonly Func<ActionDefinition, bool> _startEncounter;
 
-    private string _currentLocationId = "university_campus";
     private LocationEventDefinition _activeLocationEvent;
-    private readonly HashSet<string> _visitedLocationIds = new HashSet<string>(StringComparer.Ordinal);
-    private string _descriptionLocationId;
     private string _selectedNpcId;
 
     private const string _seeAroundChoiceId = "navigation|see-around";
     private const string _backToPeopleChoiceId = "navigation|back-to-people";
     private const string _selectNpcActionId = "select";
-    private string _currentLocationDescription;
 
     /// <summary>Initializes a new instance of <see cref="ExplorationFlowController"/>.</summary>
     /// <param name="storyPanel">The StoryPanel that displays location pages, choices, NPC information and feedback.</param>
     /// <param name="characterPanel">The CharacterPanel refreshed when player-facing character data changes.</param>
     /// <param name="gameModeController">Switches the presentation between Exploration and Combat modes.</param>
     /// <param name="player">The live player character whose state is used to validate and execute Exploration actions.</param>
+    /// <param name="sessionState">The Application-owned current-Location and visit-history state for this Exploration session.</param>
     /// <param name="playerActions">The authored actions available to the player during Exploration.</param>
     /// <param name="locations">The known location definitions used when resolving travel destinations.</param>
     /// <param name="getLocation">Looks up a location definition by its ID, including the current location and selected destinations.</param>
@@ -56,6 +54,7 @@ public sealed class ExplorationFlowController
         CharacterPanel characterPanel,
         GameModeController gameModeController,
         Character player,
+        ExplorationSessionState sessionState,
         PlayerActionDefinition[] playerActions,
         IEnumerable<LocationContent> locations,
         Func<string, LocationContent> getLocation,
@@ -73,6 +72,7 @@ public sealed class ExplorationFlowController
         _characterPanel = characterPanel ?? throw new ArgumentNullException(nameof(characterPanel));
         _gameModeController = gameModeController ?? throw new ArgumentNullException(nameof(gameModeController));
         _player = player ?? throw new ArgumentNullException(nameof(player));
+        _sessionState = sessionState ?? throw new ArgumentNullException(nameof(sessionState));
         _playerActions = playerActions ?? throw new ArgumentNullException(nameof(playerActions));
         _locations = new List<LocationContent>(locations ?? throw new ArgumentNullException(nameof(locations)));
         _getLocation = getLocation ?? throw new ArgumentNullException(nameof(getLocation));
@@ -99,7 +99,7 @@ public sealed class ExplorationFlowController
             return;
         }
 
-        LocationContent location = _getLocation(_currentLocationId);
+        LocationContent location = _getLocation(_sessionState.CurrentLocationId);
         _selectedNpcId = null;
         IReadOnlyList<NpcPresence> presentNpcs = _npcPresenceQuery.Query(location.Id, _gameClock.MinutesOfDay);
         HashSet<string> presentNpcIds = GetNpcIds(presentNpcs);
@@ -144,7 +144,7 @@ public sealed class ExplorationFlowController
     private void ShowPeopleHere()
     {
         IReadOnlyList<NpcPresence> presentNpcs = _npcPresenceQuery.Query(
-            _currentLocationId,
+            _sessionState.CurrentLocationId,
             _gameClock.MinutesOfDay);
         if (presentNpcs.Count == 0)
         {
@@ -177,7 +177,7 @@ public sealed class ExplorationFlowController
         _gameModeController.ShowExploration();
         _storyPanel.ShowContent(
             "People here",
-            _getLocation(_currentLocationId).Name.ToUpperInvariant(),
+            _getLocation(_sessionState.CurrentLocationId).Name.ToUpperInvariant(),
             description.ToString(),
             choices,
             GameClockDisplayFormatter.Format(_gameClock));
@@ -187,7 +187,7 @@ public sealed class ExplorationFlowController
     private void ShowNpcInteractions(string characterId)
     {
         IReadOnlyList<NpcPresence> presentNpcs = _npcPresenceQuery.Query(
-            _currentLocationId,
+            _sessionState.CurrentLocationId,
             _gameClock.MinutesOfDay);
         NpcPresence selectedNpc = null;
         foreach (NpcPresence presence in presentNpcs)
@@ -209,7 +209,7 @@ public sealed class ExplorationFlowController
         _selectedNpcId = characterId;
         IReadOnlyList<AvailableInteraction> interactions = _npcInteractionQuery.Query(
             characterId,
-            _currentLocationId);
+            _sessionState.CurrentLocationId);
         List<ActionChoiceViewData> choices = _actionChoiceMapper.Map(interactions, _player);
         choices.Add(new ActionChoiceViewData(
             _backToPeopleChoiceId,
@@ -230,7 +230,7 @@ public sealed class ExplorationFlowController
         _gameModeController.ShowExploration();
         _storyPanel.ShowContent(
             selectedNpc.Name,
-            _getLocation(_currentLocationId).Name.ToUpperInvariant(),
+            _getLocation(_sessionState.CurrentLocationId).Name.ToUpperInvariant(),
             description,
             choices,
             GameClockDisplayFormatter.Format(_gameClock));
@@ -239,14 +239,7 @@ public sealed class ExplorationFlowController
 
     private string GetCurrentLocationDescription(LocationContent location)
     {
-        if (!string.Equals(_descriptionLocationId, location.Id, StringComparison.Ordinal))
-        {
-            bool firstVisit = _visitedLocationIds.Add(location.Id);
-            _descriptionLocationId = location.Id;
-            _currentLocationDescription = location.GetDescription(firstVisit);
-        }
-
-        return _currentLocationDescription;
+        return _sessionState.GetCurrentLocationDescription(location);
     }
 
     /// <summary>Displays a non-location character-record page such as Profile, Skills, Inventory or Journal.</summary>
@@ -352,14 +345,14 @@ public sealed class ExplorationFlowController
                 return;
 
             case InteractionSourceKind.Location:
-                if (request.SourceId != _currentLocationId)
+                if (request.SourceId != _sessionState.CurrentLocationId)
                 {
                     _storyPanel.ShowFeedback("That location action selection is outdated.");
                     return;
                 }
 
                 ActionDefinition locationAction = FindChoice(
-                    _getLocation(_currentLocationId).Actions,
+                    _getLocation(_sessionState.CurrentLocationId).Actions,
                     request.ActionId);
                 if (locationAction == null)
                 {
@@ -386,7 +379,7 @@ public sealed class ExplorationFlowController
                 if (!string.Equals(_selectedNpcId, request.SourceId, StringComparison.Ordinal) ||
                     !_npcPresenceQuery.IsPresent(
                         request.SourceId,
-                        _currentLocationId,
+                        _sessionState.CurrentLocationId,
                         _gameClock.MinutesOfDay))
                 {
                     ShowLocation();
@@ -396,7 +389,7 @@ public sealed class ExplorationFlowController
 
                 foreach (AvailableInteraction interaction in _npcInteractionQuery.Query(
                     request.SourceId,
-                    _currentLocationId))
+                    _sessionState.CurrentLocationId))
                 {
                     if (interaction.ActionId == request.ActionId)
                     {
@@ -410,7 +403,7 @@ public sealed class ExplorationFlowController
                 return;
 
             case InteractionSourceKind.Travel:
-                if (request.SourceId != _currentLocationId ||
+                if (request.SourceId != _sessionState.CurrentLocationId ||
                     request.ActionId != _travelAction.Id ||
                     string.IsNullOrWhiteSpace(request.TargetId))
                 {
@@ -445,7 +438,7 @@ public sealed class ExplorationFlowController
         foreach (PlayerActionDefinition playerAction in _playerActions)
         {
             if (playerAction.Action.Id != actionId) continue;
-            if (!playerAction.IsAvailableAt(_currentLocationId))
+            if (!playerAction.IsAvailableAt(_sessionState.CurrentLocationId))
             {
                 _storyPanel.ShowFeedback("That personal action is not available here.");
                 return;
@@ -522,7 +515,7 @@ public sealed class ExplorationFlowController
         if (!string.IsNullOrWhiteSpace(action.RequiredNpcId) &&
             !_npcPresenceQuery.IsPresent(
                 action.RequiredNpcId,
-                _currentLocationId,
+                _sessionState.CurrentLocationId,
                 _gameClock.MinutesOfDay))
         {
             _storyPanel.ShowFeedback("That character is no longer here.");
@@ -555,7 +548,7 @@ public sealed class ExplorationFlowController
     {
         int startDay = _gameClock.Day;
         int startMinutes = _gameClock.MinutesOfDay;
-        LocationContent current = _getLocation(_currentLocationId);
+        LocationContent current = _getLocation(_sessionState.CurrentLocationId);
         if (Array.IndexOf(current.Exits, destinationId) < 0)
         {
             _storyPanel.ShowFeedback("That location is not connected to your current position.");
@@ -574,7 +567,7 @@ public sealed class ExplorationFlowController
         }
 
         _activeLocationEvent = null;
-        _currentLocationId = destinationId;
+        _sessionState.SetCurrentLocation(destinationId);
         _characterPanel.SetCharacter(new CharacterViewModel(_player));
         ShowLocation();
         _storyPanel.ShowTimeAdvanceFeedback(
@@ -588,7 +581,7 @@ public sealed class ExplorationFlowController
 
     private void TryTriggerLocationEvent()
     {
-        LocationContent location = _getLocation(_currentLocationId);
+        LocationContent location = _getLocation(_sessionState.CurrentLocationId);
 
         HashSet<string> presentNpcIds = _npcPresenceQuery.GetPresentCharacterIds(
             location.Id,
@@ -610,7 +603,7 @@ public sealed class ExplorationFlowController
     private void ShowLocationEvent(LocationEventDefinition locationEvent)
     {
         HashSet<string> presentNpcIds = _npcPresenceQuery.GetPresentCharacterIds(
-            _currentLocationId,
+            _sessionState.CurrentLocationId,
             _gameClock.MinutesOfDay);
         IReadOnlyList<AvailableInteraction> interactions = _availableInteractionQuery.Query(
             locationEvent,
@@ -650,7 +643,7 @@ public sealed class ExplorationFlowController
         if (!string.IsNullOrWhiteSpace(selectedChoice.Action.RequiredNpcId) &&
             !_npcPresenceQuery.IsPresent(
                 selectedChoice.Action.RequiredNpcId,
-                _currentLocationId,
+                _sessionState.CurrentLocationId,
                 _gameClock.MinutesOfDay))
         {
             _storyPanel.ShowFeedback("That character is no longer here.");
@@ -661,7 +654,7 @@ public sealed class ExplorationFlowController
         if (selectedChoice.EncounterActionId != null)
         {
             ActionDefinition encounterAction = FindChoice(
-                _getLocation(_currentLocationId).Actions,
+                _getLocation(_sessionState.CurrentLocationId).Actions,
                 selectedChoice.EncounterActionId);
 
             if (encounterAction == null)
