@@ -113,6 +113,29 @@ max_value = 10.0
 show_percentage = false
 value = 8.0
 
+[node name="ArousalHeader" type="HBoxContainer" parent="Margin/Content"]
+visible = false
+layout_mode = 2
+
+[node name="ArousalTitle" type="Label" parent="Margin/Content/ArousalHeader"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 11
+text = "AROUSAL"
+
+[node name="ArousalValue" type="Label" parent="Margin/Content/ArousalHeader"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+text = "0 / 100"
+
+[node name="ArousalBar" type="ProgressBar" parent="Margin/Content"]
+visible = false
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+max_value = 100.0
+show_percentage = false
+value = 0.0
+
 [node name="MoodHeader" type="HBoxContainer" parent="Margin/Content"]
 layout_mode = 2
 
