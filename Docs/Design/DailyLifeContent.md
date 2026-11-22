@@ -70,11 +70,11 @@ These are proposed content records. The schedule system and weekday support do n
 |---|---|---|---|---:|---|
 | `monday_research_methods_lecture` | `lecture_hall` | Monday | 09:00–09:15 | 60 min | Attend the introductory lecture; current action adds Mood +1 |
 | `monday_corner_cafe_shift` | `corner_cafe` | Monday | 13:00–13:15 | 180 min | Complete the shift; current action adds 30 Gold |
-| `monday_club_open_meeting` | `student_union` | Monday | 15:00–15:10 | 60 min | Meet club members and receive an optional follow-up opportunity |
+| `monday_club_open_meeting` | `student_union` | Monday | 15:00–15:10 | 60 min | Attend the Campus Sports Club meeting; completion creates a club-owned membership record |
 
-The class and work shift reuse the existing `attend_lesson` and `work_shift` actions. The club meeting is new content; do not misrepresent the existing 15-minute `join_club` action (asking about clubs) as a full meeting.
+The class and work shift reuse the existing `attend_lesson` and `work_shift` actions. The 60-minute club meeting uses a proposed `attend_club_meeting` action (Mood +2; MET 1.5) and creates a typed Campus Sports Club membership record on completion. The existing 15-minute `join_club` action only asks about clubs; it is not the meeting and does not grant membership.
 
-The work shift and club meeting intentionally overlap. The player cannot complete both. Missing either commitment has no automatic hidden penalty in this first slice. The player simply loses that occurrence and can choose another activity.
+The work shift and club meeting intentionally overlap. The player cannot complete both. Missing either commitment has no automatic hidden penalty in this first slice. Membership is granted only when the meeting is completed; it is not granted by merely reaching the Student Union or asking about clubs. The player simply loses that occurrence and can choose another activity.
 
 ## 5. Flexible activities and small economy
 
@@ -91,22 +91,36 @@ The meal price is a proposed content value, not a current runtime cost. The curr
 
 ## 6. NPC presence and opportunities
 
-Reuse the current characters and their existing Location IDs. The following windows are the target Monday schedule; current `NpcSchedules.json` repeats these entries every day and has no weekday field.
+Reuse the current characters and Location IDs. The proposed weekly schedule migrates the existing Mira, Noah and Sera routine entries from every day to weekdays Monday–Friday (weekday indexes 0–4). Ms. Carter retains her current every-day routine. This is a target schedule; the current `NpcSchedules.json` has no weekday field and repeats entries daily.
+
+### Monday–Friday presence
 
 | NPC | Time | Location | Player-facing opportunity |
 |---|---|---|---|
 | Mira | 07:00–09:00 | `university_campus` | Short morning conversation; she mentions seeing a neighborhood post |
-| Noah | 07:00–08:30 | `sports_field` | Optional morning conversation about training |
+| Noah | 07:00–08:30 | `sports_field` | Ask about weekend training |
 | Sera | 07:00–09:00 | `campus_library` | Ask for a quiet study recommendation |
 | Mira | 11:00–12:00 | `campus_cafe` | `join_mira_for_lunch` |
-| Noah | 11:00–12:30 | `campus_cafe` | `talk` |
+| Noah | 11:00–12:30 | `campus_cafe` | `talk` or ask about weekend training |
 | Sera | 11:00–12:00 | `campus_cafe` | `talk` |
 | Mira | 15:00–17:00 | `student_union` | Optional conversation during the club meeting |
 | Noah | 15:00–18:00 | `student_union` | Optional conversation during the club meeting |
 | Mira | 17:00–22:00 | `student_apartment` | Optional evening conversation after returning home |
 
-These are existing NPCs and mostly existing interactions. Keep casual conversations short and contextual. They do not automatically increase an undefined Relationship score.
+The proposed `ask_about_weekend_training` interaction is available at `sports_field`, `campus_cafe` or `student_union`, takes 10 minutes and adds Mood +1. It records a weekend invitation owned by Social/Relationship. It is offered only while Noah is actually present; the current interaction schema supports Location restrictions and the presence query, but the invitation mutation needs a typed domain-owned implementation.
 
+### Saturday presence
+
+| NPC | Time | Location | Player-facing opportunity |
+|---|---|---|---|
+| Noah | 09:00–11:00 | `sports_field` | Present for the invited training session |
+| Sera | 10:00–14:00 | `campus_library` | Optional study conversation |
+| Noah | 13:00–17:00 | `riverside_park` | Optional conversation during the club outing |
+| Mira | 13:00–17:00 | `riverside_park` | Optional conversation during the club outing |
+
+These Saturday entries are additions, not new characters or Locations. Sunday has no authored additions in this slice; do not infer a Sunday routine. Weekday-aware NPC schedules and overlap validation are required before this data can be loaded: the current loader has no weekday field, and the current validator rejects overlapping clock intervals without considering weekday identity. Once weekday support exists, intervals conflict only when their weekday sets intersect.
+
+Keep casual conversations short and contextual. They do not automatically increase an undefined Relationship score. Existing schedules without a weekday restriction continue to mean every day.
 ## 7. One concrete shared-Progression example
 
 Use one discrete Knowledge entry rather than generic XP:
@@ -122,6 +136,8 @@ Use one discrete Knowledge entry rather than generic XP:
 **Use in a later Loop 3 scenario (proposed):** Reveal a `compare_sources` investigation option when the player examines conflicting witness accounts or archived reports.
 
 This is a concrete Knowledge outcome, not a universal XP reward. Attending class alone, repeating the Library action, or chatting with an NPC does not grant it. The Knowledge definition and Investigation use still require implementation and acceptance; this document does not claim they exist.
+
+The rumor from `lunch_table_conversation.join_the_conversation` or `east_district.browse_forum` may also be recorded as an optional Investigation-owned clue (`heard_unit_213_rumor`). It does not gate, trigger or suppress `apartment_213_incident`; the incident remains independently discoverable.
 
 ## 8. Example player journey
 
@@ -147,28 +163,65 @@ Travel durations in the example use the current base value and ignore the Agilit
 
 The morning example deliberately leaves little spare time. An extra stop can push the player past the class start window. The player should be able to skip the Library, Sera or the class rather than being forced down this route.
 
-## 9. Saturday contrast — extracurricular and social day
+## 9. Saturday contrast — invitation, training, work and club outing
 
-Saturday is a second validation slice, not a complete weekly timetable. With Day 1 set to Monday, the first Saturday is Day 6. Its purpose is to prove that the same weekday and time-window contract supports a day with fewer fixed academic commitments and more player-directed choices.
+Saturday is a second validation slice, not a complete weekly timetable. With Day 1 set to Monday, the first Saturday is Day 6. It tests whether Monday choices can create optional weekend opportunities without turning the week into a checklist.
 
-**Starting context:** Saturday, 08:00, at `student_apartment`. There is no scheduled lecture. The player may spend the day on extracurricular activity, exercise, social time, work, study or recovery.
+**Starting context:** Saturday, 08:00, at `student_apartment`. There is no scheduled lecture. The player may train with Noah, work a shift, join a club outing, study, recover or spend the day elsewhere.
 
-| Opportunity ID | Location | Weekday / allowed start | Duration | Eligibility / outcome |
-|---|---|---|---:|---|
-| `saturday_club_open_session` | `student_union` | Saturday, 09:00–09:30 | 60 min | Open to non-members; the player may join the proposed Campus Sports Club. Joining creates a club-owned membership record |
-| `saturday_sports_practice` | `sports_field` | Saturday, 10:30–11:00 | 60 min | Requires membership in the Campus Sports Club; records a deliberate practice outcome for the proposed `athletics` Skill |
-| `saturday_mira_hangout` | `student_union` | Saturday, 14:00–15:00 | 60 min | Optional social opportunity with Mira; uses Relationship/Social-owned state and does not grant automatic relationship growth |
+### 9.1 Actions and commitments
 
-**Saturday NPC presence target:** Mira is scheduled at `student_union` from 14:00–16:00 on Saturday for this optional hangout. This is a proposed weekday-specific presence entry; it does not change her existing weekday schedule.
+These are proposed authored content records. Existing action fields such as duration, effects, activity intensity and `requiredNpcId` are supported by the current Action Definition schema; the commitment schedule, weekday, eligibility, cost and completion-effect fields are not yet implemented.
 
-These are proposed content records, not existing runtime behavior. The club membership belongs to the extracurricular domain; the `athletics` capability belongs to shared Progression. The practice activity supplies evidence that a valid practice occurred, but no numerical Skill increase, XP reward or growth formula is specified here. That rule requires a separate concrete Progression decision.
+| Action | Location | Duration | Authored effect / activity intensity | Additional requirement |
+|---|---|---:|---|---|
+| `attend_club_meeting` | `student_union` | 60 min | Mood +2; MET 1.5 | Completion creates Campus Sports Club membership |
+| `noah_training_session` | `sports_field` | 90 min | Mood +3; MET 4 | `requiredNpcId: noah`; also requires the Social-owned weekend invitation |
+| `club_riverside_outing` | `riverside_park` | 120 min | Mood +4; MET 2 | Requires club membership; proposed cost 8 Gold |
 
-The Saturday schedule should not make all three opportunities mandatory. The player may attend only the club session, practice without taking the social opportunity if eligible, spend the day elsewhere, or do nothing beyond recovery. Existing daily NPC schedules remain unchanged unless an explicit Saturday-specific schedule is authored.
+| Commitment | Action | Allowed start | Duration | Eligibility / outcome |
+|---|---|---:|---:|---|
+| `saturday_noah_training` | `noah_training_session` | 09:00–09:30 | 90 min | Requires the Social-owned weekend invitation and Noah present; completion records `trained_with_noah` as extracurricular activity evidence |
+| `saturday_corner_cafe_shift` | `work_shift` | 11:00–11:15 | 180 min | Completion adds 30 Gold |
+| `saturday_club_riverside_outing` | `club_riverside_outing` | 13:00–13:15 | 120 min | Requires Campus Sports Club membership and costs a proposed 8 Gold; completion is an optional club outing |
 
-The contrast with Monday is intentional:
-- Monday asks the player to balance a class window, flexible study and a work-versus-club conflict.
-- Saturday offers an open club session, an optional skill-practice context and social time without a required academic commitment.
-- Both days use the same GameClock, schedule primitives, Character resources and domain-owned state. No weekend-specific clock or activity executor is introduced.
+The Saturday training is not membership-gated. It requires an invitation from Noah and Noah's current presence at the Sports Field. The club outing is the membership-gated activity. These are separate eligibility rules owned by their respective domains.
+
+The training and work windows are sequential, but travel matters: after the 09:00–10:30 training session, the base route `sports_field -> university_campus -> east_district -> corner_cafe` takes 30 minutes, reaching the café at 11:00 before applying the existing Agility reduction. If Travel arrives before the 11:00 start window opens, the player can wait until the window begins. The system must not reject an otherwise valid commitment or force an unrelated action because the player arrived early.
+
+The work shift (11:00–14:00) and club outing (13:00–15:00) intentionally overlap. The player can complete one, not both. From the Corner Café, reaching Riverside Park also takes the existing route through East District; the player cannot start the outing inside its allowed window after completing the full shift.
+
+### 9.2 How Monday unlocks Saturday
+
+- Completing `monday_club_open_meeting` at the Student Union creates a permanent Campus Sports Club membership record owned by the Extracurricular domain. The current `join_club` action only asks about clubs and is not a substitute for this 60-minute meeting.
+- A conversation with Noah using the proposed `ask_about_weekend_training` interaction (10 minutes, Mood +1) grants a weekend invitation record owned by Social/Relationship. The interaction is available only at `sports_field`, `campus_cafe` or `student_union` while Noah is present.
+- The player may skip either Monday opportunity. Without the club membership, Saturday's outing is unavailable; without Noah's invitation, Saturday training is unavailable. Neither missing opportunity applies a hidden penalty.
+
+### 9.3 Saturday NPC presence
+
+The proposed weekday migration restricts the existing Mira, Noah and Sera routine entries to Monday–Friday (weekday indexes 0–4). Ms. Carter keeps her current every-day routine. Saturday adds these presence entries:
+
+| NPC | Time | Location | Purpose |
+|---|---|---|---|
+| Noah | 09:00–11:00 | `sports_field` | Present for the invited training session |
+| Sera | 10:00–14:00 | `campus_library` | Optional study conversation |
+| Noah | 13:00–17:00 | `riverside_park` | Optional conversation during the club outing |
+| Mira | 13:00–17:00 | `riverside_park` | Optional conversation during the club outing |
+
+Sunday has no authored additions in this slice; do not infer a Sunday routine. Existing schedules without a weekday restriction continue to mean every day until content explicitly migrates them.
+
+These Saturday entries require weekday-aware NPC schedule loading and overlap validation. The current loader has no weekday field, and the current validator rejects overlapping intervals without considering day identity. Once weekdays exist, overlapping time ranges should conflict only when their weekday sets intersect.
+
+### 9.4 Rumor remains optional information
+
+The existing `lunch_table_conversation.join_the_conversation` and `east_district.browse_forum` may record that the player has heard the Unit 213 rumor. This is an Investigation-owned clue/information record, not a global flag. It is optional context and does **not** gate, trigger or suppress `apartment_213_incident`; the player can encounter or ignore that incident independently.
+
+The identifiers `student_union_club_member`, `noah_weekend_invite`, `trained_with_noah` and `heard_unit_213_rumor` name typed domain facts for discussion. They are not permission to implement a generic flag bag or a generic `setFlags` API. The JSON sample's `setFlags` notation is only a draft shorthand for future domain-owned mutations.
+
+The Saturday contrast with Monday is intentional:
+- Monday establishes class/study context, creates club membership and offers the chance to receive Noah's invitation.
+- Saturday turns those earlier choices into optional training and a club outing, while preserving the work-versus-outing conflict.
+- Both days use the same GameClock, Character resources, travel graph and domain-owned state. No weekend clock, global flag manager or universal activity executor is introduced.
 
 ## 10. Content validation cases
 
@@ -178,21 +231,29 @@ The Monday slice should pass these cases:
 2. An extra morning activity can make the player miss the lecture; no hidden penalty is applied.
 3. The player can skip class and still use flexible activities.
 4. NPC interactions appear only when the NPC is present at the current Location and time.
-5. The player can afford the 5-Gold meal with the starting 20 Gold.
+5. The player can afford the proposed 5-Gold meal with the starting 20 Gold.
 6. The meal spends exactly 5 Gold once; insufficient funds reject it without advancing time or applying effects.
 7. Work adds 30 Gold once after the full shift resolves.
 8. The player cannot complete both the 13:00 work shift and the overlapping 15:00 club meeting.
-9. The Knowledge entry is granted only after both the lecture and Library study are completed on the same day.
+9. The Knowledge entry is granted only after both the lecture and Library study are completed on the same campaign day.
 10. Sleep from 23:00 advances 480 minutes, rolls to Day 2 at 07:00 and applies recovery once.
 11. The player can complete the day without visiting `apartment_block` or triggering the Unit 213 incident.
+12. The club meeting creates a typed Campus Sports Club membership record; merely asking about clubs does not.
+13. The Noah invitation is recorded only after the proposed interaction is selected while Noah is present at an allowed Location.
+14. Hearing the Unit 213 rumor is optional and does not gate the incident.
 
 The Saturday contrast should pass these additional cases:
-12. Day 6 derives Saturday from the same GameClock when Day 1 is configured as Monday.
-13. The player can attend the open club session and join the club; membership is stored by the extracurricular domain, not in a global flag bag.
-14. A non-member cannot start the membership-gated sports practice; rejection changes no time, Fatigue, resources or progression state.
-15. Completing sports practice records a valid practice outcome for the `athletics` Skill without inventing a numerical growth formula.
-16. The player can ignore the club, practice and hangout and still complete the day through flexible activities.
-17. Saturday NPC opportunities appear only when the corresponding NPC schedule matches the current weekday, time and Location; schedules without weekday restrictions remain daily.
+
+15. Day 6 derives Saturday from the same GameClock when Day 1 is configured as Monday.
+16. The player cannot start Noah's training without the invitation, and cannot start it when Noah is absent from `sports_field`; rejection changes no time, Fatigue, resources or progression state.
+17. Training runs 09:00–10:30 and records `trained_with_noah` as typed extracurricular activity evidence without inventing a Skill-growth formula.
+18. Travel from `sports_field` through Campus and East District reaches `corner_cafe` in 30 base minutes; an Agility-reduced early arrival can wait until the 11:00 start window.
+19. The 11:00–14:00 work shift and 13:00–15:00 club outing overlap, so the player cannot complete both.
+20. The club outing is unavailable without Campus Sports Club membership and rejects atomically when the player cannot afford the proposed 8 Gold cost.
+21. Saturday NPC presence matches weekday, time and Location; weekday-disjoint schedule entries may overlap in clock time without being treated as a conflict.
+22. The player can ignore training, work and the club outing and still complete the day through flexible activities.
+23. Sunday remains unspecified rather than inheriting an invented weekend routine.
+24. The player can complete Saturday without visiting `apartment_block`, triggering Unit 213 or entering Combat.
 
 ## 11. Explicitly not part of this content slice
 
@@ -202,7 +263,24 @@ The Saturday contrast should pass these additional cases:
 - New NPCs or autonomous NPC movement.
 - Generic XP, skill levels or attribute growth.
 - Mandatory paranormal incidents, combat encounters or hidden penalties for missed activities.
+- A global flag bag or generic `setFlags` mutation API.
 - Runtime schema changes. The content model must be reviewed against the actual loaders before any JSON data is added.
+
+The current Action Definition schema already supports the fields used by the three proposed actions, including `requiredNpcId` for Noah's training. The current NPC interaction schema does not provide the proposed invitation mutation. The shared commitment schema, `weekdays`, `startWindow`, `requires`, `costs`, `onComplete` and weekday-aware NPC schedule fields remain proposed. Do not copy the sample JSON into `Data/` until the corresponding implementation Issues land.
+
+## 12. Implementation dependencies
+
+After the design is accepted, implementation should be split into independently testable work:
+
+1. Weekday derivation on the existing GameClock, with Day 1's starting weekday authored explicitly.
+2. A shared scheduled-activity data contract and availability query; keep PlayerAction execution, NPC presence and domain outcomes separate.
+3. Allowed-start-window handling, including a wait-until-available path when Travel arrives early due to the Agility modifier.
+4. Atomic Gold spending with rejection that leaves all state unchanged.
+5. Typed domain-owned state for academic completion/Knowledge acquisition, club membership, Social invitations, extracurricular activity evidence and Investigation clues. Do not begin with a global flag bag.
+6. Weekday filters for selected NPC schedules while preserving daily-repeat behavior when no weekday is authored; make overlap validation compare weekday intersections as well as time intervals.
+7. Monday and Saturday end-to-end playthroughs, including missed commitments, invitation/membership gates, insufficient funds, early arrival, overlapping choices and optional activities.
+
+Do not create a generic ActivityManager, universal content executor, untyped GameState or FlagManager to implement these slices. Reuse current domain owners and add only contracts required by the demonstrated journeys.
 
 ## 12. Implementation dependencies
 
