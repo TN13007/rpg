@@ -15,8 +15,8 @@ public static class EnemyBehaviorProfiles
         });
     }
 
-    /// <summary>Creates a profile that favors quick pressure and high-damage impacts.</summary>
-    /// <returns>A profile that can select Quick Lunge or Heavy Impact, but not Disorienting Pulse.</returns>
+    /// <summary>Creates a profile that commits to the high-damage Heavy Impact threat.</summary>
+    /// <returns>A profile that selects Heavy Impact and disables the other authored actions.</returns>
     public static EnemyBehaviorProfile CreateHeavyPressurePresence()
     {
         return new EnemyBehaviorProfile(new Dictionary<string, int>
