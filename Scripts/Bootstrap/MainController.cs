@@ -27,9 +27,7 @@ public partial class MainController : Control
 
         GameContentCatalog content = GameContentLoader.Load("res://Data");
         CharacterData playerData = content.GetCharacter("player_student");
-        CharacterData enemyData = content.GetCharacter("hostile_presence");
         Character player = new Character(playerData);
-        Character enemy = new Character(enemyData);
         _debugEncounterAction = content.CombatEncounter;
 
         GameClock gameClock = new GameClock();
@@ -41,13 +39,8 @@ public partial class MainController : Control
         AvailableInteractionQuery availableInteractionQuery = new AvailableInteractionQuery();
         ActionChoiceMapper actionChoiceMapper = new ActionChoiceMapper(durationEstimateMapper);
 
-        List<CombatantDefinition> encounterCombatants =
-            new List<CombatantDefinition>(StartingParty.CreateCombatants(content, player));
-        encounterCombatants.Add(new CombatantDefinition(
-            enemy,
-            CombatantSide.Enemy,
-            content.GetCombatActionsForCharacter(enemyData.Id),
-            behaviorProfile: EnemyBehaviorProfiles.CreateUnstablePresence()));
+        CombatantDefinition[] encounterCombatants =
+            Unit213EncounterFactory.CreateCombatants(content, player);
 
         CombatService combatService = new CombatService(encounterCombatants);
         CombatPresentationMapper combatPresentationMapper = new CombatPresentationMapper();
