@@ -66,13 +66,52 @@ public sealed class ExplorationInteractionQueryTests
     public void Query_DoesNotMutatePlayerState()
     {
         LoadContent();
-        Character player = TestCharacterFactory.CreatePlayer(fatigue: 45, stamina: 3);
+        Character player = TestCharacterFactory.CreatePlayer(
+            health: 12, fatigue: 45, stamina: 3, mood: 35, gold: 7);
         CharacterData playerData = LoadPlayerData();
 
-        new AvailableInteractionQuery().Query(player, playerData.PlayerActions, _locations.Get("student_apartment"), _locations.Get, _locations.Travel);
+        new AvailableInteractionQuery().Query(
+            player,
+            playerData.PlayerActions,
+            _locations.Get("student_apartment"),
+            _locations.Get,
+            _locations.Travel);
 
+        Assert.Equal(12, player.Health);
         Assert.Equal(45, player.Fatigue);
         Assert.Equal(3, player.Stamina);
+        Assert.Equal(35, player.Mood);
+        Assert.Equal(7, player.Gold);
+    }
+
+    [Fact]
+    public void QueryResults_AreReadOnlyForNormalRecoveryAndEventChoices()
+    {
+        LoadContent();
+        CharacterData playerData = LoadPlayerData();
+        AvailableInteractionQuery query = new AvailableInteractionQuery();
+
+        Character activePlayer = TestCharacterFactory.CreatePlayer();
+        IReadOnlyList<AvailableInteraction> normalChoices = query.Query(
+            activePlayer,
+            playerData.PlayerActions,
+            _locations.Get("student_apartment"),
+            _locations.Get,
+            _locations.Travel);
+        AssertReadOnly(normalChoices);
+
+        Character incapacitatedPlayer = TestCharacterFactory.CreatePlayer(health: 0);
+        IReadOnlyList<AvailableInteraction> recoveryChoices = query.Query(
+            incapacitatedPlayer,
+            playerData.PlayerActions,
+            _locations.Get("student_apartment"),
+            _locations.Get,
+            _locations.Travel);
+        AssertReadOnly(recoveryChoices);
+
+        LocationEventDefinition locationEvent = _locations.Get("campus_cafe").Events[0];
+        IReadOnlyList<AvailableInteraction> eventChoices = query.Query(locationEvent);
+        AssertReadOnly(eventChoices);
     }
 
     [Fact]
@@ -195,6 +234,51 @@ public sealed class ExplorationInteractionQueryTests
         Assert.DoesNotContain(absent, item => item.ActionId == "join_mira");
         Assert.Contains(absent, item => item.ActionId == "join_students");
         Assert.Contains(present, item => item.ActionId == "join_mira");
+    }
+
+    [Fact]
+    public void EventQuery_RechecksEventLevelNpcRequirement()
+    {
+        ActionDefinition join = new ActionDefinition("join", "Join", 10);
+        LocationEventDefinition locationEvent = new LocationEventDefinition(
+            "mira_meetup",
+            "Meetup",
+            "CAMPUS",
+            "Mira is waiting here.",
+            1.0,
+            new[] { new LocationEventChoiceDefinition("join", join) },
+            requiredNpcId: "mira");
+        AvailableInteractionQuery query = new AvailableInteractionQuery();
+
+        IReadOnlyList<AvailableInteraction> absent = query.Query(
+            locationEvent,
+            new HashSet<string>(StringComparer.Ordinal));
+        IReadOnlyList<AvailableInteraction> present = query.Query(
+            locationEvent,
+            new HashSet<string>(StringComparer.Ordinal) { "mira" });
+
+        Assert.Empty(absent);
+        AssertReadOnly(absent);
+        Assert.Contains(present, interaction => interaction.ActionId == "join");
+        AssertReadOnly(present);
+    }
+
+    private static void AssertReadOnly(IReadOnlyList<AvailableInteraction> interactions)
+    {
+        IList<AvailableInteraction> mutableView =
+            Assert.IsAssignableFrom<IList<AvailableInteraction>>(interactions);
+        AvailableInteraction item = interactions.Count > 0
+            ? interactions[0]
+            : new AvailableInteraction(
+                InteractionSourceKind.Event, "test-event", "test-action", string.Empty,
+                new ActionDefinition("test-action", "Test", 0));
+
+        Assert.True(mutableView.IsReadOnly);
+        Assert.Throws<NotSupportedException>(() => mutableView.Add(item));
+        if (mutableView.Count > 0)
+        {
+            Assert.Throws<NotSupportedException>(() => mutableView[0] = item);
+        }
     }
 
     private void LoadContent()

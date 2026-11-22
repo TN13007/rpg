@@ -31,14 +31,14 @@ public sealed class AvailableInteractionQuery
         if (!player.CanAct)
         {
             AddRecoveryActions(interactions, player, playerActions, location.Id);
-            return interactions;
+            return interactions.AsReadOnly();
         }
 
         AddLocationActions(interactions, location, presentNpcIds);
         AddPlayerActions(interactions, player, playerActions, location.Id);
         AddTravelActions(interactions, location, locationResolver, travelAction);
 
-        return interactions;
+        return interactions.AsReadOnly();
     }
 
     /// <summary>Returns the interactions or presence records matching the supplied criteria.</summary>
@@ -52,6 +52,11 @@ public sealed class AvailableInteractionQuery
         if (locationEvent == null) throw new ArgumentNullException(nameof(locationEvent));
 
         List<AvailableInteraction> interactions = new List<AvailableInteraction>();
+        if (!IsNpcRequirementSatisfied(locationEvent.RequiredNpcId, presentNpcIds))
+        {
+            return interactions.AsReadOnly();
+        }
+
         foreach (LocationEventChoiceDefinition choice in locationEvent.Choices)
         {
             if (!IsNpcRequirementSatisfied(choice.Action, presentNpcIds))
@@ -66,7 +71,7 @@ public sealed class AvailableInteractionQuery
                 choice.EncounterActionId ?? string.Empty,
                 choice.Action));
         }
-        return interactions;
+        return interactions.AsReadOnly();
     }
 
     private static void AddLocationActions(
@@ -154,8 +159,13 @@ public sealed class AvailableInteractionQuery
 
     private static bool IsNpcRequirementSatisfied(ActionDefinition action, ISet<string> presentNpcIds)
     {
-        return string.IsNullOrWhiteSpace(action.RequiredNpcId)
-            || (presentNpcIds != null && presentNpcIds.Contains(action.RequiredNpcId));
+        return IsNpcRequirementSatisfied(action.RequiredNpcId, presentNpcIds);
+    }
+
+    private static bool IsNpcRequirementSatisfied(string requiredNpcId, ISet<string> presentNpcIds)
+    {
+        return string.IsNullOrWhiteSpace(requiredNpcId)
+            || (presentNpcIds != null && presentNpcIds.Contains(requiredNpcId));
     }
 
     private static bool HasReviveEffect(ActionDefinition action)

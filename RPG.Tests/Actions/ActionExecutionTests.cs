@@ -54,6 +54,40 @@ public sealed class ActionExecutionTests
     }
 
     [Fact]
+    public void TryExecute_RevalidatesActorStateAfterPreflightAndDoesNotApplyEffects()
+    {
+        Character actor = TestCharacterFactory.CreatePlayer(
+            health: 5, fatigue: 20, stamina: 3, mood: 40, gold: 7);
+        GameClock clock = new GameClock(2, 9, 30);
+        ActionDefinition action = new ActionDefinition(
+            "grant_gold",
+            "Grant Gold",
+            30,
+            effects: new[]
+            {
+                new ActionEffectDefinition(ActionEffectType.AddGold, 50)
+            });
+
+        Assert.True(_service.CanExecute(action, actor, out string preflightReason), preflightReason);
+
+        actor.TakeDamage(5);
+
+        bool success = _service.TryExecute(
+            action, actor, clock, out string failureReason, out int duration);
+
+        Assert.False(success);
+        Assert.Contains("dead", failureReason);
+        Assert.Equal(0, duration);
+        Assert.Equal(0, actor.Health);
+        Assert.Equal(20, actor.Fatigue);
+        Assert.Equal(3, actor.Stamina);
+        Assert.Equal(40, actor.Mood);
+        Assert.Equal(7, actor.Gold);
+        Assert.Equal(2, clock.Day);
+        Assert.Equal(570, clock.MinutesOfDay);
+    }
+
+    [Fact]
     public void RestRecoversFatigueStaminaAndMood()
     {
         LoadLocationCatalog();
