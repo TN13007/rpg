@@ -62,7 +62,11 @@ Data / content loaders
   -> refreshed StoryPanel
 ```
 
-The query discovers choices for the current context without mutating state. The mapper converts query results into presentation-safe data. StoryPanel renders the choices and emits a stable source/action/target identity. The flow controller coordinates the request; the owning service revalidates it.
+The query discovers choices for the current context without mutating state and returns a read-only collection; callers cannot cast the result back to a mutable list. The mapper converts query results into presentation-safe data. StoryPanel renders the choices and emits a stable source/action/target identity. Displayed availability is advisory, not an authorization token.
+
+When a selection arrives, `ExplorationFlowController` resolves it again against the current context before calling execution: Player actions must still belong to the Player and be available at the current Location; Location actions are looked up again from the current Location; NPC interactions require the same selected NPC to remain present at the current GameClock time and the interaction to remain in that NPC's current query results; Travel must still originate at the current Location and target one of its current exits; Event choices must still belong to the active Event, match the selected encounter target and satisfy current NPC-presence requirements. The action path checks required NPC presence again immediately before execution.
+
+`ActionExecutionService.TryExecute` is the final Actor-state gate. It calls `CanExecute` again immediately before calculating duration or mutating GameClock/Character state, so a previous availability query or preflight result cannot authorize an action after the Actor becomes incapacitated. On success it advances time, applies action Fatigue and then authored effects. Context checks stay in the owning flow because they depend on source-specific state; the generic executor owns Actor-level eligibility and effect application. Rejected requests must leave time and resources unchanged.
 
 ### NPC presence
 
