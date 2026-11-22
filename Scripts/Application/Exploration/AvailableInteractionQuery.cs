@@ -31,14 +31,14 @@ public sealed class AvailableInteractionQuery
         if (!player.CanAct)
         {
             AddRecoveryActions(interactions, player, playerActions, location.Id);
-            return interactions;
+            return interactions.AsReadOnly();
         }
 
         AddLocationActions(interactions, location, presentNpcIds);
         AddPlayerActions(interactions, player, playerActions, location.Id);
         AddTravelActions(interactions, location, locationResolver, travelAction);
 
-        return interactions;
+        return interactions.AsReadOnly();
     }
 
     /// <summary>Returns the interactions or presence records matching the supplied criteria.</summary>
