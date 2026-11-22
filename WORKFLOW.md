@@ -3,7 +3,7 @@
 **Repository:** [TN13007/rpg](https://github.com/TN13007/rpg)  
 **Engine:** Godot 4.7.2 .NET / C#  
 **Last reviewed:** 2026-11-22  
-**Baseline:** latest main; open or unmerged PRs are proposals, not implemented behavior.
+**Baseline:** latest `main`; open or unmerged PRs are proposals, not implemented behavior.
 
 > This is the only changing project-status and handoff tracker. Do not create separate status, Session-history, decision or learning trackers.
 
@@ -12,7 +12,7 @@
 | Question | Source |
 |---|---|
 | What game are we trying to make? | [Design documentation](Docs/Design/README.md) |
-| What does the current code actually do? | [Implementation documentation](Docs/Implementation/README.md), latest main and tests |
+| What does the current code actually do? | [Implementation documentation](Docs/Implementation/README.md), latest `main` and tests |
 | What problem are we solving now? | GitHub Issue |
 | What solution was proposed and verified? | Pull Request and its review/CI evidence |
 | How do we organize work and Git history? | [CONTRIBUTING.md](CONTRIBUTING.md) |
@@ -36,7 +36,7 @@ The former fantasy Academy setting is superseded. New player-facing content must
 
 ### Implementation reality
 
-Latest main is commit cf5f67daf65dd79eedb50f3832ff2ae0a55239ca. PR #112 replaced the Academy setting with a modern student-life city; PR #127 integrated the mixed-threat Unit 213 encounter.
+The latest `main` includes the modern student-life setting from PR #112 and the mixed-threat Unit 213 encounter from PR #127. Treat `main` as the moving implementation baseline; do not pin a commit SHA in this handoff document.
 
 The authored world includes university, student housing, campus facilities, the East District and the Unit 213 incident. The current playable combat composition contains Alex, Noah, Mira and Sera against two Unit 213 manifestations: Unstable Presence and Unstable Echo. Daily NPC schedules and character-specific interactions are authored separately from Location actions.
 
@@ -55,7 +55,7 @@ Each development Session should produce two separate outcomes:
 
 A merged feature, AI-generated code or passing CI does not by itself prove independent learning.
 
-1. **Context check:** inspect latest main, the active Issue, related PRs, relevant Design and Implementation documents, source code and tests.
+1. **Context check:** inspect latest `main`, the active Issue, related PRs, relevant Design and Implementation documents, source code and tests.
 2. **Define outcomes:** agree on one product outcome and one practical learning objective.
 3. **Implementation Brief:** for ambiguous or cross-layer work, summarize current behavior, evidence, responsibilities, proposed change, constraints and verification. Keep it as a temporary working artifact, not another permanent repository document.
 4. **Predict and execute:** the learner explains expected behavior first; implement one focused logical change at a time.
@@ -71,16 +71,16 @@ The Git workflow, commit granularity and PR requirements are defined only in [CO
 The target combat loop is:
 
 1. Player Turn begins with the Party's shared Action Point pool refreshed to its current Action Capacity.
-2. The player spends AP on skills from any active Party member; the same member may be selected again while AP remains.
+2. The player spends AP on skills from eligible Party members; each member may perform at most one AP-funded action per Round.
 3. The player may end early; unused AP does not carry over.
 4. Each living Enemy resolves one authored pattern action during Enemy Turn, using current conditions and deterministic encounter order.
 5. If the encounter continues, the next Round begins and Party AP refreshes.
 
-Action Capacity is a Party-level progression value bounded to 1–4 in the first slice. Training activities should improve it without creating an unlimited, consequence-free grind. Exact starting capacity, growth thresholds and costs remain open for playtesting.
+Action Capacity starts at 2 AP and can reach 4 AP through two team-training milestones (2 → 3 → 4). The activity requirements and costs remain open for playtesting.
 
 **Important migration boundary:** Issue #91 owns replacing the current Timeline/Intent runtime, translating Downed/Revive, adding the HP/Arousal MVP, redesigning UI, and validating the complete Exploration → Combat → Exploration journey. Keep the existing Implementation documents accurate about the Timeline runtime until that migration is actually complete.
 
-Issue #117 currently contains a proposal based on the superseded Timeline/Intent model. It must not override the accepted direction in Issue #91. Reconcile or close that proposal before implementing any of its mechanics. Issue #79 remains a later progression backlog item and should not be pulled into the combat refactor without a concrete dependency.
+Issue #117's Timeline/Intent foundation is superseded by the discrete turn-based direction in Issue #91. Its Stance and Accept/Continue concepts are not automatically carried into the new model; they remain deferred and require a separate design issue if revived. Issue #79 remains a later progression backlog item and should not be pulled into the combat refactor without a concrete dependency.
 
 ## 5. Learning evidence
 
@@ -88,11 +88,13 @@ Record learning only when it was actually demonstrated. Product completion and l
 
 Use this compact format when a meaningful check occurs:
 
-    YYYY-MM-DD — Issue / topic
-    Product: Done / Partial / Blocked — PR or evidence link
-    Learning: Not assessed / Needs practice / With support / Independent
-    Evidence: what the learner explained, changed or verified independently
-    Remaining gap: one specific concept or skill
-    Next practice: one small exercise
+```text
+YYYY-MM-DD — Issue / topic
+Product: Done / Partial / Blocked — PR or evidence link
+Learning: Not assessed / Needs practice / With support / Independent
+Evidence: what the learner explained, changed or verified independently
+Remaining gap: one specific concept or skill
+Next practice: one small exercise
+```
 
 Do not maintain a historical table of every Session or duplicate completed implementation details from PRs and Issues. Keep only current blockers and useful learning evidence; PRs and Issues retain delivery history.

@@ -1,6 +1,6 @@
 # World and Narrative Design
 
-**Status:** Accepted setting direction; incident details remain in development
+**Status:** Accepted setting direction; incident details remain in development  
 **Last updated:** 2026-11-22
 
 ## World structure
@@ -70,7 +70,7 @@ These are design possibilities, not claims that persistent incident progression 
 
 NPCs include classmates, friends, coworkers, neighbors and specialists. Their identities should be grounded in ordinary roles and motivations before any supernatural involvement.
 
-The current schedule model is a recurring daily timetable authored as time ranges, Locations and visible activities. It resolves where a scheduled NPC is at the current GameClock time; it does not imply pathfinding, needs, autonomous decision-making or continuous simulation. The player discovers present NPCs through See around; character interactions are authored separately from Location actions.
+The current schedule model is a recurring daily timetable authored as time ranges, Locations and visible activities. It resolves where a scheduled NPC is at the current GameClock time; it does not imply pathfinding, needs, autonomous decision-making or continuous simulation. The player discovers present NPCs through `See around`; character interactions are authored separately from Location actions.
 
 Relationships should be represented through the smallest set of dimensions or flags that produce observable differences. Avoid a large social simulation or relationship framework before a playable interaction needs it.
 

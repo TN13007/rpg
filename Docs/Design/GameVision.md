@@ -1,6 +1,6 @@
 # Game Vision — Modern Student Life
 
-**Status:** Accepted product direction
+**Status:** Accepted product direction  
 **Last updated:** 2026-11-22
 
 ## High concept
@@ -49,6 +49,7 @@ Combat is a focused tactical interaction for dangerous confrontations. The playe
 
 At the design level, the experience follows this loop:
 
+```text
     Current life and world context
                  |
                  v
@@ -65,6 +66,7 @@ At the design level, the experience follows this loop:
                  |
                  v
      The next day and later situations reflect it
+```
 
 Daily-life actions may advance GameClock by minutes or hours. Combat proceeds through discrete Player and Enemy Turns and does not advance a real-time Combat Clock. A completed encounter may apply one explicit world-time cost through its session rules. Travel changes the current Location through the supported navigation flow. Events may present a situation and choices; a choice may resolve as an ordinary action or start a specialized Combat flow.
 

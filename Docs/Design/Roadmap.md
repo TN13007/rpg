@@ -1,6 +1,6 @@
 # Product Roadmap
 
-**Status:** Directional player-facing sequence
+**Status:** Directional player-facing sequence  
 **Last updated:** 2026-11-22
 
 This roadmap is organized around outcomes the player can experience. It is not an implementation task list. Current tasks, blockers and delivery status belong in GitHub Issues/PRs and [WORKFLOW.md](../../WORKFLOW.md).
@@ -61,16 +61,17 @@ Deliver a compact turn-based combat experience for confrontations where the play
 
 **Exit criteria**
 - The player understands the Player Turn / Enemy Turn loop without tracking a real-time Timeline.
-- Shared AP creates meaningful choices about which Party members and skills to use.
-- Enemy patterns create readable, deterministic pressure without exposing committed future Intent.
-- Attack, Tease, Arousal and Orgasm produce understandable combat outcomes.
+- The Party starts with 2 shared AP; team-training milestones can raise Action Capacity to 3 AP and then 4 AP.
+- Each Party member is limited to one AP-funded action per Round by a one-Round actor cooldown.
+- Enemy patterns create readable, deterministic pressure; current condition rules/states are visible without exposing the next action or target.
+- The Attack/HP loop is playable. Arousal/Orgasm is included only if the product owner reconfirms it as part of the MVP.
 - Downed and revival work within turn and AP rules.
 - A complete encounter can return to the same Location with its configured consequences.
 - Non-combat approaches remain valid when appropriate.
 
 ## Phase 6 — Expand combat only where playtests justify it
 
-Use the first playable encounter to decide whether additional control states, cooldowns, enemy pattern branches, training milestones or combat resources create meaningful decisions. Do not rebuild the old Timeline under different names.
+Use the first playable encounter to decide whether additional control states, enemy pattern branches, further resource interactions or deeper training activities create meaningful decisions. The first slice already includes a one-Round actor cooldown and two Action Capacity training milestones. Do not rebuild the old Timeline under different names.
 
 **Exit criteria**
 - Every added mechanic creates an observable player decision.
