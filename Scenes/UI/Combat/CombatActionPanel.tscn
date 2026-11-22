@@ -15,7 +15,7 @@ theme_override_constants/margin_bottom = 10
 
 [node name="Content" type="VBoxContainer" parent="Margin"]
 layout_mode = 2
-theme_override_constants/separation = 7
+theme_override_constants/separation = 8
 
 [node name="Title" type="Label" parent="Margin/Content"]
 layout_mode = 2
@@ -23,12 +23,77 @@ theme_override_font_sizes/font_size = 10
 theme_override_colors/font_color = Color(0.776, 0.647, 0.416, 1)
 text = "CHOOSE ACTION"
 
+[node name="CategoryFilters" type="HBoxContainer" parent="Margin/Content"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="OffenseButton" type="Button" parent="Margin/Content/CategoryFilters"]
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+toggle_mode = true
+text = "OFFENSE"
+
+[node name="DefenseButton" type="Button" parent="Margin/Content/CategoryFilters"]
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+toggle_mode = true
+text = "DEFENSE"
+
+[node name="SupportButton" type="Button" parent="Margin/Content/CategoryFilters"]
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+toggle_mode = true
+text = "SUPPORT"
+
+[node name="OtherButton" type="Button" parent="Margin/Content/CategoryFilters"]
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+toggle_mode = true
+text = "OTHER"
+
 [node name="ActionGrid" type="GridContainer" parent="Margin/Content"]
 layout_mode = 2
 size_flags_horizontal = 3
 columns = 2
 theme_override_constants/h_separation = 8
 theme_override_constants/v_separation = 8
+
+[node name="SelectedActionDetails" type="VBoxContainer" parent="Margin/Content"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="DetailTitle" type="Label" parent="Margin/Content/SelectedActionDetails"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+theme_override_colors/font_color = Color(0.91, 0.89, 0.84, 1)
+text = "Selected Action"
+
+[node name="DetailCost" type="Label" parent="Margin/Content/SelectedActionDetails"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+theme_override_colors/font_color = Color(0.776, 0.647, 0.416, 1)
+text = "1 AP"
+
+[node name="DetailDescription" type="Label" parent="Margin/Content/SelectedActionDetails"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(0.78, 0.79, 0.81, 1)
+text = "Action description"
+autowrap_mode = 2
+
+[node name="UnavailableReason" type="Label" parent="Margin/Content/SelectedActionDetails"]
+visible = false
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+theme_override_colors/font_color = Color(0.88, 0.47, 0.43, 1)
+text = "Unavailable reason"
+autowrap_mode = 2
+
+[node name="ConfirmActionButton" type="Button" parent="Margin/Content/SelectedActionDetails"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+text = "Use Action"
 
 [node name="TargetSelection" type="VBoxContainer" parent="Margin/Content"]
 visible = false
@@ -40,6 +105,7 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 11
 theme_override_colors/font_color = Color(0.776, 0.647, 0.416, 1)
 text = "CHOOSE TARGET"
+autowrap_mode = 2
 
 [node name="BackButton" type="Button" parent="Margin/Content/TargetSelection"]
 layout_mode = 2
