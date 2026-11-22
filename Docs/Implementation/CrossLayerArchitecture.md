@@ -141,6 +141,7 @@ Collection-valued definitions are copied at construction and exposed through rea
 Each `Character` instance owns its current Health, Fatigue, Stamina, Mood and Gold. It reads identity, role, Level, Stats, limits and starting values from its immutable `CharacterData`; it does not own or mutate that definition. The Character methods (`TakeDamage`, `RestoreHealth`, `Revive`, `AddFatigue`, `RestoreFatigue`, `SpendStamina`, `RestoreStamina`, `ChangeMood`, `AddGold` and `ResetToStartingValues`) are the supported mutation surface and enforce each resource's bounds.
 
 The Character is the authoritative owner of these resource values. Gameplay services are authorized to call its mutation methods only as part of their use case:
+The current codebase compiles its layers into one assembly, so C# accessibility cannot enforce which layer calls a public Character mutator. This permission boundary is therefore an explicit architecture contract: keep mutation calls inside the owning Application/Domain use cases, cover the behavior with tests, and do not call mutators from Presentation.
 - `ActionExecutionService` advances world time and applies action Fatigue; `ActionEffectExecutor` applies the effects authored on an Action.
 - `CombatService` coordinates combat actions, Stamina costs and victory rewards; `CombatEffectDispatcher` applies combat damage and other combat effects.
 - `CombatSessionService` applies the encounter's one-time world-time and Fatigue cost.
