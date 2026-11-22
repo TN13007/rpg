@@ -1,11 +1,16 @@
 using System;
 
+/// <summary>Coordinates action execution behavior and applies its domain rules.</summary>
 public sealed class ActionExecutionService
 {
     private readonly ActivityTimeCalculator _timeCalculator;
     private readonly ActivityFatigueCalculator _fatigueCalculator;
     private readonly ActionEffectExecutor _effectExecutor;
 
+    /// <summary>Creates the action executor with the calculators and effect handler used by Exploration actions.</summary>
+    /// <param name="timeCalculator">Calculates the actual duration of an authored action for its actor.</param>
+    /// <param name="effectExecutor">Applies the action's configured effects to the actor.</param>
+    /// <param name="fatigueCalculator">Calculates Fatigue gained from the executed action; a default calculator is created when omitted.</param>
     public ActionExecutionService(
         ActivityTimeCalculator timeCalculator,
         ActionEffectExecutor effectExecutor,
@@ -16,6 +21,11 @@ public sealed class ActionExecutionService
         _fatigueCalculator = fatigueCalculator ?? new ActivityFatigueCalculator();
     }
 
+    /// <summary>Checks whether the actor is allowed to execute the action in the actor's current state.</summary>
+    /// <param name="action">The authored action to validate.</param>
+    /// <param name="actor">The Character attempting to perform the action.</param>
+    /// <param name="failureReason">Receives an explanation when the actor cannot perform the action; empty when the action is allowed.</param>
+    /// <returns><see langword="true"/> when the actor may execute the action; otherwise, <see langword="false"/>.</returns>
     public bool CanExecute(ActionDefinition action, Character actor, out string failureReason)
     {
         if (action == null)
@@ -66,6 +76,13 @@ public sealed class ActionExecutionService
             && action.Effects[0].Amount > 0;
     }
 
+    /// <summary>Validates and executes an action, advancing world time and applying its Fatigue and effects.</summary>
+    /// <param name="action">The action used by this operation.</param>
+    /// <param name="actor">The actor used by this operation.</param>
+    /// <param name="gameClock">The shared world clock to advance by the action's calculated duration.</param>
+    /// <param name="failureReason">The failure reason used by this operation.</param>
+    /// <param name="actualDuration">Receives the calculated duration in game minutes, or zero when validation fails.</param>
+    /// <returns><see langword="true"/> when the action is executed; otherwise, <see langword="false"/>.</returns>
     public bool TryExecute(
         ActionDefinition action,
         Character actor,

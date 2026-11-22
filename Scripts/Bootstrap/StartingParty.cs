@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 
+/// <summary>Creates the initial party combatant definitions from the loaded game content.</summary>
 public static class StartingParty
 {
     private static readonly string[] _characterIds =
@@ -11,6 +12,10 @@ public static class StartingParty
         "sera"
     };
 
+    /// <summary>Creates the starting party combatants for a new encounter.</summary>
+    /// <param name="content">The content used by this operation.</param>
+    /// <param name="primaryCharacter">The primary character used by this operation.</param>
+    /// <returns>The resulting combatant definition.</returns>
     public static CombatantDefinition[] CreateCombatants(
         GameContentCatalog content,
         Character primaryCharacter)

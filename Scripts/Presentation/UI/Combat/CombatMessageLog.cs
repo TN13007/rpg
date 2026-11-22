@@ -1,5 +1,6 @@
 using Godot;
 
+/// <summary>Displays the sequence of combat messages and supports clearing the log.</summary>
 public partial class CombatMessageLog : PanelContainer
 {
     private const int _maximumMessages = 60;
@@ -9,6 +10,7 @@ public partial class CombatMessageLog : PanelContainer
     private VBoxContainer _entries;
     private PackedScene _entryScene;
 
+    /// <summary>Initializes the Godot control and connects its UI signals.</summary>
     public override void _Ready()
     {
         UiTheme.StylePanel(this);
@@ -17,6 +19,8 @@ public partial class CombatMessageLog : PanelContainer
         _entryScene = GD.Load<PackedScene>("res://Scenes/UI/Combat/CombatMessageEntry.tscn");
     }
 
+    /// <summary>Appends append to the combat message log.</summary>
+    /// <param name="message">The message used by this operation.</param>
     public void Append(CombatMessage message)
     {
         if (_entryScene == null)
@@ -43,6 +47,7 @@ public partial class CombatMessageLog : PanelContainer
         }
     }
 
+    /// <summary>Clears clear from the current UI state.</summary>
     public void Clear()
     {
         foreach (Node child in _entries.GetChildren())

@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+/// <summary>Owns the combat roster and resolves encounter rules, player actions, enemy intents and Timeline progression.</summary>
+/// <remarks>Mutates the supplied <see cref="Character"/> instances during combat. Application and presentation layers should use this service as the authoritative source of combat state rather than duplicating combat rules.</remarks>
 public sealed class CombatService : ICombatService
 {
     private const int _victoryReward = 25;
@@ -12,18 +14,30 @@ public sealed class CombatService : ICombatService
 
     private sealed class CombatantRuntime
     {
+        /// <summary>Gets the character.</summary>
         public Character Character { get; }
+        /// <summary>Gets the side.</summary>
         public CombatantSide Side { get; }
+        /// <summary>Gets a value indicating whether visible.</summary>
         public bool IsVisible { get; }
+        /// <summary>Gets the behavior profile.</summary>
         public EnemyBehaviorProfile BehaviorProfile { get; }
+        /// <summary>Gets the committed action.</summary>
         public CombatActionDefinition CommittedAction { get; set; }
+        /// <summary>Gets the committed target id.</summary>
         public string CommittedTargetId { get; set; } = string.Empty;
+        /// <summary>Gets the action order.</summary>
         public List<CombatActionDefinition> ActionOrder { get; }
         public Dictionary<string, CombatActionDefinition> Actions { get; }
+        /// <summary>Gets the effect state.</summary>
         public CombatantEffectState EffectState { get; }
+        /// <summary>Gets a value indicating whether downed.</summary>
         public bool IsDowned { get; set; }
+        /// <summary>Gets a value indicating whether been revived.</summary>
         public bool HasBeenRevived { get; set; }
 
+        /// <summary>Initializes a new instance of <see cref="CombatantRuntime"/>.</summary>
+        /// <param name="definition">The definition used to initialize the instance.</param>
         public CombatantRuntime(CombatantDefinition definition)
         {
             Character = definition.Character;
@@ -41,7 +55,9 @@ public sealed class CombatService : ICombatService
             IsDowned = Side == CombatantSide.Party && !Character.IsAlive;
         }
 
+        /// <summary>Gets a value indicating whether enemy.</summary>
         public bool IsEnemy => Side == CombatantSide.Enemy;
+        /// <summary>Gets a value indicating whether party member.</summary>
         public bool IsPartyMember => Side == CombatantSide.Party;
     }
 
@@ -61,24 +77,43 @@ public sealed class CombatService : ICombatService
     private int _round;
     private bool _encounterOver;
 
+    /// <summary>Gets whether the most recently started encounter ended in victory.</summary>
+    /// <remarks>Remains <see langword="false"/> before an encounter starts and after a defeat.</remarks>
     public bool IsVictory { get; private set; }
+    /// <summary>Gets whether the encounter has reached a terminal victory or defeat state.</summary>
     public bool IsEncounterOver => _encounterOver;
+    /// <summary>Gets whether a living, able Party member is currently ready for a player decision.</summary>
     public bool IsAwaitingPlayerDecision =>
         !_encounterOver &&
         _combatants.TryGetValue(_activeCombatantId, out CombatantRuntime active) &&
         active.IsPartyMember &&
         !active.IsDowned &&
         active.Character.CanAct;
+    /// <summary>Gets the character ID whose action window is currently active, or an empty string while the Timeline is running.</summary>
     public string ActiveCombatantId => _activeCombatantId;
+    /// <summary>Gets elapsed combat simulation time in seconds; returns zero before the Timeline is created.</summary>
     public double CombatTime => _timeline == null ? 0 : _timeline.CombatTime;
+    /// <summary>Gets the gold reward granted for a victory, or zero when the encounter has not been won.</summary>
     public int RewardGold => IsVictory ? _victoryReward : 0;
+    /// <summary>Gets the Party characters in their configured encounter order.</summary>
+    /// <remarks>The returned collection is a new read-only view of the roster; the contained <see cref="Character"/> objects are the live combat instances.</remarks>
     public IReadOnlyList<Character> PartyMembers => _party.Select(item => item.Character).ToArray();
 
+    /// <summary>Creates a one-Party-member, one-enemy encounter using the built-in default enemy actions.</summary>
+    /// <param name="player">The Party character whose stats and state are used during combat.</param>
+    /// <param name="enemy">The enemy character whose stats and state are used during combat.</param>
+    /// <param name="playerActions">The combat actions available to the player character.</param>
     public CombatService(Character player, Character enemy, IEnumerable<CombatActionDefinition> playerActions)
         : this(player, enemy, playerActions, CreateDefaultEnemyActions(), null)
     {
     }
 
+    /// <summary>Creates a one-Party-member, one-enemy encounter with explicitly supplied action sets.</summary>
+    /// <param name="player">The Party character whose stats and state are used during combat.</param>
+    /// <param name="enemy">The enemy character whose stats and state are used during combat.</param>
+    /// <param name="playerActions">The actions the player character may select during its action window.</param>
+    /// <param name="enemyActions">The actions the enemy AI may select when planning and resolving its turns.</param>
+    /// <param name="enemyRandom">Optional random source for enemy action and target selection. Supply a seeded instance when deterministic combat tests are required.</param>
     public CombatService(
         Character player,
         Character enemy,
@@ -95,6 +130,12 @@ public sealed class CombatService : ICombatService
     {
     }
 
+    /// <summary>Creates an encounter from a roster of Party members and enemies.</summary>
+    /// <param name="combatants">The complete encounter roster. Each definition supplies a character, side, visibility, actions and optional enemy behavior profile.</param>
+    /// <param name="enemyRandom">Optional random source used by enemy decision-making; pass a seeded instance to make those decisions reproducible.</param>
+    /// <remarks>The roster must contain at least one Party member and one enemy, and every character ID must be unique. The service retains and mutates the supplied character instances.</remarks>
+    /// <exception cref="ArgumentNullException"><paramref name="combatants"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException">A definition is null, a character ID is duplicated, or the roster has no Party member or no enemy.</exception>
     public CombatService(IEnumerable<CombatantDefinition> combatants, Random enemyRandom = null)
     {
         if (combatants == null)
@@ -139,6 +180,10 @@ public sealed class CombatService : ICombatService
         _enemyRandom = enemyRandom ?? new Random();
     }
 
+    /// <summary>Resets encounter runtime state and initializes the Timeline for a new combat session.</summary>
+    /// <param name="failureReason">Receives an explanation when startup is rejected; is an empty string when startup succeeds.</param>
+    /// <returns><see langword="true"/> when at least one living Party member and one living enemy can enter the encounter; otherwise, <see langword="false"/>.</returns>
+    /// <remarks>Enemy characters are reset, all combat effect state and committed enemy intents are cleared, and a new Timeline is created. Party character stats are not reset. Enemy intents are planned before the first player decision.</remarks>
     public bool TryStartEncounter(out string failureReason)
     {
         if (!_party.Any(item => item.Character.IsAlive))
@@ -205,6 +250,9 @@ public sealed class CombatService : ICombatService
         return !_encounterOver;
     }
 
+    /// <summary>Builds a read-only snapshot of the current encounter for application and presentation layers.</summary>
+    /// <returns>A snapshot containing the active decision window, available Party actions and targets, enemy status and intent, Party status, and Timeline order.</returns>
+    /// <remarks>Calling this method does not advance combat time or mutate encounter state. Before startup, the snapshot reflects the service's uninitialized combat state.</remarks>
     public CombatSnapshot GetSnapshot()
     {
         CombatantRuntime active = null;
@@ -329,6 +377,11 @@ public sealed class CombatService : ICombatService
             _activeCombatantId);
     }
 
+    /// <summary>Validates and resolves the active Party member's requested combat action.</summary>
+    /// <param name="request">The action ID, optional acting character ID, and target character ID. When <see cref="CombatActionRequest.ActorId"/> is omitted, the currently active Party member is used.</param>
+    /// <returns>A result containing success or failure, the updated combat snapshot, and any events produced by a successful action.</returns>
+    /// <remarks>Actions can be submitted only during a Party decision window. Targeted actions require a living, visible enemy. A successful action spends Stamina, applies its effects and recovery cost, then resumes Timeline scheduling. Invalid requests return a failed result without applying the action.</remarks>
+    /// <exception cref="ArgumentNullException"><paramref name="request"/> is <see langword="null"/>.</exception>
     public CombatResult ExecuteAction(CombatActionRequest request)
     {
         if (request == null)
@@ -415,6 +468,12 @@ public sealed class CombatService : ICombatService
         return Success(events);
     }
 
+    /// <summary>Advances the combat Timeline and resolves enemy turns until the elapsed-time budget is consumed or a Party decision becomes available.</summary>
+    /// <param name="elapsedCombatTime">Non-negative elapsed simulation time in seconds, normally the frame delta supplied by Godot.</param>
+    /// <returns>A successful result containing the latest snapshot and all enemy/status events resolved during this advance.</returns>
+    /// <remarks>No time is advanced before Timeline initialization, after encounter completion, or while a Party member is waiting for input. The method may resolve multiple enemy turns in one call. A zero value still allows already-ready Timeline events to be resolved.</remarks>
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="elapsedCombatTime"/> is negative, NaN or infinite.</exception>
+    /// <exception cref="InvalidOperationException">The scheduler exceeds its safety limit or the Timeline reports an invalid future event.</exception>
     public CombatResult AdvanceCombatTime(double elapsedCombatTime)
     {
         if (double.IsNaN(elapsedCombatTime) ||

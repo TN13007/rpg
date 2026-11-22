@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
+/// <summary>Coordinates the Exploration presentation flow, including location navigation, player actions, NPC interactions and location events.</summary>
+/// <remarks>Queries application/domain services for available content, then maps the results into StoryPanel view data. It does not own the underlying character, world-clock or location definitions.</remarks>
 public sealed class ExplorationFlowController
 {
     private readonly StoryPanel _storyPanel;
@@ -32,6 +34,23 @@ public sealed class ExplorationFlowController
     private const string _selectNpcActionId = "select";
     private string _currentLocationDescription;
 
+    /// <summary>Initializes a new instance of <see cref="ExplorationFlowController"/>.</summary>
+    /// <param name="storyPanel">The StoryPanel that displays location pages, choices, NPC information and feedback.</param>
+    /// <param name="characterPanel">The CharacterPanel refreshed when player-facing character data changes.</param>
+    /// <param name="gameModeController">Switches the presentation between Exploration and Combat modes.</param>
+    /// <param name="player">The live player character whose state is used to validate and execute Exploration actions.</param>
+    /// <param name="playerActions">The authored actions available to the player during Exploration.</param>
+    /// <param name="locations">The known location definitions used when resolving travel destinations.</param>
+    /// <param name="getLocation">Looks up a location definition by its ID, including the current location and selected destinations.</param>
+    /// <param name="travelAction">The authored action used to validate and charge the cost of travelling between locations.</param>
+    /// <param name="gameClock">The shared world clock used to determine NPC schedules and display in-game time.</param>
+    /// <param name="actionExecutionService">Validates and applies player, location and NPC actions, including their time and effect costs.</param>
+    /// <param name="availableInteractionQuery">Builds the interactions currently available to the player at a location.</param>
+    /// <param name="actionChoiceMapper">Converts available interactions into the choice data consumed by StoryPanel.</param>
+    /// <param name="locationEventService">Selects and resolves location events triggered by Exploration actions.</param>
+    /// <param name="npcPresenceQuery">Determines which scheduled NPCs are present at a location at the current world-clock time.</param>
+    /// <param name="npcInteractionQuery">Retrieves the interactions authored for a specific NPC at a specific location.</param>
+    /// <param name="startEncounter">Requests Combat startup with an entry action and reports whether the Combat flow accepted the request.</param>
     public ExplorationFlowController(
         StoryPanel storyPanel,
         CharacterPanel characterPanel,
@@ -70,6 +89,8 @@ public sealed class ExplorationFlowController
         ValidatePlayerActions();
     }
 
+    /// <summary>Builds and displays the current location page, including its description and currently available choices.</summary>
+    /// <remarks>Resolves NPC presence using the current world-clock time, queries valid player/location interactions, and switches the presentation to Exploration mode. If a location event is active, that event page is shown instead.</remarks>
     public void ShowLocation()
     {
         if (_activeLocationEvent != null)
@@ -228,6 +249,9 @@ public sealed class ExplorationFlowController
         return _currentLocationDescription;
     }
 
+    /// <summary>Displays a non-location character-record page such as Profile, Skills, Inventory or Journal.</summary>
+    /// <param name="tab">The page title to display. Recognized titles select their corresponding description; an unrecognized value uses the default preferences/settings description.</param>
+    /// <remarks>Clears the selected NPC, switches to Exploration mode, displays the page without action choices and enables the return-to-location control.</remarks>
     public void ShowPage(string tab)
     {
         string description = tab switch
@@ -252,6 +276,11 @@ public sealed class ExplorationFlowController
         _storyPanel.ShowLocationButton(true);
     }
 
+    /// <summary>Requests an encounter using the supplied entry action when Exploration is active.</summary>
+    /// <param name="entryAction">The authored action that must be validated and executed before combat can begin.</param>
+    /// <returns><see langword="true"/> when the encounter callback accepts the request; otherwise, <see langword="false"/>.</returns>
+    /// <remarks>Returns <see langword="false"/> without invoking the callback if the game is already in Combat mode. On success, clears the active location event so returning to Exploration does not reopen the previous event.</remarks>
+    /// <exception cref="ArgumentNullException"><paramref name="entryAction"/> is <see langword="null"/>.</exception>
     public bool StartDebugEncounter(ActionDefinition entryAction)
     {
         if (entryAction == null)
@@ -273,6 +302,9 @@ public sealed class ExplorationFlowController
         return true;
     }
 
+    /// <summary>Routes a StoryPanel choice to the matching player, location, NPC or active location-event interaction.</summary>
+    /// <param name="choiceId">The encoded selection ID produced for a currently displayed choice.</param>
+    /// <remarks>Validates the selection source and source ID against the current location, player or active event before executing it. Invalid, stale or unrecognized selections are rejected with presentation feedback and do not execute an action.</remarks>
     public void HandleChoice(string choiceId)
     {
         if (_activeLocationEvent != null)

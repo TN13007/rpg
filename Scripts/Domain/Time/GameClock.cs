@@ -1,12 +1,19 @@
 using System;
 
+/// <summary>Tracks the current in-game day and minute of the day.</summary>
 public sealed class GameClock
 {
     private const int _minutesPerDay = 24 * 60;
 
+    /// <summary>Gets the day.</summary>
     public int Day { get; private set; }
+    /// <summary>Gets the minutes of day.</summary>
     public int MinutesOfDay { get; private set; }
 
+    /// <summary>Initializes a new instance of <see cref="GameClock"/>.</summary>
+    /// <param name="startingDay">The starting day used to initialize the instance.</param>
+    /// <param name="startingHour">The starting hour used to initialize the instance.</param>
+    /// <param name="startingMinute">The starting minute used to initialize the instance.</param>
     public GameClock(int startingDay = 1, int startingHour = 7, int startingMinute = 30)
     {
         if (startingDay < 1)
@@ -28,6 +35,8 @@ public sealed class GameClock
         MinutesOfDay = startingHour * 60 + startingMinute;
     }
 
+    /// <summary>Advances minutes by the supplied amount.</summary>
+    /// <param name="amount">The amount used by this operation.</param>
     public void AdvanceMinutes(int amount)
     {
         if (amount < 0)

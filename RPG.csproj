@@ -3,6 +3,8 @@
     <TargetFramework>net8.0</TargetFramework>
     <EnableDynamicLoading>true</EnableDynamicLoading>
     <RootNamespace>RPG</RootNamespace>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- CS1591 remains enabled so new public APIs must include XML documentation. -->
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="RPG.Tests/**/*.cs" />

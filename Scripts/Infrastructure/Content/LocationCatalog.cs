@@ -3,15 +3,21 @@ using System.Collections.Generic;
 using System.Text.Json;
 using Godot;
 
+/// <summary>Provides indexed access to the configured location definitions.</summary>
 public sealed class LocationCatalog
 {
     private Dictionary<string, LocationContent> _locations =
         new Dictionary<string, LocationContent>(StringComparer.Ordinal);
 
+    /// <summary>Gets the all.</summary>
     public IEnumerable<LocationContent> All => _locations.Values;
+    /// <summary>Gets the travel.</summary>
     public ActionDefinition Travel { get; private set; } = new ActionDefinition("travel", "Travel", 10);
+    /// <summary>Gets the combat encounter.</summary>
     public ActionDefinition CombatEncounter { get; private set; } = new ActionDefinition("combat_encounter", "Combat Encounter", 30);
 
+    /// <summary>Loads load from the specified content source.</summary>
+    /// <param name="path">The path used by this operation.</param>
     public void Load(string path)
     {
         if (string.IsNullOrWhiteSpace(path))
@@ -28,6 +34,8 @@ public sealed class LocationCatalog
         LoadJson(json);
     }
 
+    /// <summary>Loads json from the specified content source.</summary>
+    /// <param name="json">The json used by this operation.</param>
     public void LoadJson(string json)
     {
         if (string.IsNullOrWhiteSpace(json))
@@ -104,6 +112,9 @@ public sealed class LocationCatalog
         }
     }
 
+    /// <summary>Returns get.</summary>
+    /// <param name="id">The id used by this operation.</param>
+    /// <returns>The resulting location content.</returns>
     public LocationContent Get(string id)
     {
         if (string.IsNullOrWhiteSpace(id))

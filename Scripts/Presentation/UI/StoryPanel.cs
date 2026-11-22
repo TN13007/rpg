@@ -2,9 +2,12 @@ using System;
 using System.Collections.Generic;
 using Godot;
 
+/// <summary>Presents story content and available player choices.</summary>
 public partial class StoryPanel : PanelContainer
 {
+    /// <summary>Raised when choice selected occurs.</summary>
     public event Action<string> ChoiceSelected;
+    /// <summary>Raised when return to location requested occurs.</summary>
     public event Action ReturnToLocationRequested;
 
     private Label _title;
@@ -22,6 +25,7 @@ public partial class StoryPanel : PanelContainer
     private int _clockEndTotalMinutes;
     private bool _isClockAnimating;
 
+    /// <summary>Initializes the Godot control and connects its UI signals.</summary>
     public override void _Ready()
     {
         UiTheme.StylePanel(this);
@@ -40,6 +44,12 @@ public partial class StoryPanel : PanelContainer
         UiTheme.StyleButton(_returnButton);
     }
 
+    /// <summary>Displays content in the story interface.</summary>
+    /// <param name="title">The title used by this operation.</param>
+    /// <param name="subtitle">The subtitle used by this operation.</param>
+    /// <param name="text">The text used by this operation.</param>
+    /// <param name="choices">The choices used by this operation.</param>
+    /// <param name="dayLabel">The day label used by this operation.</param>
     public void ShowContent(string title, string subtitle, string text, IReadOnlyList<ActionChoiceViewData> choices, string dayLabel)
     {
         _title.Text = title;
@@ -85,6 +95,11 @@ public partial class StoryPanel : PanelContainer
         }
     }
 
+    /// <summary>Displays time advance feedback in the story interface.</summary>
+    /// <param name="startDay">The start day used by this operation.</param>
+    /// <param name="startMinutes">The start minutes used by this operation.</param>
+    /// <param name="endDay">The end day used by this operation.</param>
+    /// <param name="endMinutes">The end minutes used by this operation.</param>
     public void ShowTimeAdvanceFeedback(int startDay, int startMinutes, int endDay, int endMinutes)
     {
         StopClockAnimations();
@@ -120,11 +135,15 @@ public partial class StoryPanel : PanelContainer
         _feedbackTween.TweenCallback(Callable.From(HideTimeFeedback));
     }
 
+    /// <summary>Displays feedback in the story interface.</summary>
+    /// <param name="message">The message used by this operation.</param>
     public void ShowFeedback(string message)
     {
         _feedback.Text = message;
     }
 
+    /// <summary>Displays location button in the story interface.</summary>
+    /// <param name="visible">The visible used by this operation.</param>
     public void ShowLocationButton(bool visible)
     {
         _returnButton.Visible = visible;

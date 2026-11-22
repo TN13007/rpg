@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+/// <summary>Coordinates combat presentation across the panels and view models.</summary>
 public sealed class CombatPresentationOrchestrator
 {
     private readonly GameModeController _gameModeController;
@@ -12,6 +13,13 @@ public sealed class CombatPresentationOrchestrator
     private readonly Character[] _partyMembers;
     private readonly Character _primaryCharacter;
 
+    /// <summary>Initializes a new instance of <see cref="CombatPresentationOrchestrator"/>.</summary>
+    /// <param name="gameModeController">The game mode controller used to initialize the instance.</param>
+    /// <param name="sidebar">The sidebar used to initialize the instance.</param>
+    /// <param name="combatPanel">The combat panel used to initialize the instance.</param>
+    /// <param name="characterPanel">The character panel used to initialize the instance.</param>
+    /// <param name="mapper">The mapper used to initialize the instance.</param>
+    /// <param name="partyMembers">The party members used to initialize the instance.</param>
     public CombatPresentationOrchestrator(
         GameModeController gameModeController,
         Sidebar sidebar,
@@ -39,6 +47,10 @@ public sealed class CombatPresentationOrchestrator
         _primaryCharacter = _partyMembers[0];
     }
 
+    /// <summary>Begins encounter and initializes the corresponding UI state.</summary>
+    /// <param name="title">The title used by this operation.</param>
+    /// <param name="snapshot">The snapshot used by this operation.</param>
+    /// <param name="openingMessage">The opening message used by this operation.</param>
     public void BeginEncounter(string title, CombatSnapshot snapshot, string openingMessage)
     {
         if (snapshot == null)
@@ -64,6 +76,8 @@ public sealed class CombatPresentationOrchestrator
         Present(_mapper.Map(snapshot));
     }
 
+    /// <summary>Presents the latest combat result and its feedback.</summary>
+    /// <param name="result">The result used by this operation.</param>
     public void Present(CombatResult result)
     {
         if (result == null)
@@ -74,6 +88,8 @@ public sealed class CombatPresentationOrchestrator
         Present(_mapper.Map(result));
     }
 
+    /// <summary>Updates timeline to reflect the latest game state.</summary>
+    /// <param name="snapshot">The snapshot used by this operation.</param>
     public void UpdateTimeline(CombatSnapshot snapshot)
     {
         if (snapshot == null)
@@ -85,12 +101,15 @@ public sealed class CombatPresentationOrchestrator
         _combatPanel.SetTimeline(viewData.Timeline);
     }
 
+    /// <summary>Presents the completion state for encounter.</summary>
+    /// <param name="isVictory">The is victory used by this operation.</param>
     public void CompleteEncounter(bool isVictory)
     {
         _combatPanel.ShowEncounterComplete(isVictory ? "VICTORY" : "DEFEAT");
         _characterPanel.SetCharacter(new CharacterViewModel(_primaryCharacter));
     }
 
+    /// <summary>Ends encounter and clears its presentation state.</summary>
     public void EndEncounter()
     {
         _sidebar.ExitCombat();

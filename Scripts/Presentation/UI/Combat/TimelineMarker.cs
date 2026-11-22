@@ -1,5 +1,6 @@
 using Godot;
 
+/// <summary>Presents one combatant's position and status on the combat timeline.</summary>
 public partial class TimelineMarker : Panel
 {
     private static readonly Color _primaryPartyColor = new Color("#55a7ff");
@@ -13,6 +14,7 @@ public partial class TimelineMarker : Panel
     private StyleBoxFlat _markerStyle;
     private StyleBoxFlat _statusStyle;
 
+    /// <summary>Initializes the Godot control and connects its UI signals.</summary>
     public override void _Ready()
     {
         _icon = GetNode<TextureRect>("Icon");
@@ -49,6 +51,9 @@ public partial class TimelineMarker : Panel
         _statusIndicator.AddThemeStyleboxOverride("panel", _statusStyle);
     }
 
+    /// <summary>Sets combatant.</summary>
+    /// <param name="combatant">The combatant used by this operation.</param>
+    /// <param name="displayWindowSeconds">The display window seconds used by this operation.</param>
     public void SetCombatant(TimelineMarkerViewData combatant, double displayWindowSeconds)
     {
         if (combatant == null)
@@ -61,6 +66,8 @@ public partial class TimelineMarker : Panel
         TooltipText = GetTooltip(combatant, displayWindowSeconds);
     }
 
+    /// <summary>Sets icon.</summary>
+    /// <param name="icon">The icon used by this operation.</param>
     public void SetIcon(Texture2D icon)
     {
         _icon.Texture = icon;

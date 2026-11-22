@@ -1,14 +1,22 @@
 using System;
 using System.Collections.Generic;
 
+/// <summary>Defines the npc interaction data and its validation rules.</summary>
 public sealed class NpcInteractionDefinition
 {
     private readonly string[] _availableLocationIds;
 
+    /// <summary>Gets the character id.</summary>
     public string CharacterId { get; }
+    /// <summary>Gets the action.</summary>
     public ActionDefinition Action { get; }
+    /// <summary>Gets the available location ids.</summary>
     public string[] AvailableLocationIds => (string[])_availableLocationIds.Clone();
 
+    /// <summary>Initializes a new instance of <see cref="NpcInteractionDefinition"/>.</summary>
+    /// <param name="characterId">The character id used to initialize the instance.</param>
+    /// <param name="action">The action used to initialize the instance.</param>
+    /// <param name="availableLocationIds">The available location ids used to initialize the instance.</param>
     public NpcInteractionDefinition(
         string characterId,
         ActionDefinition action,
@@ -48,6 +56,9 @@ public sealed class NpcInteractionDefinition
         CharacterId = characterId;
     }
 
+    /// <summary>Determines whether available at.</summary>
+    /// <param name="locationId">The location id used by this operation.</param>
+    /// <returns><see langword="true"/> when the operation succeeds; otherwise, <see langword="false"/>.</returns>
     public bool IsAvailableAt(string locationId)
     {
         if (string.IsNullOrWhiteSpace(locationId))

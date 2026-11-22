@@ -1,8 +1,10 @@
 using System;
 using Godot;
 
+/// <summary>Presents a combatant card and its current selection and feedback state.</summary>
 public partial class EnemyCard : Button
 {
+    /// <summary>Raised when selected occurs.</summary>
     public event Action<string> Selected;
 
     private Label _nameLabel;
@@ -17,8 +19,10 @@ public partial class EnemyCard : Button
     private bool _selected;
     private bool _targetSelectionActive;
 
+    /// <summary>Gets the enemy name.</summary>
     public string EnemyName => _nameLabel?.Text ?? string.Empty;
 
+    /// <summary>Initializes the Godot control and connects its UI signals.</summary>
     public override void _Ready()
     {
         _nameLabel = GetNode<Label>("Margin/Content/Header/Name");
@@ -34,6 +38,8 @@ public partial class EnemyCard : Button
         UpdateVisualState();
     }
 
+    /// <summary>Sets setup.</summary>
+    /// <param name="enemy">The enemy used by this operation.</param>
     public void Setup(EnemyCombatStatus enemy)
     {
         if (enemy == null)
@@ -45,6 +51,8 @@ public partial class EnemyCard : Button
         UpdateDisplay(enemy);
     }
 
+    /// <summary>Updates display to reflect the latest combat state.</summary>
+    /// <param name="enemy">The enemy used by this operation.</param>
     public void UpdateDisplay(EnemyCombatStatus enemy)
     {
         if (enemy == null)
@@ -77,6 +85,10 @@ public partial class EnemyCard : Button
         UpdateVisualState();
     }
 
+    /// <summary>Sets target selection state.</summary>
+    /// <param name="selectionActive">The selection active used by this operation.</param>
+    /// <param name="selectable">The selectable used by this operation.</param>
+    /// <param name="selected">The selected used by this operation.</param>
     public void SetTargetSelectionState(bool selectionActive, bool selectable, bool selected)
     {
         _targetSelectionActive = selectionActive;
@@ -85,6 +97,8 @@ public partial class EnemyCard : Button
         UpdateVisualState();
     }
 
+    /// <summary>Plays feedback feedback for the selected combatant or action.</summary>
+    /// <param name="feedbackType">The feedback type used by this operation.</param>
     public void PlayFeedback(CombatFeedbackType feedbackType)
     {
         _vfx.PlayFeedback(feedbackType);

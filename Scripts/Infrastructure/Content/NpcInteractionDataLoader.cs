@@ -3,8 +3,12 @@ using System.Collections.Generic;
 using System.Text.Json;
 using Godot;
 
+/// <summary>Loads npc interaction data data from files or serialized content.</summary>
 public static class NpcInteractionDataLoader
 {
+    /// <summary>Loads load from the specified content source.</summary>
+    /// <param name="path">The path used by this operation.</param>
+    /// <returns>The resulting npc interaction catalog.</returns>
     public static NpcInteractionCatalog Load(string path)
     {
         if (string.IsNullOrWhiteSpace(path))
@@ -20,6 +24,9 @@ public static class NpcInteractionDataLoader
         return LoadJson(FileAccess.GetFileAsString(path));
     }
 
+    /// <summary>Loads json from the specified content source.</summary>
+    /// <param name="json">The json used by this operation.</param>
+    /// <returns>The resulting npc interaction catalog.</returns>
     public static NpcInteractionCatalog LoadJson(string json)
     {
         if (string.IsNullOrWhiteSpace(json))

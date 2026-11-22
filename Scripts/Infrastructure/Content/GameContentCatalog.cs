@@ -1,19 +1,33 @@
 using System;
 using System.Collections.Generic;
 
+/// <summary>Provides indexed access to the configured game content definitions.</summary>
 public sealed class GameContentCatalog
 {
     private readonly LocationCatalog _locations;
 
+    /// <summary>Gets the characters.</summary>
     public CharacterCatalog Characters { get; }
+    /// <summary>Gets the combat actions.</summary>
     public CombatActionCatalog CombatActions { get; }
+    /// <summary>Gets the npc schedules.</summary>
     public NpcScheduleCatalog NpcSchedules { get; }
+    /// <summary>Gets the npc interactions.</summary>
     public NpcInteractionCatalog NpcInteractions { get; }
 
+    /// <summary>Gets the locations.</summary>
     public IEnumerable<LocationContent> Locations => _locations.All;
+    /// <summary>Gets the travel.</summary>
     public ActionDefinition Travel => _locations.Travel;
+    /// <summary>Gets the combat encounter.</summary>
     public ActionDefinition CombatEncounter => _locations.CombatEncounter;
 
+    /// <summary>Initializes a new instance of <see cref="GameContentCatalog"/>.</summary>
+    /// <param name="locations">The locations used to initialize the instance.</param>
+    /// <param name="characters">The characters used to initialize the instance.</param>
+    /// <param name="combatActions">The combat actions used to initialize the instance.</param>
+    /// <param name="npcSchedules">The npc schedules used to initialize the instance.</param>
+    /// <param name="npcInteractions">The npc interactions used to initialize the instance.</param>
     public GameContentCatalog(
         LocationCatalog locations,
         CharacterCatalog characters,
@@ -37,16 +51,25 @@ public sealed class GameContentCatalog
         ValidateRequiredNpcReferences();
     }
 
+    /// <summary>Returns location.</summary>
+    /// <param name="id">The id used by this operation.</param>
+    /// <returns>The resulting location content.</returns>
     public LocationContent GetLocation(string id)
     {
         return _locations.Get(id);
     }
 
+    /// <summary>Returns character.</summary>
+    /// <param name="id">The id used by this operation.</param>
+    /// <returns>The resulting character data.</returns>
     public CharacterData GetCharacter(string id)
     {
         return Characters.Get(id);
     }
 
+    /// <summary>Returns combat actions for character.</summary>
+    /// <param name="characterId">The character id used by this operation.</param>
+    /// <returns>The resulting combat action definition.</returns>
     public CombatActionDefinition[] GetCombatActionsForCharacter(string characterId)
     {
         CharacterData character = Characters.Get(characterId);

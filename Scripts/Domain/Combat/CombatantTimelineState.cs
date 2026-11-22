@@ -1,17 +1,34 @@
 using System;
 
+/// <summary>Tracks the mutable combatant timeline state used during combat.</summary>
 public sealed class CombatantTimelineState
 {
+    /// <summary>Gets the combatant id.</summary>
     public string CombatantId { get; }
+    /// <summary>Gets the luck.</summary>
     public int Luck { get; }
+    /// <summary>Gets the base speed.</summary>
     public double BaseSpeed { get; }
+    /// <summary>Gets the remaining progress.</summary>
     public double RemainingProgress { get; private set; }
+    /// <summary>Gets the stun end time.</summary>
     public double? StunEndTime { get; private set; }
 
+    /// <summary>Gets a value indicating whether ready.</summary>
     public bool IsReady => RemainingProgress <= 0;
+    /// <summary>Determines whether stunned.</summary>
+    /// <param name="combatTime">The combat time used by this operation.</param>
+    /// <returns><see langword="true"/> when the operation succeeds; otherwise, <see langword="false"/>.</returns>
     public bool IsStunned(double combatTime) => StunEndTime.HasValue && combatTime < StunEndTime.Value;
+    /// <summary>Determines whether act.</summary>
+    /// <returns><see langword="true"/> when the operation succeeds; otherwise, <see langword="false"/>.</returns>
     public bool CanAct(double combatTime) => IsReady && !IsStunned(combatTime);
 
+    /// <summary>Initializes a new instance of <see cref="CombatantTimelineState"/>.</summary>
+    /// <param name="combatantId">The combatant id used to initialize the instance.</param>
+    /// <param name="luck">The luck used to initialize the instance.</param>
+    /// <param name="baseSpeed">The base speed used to initialize the instance.</param>
+    /// <param name="initialProgress">The initial progress used to initialize the instance.</param>
     public CombatantTimelineState(string combatantId, int luck, double baseSpeed, double initialProgress)
     {
         if (string.IsNullOrWhiteSpace(combatantId)) throw new ArgumentException("Combatant ID is required.", nameof(combatantId));

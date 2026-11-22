@@ -1,8 +1,14 @@
 using System;
 using System.Collections.Generic;
 
+/// <summary>Resolves a combat action into the effects that should be applied.</summary>
 public sealed class CombatActionResolver
 {
+    /// <summary>Resolves resolve into combat effects.</summary>
+    /// <param name="action">The action used by this operation.</param>
+    /// <param name="actorId">The actor id used by this operation.</param>
+    /// <param name="targetId">The target id used by this operation.</param>
+    /// <returns>The resulting combat effect request.</returns>
     public CombatEffectRequest[] Resolve(CombatActionDefinition action, string actorId, string targetId)
     {
         if (action == null) throw new ArgumentNullException(nameof(action));

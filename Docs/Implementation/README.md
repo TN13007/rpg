@@ -9,6 +9,7 @@ This folder is the authoritative guide to **how the current repository works**. 
 | [Cross-Layer Architecture](CrossLayerArchitecture.md) | Repository map, layers, dependency direction, composition root, runtime flows and code-discovery method |
 | [Cross-Layer Runtime Systems](CrossLayerRuntimeSystems.md) | Current domain vocabulary, authored content, Location/Event/Action behavior and the implemented Combat slice |
 | [Presentation User Interface](PresentationUserInterface.md) | Current screen composition, presentation data flow and UI/service boundaries |
+| [C# XML Documentation](CSharpDocumentation.md) | XML comments, IntelliSense setup, API documentation rules and VS Code navigation |
 | [Testing Strategy](TestingStrategy.md) | Automated test strategy, Godot runtime verification and evidence requirements |
 
 ## How to use these documents

@@ -1,12 +1,15 @@
 using System;
 using Godot;
 
+/// <summary>Presents a selectable combat action option in the combat interface.</summary>
 public partial class CombatActionCard : Button
 {
+    /// <summary>Raised when selected occurs.</summary>
     public event Action<CombatActionOption> Selected;
 
     private CombatActionOption _action;
 
+    /// <summary>Initializes the Godot control and connects its UI signals.</summary>
     public override void _Ready()
     {
         FocusMode = FocusModeEnum.All;
@@ -14,6 +17,8 @@ public partial class CombatActionCard : Button
         Pressed += HandlePressed;
     }
 
+    /// <summary>Sets action.</summary>
+    /// <param name="action">The action used by this operation.</param>
     public void SetAction(CombatActionOption action)
     {
         if (action == null)
