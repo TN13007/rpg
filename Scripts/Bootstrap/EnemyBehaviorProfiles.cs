@@ -9,8 +9,8 @@ public static class EnemyBehaviorProfiles
     {
         return new EnemyBehaviorProfile(new Dictionary<string, int>
         {
-            ["presence_quick_jab"] = 2,
-            ["presence_heavy_swing"] = 5,
+            ["presence_quick_jab"] = 0,
+            ["presence_heavy_swing"] = 1,
             ["presence_staggering_blow"] = 0
         });
     }
