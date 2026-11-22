@@ -73,7 +73,10 @@ public sealed class StartingPartyTests
                 expectedActors[index]));
 
             Assert.True(result.Success, result.FailureReason);
-            Assert.Equal(3 - index, result.Snapshot.CurrentActionPoints);
+            int expectedRound = index == expectedActors.Length - 1 ? 2 : 1;
+            int expectedActionPoints = index == expectedActors.Length - 1 ? 4 : 3 - index;
+            Assert.Equal(expectedRound, result.Snapshot.Round);
+            Assert.Equal(expectedActionPoints, result.Snapshot.CurrentActionPoints);
         }
 
         CombatSnapshot nextRound = combat.GetSnapshot();
