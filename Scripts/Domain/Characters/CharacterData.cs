@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
 
-/// <summary>Provides character data functionality for gameplay.</summary>
+/// <summary>Provides immutable authored character data for gameplay.</summary>
+/// <remarks>Collection inputs are copied and exposed through read-only views.</remarks>
 public sealed class CharacterData
 {
     /// <summary>Gets the id.</summary>
@@ -33,9 +34,9 @@ public sealed class CharacterData
     /// <summary>Gets the stats.</summary>
     public CharacterStats Stats { get; }
     /// <summary>Gets the player actions.</summary>
-    public PlayerActionDefinition[] PlayerActions { get; }
+    public IReadOnlyList<PlayerActionDefinition> PlayerActions { get; }
     /// <summary>Gets the combat action ids.</summary>
-    public string[] CombatActionIds { get; }
+    public IReadOnlyList<string> CombatActionIds { get; }
 
     /// <summary>Initializes a new instance of <see cref="CharacterData"/>.</summary>
     /// <param name="id">The id used to initialize the instance.</param>
@@ -97,8 +98,8 @@ public sealed class CharacterData
         StartingMood = startingMood;
         StartingGold = startingGold;
         Stats = stats ?? new CharacterStats(0, 0, 0, 0, 0);
-        PlayerActions = playerActions ?? Array.Empty<PlayerActionDefinition>();
-        CombatActionIds = combatActionIds ?? Array.Empty<string>();
+        PlayerActions = Array.AsReadOnly(playerActions == null ? Array.Empty<PlayerActionDefinition>() : (PlayerActionDefinition[])playerActions.Clone());
+        CombatActionIds = Array.AsReadOnly(combatActionIds == null ? Array.Empty<string>() : (string[])combatActionIds.Clone());
 
         HashSet<string> playerActionIds = new HashSet<string>(StringComparer.Ordinal);
         foreach (PlayerActionDefinition playerAction in PlayerActions)

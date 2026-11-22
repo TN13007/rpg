@@ -76,11 +76,12 @@ public sealed class Character
     public Character(CharacterData data)
     {
         _data = data ?? throw new System.ArgumentNullException(nameof(data));
-        Reset();
+        ResetToStartingValues();
     }
 
-    /// <summary>Restores Health, Fatigue, Stamina, Mood and Gold to their authored starting values.</summary>
-    public void Reset()
+    /// <summary>Restores all persistent runtime resources to their authored starting values.</summary>
+    /// <remarks>Use for initial construction or an explicit full character reset, not for clearing encounter-only state.</remarks>
+    public void ResetToStartingValues()
     {
         Health = _data.StartingHealth;
         Fatigue = _data.StartingFatigue;

@@ -19,7 +19,7 @@ public sealed class CombatantDefinition
     /// <summary>Gets the combatant's side.</summary>
     public CombatantSide Side { get; }
     /// <summary>Gets the actions authored for this combatant.</summary>
-    public CombatActionDefinition[] Actions { get; }
+    public IReadOnlyList<CombatActionDefinition> Actions { get; }
     /// <summary>Gets whether this enemy is visible to the player.</summary>
     public bool IsVisible { get; }
     /// <summary>Gets the authored deterministic pattern for an enemy, or null for Party members.</summary>
@@ -44,8 +44,8 @@ public sealed class CombatantDefinition
             throw new ArgumentNullException(nameof(actions));
         }
 
-        Actions = actions.ToArray();
-        if (Actions.Length == 0)
+        Actions = Array.AsReadOnly(actions.ToArray());
+        if (Actions.Count == 0)
         {
             throw new ArgumentException("A combatant must have at least one combat action.", nameof(actions));
         }

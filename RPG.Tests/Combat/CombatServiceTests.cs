@@ -6,6 +6,43 @@ using Xunit;
 public sealed class CombatServiceTests
 {
     [Fact]
+    public void EncounterStartPreservesPartyResourcesAndResetsEnemyResourcesToAuthoredValues()
+    {
+        Character player = CreatePartyMember("party-persistent", "Persistent Party Member");
+        Character enemy = new Character(new CharacterData(
+            "enemy-reset", "Reset Enemy", "Test Enemy", 1,
+            40, 100, 10, 100,
+            40, 5, 3, 60, 8));
+
+        player.TakeDamage(20);
+        player.AddFatigue(25);
+        player.SpendStamina(3);
+        player.ChangeMood(-10);
+        player.AddGold(4);
+
+        enemy.TakeDamage(10);
+        enemy.AddFatigue(20);
+        enemy.SpendStamina(2);
+        enemy.ChangeMood(-20);
+        enemy.AddGold(5);
+
+        CombatService combat = CreateCombat(new[] { player }, new[] { enemy });
+        Assert.True(combat.TryStartEncounter(out string failureReason), failureReason);
+
+        Assert.Equal(80, player.Health);
+        Assert.Equal(25, player.Fatigue);
+        Assert.Equal(7, player.Stamina);
+        Assert.Equal(40, player.Mood);
+        Assert.Equal(4, player.Gold);
+
+        Assert.Equal(40, enemy.Health);
+        Assert.Equal(5, enemy.Fatigue);
+        Assert.Equal(3, enemy.Stamina);
+        Assert.Equal(60, enemy.Mood);
+        Assert.Equal(8, enemy.Gold);
+    }
+
+    [Fact]
     public void EncounterStartsWithTwoSharedActionPointsAndOptionsForEveryEligiblePartyMember()
     {
         Character first = CreatePartyMember("party-first", "First");

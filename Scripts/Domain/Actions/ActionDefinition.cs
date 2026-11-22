@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 /// <summary>Identifies the kind of effect an action applies to a character.</summary>
 public enum ActionEffectType
@@ -17,7 +18,7 @@ public enum ActionEffectType
     Revive
 }
 
-/// <summary>Defines the action effect data and its validation rules.</summary>
+/// <summary>Defines immutable authored action-effect data and its validation rules.</summary>
 public sealed class ActionEffectDefinition
 {
     /// <summary>Gets the type.</summary>
@@ -45,7 +46,7 @@ public sealed class ActionEffectDefinition
     }
 }
 
-/// <summary>Defines the action data and its validation rules.</summary>
+/// <summary>Defines immutable authored action data and its validation rules.</summary>
 public sealed class ActionDefinition
 {
     /// <summary>Gets the id.</summary>
@@ -61,7 +62,7 @@ public sealed class ActionDefinition
     /// <summary>Gets the time modifier.</summary>
     public ActivityTimeModifier TimeModifier { get; }
     /// <summary>Gets the effects.</summary>
-    public ActionEffectDefinition[] Effects { get; }
+    public IReadOnlyList<ActionEffectDefinition> Effects { get; }
     /// <summary>Gets the estimated duration min minutes.</summary>
     public int? EstimatedDurationMinMinutes { get; }
     /// <summary>Gets the estimated duration max minutes.</summary>
@@ -87,7 +88,7 @@ public sealed class ActionDefinition
         ActivityTimeModifier timeModifier = null,
         string feedback = "",
         double activityMet = 1.0,
-        ActionEffectDefinition[] effects = null,
+        IEnumerable<ActionEffectDefinition> effects = null,
         int? estimatedDurationMinMinutes = null,
         int? estimatedDurationMaxMinutes = null,
         string requiredNpcId = null)
@@ -115,7 +116,7 @@ public sealed class ActionDefinition
         DurationMinutes = durationMinutes;
         ActivityMet = activityMet;
         TimeModifier = timeModifier;
-        Effects = effects ?? Array.Empty<ActionEffectDefinition>();
+        Effects = Array.AsReadOnly(effects == null ? Array.Empty<ActionEffectDefinition>() : new List<ActionEffectDefinition>(effects).ToArray());
         Feedback = feedback ?? string.Empty;
         EstimatedDurationMinMinutes = estimatedDurationMinMinutes;
         EstimatedDurationMaxMinutes = estimatedDurationMaxMinutes;

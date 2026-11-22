@@ -126,7 +126,36 @@ Data/*.json
 
 Definitions are authored content; schema-specific loaders parse and validate their JSON before constructing content catalogs. `LocationDataLoader` owns `Locations.json` file access, parsing and Location-level integrity checks; `LocationCatalog` only indexes the already-loaded `LocationContent` definitions. `GameContentCatalog` validates references between content domains. Runtime objects hold mutable state. A data definition can select only behavior already supported by code. Adding another content record that uses an existing behavior may be data-only; introducing a new behavior requires implementation and tests.
 
-## 5. Code discovery
+## 5. Character definitions and runtime resources
+
+Character content and live character state have separate ownership.
+
+### Authored definition data
+
+`Data/Characters/*.json` is parsed by `CharacterDataLoader` into `CharacterData` and indexed by `CharacterCatalog`. The definition owns identity, role, authored Level and base Stats, resource limits, starting resource values, Player Actions and combat action IDs. `CharacterStats`, `PlayerActionDefinition`, `ActionDefinition` and `ActionEffectDefinition` are authored definitions, not runtime state.
+
+Collection-valued definitions are copied at construction and exposed through read-only lists. This includes nested Player Action location IDs and Action effects, as well as the action list on `CombatantDefinition`. Consumers may enumerate or query these collections but must not modify shared content. To change authored behavior, edit the source content or its loader/schema and construct a new definition.
+
+### Runtime character state
+
+Each `Character` instance owns its current Health, Fatigue, Stamina, Mood and Gold. It reads identity, role, Level, Stats, limits and starting values from its immutable `CharacterData`; it does not own or mutate that definition. The Character methods (`TakeDamage`, `RestoreHealth`, `Revive`, `AddFatigue`, `RestoreFatigue`, `SpendStamina`, `RestoreStamina`, `ChangeMood`, `AddGold` and `ResetToStartingValues`) are the supported mutation surface and enforce each resource's bounds.
+
+The Character is the authoritative owner of these resource values. Gameplay services are authorized to call its mutation methods only as part of their use case:
+The current codebase compiles its layers into one assembly, so C# accessibility cannot enforce which layer calls a public Character mutator. This permission boundary is therefore an explicit architecture contract: keep mutation calls inside the owning Application/Domain use cases, cover the behavior with tests, and do not call mutators from Presentation.
+- `ActionExecutionService` advances world time and applies action Fatigue; `ActionEffectExecutor` applies the effects authored on an Action.
+- `CombatService` coordinates combat actions, Stamina costs and victory rewards; `CombatEffectDispatcher` applies combat damage and other combat effects.
+- `CombatSessionService` applies the encounter's one-time world-time and Fatigue cost.
+- Bootstrap creates and shares the Player Character instance between Exploration and Combat. Party members retain their Character state across encounters; Enemy Characters are reset to authored starting values when a new encounter begins.
+
+`ResetToStartingValues` is an explicit full reset of the five persistent resources. It is used during construction and when an Enemy is prepared for a new encounter. Encounter-only state is separate: Action Points, downed/revival flags, enemy pattern progress and temporary Guard/Evade effects belong to the combat runtime and are reset by `CombatService`, not by Character.
+
+### Resource scope and presentation
+
+Health, Fatigue, Stamina, Mood and Gold are Character-owned runtime resources. Their current and maximum values are displayed through `CharacterViewModel`; Presentation receives a read-only snapshot and does not mutate gameplay state. There is no separate Resource Manager: the Character already owns the invariants and the current prototype has no demonstrated need for another owner.
+
+Gold currently supports authored gains and combat victory rewards only. A purchase/spending rule is not defined yet, so this change does not invent a Gold cost API or shop behavior. Level and base Stats are currently authored values; progression remains a separate design decision documented in [Progression](../Design/Progression.md).
+
+## 6. Code discovery
 
 Before changing a feature:
 
@@ -138,7 +167,7 @@ Before changing a feature:
 
 If docs and code disagree, verify against current source and tests, then record the discrepancy.
 
-## 6. Structural constraints
+## 7. Structural constraints
 
 - Put code in the layer that owns its responsibility, not the layer that happens to call it.
 - Group code by feature inside each layer.

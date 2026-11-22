@@ -159,7 +159,7 @@ public sealed class CombatService : ICombatService
         {
             if (combatant.IsEnemy)
             {
-                combatant.Character.Reset();
+                combatant.Character.ResetToStartingValues();
             }
 
             combatant.EffectState.Reset();

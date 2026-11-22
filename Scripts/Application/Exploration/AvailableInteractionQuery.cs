@@ -14,7 +14,7 @@ public sealed class AvailableInteractionQuery
     /// <returns>A read-only list of available interactions. When the Player cannot act, only eligible recovery actions are returned.</returns>
     public IReadOnlyList<AvailableInteraction> Query(
         Character player,
-        PlayerActionDefinition[] playerActions,
+        IReadOnlyList<PlayerActionDefinition> playerActions,
         LocationContent location,
         Func<string, LocationContent> locationResolver,
         ActionDefinition travelAction,
@@ -87,7 +87,7 @@ public sealed class AvailableInteractionQuery
     private static void AddPlayerActions(
         List<AvailableInteraction> interactions,
         Character player,
-        PlayerActionDefinition[] playerActions,
+        IReadOnlyList<PlayerActionDefinition> playerActions,
         string locationId)
     {
         foreach (PlayerActionDefinition playerAction in playerActions)
@@ -109,7 +109,7 @@ public sealed class AvailableInteractionQuery
     private static void AddRecoveryActions(
         List<AvailableInteraction> interactions,
         Character player,
-        PlayerActionDefinition[] playerActions,
+        IReadOnlyList<PlayerActionDefinition> playerActions,
         string locationId)
     {
         foreach (PlayerActionDefinition playerAction in playerActions)
@@ -173,7 +173,7 @@ public sealed class AvailableInteractionQuery
 
     private static bool IsRecoveryAction(ActionDefinition action)
     {
-        return action.Effects.Length == 1
+        return action.Effects.Count == 1
             && action.Effects[0].Type == ActionEffectType.Revive
             && action.Effects[0].Amount > 0;
     }
