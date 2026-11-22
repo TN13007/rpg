@@ -4,14 +4,14 @@ using Xunit;
 
 public sealed class LocationEventLoopTests
 {
-    private readonly LocationCatalog _locations = new LocationCatalog();
+    private LocationCatalog _locations;
 
     [Fact]
     public void LocationCatalog_LoadsFirstAndReturnVisitDescriptions()
     {
         const string json = @"{""locations"":[{""id"":""gate"",""name"":""Gate"",""region"":""REGION"",""description"":{""firstVisit"":""A long first introduction."",""returnVisit"":""A short familiar description.""},""exits"":[],""actions"":[]}]}";
 
-        _locations.LoadJson(json);
+        _locations = LocationDataLoader.LoadJson(json);
 
         LocationContent location = _locations.Get("gate");
         Assert.Equal("A long first introduction.", location.GetDescription(true));
@@ -23,7 +23,7 @@ public sealed class LocationEventLoopTests
     {
         const string json = @"{""locations"":[{""id"":""gate"",""name"":""Gate"",""region"":""REGION"",""description"":""The old single description."",""exits"":[],""actions"":[]}]}";
 
-        _locations.LoadJson(json);
+        _locations = LocationDataLoader.LoadJson(json);
 
         LocationContent location = _locations.Get("gate");
         Assert.Equal("The old single description.", location.GetDescription(true));
@@ -94,7 +94,7 @@ public sealed class LocationEventLoopTests
             + " \"choices\": [{ \"id\": \"say_hello\", \"label\": \"Say hello\","
             + " \"durationMinutes\": 1 }] }]";
 
-        _locations.LoadJson(CreateContentJson(events));
+        _locations = LocationDataLoader.LoadJson(CreateContentJson(events));
 
         Assert.Equal("mira", _locations.Get("courtyard").Events[0].RequiredNpcId);
     }
@@ -354,7 +354,7 @@ public sealed class LocationEventLoopTests
         string json = CreateContentJson(
             "[{ \"id\": \"event\", \"title\": \"Event\", \"region\": \"REGION\", \"description\": \"Description\", \"chance\": 1, \"choices\": [{ \"id\": \"choice\", \"label\": \"Choice\", \"durationMinutes\": 0, \"encounterActionId\": \"missing\" }] }]");
 
-        Assert.Throws<InvalidOperationException>(() => _locations.LoadJson(json));
+        Assert.Throws<InvalidOperationException>(() => LocationDataLoader.LoadJson(json));
     }
 
     [Fact]
@@ -366,7 +366,7 @@ public sealed class LocationEventLoopTests
             + "]";
         string json = CreateContentJson(eventJson);
 
-        Assert.Throws<InvalidOperationException>(() => _locations.LoadJson(json));
+        Assert.Throws<InvalidOperationException>(() => LocationDataLoader.LoadJson(json));
     }
 
     private static LocationContent WithGuaranteedEvents(LocationContent location)
@@ -463,6 +463,6 @@ public sealed class LocationEventLoopTests
     private void LoadLocationCatalog()
     {
         string path = System.IO.Path.Combine(System.AppContext.BaseDirectory, "Data", "Locations.json");
-        _locations.LoadJson(System.IO.File.ReadAllText(path));
+        _locations = LocationDataLoader.LoadJson(System.IO.File.ReadAllText(path));
     }
 }
