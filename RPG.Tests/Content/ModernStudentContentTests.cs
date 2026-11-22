@@ -56,8 +56,8 @@ public sealed class ModernStudentContentTests
         string dataDirectory = Path.Combine(AppContext.BaseDirectory, "Data");
         string charactersDirectory = Path.Combine(dataDirectory, "Characters");
 
-        LocationCatalog locations = new LocationCatalog();
-        locations.LoadJson(File.ReadAllText(Path.Combine(dataDirectory, "Locations.json")));
+        LocationCatalog locations = LocationDataLoader.LoadJson(
+            File.ReadAllText(Path.Combine(dataDirectory, "Locations.json")));
 
         CharacterData[] characters = Directory.GetFiles(charactersDirectory, "*.json")
             .Select(path => CharacterDataLoader.LoadJson(File.ReadAllText(path), path))

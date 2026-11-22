@@ -4,7 +4,7 @@ using Xunit;
 
 public sealed class ActionExecutionTests
 {
-    private readonly LocationCatalog _locations = new LocationCatalog();
+    private LocationCatalog _locations = new LocationCatalog();
     private readonly ActionExecutionService _service =
         new ActionExecutionService(new ActivityTimeCalculator(), new ActionEffectExecutor());
 
@@ -463,6 +463,6 @@ public sealed class ActionExecutionTests
     private void LoadLocationCatalog()
     {
         string path = Path.Combine(AppContext.BaseDirectory, "Data", "Locations.json");
-        _locations.LoadJson(File.ReadAllText(path));
+        _locations = LocationDataLoader.LoadJson(File.ReadAllText(path));
     }
 }

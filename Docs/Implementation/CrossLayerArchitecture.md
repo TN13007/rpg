@@ -116,15 +116,15 @@ CombatService owns shared AP, Party action eligibility, Player/Enemy Turn transi
 ```text
 Data/*.json
   -> Infrastructure GameContentLoader
-      -> schema-specific readers (including NPC schedules)
+      -> schema-specific readers (LocationDataLoader, CharacterDataLoader, NPC readers, etc.)
       -> Domain definitions
-      -> ID/reference validation
-  -> GameContentCatalog
+      -> indexed content catalogs
+  -> GameContentCatalog cross-content reference validation
   -> runtime objects and Application services
   -> Presentation
 ```
 
-Definitions are authored content; IDs reference other definitions; catalogs index and validate loaded definitions; runtime objects hold mutable state. A data definition can select only behavior already supported by code. Adding another content record that uses an existing behavior may be data-only; introducing a new behavior requires implementation and tests.
+Definitions are authored content; schema-specific loaders parse and validate their JSON before constructing content catalogs. `LocationDataLoader` owns `Locations.json` file access, parsing and Location-level integrity checks; `LocationCatalog` only indexes the already-loaded `LocationContent` definitions. `GameContentCatalog` validates references between content domains. Runtime objects hold mutable state. A data definition can select only behavior already supported by code. Adding another content record that uses an existing behavior may be data-only; introducing a new behavior requires implementation and tests.
 
 ## 5. Code discovery
 
