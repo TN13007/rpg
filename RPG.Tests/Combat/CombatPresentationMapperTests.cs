@@ -20,6 +20,9 @@ public sealed class CombatPresentationMapperTests
         PartyMemberCardViewData partyMember = Assert.Single(viewData.Party);
         Assert.Equal("Alex", partyMember.Name);
         Assert.True(partyMember.CanAct);
+        Assert.Equal(7, partyMember.CurrentStamina);
+        Assert.Equal(10, partyMember.MaxStamina);
+        Assert.Null(partyMember.Arousal);
         Assert.Empty(viewData.NewMessages);
     }
 
@@ -183,7 +186,15 @@ public sealed class CombatPresentationMapperTests
             },
             new[]
             {
-                new PartyCombatStatus("player_student", "Alex", 20, 20, "Healthy", true)
+                new PartyCombatStatus(
+                    "player_student",
+                    "Alex",
+                    20,
+                    20,
+                    "Healthy",
+                    true,
+                    currentStamina: 7,
+                    maxStamina: 10)
             },
             actions ?? Array.Empty<CombatActionOption>());
     }
