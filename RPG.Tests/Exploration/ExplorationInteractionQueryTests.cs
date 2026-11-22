@@ -236,15 +236,49 @@ public sealed class ExplorationInteractionQueryTests
         Assert.Contains(present, item => item.ActionId == "join_mira");
     }
 
+    [Fact]
+    public void EventQuery_RechecksEventLevelNpcRequirement()
+    {
+        ActionDefinition join = new ActionDefinition("join", "Join", 10);
+        LocationEventDefinition locationEvent = new LocationEventDefinition(
+            "mira_meetup",
+            "Meetup",
+            "CAMPUS",
+            "Mira is waiting here.",
+            1.0,
+            new[] { new LocationEventChoiceDefinition("join", join) },
+            requiredNpcId: "mira");
+        AvailableInteractionQuery query = new AvailableInteractionQuery();
+
+        IReadOnlyList<AvailableInteraction> absent = query.Query(
+            locationEvent,
+            new HashSet<string>(StringComparer.Ordinal));
+        IReadOnlyList<AvailableInteraction> present = query.Query(
+            locationEvent,
+            new HashSet<string>(StringComparer.Ordinal) { "mira" });
+
+        Assert.Empty(absent);
+        AssertReadOnly(absent);
+        Assert.Contains(present, interaction => interaction.ActionId == "join");
+        AssertReadOnly(present);
+    }
+
     private static void AssertReadOnly(IReadOnlyList<AvailableInteraction> interactions)
     {
-        Assert.NotEmpty(interactions);
         IList<AvailableInteraction> mutableView =
             Assert.IsAssignableFrom<IList<AvailableInteraction>>(interactions);
+        AvailableInteraction item = interactions.Count > 0
+            ? interactions[0]
+            : new AvailableInteraction(
+                InteractionSourceKind.Event, "test-event", "test-action", string.Empty,
+                new ActionDefinition("test-action", "Test", 0));
 
         Assert.True(mutableView.IsReadOnly);
-        Assert.Throws<NotSupportedException>(() => mutableView.Add(interactions[0]));
-        Assert.Throws<NotSupportedException>(() => mutableView[0] = interactions[0]);
+        Assert.Throws<NotSupportedException>(() => mutableView.Add(item));
+        if (mutableView.Count > 0)
+        {
+            Assert.Throws<NotSupportedException>(() => mutableView[0] = item);
+        }
     }
 
     private void LoadContent()
