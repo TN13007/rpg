@@ -40,3 +40,19 @@ Knowledge may help the player recognize patterns, assess risk or choose a safer 
 ## Open decisions
 
 Which attributes are active and what each changes; whether levels, activity-linked growth or milestones drive progression; how practical skills are learned and equipped; whether Mastery is necessary; how equipment changes action timing and options; and how relationships mechanically affect investigation or combat.
+
+## Body Profile progression
+
+Body Profile is a candidate long-term character progression dimension. The selected direction is that body attributes can develop over time rather than remaining fixed constants. This direction is accepted; the attributes, growth sources, rates and trade-offs are not.
+
+Candidate regions include Mouth, Hands, Chest, Genitals, Anus and Skin. Candidate attributes include Sensitivity, Resilience and Familiarity. Do not assume every region needs every attribute. Each attribute must have a distinct gameplay effect and a clear reason to exist.
+
+Keep three kinds of data separate:
+
+- **Persistent Body Profile:** attributes that can change through long-term progression.
+- **Current Body State:** temporary Exposure, Accessibility and encounter effects.
+- **Enemy Preference Profile:** an enemy-owned tendency that influences its choice among valid actions; it is not a player progression stat.
+
+Growth should create meaningful differences or trade-offs rather than universally increasing every value. Possible sources such as training, authored experiences and milestones remain candidates until validated in a playable slice. Body Profile values are not intended to appear as numeric combat UI meters.
+
+The relationship between Body Profile and combat Arousal/Satisfaction resolution is owned by [Combat Design](Combat.md). Progression must not independently calculate combat outcomes.
