@@ -6,7 +6,7 @@ using Godot;
 public partial class CombatPanel : PanelContainer
 {
     /// <summary>Raised when the player selects an action.</summary>
-    public event Action<CombatActionRequest> ActionSelected;
+    public event Action<CombatActionSelection> ActionSelected;
     /// <summary>Raised when the player chooses to end the Player Turn.</summary>
     public event Action EndPlayerTurnRequested;
     /// <summary>Raised when the roster's selected acting member changes.</summary>
@@ -26,7 +26,7 @@ public partial class CombatPanel : PanelContainer
     private CombatStatusPanel _statusPanel;
     private CombatMessageLog _messageLog;
     private CombatActionPanel _actionPanel;
-    private CombatActionOption[] _availableActions = Array.Empty<CombatActionOption>();
+    private CombatActionCardViewData[] _availableActions = Array.Empty<CombatActionCardViewData>();
 
     /// <summary>Resolves child controls, connects UI signals and applies the panel style.</summary>
     public override void _Ready()
@@ -58,7 +58,7 @@ public partial class CombatPanel : PanelContainer
     public void BeginEncounter(string title)
     {
         _encounterTitle.Text = title;
-        _partyRosterPanel.SetMembers(Array.Empty<PartyCombatStatus>());
+        _partyRosterPanel.SetMembers(Array.Empty<PartyMemberCardViewData>());
         _availableActions = Array.Empty<CombatActionOption>();
         _statusPanel.SetTurn(1, "PLAYER TURN", CombatPhase.PlayerTurn, 0, 0);
         _messageLog.Clear();
@@ -133,7 +133,7 @@ public partial class CombatPanel : PanelContainer
     private void UpdateActionOptions()
     {
         string selectedActorId = _partyRosterPanel.SelectedMemberId;
-        CombatActionOption[] selectedActorActions = string.IsNullOrWhiteSpace(selectedActorId)
+        CombatActionCardViewData[] selectedActorActions = string.IsNullOrWhiteSpace(selectedActorId)
             ? Array.Empty<CombatActionOption>()
             : _availableActions
                 .Where(action => action.ActorId == selectedActorId)
@@ -148,9 +148,9 @@ public partial class CombatPanel : PanelContainer
         PartyMemberSelected?.Invoke(memberId);
     }
 
-    private void HandleActionSelected(CombatActionRequest request)
+    private void HandleActionSelected(CombatActionSelection selection)
     {
-        ActionSelected?.Invoke(request);
+        ActionSelected?.Invoke(selection);
     }
 
     private void HandleEnemyTargetSelectionRequested(string[] targetIds)
