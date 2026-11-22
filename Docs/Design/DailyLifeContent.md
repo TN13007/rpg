@@ -8,7 +8,7 @@ This document turns the Loop 2 design into one concrete, reviewable content slic
 
 ## 1. Content goal
 
-Prove that an ordinary Monday gives the player several viable ways to spend time without requiring a paranormal incident or Combat.
+Prove that a structured Monday and a flexible Saturday give the player different but coherent ways to spend time without requiring a paranormal incident or Combat.
 
 The day must demonstrate:
 - A morning route with a real arrival-time decision.
@@ -147,9 +147,30 @@ Travel durations in the example use the current base value and ignore the Agilit
 
 The morning example deliberately leaves little spare time. An extra stop can push the player past the class start window. The player should be able to skip the Library, Sera or the class rather than being forced down this route.
 
-## 9. Content validation cases
+## 9. Saturday contrast — extracurricular and social day
 
-The first playable implementation should pass these cases:
+Saturday is a second validation slice, not a complete weekly timetable. With Day 1 set to Monday, the first Saturday is Day 6. Its purpose is to prove that the same weekday and time-window contract supports a day with fewer fixed academic commitments and more player-directed choices.
+
+**Starting context:** Saturday, 08:00, at `student_apartment`. There is no scheduled lecture. The player may spend the day on extracurricular activity, exercise, social time, work, study or recovery.
+
+| Opportunity ID | Location | Weekday / allowed start | Duration | Eligibility / outcome |
+|---|---|---|---:|---|
+| `saturday_club_open_session` | `student_union` | Saturday, 09:00–09:30 | 60 min | Open to non-members; the player may join the proposed Campus Sports Club. Joining creates a club-owned membership record |
+| `saturday_sports_practice` | `sports_field` | Saturday, 10:30–11:00 | 60 min | Requires membership in the Campus Sports Club; records a deliberate practice outcome for the proposed `athletics` Skill |
+| `saturday_mira_hangout` | `student_union` | Saturday, 14:00–15:00 | 60 min | Optional social opportunity with Mira; uses Relationship/Social-owned state and does not grant automatic relationship growth |
+
+These are proposed content records, not existing runtime behavior. The club membership belongs to the extracurricular domain; the `athletics` capability belongs to shared Progression. The practice activity supplies evidence that a valid practice occurred, but no numerical Skill increase, XP reward or growth formula is specified here. That rule requires a separate concrete Progression decision.
+
+The Saturday schedule should not make all three opportunities mandatory. The player may attend only the club session, practice without taking the social opportunity if eligible, spend the day elsewhere, or do nothing beyond recovery. Existing daily NPC schedules remain unchanged unless an explicit Saturday-specific schedule is authored.
+
+The contrast with Monday is intentional:
+- Monday asks the player to balance a class window, flexible study and a work-versus-club conflict.
+- Saturday offers an open club session, an optional skill-practice context and social time without a required academic commitment.
+- Both days use the same GameClock, schedule primitives, Character resources and domain-owned state. No weekend-specific clock or activity executor is introduced.
+
+## 10. Content validation cases
+
+The Monday slice should pass these cases:
 
 1. Starting at the apartment and following the sample route can reach the lecture within its start window.
 2. An extra morning activity can make the player miss the lecture; no hidden penalty is applied.
@@ -163,7 +184,15 @@ The first playable implementation should pass these cases:
 10. Sleep from 23:00 advances 480 minutes, rolls to Day 2 at 07:00 and applies recovery once.
 11. The player can complete the day without visiting `apartment_block` or triggering the Unit 213 incident.
 
-## 10. Explicitly not part of this content slice
+The Saturday contrast should pass these additional cases:
+12. Day 6 derives Saturday from the same GameClock when Day 1 is configured as Monday.
+13. The player can attend the open club session and join the club; membership is stored by the extracurricular domain, not in a global flag bag.
+14. A non-member cannot start the membership-gated sports practice; rejection changes no time, Fatigue, resources or progression state.
+15. Completing sports practice records a valid practice outcome for the `athletics` Skill without inventing a numerical growth formula.
+16. The player can ignore the club, practice and hangout and still complete the day through flexible activities.
+17. Saturday NPC opportunities appear only when the corresponding NPC schedule matches the current weekday, time and Location; schedules without weekday restrictions remain daily.
+
+## 11. Explicitly not part of this content slice
 
 - Full weekly course timetables or exam/grade tracking.
 - Multiple jobs, payroll, rent, loans or a city-wide economy.
@@ -173,14 +202,14 @@ The first playable implementation should pass these cases:
 - Mandatory paranormal incidents, combat encounters or hidden penalties for missed activities.
 - Runtime schema changes. The content model must be reviewed against the actual loaders before any JSON data is added.
 
-## 11. Implementation dependencies
+## 12. Implementation dependencies
 
 After the design is accepted, implementation should be split into independently testable work:
-1. Starting-location/day setup and weekday derivation on the existing GameClock.
-2. Commitment availability windows for class, work and club meeting.
-3. Atomic Gold spending for the meal.
-4. Explicit attendance and Knowledge acquisition state for the lecture/study pair.
-5. Monday NPC weekday filters while preserving daily-repeat behavior for schedules that omit weekdays.
-6. Manual end-to-end playthrough of the day, including missed commitments and the work/club conflict.
+1. Weekday derivation on the existing GameClock, with Day 1's starting weekday authored explicitly.
+2. A shared scheduled-activity data contract and availability query; keep PlayerAction execution, NPC presence and domain outcomes separate.
+3. Atomic Gold spending with rejection that leaves all state unchanged.
+4. Typed domain-owned state for academic completion/Knowledge acquisition and club membership/Skill practice; do not begin with a global flag bag.
+5. Weekday filters for selected NPC schedules while preserving daily-repeat behavior when no weekday is authored.
+6. Monday and Saturday end-to-end playthroughs, including missed commitments, eligibility rejection and optional activities.
 
-Do not create a generic ActivityManager or universal content executor to implement this sample. Reuse the current domain owners and add only the contracts required by these cases.
+Do not create a generic ActivityManager, universal content executor, untyped GameState or FlagManager to implement these slices. Reuse current domain owners and add only contracts required by the demonstrated journeys.
