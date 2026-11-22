@@ -11,6 +11,8 @@ public partial class EnemyCard : Button
     private Label _healthLabel;
     private ProgressBar _healthBar;
     private Label _conditionLabel;
+    private Label _arousalLabel;
+    private ProgressBar _arousalBar;
     private CombatCardVfx _vfx;
     private string _enemyId = string.Empty;
     private bool _selectable;
@@ -27,7 +29,11 @@ public partial class EnemyCard : Button
         _healthLabel = GetNode<Label>("Margin/Content/HealthLabel");
         _healthBar = GetNode<ProgressBar>("Margin/Content/HealthBar");
         _conditionLabel = GetNode<Label>("Margin/Content/Condition");
+        _arousalLabel = GetNode<Label>("Margin/Content/ArousalLabel");
+        _arousalBar = GetNode<ProgressBar>("Margin/Content/ArousalBar");
         _vfx = GetNode<CombatCardVfx>("Vfx");
+        _arousalLabel.Visible = false;
+        _arousalBar.Visible = false;
 
         Pressed += HandlePressed;
         FocusMode = FocusModeEnum.All;
@@ -65,6 +71,14 @@ public partial class EnemyCard : Button
         _healthBar.MaxValue = enemy.MaxHealth;
         _healthBar.Value = enemy.CurrentHealth;
         _conditionLabel.Text = enemy.Condition;
+        _arousalLabel.Visible = enemy.Arousal.HasValue;
+        _arousalBar.Visible = enemy.Arousal.HasValue;
+        if (enemy.Arousal.HasValue)
+        {
+            _arousalLabel.Text = "AROUSAL  " + enemy.Arousal.Value + " / 100";
+            _arousalBar.MaxValue = 100;
+            _arousalBar.Value = enemy.Arousal.Value;
+        }
 
         if (string.Equals(enemy.Condition, "Defeated", StringComparison.OrdinalIgnoreCase))
         {
