@@ -215,7 +215,9 @@ public sealed class CombatService : ICombatService
                 playerCanAct &&
                     item.Character.IsAlive &&
                     !item.IsDowned &&
-                    !item.HasActedThisRound))
+                    !item.HasActedThisRound,
+                item.Character.Stamina,
+                item.Character.MaxStamina))
             .ToArray();
 
         EnemyCombatStatus[] enemyStatuses = _enemies
