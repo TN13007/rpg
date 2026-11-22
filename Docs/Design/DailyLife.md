@@ -146,7 +146,7 @@ These branches should remain viable for different player priorities. No single a
 
 A concrete first-day content pack reusing the current student characters, locations, actions and NPC routines is specified in [Daily Life Content — First Playable Day](DailyLifeContent.md). It separates existing data from proposed schedule, economy and Knowledge additions.
 
-The content pack also includes a small Saturday contrast: recurring club participation, a sports-practice opportunity and optional social time. It is deliberately smaller than a full weekly timetable and validates the same schedule and state-ownership contracts under a less structured day.
+The content pack also includes a small Saturday contrast: invitation-gated training with Noah, a paid work shift versus a membership-gated club outing, and optional social time. It is deliberately smaller than a full weekly timetable and validates the same schedule and state-ownership contracts under a less structured day.
 
 ## 5. Current implementation boundary
 
@@ -248,10 +248,10 @@ Loop 2 and Loop 3 need durable facts, but that does not justify one untyped glob
 |---|---|---|
 | Class or study completion | Academic / learning activity domain | Typed completion record with activity ID and campaign-day identity; enough to evaluate same-day acquisition conditions |
 | Learned Knowledge | Shared Progression — Knowledge | Character-owned Knowledge entry; acquisition is granted only when the relevant domain confirms its requirements |
-| Club membership | Club / extracurricular domain | Membership record keyed by character and club; joining/leaving rules belong to that domain |
-| Weekend invitation from Noah | Social / Relationship domain | Typed invitation/opportunity record; an interaction may grant it, and the training activity queries it |
-| Training with Noah completed | Extracurricular / activity domain | Typed activity-completion evidence; it is not itself a Skill increase |
-| Unit 213 rumor heard | Investigation domain | Optional clue/information record; it does not gate the incident |
+| Club membership | Club / extracurricular domain | Campaign-persistent membership record keyed by character and club; joining/leaving rules belong to that domain |
+| Weekend invitation from Noah | Social / Relationship domain | Campaign-persistent typed invitation/opportunity record; an interaction may grant it, and the training activity queries it |
+| Training with Noah completed | Extracurricular / activity domain | Campaign-persistent typed activity-completion evidence; it is not itself a Skill increase |
+| Unit 213 rumor heard | Investigation domain | Optional campaign-persistent clue/information record; it does not gate the incident |
 | Skill capability | Shared Progression — Skills | Character-owned Skill state; the activity domain supplies a valid practice/learning context |
 | First meeting and relationship state | Relationship / Social domain | NPC-specific relationship/history state; a casual interaction does not automatically imply relationship growth |
 | Incident outcome | Incident domain | Typed outcome for that incident; only expose facts to other domains through an explicit query/contract |
