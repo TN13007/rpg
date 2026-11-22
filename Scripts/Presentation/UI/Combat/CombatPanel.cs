@@ -10,7 +10,7 @@ public partial class CombatPanel : PanelContainer
     /// <summary>Raised when the player chooses to end the Player Turn.</summary>
     public event Action EndPlayerTurnRequested;
     /// <summary>Raised when the roster's selected acting member changes.</summary>
-    public event Action<string> PartyMemberSelected;
+    public event Action<PartyMemberCardViewData> PartyMemberSelected;
     /// <summary>Raised when the player acknowledges completion and returns to Exploration.</summary>
     public event Action ContinueRequested;
     /// <summary>Raised when the player begins target selection for an action.</summary>
@@ -27,6 +27,7 @@ public partial class CombatPanel : PanelContainer
     private CombatMessageLog _messageLog;
     private CombatActionPanel _actionPanel;
     private CombatActionCardViewData[] _availableActions = Array.Empty<CombatActionCardViewData>();
+    private PartyMemberCardViewData[] _partyMembers = Array.Empty<PartyMemberCardViewData>();
 
     /// <summary>Resolves child controls, connects UI signals and applies the panel style.</summary>
     public override void _Ready()
@@ -58,7 +59,8 @@ public partial class CombatPanel : PanelContainer
     public void BeginEncounter(string title)
     {
         _encounterTitle.Text = title;
-        _partyRosterPanel.SetMembers(Array.Empty<PartyMemberCardViewData>());
+        _partyMembers = Array.Empty<PartyMemberCardViewData>();
+        _partyRosterPanel.SetMembers(_partyMembers);
         _availableActions = Array.Empty<CombatActionCardViewData>();
         _statusPanel.SetTurn(1, "PLAYER TURN", true, 0, 0);
         _messageLog.Clear();
@@ -76,8 +78,9 @@ public partial class CombatPanel : PanelContainer
             return;
         }
 
-        _partyRosterPanel.SetMembers(viewData.Party);
-        PartyMemberSelected?.Invoke(_partyRosterPanel.SelectedMemberId);
+        _partyMembers = viewData.Party;
+        _partyRosterPanel.SetMembers(_partyMembers);
+        NotifySelectedPartyMember();
         _availableActions = viewData.AvailableActions;
         UpdateActionOptions();
         _statusPanel.SetTurn(
@@ -145,7 +148,16 @@ public partial class CombatPanel : PanelContainer
     private void HandlePartyMemberSelected(string memberId)
     {
         UpdateActionOptions();
-        PartyMemberSelected?.Invoke(memberId);
+        NotifySelectedPartyMember();
+    }
+
+    private void NotifySelectedPartyMember()
+    {
+        string selectedMemberId = _partyRosterPanel.SelectedMemberId;
+        PartyMemberCardViewData selectedMember = Array.Find(
+            _partyMembers,
+            member => member.Id == selectedMemberId);
+        PartyMemberSelected?.Invoke(selectedMember);
     }
 
     private void HandleActionSelected(CombatActionSelection selection)
