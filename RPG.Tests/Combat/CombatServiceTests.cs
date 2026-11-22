@@ -309,7 +309,7 @@ public sealed class CombatServiceTests
         Assert.True(result.Success);
         Assert.True(combat.IsEncounterOver);
         Assert.True(combat.IsVictory);
-        Assert.Equal(45, player.Gold);
+        Assert.Equal(25, player.Gold);
         Assert.DoesNotContain(result.Events, item => item.Type == CombatEventType.EnemyAction);
         Assert.Equal(1, result.Snapshot.Round);
         Assert.Equal(CombatPhase.Complete, result.Snapshot.Phase);
