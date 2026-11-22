@@ -4,7 +4,7 @@ using Xunit;
 public sealed class CombatPresentationMapperTests
 {
     [Fact]
-    public void MapsSharedApPhaseAndRoundIntoPresentationViewData()
+    public void MapsSharedApAndCombatStatusesIntoPresentationOwnedViewData()
     {
         CombatPresentationMapper mapper = new CombatPresentationMapper();
         CombatSnapshot snapshot = CreateSnapshot();
@@ -16,19 +16,40 @@ public sealed class CombatPresentationMapperTests
         Assert.Equal(1, viewData.CurrentActionPoints);
         Assert.Equal(3, viewData.ActionCapacity);
         Assert.Equal("PLAYER TURN", viewData.ActiveTurnLabel);
-        Assert.Equal("Alex", viewData.Party[0].Name);
+        Assert.Equal("Unstable Presence", Assert.Single(viewData.Enemies).Name);
+        PartyMemberCardViewData partyMember = Assert.Single(viewData.Party);
+        Assert.Equal("Alex", partyMember.Name);
+        Assert.True(partyMember.CanAct);
         Assert.Empty(viewData.NewMessages);
     }
 
+    [Fact]
+    public void MapsOnlyVisibleEnemiesIntoEnemyCardViewData()
+    {
+        CombatPresentationMapper mapper = new CombatPresentationMapper();
+        CombatSnapshot snapshot = CreateSnapshot(
+            enemies: new[]
+            {
+                new EnemyCombatStatus("visible", "Visible Presence", 20, 30, "Healthy"),
+                new EnemyCombatStatus("hidden", "Hidden Presence", 30, 30, "Healthy", isVisible: false)
+            });
+
+        CombatViewData viewData = mapper.Map(snapshot);
+
+        EnemyCardViewData visible = Assert.Single(viewData.Enemies);
+        Assert.Equal("visible", visible.Id);
+        Assert.Equal("Visible Presence", visible.Name);
+    }
+
     [Theory]
-    [InlineData("quick_strike", CombatFeedbackType.Attack)]
-    [InlineData("heavy_strike", CombatFeedbackType.Attack)]
-    [InlineData("disrupting_strike", CombatFeedbackType.Attack)]
+    [InlineData("quick_strike", CombatFeedbackType.QuickAttack)]
+    [InlineData("heavy_strike", CombatFeedbackType.HeavyAttack)]
+    [InlineData("disrupting_strike", CombatFeedbackType.DisruptingAttack)]
     [InlineData("guard", CombatFeedbackType.Guard)]
     [InlineData("evade", CombatFeedbackType.Evade)]
     [InlineData("catch_breath", CombatFeedbackType.Recover)]
     [InlineData("revive_ally", CombatFeedbackType.Revive)]
-    public void MapsPlayerActionIdsToSpecificPresentationFeedback(
+    public void MapsEachPlayerActionToItsOwnPresentationFeedback(
         string actionId,
         CombatFeedbackType expectedFeedback)
     {
@@ -45,6 +66,41 @@ public sealed class CombatPresentationMapperTests
 
         Assert.Equal("Alex", feedback.ActorName);
         Assert.Equal(expectedFeedback, feedback.Type);
+    }
+
+    [Fact]
+    public void MapsActionCategoryAndTargetDataIntoPresentationOwnedActionCard()
+    {
+        CombatPresentationMapper mapper = new CombatPresentationMapper();
+        CombatActionOption attack = new CombatActionOption(
+            "quick_strike",
+            "player_student",
+            "Alex · Quick Strike",
+            "1 AP",
+            "Deal 8 damage.",
+            targets: new[]
+            {
+                new CombatActionTargetOption("enemy-1", "Unstable Presence")
+            });
+        CombatActionOption recover = new CombatActionOption(
+            "catch_breath",
+            "player_student",
+            "Alex · Catch Breath",
+            "1 AP",
+            "Recover 3 Stamina.");
+
+        CombatViewData viewData = mapper.Map(CreateSnapshot(actions: new[] { attack, recover }));
+        Assert.Equal(2, viewData.AvailableActions.Length);
+
+        CombatActionCardViewData attackCard = viewData.AvailableActions[0];
+        Assert.Equal(CombatActionCategory.Offense, attackCard.Category);
+        Assert.Equal(CombatActionTargetKind.Enemy, attackCard.TargetKind);
+        Assert.Equal("enemy-1", Assert.Single(attackCard.Targets).Id);
+
+        CombatActionCardViewData recoverCard = viewData.AvailableActions[1];
+        Assert.Equal(CombatActionCategory.Support, recoverCard.Category);
+        Assert.Equal(CombatActionTargetKind.None, recoverCard.TargetKind);
+        Assert.Empty(recoverCard.Targets);
     }
 
     [Fact]
@@ -98,7 +154,22 @@ public sealed class CombatPresentationMapperTests
         Assert.Equal(CombatFeedbackType.Hit, feedback.Type);
     }
 
-    private static CombatSnapshot CreateSnapshot()
+    [Fact]
+    public void ActionSelectionCarriesOnlyStableIdsAcrossThePresentationBoundary()
+    {
+        CombatActionSelection selection = new CombatActionSelection(
+            "quick_strike",
+            "player_student",
+            "hostile_presence");
+
+        Assert.Equal("quick_strike", selection.ActionId);
+        Assert.Equal("player_student", selection.ActorId);
+        Assert.Equal("hostile_presence", selection.TargetId);
+    }
+
+    private static CombatSnapshot CreateSnapshot(
+        CombatActionOption[] actions = null,
+        EnemyCombatStatus[] enemies = null)
     {
         return new CombatSnapshot(
             3,
@@ -106,7 +177,7 @@ public sealed class CombatPresentationMapperTests
             1,
             3,
             "PLAYER TURN",
-            new[]
+            enemies ?? new[]
             {
                 new EnemyCombatStatus("hostile_presence", "Unstable Presence", 40, 60, "Wounded")
             },
@@ -114,6 +185,6 @@ public sealed class CombatPresentationMapperTests
             {
                 new PartyCombatStatus("player_student", "Alex", 20, 20, "Healthy", true)
             },
-            Array.Empty<CombatActionOption>());
+            actions ?? Array.Empty<CombatActionOption>());
     }
 }
