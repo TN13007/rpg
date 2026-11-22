@@ -4,7 +4,7 @@
 [ext_resource type="Script" path="res://Scripts/Presentation/UI/Combat/CombatCardVfx.cs" id="2"]
 
 [node name="EnemyCard" type="Button"]
-custom_minimum_size = Vector2(0, 92)
+custom_minimum_size = Vector2(0, 112)
 size_flags_horizontal = 3
 text = ""
 script = ExtResource("1")
@@ -62,5 +62,23 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 10
 theme_override_colors/font_color = Color(0.61, 0.64, 0.68, 1)
 text = "Condition"
+mouse_filter = 2
+
+[node name="ArousalLabel" type="Label" parent="Margin/Content"]
+visible = false
+layout_mode = 2
+theme_override_font_sizes/font_size = 9
+theme_override_colors/font_color = Color(0.776, 0.647, 0.416, 1)
+text = "AROUSAL 0 / 100"
+mouse_filter = 2
+
+[node name="ArousalBar" type="ProgressBar" parent="Margin/Content"]
+visible = false
+custom_minimum_size = Vector2(0, 5)
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 100.0
+show_percentage = false
+value = 0.0
 mouse_filter = 2
 
