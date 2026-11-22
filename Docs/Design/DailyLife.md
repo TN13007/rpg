@@ -76,7 +76,7 @@ A scheduled commitment has:
 - An authored activity duration and outcome.
 - Optional costs or requirements.
 
-The start window defines when the player may begin the activity. Once accepted, the activity consumes its authored duration. The initial design does not simulate partial attendance or prorated wages. Content may provide a small late-start grace window; after the latest allowed start, the commitment is unavailable until its next occurrence.
+The start window defines when the player may begin the activity. Once accepted, the activity consumes its authored duration. If the player arrives before the window opens (for example, because Agility reduces Travel time), the player must be able to wait until the start time without being rejected or forced into an unrelated action. The initial design does not simulate partial attendance or prorated wages. Content may provide a small late-start grace window; after the latest allowed start, the commitment is unavailable until its next occurrence.
 
 Missing a commitment does not automatically apply a hidden penalty. The immediate consequence is that the opportunity is missed. Attendance, grades, job standing or other long-term consequences must be explicitly designed for the relevant activity rather than inferred from a generic schedule system.
 
@@ -116,7 +116,7 @@ A scheduled activity record may identify:
 
 The shared schedule contract owns only when and where an opportunity is available. It must not duplicate duration/effects already owned by an ActionDefinition, nor encode academic attendance, club membership, skill practice, payroll or relationship outcomes as generic fields. The owning domain validates its own conditions and resolves its own result.
 
-NPC presence is related but distinct: `NpcScheduleDefinition` describes where an NPC is available, not an activity the player commits to. It may reuse the same weekday and time-window primitives, while retaining its own NPC-presence semantics. Existing schedules with no weekday restriction continue to mean every day.
+NPC presence is related but distinct: `NpcScheduleDefinition` describes where an NPC is available, not an activity the player commits to. It may reuse the same weekday and time-window primitives, while retaining its own NPC-presence semantics. Existing schedules with no weekday restriction continue to mean every day. Weekday-aware validation must compare both time intervals and weekday intersections; two entries at the same clock time on disjoint weekdays do not overlap.
 
 Flexible actions do not need a schedule record unless a concrete player-facing case requires one. Do not migrate every `PlayerActionDefinition` into the scheduled-activity contract.
 
@@ -191,6 +191,7 @@ Current implementation already owns a monotonic day index, minute-of-day, elapse
 - Do not add a second CalendarClock or a full real-world date/year/time-zone model.
 - Allow selected commitments to define recurring weekdays and an allowed start window.
 - Keep one-off appointments/events able to reference a specific campaign day.
+- Extend selected NPC presence schedules with weekday restrictions while preserving omitted-weekday daily behavior; validate interval overlap only when entries share at least one weekday.
 - Keep ordinary flexible actions independent of a weekly schedule.
 - Preserve current NPC schedule behavior by treating an omitted weekday restriction as every day. Add weekday restrictions only when content needs them.
 
@@ -249,6 +250,9 @@ Loop 2 and Loop 3 need durable facts, but that does not justify one untyped glob
 | Class or study completion | Academic / learning activity domain | Typed completion record with activity ID and campaign-day identity; enough to evaluate same-day acquisition conditions |
 | Learned Knowledge | Shared Progression — Knowledge | Character-owned Knowledge entry; acquisition is granted only when the relevant domain confirms its requirements |
 | Club membership | Club / extracurricular domain | Membership record keyed by character and club; joining/leaving rules belong to that domain |
+| Weekend invitation from Noah | Social / Relationship domain | Typed invitation/opportunity record; an interaction may grant it, and the training activity queries it |
+| Training with Noah completed | Extracurricular / activity domain | Typed activity-completion evidence; it is not itself a Skill increase |
+| Unit 213 rumor heard | Investigation domain | Optional clue/information record; it does not gate the incident |
 | Skill capability | Shared Progression — Skills | Character-owned Skill state; the activity domain supplies a valid practice/learning context |
 | First meeting and relationship state | Relationship / Social domain | NPC-specific relationship/history state; a casual interaction does not automatically imply relationship growth |
 | Incident outcome | Incident domain | Typed outcome for that incident; only expose facts to other domains through an explicit query/contract |
@@ -258,6 +262,7 @@ Important boundaries:
 - The domain that owns a record is the only domain that may authoritatively change it. Other domains may query it through an explicit read contract.
 - Distinguish day-scoped evidence from campaign-persistent state. For example, lecture and library completion must be associated with the same campaign day; the resulting Knowledge, once granted, is persistent until a domain rule changes it.
 - Do not clear or overwrite durable state at midnight merely because a daily activity record is day-scoped. Define retention per record type.
+- The example identifiers `student_union_club_member`, `noah_weekend_invite`, `trained_with_noah` and `heard_unit_213_rumor` name typed domain facts, not entries in a global string-keyed flag bag. A draft `setFlags` field is not an approved API.
 - Do not create a generic `GameState`, `FlagManager`, Quest State or Incident State framework in this design pass. First prove the concrete records and queries through the Monday/Saturday journeys and one later Loop 3 use.
 
 ## 8. Loop 2 activity scope
