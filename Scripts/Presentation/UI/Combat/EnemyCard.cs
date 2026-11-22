@@ -1,7 +1,7 @@
 using System;
 using Godot;
 
-/// <summary>Presents an enemy combat status card and target-selection feedback.</summary>
+/// <summary>Presents one Enemy from Presentation-owned view data and exposes target-selection events.</summary>
 public partial class EnemyCard : Button
 {
     /// <summary>Raised when the player selects this Enemy during target selection.</summary>
@@ -31,12 +31,11 @@ public partial class EnemyCard : Button
 
         Pressed += HandlePressed;
         FocusMode = FocusModeEnum.All;
-        MouseDefaultCursorShape = CursorShape.PointingHand;
         UpdateVisualState();
     }
 
-    /// <summary>Initializes this card with one Enemy status.</summary>
-    public void Setup(EnemyCombatStatus enemy)
+    /// <summary>Initializes this card with Presentation-owned data for one Enemy.</summary>
+    public void Setup(EnemyCardViewData enemy)
     {
         if (enemy == null)
         {
@@ -47,8 +46,8 @@ public partial class EnemyCard : Button
         UpdateDisplay(enemy);
     }
 
-    /// <summary>Updates HP and condition without exposing a future action or target.</summary>
-    public void UpdateDisplay(EnemyCombatStatus enemy)
+    /// <summary>Updates visible Enemy values without accessing Domain objects or combat services.</summary>
+    public void UpdateDisplay(EnemyCardViewData enemy)
     {
         if (enemy == null)
         {
@@ -76,7 +75,7 @@ public partial class EnemyCard : Button
         UpdateVisualState();
     }
 
-    /// <summary>Sets whether this Enemy is a valid target and whether it is selected.</summary>
+    /// <summary>Sets whether this Enemy is a valid target and whether it is currently selected.</summary>
     public void SetTargetSelectionState(bool selectionActive, bool selectable, bool selected)
     {
         _targetSelectionActive = selectionActive;
@@ -98,6 +97,8 @@ public partial class EnemyCard : Button
             return;
         }
 
+        _selected = true;
+        UpdateVisualState();
         _vfx.PlayTargetSelected();
         Selected?.Invoke(_enemyId);
     }
