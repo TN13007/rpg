@@ -120,12 +120,13 @@ public sealed class CombatPresentationOrchestrator
 
     }
 
-    private void HandlePartyMemberSelected(string characterId)
+    private void HandlePartyMemberSelected(PartyMemberCardViewData member)
     {
-        Character selectedCharacter = _partyMembers.FirstOrDefault(
-            character => character.Id == characterId);
+        if (member == null)
+        {
+            return;
+        }
 
-        _characterPanel.SetCharacter(
-            new CharacterViewModel(selectedCharacter ?? _primaryCharacter));
+        _characterPanel.SetCombatCharacter(member);
     }
 }
