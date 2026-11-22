@@ -60,7 +60,7 @@ public partial class CombatPanel : PanelContainer
         _encounterTitle.Text = title;
         _partyRosterPanel.SetMembers(Array.Empty<PartyMemberCardViewData>());
         _availableActions = Array.Empty<CombatActionCardViewData>();
-        _statusPanel.SetTurn(1, "PLAYER TURN", CombatPhase.PlayerTurn, 0, 0);
+        _statusPanel.SetTurn(1, "PLAYER TURN", true, 0, 0);
         _messageLog.Clear();
         _actionPanel.SetActions(Array.Empty<CombatActionCardViewData>());
         _continueButton.Visible = false;
@@ -83,10 +83,10 @@ public partial class CombatPanel : PanelContainer
         _statusPanel.SetTurn(
             viewData.Round,
             viewData.ActiveTurnLabel,
-            viewData.Phase,
+            viewData.IsPlayerTurn,
             viewData.CurrentActionPoints,
             viewData.ActionCapacity);
-        _endTurnButton.Visible = viewData.Phase == CombatPhase.PlayerTurn;
+        _endTurnButton.Visible = viewData.IsPlayerTurn;
         _continueButton.Visible = false;
 
         foreach (CombatMessage message in viewData.NewMessages)
