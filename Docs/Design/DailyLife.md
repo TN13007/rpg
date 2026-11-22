@@ -126,6 +126,23 @@ At the same afternoon decision point:
 
 These branches should remain viable for different player priorities. No single activity should be the universally optimal choice for every day.
 
+## 5. Current implementation boundary
+
+The design target must not be confused with the current playable prototype:
+
+| Area | Current `main` behavior | Loop 2 target |
+|---|---|---|
+| Starting context | `GameClock` starts at Day 1, 07:30; `MainController` starts Exploration at `university_campus` | The representative journey starts at student housing; the initial Location can be changed when the playable journey is implemented |
+| Calendar | Day index and minute-of-day only | Weekday semantics derived from the same GameClock |
+| NPC schedules | Authored daily time ranges repeat every day | Optional weekday restrictions for recurring NPC presence when content needs them |
+| Class | `attend_lesson` takes 60 minutes and changes Mood by +1 | A scheduled commitment with a weekday and allowed start window; academic progression still needs its own rules |
+| Study | `browse_library` takes 30 minutes and currently has no progression outcome | A flexible activity with a defined learning/practice outcome once Progression rules are approved |
+| Work | `work_shift` takes 180 minutes and currently adds 30 Gold at the Corner Café | A scheduled commitment with a start window and explicit income outcome |
+| Meal | `eat_meal` takes 20 minutes, restores 3 Stamina and adds 2 Mood; it currently has no Gold cost | A small paid/low-cost choice once spending is implemented and prices are authored |
+| Currency | Character can receive Gold; no spending operation exists | Explicit validated spending and earning with no debt or partial mutation |
+
+The current work action is not yet schedule-gated, the current class action does not record attendance, and the current study action does not grant Knowledge or Skill growth. These are design gaps, not implemented features. The sample starting Location and weekday calendar are also target decisions, not current runtime behavior.
+
 ## 5. Activity resolution contract
 
 An ordinary Loop 2 activity follows this conceptual flow:
@@ -139,7 +156,7 @@ An ordinary Loop 2 activity follows this conceptual flow:
 
 A rejected action must not partially spend money, advance time, add Fatigue or apply effects. This is an execution invariant, not a promise that all activity domains must share one universal executor. Each domain retains ownership of its rules and delegates only genuinely shared calculations/state operations.
 
-## 6. Shared-system contracts required by Loop 2
+## 7. Shared-system contracts required by Loop 2
 
 ### 6.1 Time and lightweight weekly calendar
 
@@ -201,7 +218,7 @@ Loop 2 can provide instruction, study and deliberate practice. Loop 3 can provid
 
 No universal XP pool, level formula, skill-point award, anti-farming rule or attribute-growth formula is approved by this document. Those rules remain open in [Progression Design](Progression.md). Do not implement a generic progression event/API until at least one complete activity demonstrates the required data and behavior.
 
-## 7. Loop 2 activity scope
+## 8. Loop 2 activity scope
 
 | Activity group | Initial treatment | Reason |
 |---|---|---|
@@ -221,7 +238,7 @@ No universal XP pool, level formula, skill-point award, anti-farming rule or att
 | Full social network / autonomous NPC life | Defer | Not needed for a player-directed daily routine |
 | Detailed hobby, sport or volunteer simulation | Defer | Use Loop 3 only when a specific activity earns dedicated rules |
 
-## 8. Loop 2 and Loop 3 interaction
+## 9. Loop 2 and Loop 3 interaction
 
 Loop 2 supplies the shared context in which specialized activities happen:
 - The current GameClock time and weekday.
@@ -234,7 +251,7 @@ Loop 3 may consume time or resources, change Character state, create knowledge o
 
 A specialized activity does not automatically consume a fixed daily-life duration while it is running. Its world-time cost must be authored and applied at the appropriate domain boundary. Do not advance GameClock once per turn or once per frame.
 
-## 9. Player-facing acceptance journey
+## 10. Player-facing acceptance journey
 
 Loop 2's first complete playable slice should demonstrate:
 
@@ -250,7 +267,7 @@ Loop 2's first complete playable slice should demonstrate:
 - The player can complete the day without entering a paranormal event or Combat.
 - A Loop 3 activity can be entered and exited without duplicating or resetting shared Character/time state.
 
-## 10. Explicit non-goals
+## 11. Explicit non-goals
 
 - A mandatory morning-to-night quest checklist.
 - A full real-world calendar with months, years, holidays or time zones.
@@ -262,7 +279,7 @@ Loop 2's first complete playable slice should demonstrate:
 - A generic Quest, Event, Schedule, Resource or World Simulation framework.
 - New XP, skill, attribute, relationship or fatigue formulas without a separately validated design decision.
 
-## 11. Open decisions
+## 12. Open decisions
 
 The following require a concrete playable scenario or balance test before implementation:
 - Which weekdays and time windows the first class and work shift use.
