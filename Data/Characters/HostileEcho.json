@@ -1,0 +1,28 @@
+{
+  "id": "hostile_echo",
+  "name": "Unstable Echo",
+  "role": "A secondary manifestation of Unit 213",
+  "level": 1,
+  "maxHealth": 28,
+  "maxFatigue": 0,
+  "maxStamina": 0,
+  "maxMood": 0,
+  "startingHealth": 28,
+  "startingFatigue": 0,
+  "startingStamina": 0,
+  "startingMood": 0,
+  "startingGold": 0,
+  "stats": {
+    "strength": 8,
+    "agility": 6,
+    "intelligence": 3,
+    "endurance": 7,
+    "wisdom": 3,
+    "luck": 4
+  },
+  "combatActionIds": [
+    "presence_quick_jab",
+    "presence_heavy_swing",
+    "presence_staggering_blow"
+  ]
+}
