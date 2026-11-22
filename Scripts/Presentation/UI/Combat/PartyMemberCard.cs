@@ -1,7 +1,7 @@
 using System;
 using Godot;
 
-/// <summary>Presents a Party member and allows selecting that member as the next acting character.</summary>
+/// <summary>Presents one Party member from Presentation-owned data and emits selection events.</summary>
 public partial class PartyMemberCard : Button
 {
     /// <summary>Raised when an eligible Party member is selected.</summary>
@@ -14,7 +14,7 @@ public partial class PartyMemberCard : Button
     private string _memberId = string.Empty;
     private string _displayName = string.Empty;
     private CombatCardVfx _vfx;
-    private bool _isActive;
+    private bool _canAct;
     private bool _isSelected;
 
     /// <summary>Gets the displayed member name.</summary>
@@ -24,7 +24,7 @@ public partial class PartyMemberCard : Button
     public string MemberId => _memberId;
 
     /// <summary>Gets whether this member can act during the current Player Turn.</summary>
-    public bool IsActive => _isActive;
+    public bool CanAct => _canAct;
 
     /// <summary>Initializes child controls and connects the pressed signal.</summary>
     public override void _Ready()
@@ -37,12 +37,11 @@ public partial class PartyMemberCard : Button
 
         Pressed += HandlePressed;
         FocusMode = FocusModeEnum.All;
-        MouseDefaultCursorShape = CursorShape.PointingHand;
         UpdateStyle();
     }
 
-    /// <summary>Updates the member status and whether the card can currently be selected.</summary>
-    public void SetMember(PartyCombatStatus member)
+    /// <summary>Updates this card from a Presentation-owned view model.</summary>
+    public void SetMember(PartyMemberCardViewData member)
     {
         if (member == null)
         {
@@ -57,12 +56,12 @@ public partial class PartyMemberCard : Button
 
         _memberId = member.Id;
         _displayName = member.Name;
-        _isActive = member.IsActive;
-        _isSelected = _isSelected && _isActive;
-        Disabled = !_isActive;
+        _canAct = member.CanAct;
+        _isSelected = _isSelected && _canAct;
+        Disabled = !_canAct;
 
-        _nameLabel.Text = member.Name + (member.IsActive ? "  ·  READY" : string.Empty);
-        _nameLabel.AddThemeColorOverride("font_color", member.IsActive ? UiTheme.Accent : UiTheme.Text);
+        _nameLabel.Text = member.Name + (member.CanAct ? "  ·  READY" : string.Empty);
+        _nameLabel.AddThemeColorOverride("font_color", member.CanAct ? UiTheme.Accent : UiTheme.Text);
         _healthLabel.Text = "HP  " + member.CurrentHealth + " / " + member.MaxHealth;
         _healthBar.MaxValue = member.MaxHealth;
         _healthBar.Value = member.CurrentHealth;
@@ -76,11 +75,11 @@ public partial class PartyMemberCard : Button
     /// <summary>Sets the selected state while preserving the member's current eligibility.</summary>
     public void SetSelected(bool selected)
     {
-        _isSelected = selected && _isActive;
+        _isSelected = selected && _canAct;
         UpdateStyle();
     }
 
-    /// <summary>Plays the requested combat feedback cue.</summary>
+    /// <summary>Plays a combat feedback cue for this Party member.</summary>
     public void PlayFeedback(CombatFeedbackType feedbackType)
     {
         _vfx.PlayFeedback(feedbackType);
@@ -88,7 +87,7 @@ public partial class PartyMemberCard : Button
 
     private void HandlePressed()
     {
-        if (!_isActive || string.IsNullOrWhiteSpace(_memberId))
+        if (!_canAct || string.IsNullOrWhiteSpace(_memberId))
         {
             return;
         }
@@ -101,28 +100,28 @@ public partial class PartyMemberCard : Button
     {
         Color background = _isSelected
             ? new Color("#514735")
-            : _isActive
+            : _canAct
                 ? new Color("#373e47")
                 : UiTheme.PanelLight;
         Color border = _isSelected
             ? UiTheme.Accent
-            : _isActive
+            : _canAct
                 ? new Color("#8c7955")
                 : new Color("#3a424e");
         int width = _isSelected ? 2 : 1;
 
         AddThemeStyleboxOverride("normal", CreateStyle(background, border, width));
         AddThemeStyleboxOverride("hover", CreateStyle(
-            _isActive ? new Color("#46515e") : background,
+            _canAct ? new Color("#46515e") : background,
             border,
             width));
         AddThemeStyleboxOverride("pressed", CreateStyle(
-            _isActive ? new Color("#514735") : background,
+            _canAct ? new Color("#514735") : background,
             border,
             width));
         AddThemeStyleboxOverride("disabled", CreateStyle(UiTheme.PanelLight, new Color("#3a424e"), 1));
         AddThemeStyleboxOverride("focus", CreateStyle(background, UiTheme.Accent, 2));
-        MouseDefaultCursorShape = _isActive ? CursorShape.PointingHand : CursorShape.Arrow;
+        MouseDefaultCursorShape = _canAct ? CursorShape.PointingHand : CursorShape.Arrow;
     }
 
     private static StyleBoxFlat CreateStyle(Color background, Color border, int borderWidth)
