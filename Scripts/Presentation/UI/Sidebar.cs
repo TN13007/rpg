@@ -62,7 +62,7 @@ public partial class Sidebar : PanelContainer
 
     /// <summary>Enters combat and displays its related combat UI.</summary>
     /// <param name="enemies">The enemies used by this operation.</param>
-    public void EnterCombat(EnemyCombatStatus[] enemies)
+    public void EnterCombat(EnemyCardViewData[] enemies)
     {
         _characterSection.Visible = false;
         _diarySection.Visible = false;
@@ -87,9 +87,9 @@ public partial class Sidebar : PanelContainer
 
         if (enemies != null)
         {
-            foreach (EnemyCombatStatus enemy in enemies)
+            foreach (EnemyCardViewData enemy in enemies)
             {
-                if (enemy == null || !enemy.IsVisible || string.IsNullOrWhiteSpace(enemy.Id))
+                if (enemy == null || string.IsNullOrWhiteSpace(enemy.Id))
                 {
                     continue;
                 }
