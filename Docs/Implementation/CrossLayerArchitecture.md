@@ -121,7 +121,6 @@ Data/*.json
       -> GameContentCatalog cross-content reference validation
   -> indexed content catalogs
       -> runtime objects and Application services
-  -> runtime objects and Application services
   -> Presentation
 ```
 
