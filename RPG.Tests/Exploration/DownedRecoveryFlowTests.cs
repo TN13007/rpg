@@ -183,10 +183,8 @@ public sealed class DownedRecoveryFlowTests
 
     private static LocationCatalog LoadLocations()
     {
-        LocationCatalog locations = new LocationCatalog();
         string path = Path.Combine(AppContext.BaseDirectory, "Data", "Locations.json");
-        locations.LoadJson(File.ReadAllText(path));
-        return locations;
+        return LocationDataLoader.LoadJson(File.ReadAllText(path));
     }
 
     private static Character CreateFastTestEnemy()
