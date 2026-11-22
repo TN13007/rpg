@@ -69,9 +69,9 @@ public partial class CombatPreview : Control
         _combatPanel.ApplyViewData(_mapper.Map(previewResult));
     }
 
-    private void OnActionSelected(CombatActionRequest request)
+    private void OnActionSelected(CombatActionSelection selection)
     {
-        GD.Print("Combat preview selected action: " + request.ActionId + ", actor: " + request.ActorId + ", target: " + request.TargetId + ".");
+        GD.Print("Combat preview selected action: " + selection.ActionId + ", actor: " + selection.ActorId + ", target: " + selection.TargetId + ".");
     }
 
     private void OnEndPlayerTurn()
