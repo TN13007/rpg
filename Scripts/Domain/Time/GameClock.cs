@@ -54,9 +54,14 @@ public sealed class GameClock
     /// <param name="amount">The non-negative number of minutes to advance.</param>
     public void AdvanceMinutes(int amount)
     {
+        if (amount < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(amount));
+        }
+
         if (!CanAdvanceMinutes(amount))
         {
-            throw new ArgumentOutOfRangeException(nameof(amount), "The GameClock cannot represent this advancement.");
+            throw new OverflowException("The GameClock day counter cannot represent this advancement.");
         }
 
         long totalMinutes = (long)MinutesOfDay + amount;
