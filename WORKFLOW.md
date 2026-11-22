@@ -2,7 +2,7 @@
 
 **Repository:** [TN13007/rpg](https://github.com/TN13007/rpg)  
 **Engine:** Godot 4.7.2 .NET / C#  
-**Last reviewed:** 2026-11-21  
+**Last reviewed:** 2026-11-22  
 **Baseline:** latest `main`; open or unmerged PRs are proposals, not implemented behavior.
 
 > This is the only changing project-status and handoff tracker. Do not create separate status, Session-history, decision or learning trackers.
@@ -30,7 +30,7 @@ The accepted product direction is a player-directed modern student-life RPG:
 - Paranormal incidents exist as optional opportunities discovered through rumors, conversations and local information.
 - The player may investigate, ignore, leave or seek professional help; combat is not mandatory for every anomaly.
 - Phones, laptops and the Internet are ordinary tools, not magical artifacts.
-- Tactical Timeline combat remains a specialized rules domain for situations that justify confrontation.
+- Discrete shared-AP turn-based combat remains a specialized rules domain for situations that justify confrontation.
 
 The former fantasy Academy setting is superseded. New player-facing content must use the modern setting. The design source of truth is [Game Vision](Docs/Design/GameVision.md), [World and Narrative](Docs/Design/WorldAndNarrative.md), [Combat](Docs/Design/Combat.md) and [Product Roadmap](Docs/Design/Roadmap.md).
 
@@ -40,7 +40,11 @@ The refactor branch replaces the Academy content with a modern city graph in `Da
 
 The four-person combat party is now Alex, Noah, Mira and Sera, with an Unstable Presence as the authored enemy. Daily schedules and interactions are authored for Mira, Noah, Sera and Ms. Carter. The Unit 213 event supports observation, cautious entry and retreat without forcing combat.
 
-This branch has not yet been merged; latest `main` remains the previous Academy build until the refactor PR is accepted. CI has passed all .NET tests, the Godot 4.7.2 build, and headless main-scene/combat-preview smoke checks. A manual interactive player-journey playthrough has not yet been performed. Do not describe the full new journey as manually playtested until it has been opened and played in Godot.
+The modern student-life/city refactor is already merged into `main`; Issue #110 is closed. The four-person Party is Alex, Noah, Mira and Sera. Unit 213 remains an optional incident with non-combat responses as well as a playable Combat encounter.
+
+The combat runtime migration is also merged: PR #131 added the shared Domain ActionPool, and PR #133 replaced Timeline/Intent with discrete Player Turn → Enemy Turn rounds. The playable Unit 213 encounter starts with 2 shared AP, each successful Party action costs 1 AP, each living Enemy resolves one authored pattern step per Enemy Turn, and world time/fatigue completion remains one-time at encounter exit. The PR CI passed 202 .NET tests, the Godot 4.7.2 Debug build and headless Main/Combat Preview checks. A full interactive Unit 213 acceptance run is still not recorded.
+
+Issue #134 tracks the Arousal/Tease/Orgasm runtime MVP; do not fabricate meter values in Presentation before that runtime supplies them. Issue #135 / PR #136 implements the character-focused data-driven Combat UI. PR #136 CI is in progress; do not treat the UI as verified until its CI and interactive Godot acceptance pass.
 
 The runtime still does not provide durable incident flags, delayed incident progression, a social-feed interface or actual professional dispatch/payment behavior. Do not add a generic Quest, Incident, Social Network or World Simulation framework without a concrete player-facing requirement.
 
@@ -64,20 +68,11 @@ The Git workflow, commit granularity and PR requirements are defined only in [CO
 
 ## 4. Current handoff
 
-**Immediate implementation priority:** [Issue #110 — Modern student life and paranormal incident](https://github.com/TN13007/rpg/issues/110).
+**Immediate implementation priority:** [Issue #135 — Character-focused, data-driven Combat UI](https://github.com/TN13007/rpg/issues/135), tracked in [PR #136](https://github.com/TN13007/rpg/pull/136).
 
-Review the refactor PR for these outcomes:
-- No active game content or runtime startup path depends on the fantasy Academy.
-- The modern campus/city graph loads with valid exits and content references.
-- Daily-life actions, NPC schedules and NPC interactions use the existing supported contracts.
-- The Unit 213 incident is optional and provides non-combat responses.
-- The four-person Tactical Timeline remains a separate system and existing combat tests remain valid.
-- Active documentation describes the modern setting and current runtime accurately.
+PR #136 currently moves the combat UI to Presentation-owned view models, adds action category/list/details/confirmation/target selection, focuses the selected Party member in the Character Panel, adds target hover/selected/invalid feedback, and updates Combat Design + Presentation docs. Its current CI run must pass before it is considered code-verified. Then perform an interactive Godot 4.7.2 acceptance run with one and multiple Enemies, all four Party members, long names, action categories/details, valid/invalid target hover and selection, cancel, action feedback, End Player Turn, and return to Exploration.
 
-After the PR is merged, manually run `Scenes/Main.tscn` in Godot 4.7.2 .NET and verify the campus start, travel, NPC presence, daily actions, Unit 213 event, retreat and debug Combat encounter.
-
-[Issue #91 — Four-Person Tactical Timeline Encounter](https://github.com/TN13007/rpg/issues/91) remains a separate Combat backlog item. Keep its Enemy Intent and second enemy behavior work independent from the setting migration. [Issue #79](https://github.com/TN13007/rpg/issues/79) remains a later progression backlog item.
-
+[Issue #91 — Turn-Based Combat, UI Redesign and Arousal MVP](https://github.com/TN13007/rpg/issues/91) remains the umbrella acceptance issue. [Issue #134](https://github.com/TN13007/rpg/issues/134) owns Tease/Arousal/Orgasm runtime behavior; the UI must show only real meter values once that system is integrated. [Issue #79](https://github.com/TN13007/rpg/issues/79) remains a later progression backlog item.
 Do not begin autonomous NPC simulation, broad Character abstractions or a general refactor unless a demonstrated player-facing requirement needs them.
 
 ## 5. Learning evidence
