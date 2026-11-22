@@ -40,21 +40,3 @@ Knowledge may help the player recognize patterns, assess risk or choose a safer 
 ## Open decisions
 
 Which attributes are active and what each changes; whether levels, activity-linked growth or milestones drive progression; how practical skills are learned and equipped; whether Mastery is necessary; how equipment changes action timing and options; and how relationships mechanically affect investigation or combat.
-
-## Body Profile progression
-
-**Status:** Long-term direction selected; deferred from the first Arousal implementation.
-
-Body Profile may become a long-term character progression dimension. The selected direction is that body attributes can develop over time rather than remaining fixed constants.
-
-This is not part of the first Tease/Arousal combat slice. The first slice uses a fixed Arousal amount authored on the Tease action. Do not introduce body-region data, hidden multipliers or progression rules until the basic action loop is implemented and tested.
-
-Future candidates include:
-- Body regions and their individual attributes.
-- Persistent growth through authored activities or milestones.
-- Temporary body state during encounters.
-- Enemy preferences that influence target selection.
-
-These are future design candidates, not accepted implementation requirements. Each must demonstrate a distinct gameplay outcome before being added.
-
-The relationship between Body Profile and combat resolution is owned by [Combat Design](Combat.md). Progression must not independently calculate combat effects.

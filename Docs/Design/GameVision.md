@@ -1,7 +1,7 @@
 # Game Vision — Modern Student Life
 
 **Status:** Accepted product direction  
-**Last updated:** 2026-11-22
+**Last updated:** 2026-11-21
 
 ## High concept
 
@@ -11,7 +11,7 @@ Most days are familiar: attend classes, study, work a part-time job, meet friend
 
 The protagonist is not a chosen one and is not required to save the world. The supernatural is an optional part of a larger everyday life, not a mandatory quest chain. Phones, laptops, messaging apps and the Internet are ordinary tools; they are not magical artifacts.
 
-Combat is a specialized interaction context for situations where confrontation makes sense. It should not define every anomaly or replace investigation, retreat and asking for help.
+Tactical combat remains a specialized interaction context for situations where confrontation makes sense. It should not define every anomaly or replace investigation, retreat and asking for help.
 
 ## Experience priorities
 
@@ -41,11 +41,9 @@ Phones, laptops, cameras, online forums and messaging are normal parts of contem
 
 NPCs should feel like students, friends, coworkers, residents and professionals before they become sources of quests or combat statistics. Their routines and interactions should support recognizable relationships and choices.
 
-### Character-Focused Turn-Based Combat
+### Tactical Timeline Combat
 
-Combat is a discrete turn-based system centered on the active character, party condition and enemy behavior patterns. The player directly controls the four-person party. HP and Arousal provide two distinct dimensions of enemy state; party members also expose HP, Satisfaction and relevant resources. Action frequency is governed by a discrete action-economy rule, while skills use turn-based cooldowns. Combat has no real-time Timeline or advance Enemy Intent display.
-
-A paranormal incident may never reach combat if the player observes, retreats or seeks help.
+Combat remains a separate rules domain for dangerous confrontations. It uses its own Timeline, party decisions and action resolution. A paranormal incident may never reach combat if the player observes, retreats or seeks help.
 
 ## Shared world-interaction model
 
@@ -70,7 +68,7 @@ Current life and world context
  The next day and later situations reflect it
 ```
 
-Daily-life actions may advance GameClock by minutes or hours. Combat uses its own discrete turn/round flow and pauses for player decisions. Travel changes the current Location through the supported navigation flow. Events may present a situation and choices; a choice may resolve as an ordinary action or start a specialized Combat flow.
+Daily-life actions may advance GameClock by minutes or hours. Combat uses its own Combat Timeline and pauses for player decisions. Travel changes the current Location through the supported navigation flow. Events may present a situation and choices; a choice may resolve as an ordinary action or start a specialized Combat flow.
 
 This is a shared design model, not a requirement for one universal interaction executor in code. Keep each gameplay domain responsible for its own rules.
 
@@ -92,7 +90,7 @@ The former fantasy Academy setting is superseded. New player-facing content must
 - Give the player at least one optional paranormal incident with multiple understandable responses.
 - Keep the ordinary-life loop worthwhile when the player ignores the incident.
 - Add durable consequences only when a concrete journey needs them.
-- Keep turn-based combat optional and specialized rather than mandatory for every incident.
+- Preserve the existing Tactical Timeline combat implementation without making combat mandatory for every incident.
 - Prefer authored content and the smallest supported rules before introducing general systems for quests, incidents, social feeds or autonomous world simulation.
 
 ## Scope test
