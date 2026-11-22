@@ -117,7 +117,7 @@ Use one discrete Knowledge entry rather than generic XP:
 
 **Acquisition condition (proposed):**
 1. Complete `monday_research_methods_lecture`.
-2. Complete `browse_library` at `campus_library` after that lecture, on the same day.
+2. Complete `browse_library` at `campus_library` on the same day; the order of the two activities does not matter.
 
 **Use in a later Loop 3 scenario (proposed):** Reveal a `compare_sources` investigation option when the player examines conflicting witness accounts or archived reports.
 
@@ -159,7 +159,7 @@ The first playable implementation should pass these cases:
 6. The meal spends exactly 5 Gold once; insufficient funds reject it without advancing time or applying effects.
 7. Work adds 30 Gold once after the full shift resolves.
 8. The player cannot complete both the 13:00 work shift and the overlapping 15:00 club meeting.
-9. The Knowledge entry is granted only after both the lecture and the subsequent Library study.
+9. The Knowledge entry is granted only after both the lecture and Library study are completed on the same day.
 10. Sleep from 23:00 advances 480 minutes, rolls to Day 2 at 07:00 and applies recovery once.
 11. The player can complete the day without visiting `apartment_block` or triggering the Unit 213 incident.
 
