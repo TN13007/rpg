@@ -8,7 +8,7 @@
 Combat is a character-focused, turn-based RPG encounter. The player directly controls a four-character party and chooses each party member's actions. Combat is built around three interacting concerns:
 
 - **Physical survival:** manage HP, damage and incapacitation.
-- **Satisfaction:** build or manage Satisfaction through actions such as Tease and Allure. Satisfaction is a combat state with consequences, not merely a decorative meter.
+- **Arousal:** build or manage Arousal through actions such as Tease and Allure. Arousal is a combat state with consequences, not merely a decorative meter.
 - **Action economy:** decide how often each combatant can act, manage resources and use skills when their turn-based cooldowns permit.
 
 The presentation prioritizes the active character and the party's condition. Combat should communicate important state through character presentation, animation and compact meters rather than requiring the player to read a large amount of text.
@@ -25,11 +25,11 @@ The presentation prioritizes the active character and the party's condition. Com
 | Positioning | No front/back rows or tactical grid |
 | Enemy behavior | Enemies execute authored, repeating or otherwise fixed action patterns |
 | Action frequency | AGI or another selected attribute determines how many actions a combatant can take in a turn/round; exact rule is open |
-| Enemy visible meters | HP and Satisfaction only |
-| Party visible meters | HP, Satisfaction and relevant resources such as Mana or Stamina |
+| Enemy visible meters | HP and Arousal only |
+| Party visible meters | HP, Arousal and relevant resources such as Mana or Stamina |
 | Skill cooldown | Measured in turns, not elapsed time |
 | Enemy physical defeat | HP reaching zero incapacitates the enemy; it can no longer act |
-| Satisfaction threshold | Satisfaction begins at 0 and reaching 100 triggers Orgasm |
+| Arousal threshold | Arousal begins at 0 and reaching 100 triggers Orgasm |
 | Orgasm consequence | Each occurrence removes a configured amount of HP and may apply Fatigue, Stun or another authored consequence |
 | Resource persistence | Hybrid; exact resource types and recovery rules remain open |
 | World structure | University and city locations with optional paranormal incidents |
@@ -87,13 +87,13 @@ Each enemy exposes exactly two primary meters in the combat UI:
 | Meter | Meaning |
 |---|---|
 | HP | Physical survivability. At 0, the enemy is incapacitated and can no longer act. |
-| Satisfaction | Starts at 0 and increases when affected by actions such as Tease or Allure. At 100, it triggers Orgasm. |
+| Arousal | Starts at 0 and increases when affected by actions such as Tease or Allure. At 100, it triggers Orgasm. |
 
 Enemy cards should not display a collection of secondary combat stats or a persistent intent description. Other data may exist in the simulation, but it should not be added to the enemy's primary UI without a demonstrated player decision that requires it.
 
-### 5.2 Satisfaction and Orgasm
+### 5.2 Arousal and Orgasm
 
-Satisfaction is accumulated from actions and effects that explicitly contribute to it. When Satisfaction reaches 100, the enemy triggers an Orgasm event.
+Arousal is accumulated from actions and effects that explicitly contribute to it. When Arousal reaches 100, the enemy triggers an Orgasm event.
 
 The event has two accepted consequences:
 
@@ -102,7 +102,7 @@ The event has two accepted consequences:
 
 The following details remain open and must not be silently hard-coded as design decisions:
 
-- Whether Satisfaction resets to 0, retains overflow or follows another rule after Orgasm.
+- Whether Arousal resets to 0, retains overflow or follows another rule after Orgasm.
 - Whether HP loss is fixed, percentage-based or scaled by other factors.
 - Whether Fatigue and Stun are guaranteed, conditional or selected by enemy-specific rules.
 - Whether repeated Orgasm events become less effective or create escalating consequences.
@@ -115,10 +115,10 @@ Orgasm is a combat event, not automatically an instant victory. The enemy become
 Party members expose:
 
 - **HP:** physical survivability.
-- **Satisfaction:** the character's current Satisfaction state.
+- **Arousal:** the character's current Arousal state.
 - **Relevant resources:** for example Mana or Stamina, according to the character's abilities and available actions.
 
-The UI should not show resource meters that have no meaningful gameplay use for that character. Party Satisfaction may have consequences distinct from enemy Satisfaction; those consequences are not yet defined and must not be copied from enemy rules by assumption.
+The UI should not show resource meters that have no meaningful gameplay use for that character. Party Arousal may have consequences distinct from enemy Arousal; those consequences are not yet defined and must not be copied from enemy rules by assumption.
 
 ### 5.4 Incapacitation and recovery
 
@@ -126,101 +126,36 @@ Enemy HP reaching 0 means the enemy is incapacitated and cannot perform further 
 
 The party's zero-HP state, Downed/revival behavior and post-encounter recovery need to be reconciled with the new turn-based model before implementation. Existing Timeline-specific revival timing and Recovery Cost rules are superseded and must not be carried forward unchanged.
 
-## 6. Body profile, exposure and arousal interaction
+## 6. Arousal
 
-**Status:** Body Profile progression direction selected; individual attributes, growth sources, formulas and balance remain proposed/open.
+**Status:** Simple combat mechanic selected for the first implementation.
 
-This system adds a hidden body-state simulation layer to combat. It must remain separate from the two primary combat meters (HP and Satisfaction) and must not turn the combat UI into a display of body-part statistics.
+Arousal is a visible combat meter, separate from HP:
 
-### 6.1 Body Profile
+- **Attack** reduces the target's HP.
+- **Tease** increases the target's Arousal.
+- Both are ordinary combat actions resolved against a selected target.
+- Arousal starts at 0 and is capped at 100.
+- When Arousal reaches 100, the target triggers the encounter's Orgasm event.
 
-Each character may have a persistent Body Profile containing data for the following regions:
+For the first implementation, Arousal gain is a fixed amount authored on the action definition. Do not calculate it from body-part attributes, exposure, accessibility, enemy preferences or hidden multipliers.
 
-- Mouth
-- Hands
-- Chest
-- Genitals
-- Anus
-- Skin
+The first playable version needs only:
+1. An Arousal value on the combatant.
+2. A Tease action with a configured Arousal amount.
+3. A combat effect that adds Arousal to the selected target.
+4. A visible Arousal meter beside the target's HP.
+5. Threshold handling when Arousal reaches 100.
 
-The selected progression direction is **B: body attributes can develop over the course of the game**. These attributes are not assumed to be fixed character constants. Growth may be influenced by authored experiences, training, milestones or other progression sources, but the exact sources and rates are not yet decided.
+After the threshold event, reset Arousal to 0 for the next cycle. If the threshold is reached, trigger the event once for that application; do not repeatedly trigger it while the value remains capped.
 
-Candidate per-region attributes:
+The existing Orgasm consequence remains the initial placeholder: remove a configured amount of HP. Additional effects, scaling and resistance are deferred until the basic loop is playable.
 
-| Attribute | Intended meaning | Design status |
-|---|---|---|
-| Sensitivity | How strongly the region responds to a relevant interaction | Proposed |
-| Resilience | How well the region resists or mitigates relevant effects | Proposed |
-| Familiarity | How accustomed the character is to a category of interaction | Proposed |
+### Deferred body simulation
 
-These are candidates, not a requirement that every region must have all three attributes. Do not add attributes unless they produce distinct, testable gameplay outcomes. Growth must not be assumed to be universally beneficial: increasing one capability may create a trade-off, change a response profile or have no effect outside relevant interactions.
+Body Profile progression (direction B), body regions, Sensitivity, Resilience, Familiarity, Exposure, Accessibility and Enemy Preference are future extensions. They are **not required** for the first Tease/Arousal implementation and must not block it.
 
-### 6.2 Current Body State
-
-Persistent Body Profile data must be distinguished from temporary encounter state.
-
-| State | Intended meaning | Typical source |
-|---|---|---|
-| Exposure | Whether and how much a region is currently exposed | Clothing, actions, encounter events |
-| Accessibility | Whether an opponent can currently reach or affect the region | Position/context, restraints or other encounter conditions |
-| Temporary Effects | Short-lived modifiers to relevant body interactions | Skills, enemy actions, status effects |
-
-Exposure and Accessibility are not synonyms. A region can be exposed but not reachable, or reachable while covered. The system must not infer one automatically from the other.
-
-### 6.3 Enemy Preferences and target selection
-
-Enemy Preference Profile is owned by each enemy, not by the target character. It describes which regions or interaction categories that enemy tends to prioritize.
-
-An enemy must not select a target solely because its preference value is high. Candidate selection should account for at least:
-
-- Preference compatibility.
-- Current Exposure.
-- Current Accessibility.
-- Whether the enemy has an available action capable of affecting that region.
-- Encounter-specific constraints and valid targets.
-
-For example, an enemy with a strong preference for the chest may prioritize that region when it is exposed and accessible. If it is covered or inaccessible, the enemy should select another valid behavior rather than repeatedly attempting an impossible action.
-
-This is a behavioral tendency, not a guarantee that every enemy action targets its favorite region. Enemy patterns remain the authority for which action types are available; preference helps choose among valid options and must not silently override the authored pattern.
-
-### 6.4 Arousal effects and combat resolution
-
-Arousal-related effects are a separate resolution channel from physical HP damage. They must not be added to HP damage as if they were the same resource.
-
-The design must define how an action's base effect interacts with the target region's attributes, current body state and the enemy's preference. A multiplicative expression such as:
-
-`ArousalEffect = BaseEffect × Sensitivity × Exposure × Accessibility × Preference`
-
-is only an illustrative hypothesis. It is not an accepted formula. In particular, the factors need defined scales, bounds, zero behavior and diminishing returns before implementation. Avoid a formula in which multiplying several loosely normalized values creates extreme or unintuitive outcomes.
-
-The combat model currently defines Enemy Satisfaction as a visible meter that reaches its threshold and triggers Orgasm. The relationship between ArousalEffect and Satisfaction gain must be explicit: do not create a second hidden arousal meter that duplicates Satisfaction. If ArousalEffect contributes to Satisfaction, document the conversion and feedback clearly. Party Satisfaction remains a separate unresolved design question; enemy consequences must not be copied to party members by assumption.
-
-### 6.5 UI and information boundaries
-
-Body Profile attributes are simulation data and are not displayed as combat meters. The combat UI continues to prioritize:
-
-- Enemy: HP and Satisfaction.
-- Party member: HP, Satisfaction and relevant resources.
-- Active character and readable action feedback.
-
-Body-related information may be communicated through contextual animation, presentation or concise event feedback when it helps the player understand why an outcome occurred. Do not expose a dense numeric body-stat panel merely to make the hidden simulation inspectable.
-
-### 6.6 Progression and implementation boundaries
-
-Body Profile is persistent character progression data; Exposure, Accessibility and Temporary Effects belong to current state. Enemy Preference belongs to enemy data. These ownership boundaries must remain distinct.
-
-The combat resolver may request the relevant values through a dedicated domain rule, but UI components must not calculate Arousal effects, enemy preference scores or body progression. Progression rules own permanent growth; encounter/combat rules own temporary state and action resolution.
-
-Before implementation, validate the system in a small encounter and answer these open questions:
-
-- Which body attributes are genuinely necessary, and do they have distinct effects?
-- What activities or milestones change each attribute? Can attributes decrease?
-- Is Familiarity a per-region value, a per-interaction-category value or unnecessary?
-- How are Exposure and Accessibility represented and updated?
-- How does Enemy Preference interact with fixed enemy patterns without making behavior random or opaque?
-- Does ArousalEffect directly produce Satisfaction, modify it, or resolve through a separate effect?
-- What are the bounds, diminishing returns and counterplay options?
-- How can the player understand cause and effect without seeing hidden numeric attributes?
+Keep the combat resolver simple: Attack produces HP damage; Tease produces Arousal gain. Do not add a separate hidden Arousal resource or a second formula layer.
 
 ## 7. Skills, resources and cooldowns
 
@@ -242,9 +177,9 @@ All four party members participate in combat and remain player-controlled. The p
 
 The combat screen's visual priority is the character currently taking an action. The main presentation area should focus on that one active character rather than showing four large portraits simultaneously.
 
-The party roster remains visible as a compact status overview so the player can monitor all four members and make decisions based on team-wide conditions. Each member's status presentation includes HP, Satisfaction and relevant resources. Status effects may be shown beneath each member, with a bounded, independently scrollable area so long effect lists do not distort the layout.
+The party roster remains visible as a compact status overview so the player can monitor all four members and make decisions based on team-wide conditions. Each member's status presentation includes HP, Arousal and relevant resources. Status effects may be shown beneath each member, with a bounded, independently scrollable area so long effect lists do not distort the layout.
 
-Enemy presentation is secondary to the active character. Enemies are represented in a compact vertical list; each enemy exposes only its HP and Satisfaction meters as primary combat information.
+Enemy presentation is secondary to the active character. Enemies are represented in a compact vertical list; each enemy exposes only its HP and Arousal meters as primary combat information.
 
 Action selection should group available choices by category. The selected action's details should be shown separately, including relevant cost, cooldown, effect, target requirements and description. UI components render supplied presentation data; they do not calculate combat outcomes or own combat rules.
 
@@ -260,7 +195,7 @@ The status catalogue, stacking, resistance, refresh rules and anti-lockout safeg
 
 An encounter may end through defeating required enemies, completing an objective, escaping where permitted, party defeat or a special encounter condition.
 
-Difficulty should come from readable enemy patterns, action-economy trade-offs, resource and cooldown management, Satisfaction pressure, party protection and meaningful consequences. Do not create difficulty primarily through inflated HP, unavoidable damage or hidden rules.
+Difficulty should come from readable enemy patterns, action-economy trade-offs, resource and cooldown management, Arousal pressure, party protection and meaningful consequences. Do not create difficulty primarily through inflated HP, unavoidable damage or hidden rules.
 
 ## 11. Validation before balance
 
@@ -270,11 +205,11 @@ A playable encounter using the new model must demonstrate:
 - Party members and enemies receive action opportunities according to the discrete turn/action-economy rules.
 - AGI affects action frequency without creating runaway extra turns.
 - Enemy patterns execute deterministically and remain understandable.
-- Enemy HP and Satisfaction are sufficient to communicate the two primary enemy defeat/progression paths.
-- Tease and Allure can increase Satisfaction through explicit, testable effects.
-- Satisfaction reaching 100 triggers Orgasm exactly once according to the selected threshold/reset rule.
+- Enemy HP and Arousal are sufficient to communicate the two primary enemy defeat/progression paths.
+- Tease and Allure can increase Arousal through explicit, testable effects.
+- Arousal reaching 100 triggers Orgasm exactly once according to the selected threshold/reset rule.
 - Orgasm applies HP loss and any configured secondary consequences.
-- Party HP, Satisfaction and relevant resources are visible and update after actions.
+- Party HP, Arousal and relevant resources are visible and update after actions.
 - Skill cooldowns advance by turns according to one documented counting convention.
 - Stun and other statuses use turn-based duration semantics.
 - Four party members create meaningful decisions without excessive decision overhead.
