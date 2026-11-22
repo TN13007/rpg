@@ -44,7 +44,7 @@ It contains systems used repeatedly across the entire game:
 - **Location:** Where characters are and how locations connect.
 - **Actions:** Available actions, their requirements, costs and outcomes.
 - **Resources:** Money, stamina and other resources required by activities.
-- **Progression:** Changes to character capabilities and state over time.
+- **Progression:** A shared, cross-layer system for changes to character capabilities and state. Loop 1 provides the underlying character state and rules; Loop 2 and Loop 3 may both create, use or alter progression through their activities. Progression is not exclusive to one loop.
 
 This layer does not represent a complete gameplay experience by itself. It provides the shared foundation that allows higher-level gameplay to function consistently.
 
@@ -56,17 +56,51 @@ Daily Life builds upon the foundation to create the player's ordinary routine.
 
 The player uses time, locations, characters, actions and resources to organize life and pursue personal goals.
 
-Activities may include:
+The current candidate activity inventory is grouped by the role each activity plays in an ordinary student routine:
 
-- Attending classes and studying.
-- Working part-time jobs.
-- Managing money and personal expenses.
-- Resting and recovering.
-- Visiting shops and public locations.
-- Meeting friends and other characters.
-- Exploring the city.
-- Spending time at home.
-- Developing personal skills and attributes.
+**Academic routine**
+- Attend classes and lectures.
+- Study independently or with classmates.
+- Complete assignments and prepare for exams.
+- Consult lecturers, teaching assistants or classmates.
+- Register for courses and handle ordinary academic administration.
+
+**Work and personal finance**
+- Work part-time shifts, such as café, retail or tutoring work.
+- Search for work and review opportunities.
+- Receive income, pay expenses, shop for necessities and manage savings.
+- Take on ordinary freelance work where it can be represented without a dedicated simulation.
+
+**Personal care and household routine**
+- Eat, sleep, rest and recover.
+- Maintain personal hygiene and keep the living space in order.
+- Cook, do laundry and handle basic household chores.
+- Visit shops, use services and attend routine health appointments.
+
+**Social routine**
+- Meet classmates, friends, coworkers and neighbors.
+- Have casual conversations, share meals and visit people.
+- Send messages, make calls and use ordinary digital communication.
+- Maintain contact through recurring everyday interactions.
+
+**Campus and extracurricular life**
+- Join student clubs and attend regular meetings.
+- Attend campus events and student gatherings.
+- Participate in ordinary club practice sessions.
+- Meet people through university facilities and shared activities.
+
+**Recreation and personal interests**
+- Exercise, run, go to the gym, swim or cycle.
+- Play casual sports with friends.
+- Read, listen to music, watch films, play games, draw, write, cook or practice an instrument.
+- Explore the city, visit public places and take ordinary trips.
+
+**Digital and administrative routine**
+- Check email, messages, university portals and ordinary online information.
+- Read forums or social feeds as sources of information.
+- Complete routine registrations, payments and personal administration.
+
+These are candidate activities, not a requirement to simulate every action in detail. Several may be represented by one contextual action or an abstract activity resolution.
 
 Daily activities provide more than temporary rewards. They establish the player's routine, create opportunities, develop character capabilities and determine the resources available for other activities.
 
@@ -114,7 +148,45 @@ Potential activity domains include:
 
 These domains are not required to share one universal activity system. Each domain owns the rules necessary to deliver its gameplay.
 
+**Additional candidate domains**
+- **Academic challenges:** Research projects, hackathons, academic competitions, major presentations and substantial group projects.
+- **Career challenges:** Job interviews, structured internships, professional projects and startup competitions.
+- **Organization and leadership:** Organizing campus events, coordinating campaigns, leading a club or running a student election.
+- **Competitive and creative activities:** Organized sports competitions, team tournaments, public performances, exhibitions and creative competitions.
+- **Community projects:** Coordinating volunteer teams or delivering structured projects with a defined goal and outcome.
+
+A topic does not automatically determine its loop. Attending a club meeting is ordinary Daily Life; organizing a large event may be a specialized activity. Studying for an exam is Daily Life; a research project with its own stages, evidence and evaluation may justify specialized rules. Casual conversation is Daily Life; a consequential relationship interaction may use the Social Interaction domain.
+
 Specialized activities should expand the player's options without making ordinary life irrelevant.
+
+### Activity classification and scope
+
+Classify an activity by the gameplay it requires, not only by its subject, location or real-world label.
+
+- **Loop 2 — Daily Life:** A recurring or ordinary activity resolved mainly through shared time, location, character state, resources and contextual actions. It should remain understandable without a dedicated ruleset.
+- **Loop 3 — Specialized Activities:** An activity that needs its own meaningful decisions, stages, constraints, evaluation or resolution rules beyond ordinary daily actions.
+- **Activities may bridge both loops:** The ordinary version remains in Loop 2; a structured, consequential or competitive version may enter Loop 3. For example, casual exercise is Loop 2 while an organized tournament is Loop 3.
+
+**Loop 2 scope direction**
+- Keep the academic, work/finance, personal care, social routine, campus/extracurricular, recreation, city-life and digital/administrative activity groups as the current candidate foundation.
+- Prefer compact activity resolution over simulating every small real-world action.
+- Keep routine activities meaningful through their time, resource, location, opportunity and character-state consequences.
+
+**Loop 3 scope direction**
+- Retain Social Interaction, Combat, Romance/Intimacy and structured Investigation as specialized domains.
+- Consider academic, career, organization/leadership, competitive/creative and community-project challenges as candidate domains when a complete player journey demonstrates the need for dedicated rules.
+- Do not create a separate specialized system merely because an activity has a different theme or location.
+
+**Defer from the current scope**
+- Detailed simulation of every work task, household chore or classroom interaction.
+- A complete social network or simulated online ecosystem.
+- Continuous autonomous simulation of every NPC.
+- A city-wide economy or comprehensive career/club management simulation.
+- Full rule systems for every sport, hobby, competition or volunteer activity.
+
+These exclusions are scope decisions for the current design phase, not claims that such content can never be added.
+
+The inventory is intentionally broad and provisional. It identifies possible student-life activities and their likely layer; it does not commit the project to implementing every item. Validate the Loop 2 foundation through a complete ordinary student-day journey before expanding into additional specialized domains. Paranormal, alien and other unusual-world layers remain future design work and should not be used to inflate the current Loop 2 or Loop 3 scope.
 
 ### Loop 4+ — Extended Gameplay
 
