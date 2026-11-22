@@ -193,7 +193,6 @@ Current implementation already owns a monotonic day index, minute-of-day, elapse
 - Keep one-off appointments/events able to reference a specific campaign day.
 - Extend selected NPC presence schedules with weekday restrictions while preserving omitted-weekday daily behavior; validate interval overlap only when entries share at least one weekday.
 - Keep ordinary flexible actions independent of a weekly schedule.
-- Preserve current NPC schedule behavior by treating an omitted weekday restriction as every day. Add weekday restrictions only when content needs them.
 
 The schedule data describes when an opportunity is available; GameClock remains responsible only for current time and rollover. The query that owns the relevant activity decides whether its schedule matches.
 
