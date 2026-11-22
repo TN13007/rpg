@@ -622,8 +622,40 @@ public sealed class ExplorationFlowController
 
     private void HandleLocationEventChoice(string choiceId, string targetId)
     {
-        LocationEventChoiceDefinition selectedChoice = null;
+        HashSet<string> presentNpcIds = _npcPresenceQuery.GetPresentCharacterIds(
+            _sessionState.CurrentLocationId,
+            _gameClock.MinutesOfDay);
 
+        if (!string.IsNullOrWhiteSpace(_activeLocationEvent.RequiredNpcId) &&
+            !presentNpcIds.Contains(_activeLocationEvent.RequiredNpcId))
+        {
+            _activeLocationEvent = null;
+            ShowLocation();
+            _storyPanel.ShowFeedback("The situation has changed; this event is no longer available.");
+            return;
+        }
+
+        bool isCurrentlyAvailable = false;
+        foreach (AvailableInteraction interaction in _availableInteractionQuery.Query(
+            _activeLocationEvent,
+            presentNpcIds))
+        {
+            if (interaction.ActionId == choiceId &&
+                interaction.TargetId == (targetId ?? string.Empty))
+            {
+                isCurrentlyAvailable = true;
+                break;
+            }
+        }
+
+        if (!isCurrentlyAvailable)
+        {
+            _storyPanel.ShowFeedback("That event choice is not available or has changed.");
+            ShowLocationEvent(_activeLocationEvent);
+            return;
+        }
+
+        LocationEventChoiceDefinition selectedChoice = null;
         foreach (LocationEventChoiceDefinition choice in _activeLocationEvent.Choices)
         {
             if (choice.Action.Id == choiceId)
@@ -633,21 +665,9 @@ public sealed class ExplorationFlowController
             }
         }
 
-        if (selectedChoice == null ||
-            (selectedChoice.EncounterActionId ?? string.Empty) != (targetId ?? string.Empty))
+        if (selectedChoice == null)
         {
             _storyPanel.ShowFeedback("That event choice is not available or has changed.");
-            return;
-        }
-
-        if (!string.IsNullOrWhiteSpace(selectedChoice.Action.RequiredNpcId) &&
-            !_npcPresenceQuery.IsPresent(
-                selectedChoice.Action.RequiredNpcId,
-                _sessionState.CurrentLocationId,
-                _gameClock.MinutesOfDay))
-        {
-            _storyPanel.ShowFeedback("That character is no longer here.");
-            ShowLocationEvent(_activeLocationEvent);
             return;
         }
 
