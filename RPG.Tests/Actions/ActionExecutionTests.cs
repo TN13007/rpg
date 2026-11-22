@@ -4,7 +4,7 @@ using Xunit;
 
 public sealed class ActionExecutionTests
 {
-    private LocationCatalog _locations;
+    private LocationCatalog _locations = new LocationCatalog();
     private readonly ActionExecutionService _service =
         new ActionExecutionService(new ActivityTimeCalculator(), new ActionEffectExecutor());
 
