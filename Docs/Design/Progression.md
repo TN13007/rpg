@@ -1,7 +1,7 @@
 # Character Progression Design
 
-**Status:** Directional; detailed progression rules remain open  
-**Last updated:** 2026-11-21
+**Status:** Directional; Action Capacity growth direction accepted, detailed progression rules remain open
+**Last updated:** 2026-11-22
 
 ## Purpose
 
@@ -12,13 +12,14 @@ Progression should expand what the student and their companions can do across or
 | Dimension | Design responsibility | Desired player impact |
 |---|---|---|
 | Attributes | Broad character capabilities | Change underlying strengths and weaknesses |
+| Action Capacity | Party-wide number of skill uses available in a Player Turn | Unlock longer Party combos and more flexible action sequences |
 | Equipment | Practical tools and build specialization | Change action properties, defense or tactical trade-offs |
 | Skills | Practical and tactical options | Add or modify actions, effects and combinations |
 | Mastery / proficiency | Focused expertise | Reward deliberate use of a capability where appropriate |
 | Knowledge | Understanding of people, places and anomalies | Help the player make better-informed decisions |
 | Relationships / support | Social and character development | Create meaningful assistance, conflicts or opportunities |
 
-These are candidate dimensions, not a commitment to implement six separate systems. Avoid overlap: each system must own a distinct player-facing outcome.
+These are candidate dimensions, not a commitment to implement seven separate systems. Avoid overlap: each system must own a distinct player-facing outcome.
 
 ## Principles
 
@@ -28,6 +29,18 @@ These are candidate dimensions, not a commitment to implement six separate syste
 4. Support multiple viable approaches to an incident.
 5. Make growth readable: the player should understand what changed and how to use it.
 6. Introduce only the progression dimensions required by the current playable slice.
+
+## Action Capacity and team training
+
+Combat uses one shared Action Point (AP) pool for the entire Party. **Action Capacity** is the Party-level progression value that sets the AP available at the start of each Player Turn. It is not a separate AP bar for each character, is not the sum of individual Agility values and is not a personal action quota for each Party member.
+
+In the first playable slice, Action Capacity is bounded from 1 to 4. Each successful skill use costs 1 AP. The player may spend the shared pool on any active Party member and may select the same member more than once while AP remains and the chosen skills are eligible. This allows training to expand the number of skill activations and the length of a coordinated Party combo.
+
+Training should provide a clear in-world way to improve Action Capacity. Suitable activities include team drills, sparring and tactical coordination practice. They should use the existing daily-life activity model where possible, with visible costs such as GameClock time and exertion. Avoid creating a separate training minigame or universal training framework before a playable scenario needs one.
+
+Training must not become an unlimited, consequence-free grind. The growth cadence, thresholds, daily limits or diminishing returns should make repeated practice a meaningful choice against study, work, rest and other activities. Exact costs, starting Action Capacity and progression increments remain open until tested.
+
+Action Capacity is intentionally a Party-level value. Its eventual storage/ownership in runtime data is an implementation decision; do not duplicate the same capacity across all four character records or derive it from a sum of their attributes without a demonstrated design need.
 
 ## Student life and personal development
 
@@ -39,4 +52,4 @@ Knowledge may help the player recognize patterns, assess risk or choose a safer 
 
 ## Open decisions
 
-Which attributes are active and what each changes; whether levels, activity-linked growth or milestones drive progression; how practical skills are learned and equipped; whether Mastery is necessary; how equipment changes action timing and options; and how relationships mechanically affect investigation or combat.
+Which individual attributes are active and what each changes; the starting Action Capacity and its growth thresholds; how often training can improve it and at what cost; whether later skills can spend more than 1 AP; whether levels, activity-linked growth or milestones drive other progression; how practical skills are learned and equipped; whether Mastery is necessary; how equipment changes action options; and how relationships mechanically affect investigation or combat.

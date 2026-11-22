@@ -1,20 +1,20 @@
 # Product Roadmap
 
-**Status:** Directional player-facing sequence  
-**Last updated:** 2026-11-21
+**Status:** Directional player-facing sequence
+**Last updated:** 2026-11-22
 
 This roadmap is organized around outcomes the player can experience. It is not an implementation task list. Current tasks, blockers and delivery status belong in GitHub Issues/PRs and [WORKFLOW.md](../../WORKFLOW.md).
 
 ## Current delivery focus
 
-The active direction is a single modern student-life setting. The former fantasy Academy content is being replaced, not retained as a parallel scenario.
+The active direction is a single modern student-life setting. The former fantasy Academy content has been replaced, not retained as a parallel scenario.
 
-- [Issue #110 — Modern student life and paranormal incident](https://github.com/TN13007/rpg/issues/110) tracks the setting migration and first bounded incident journey.
+- [Issue #110 — Modern student life and paranormal incident](https://github.com/TN13007/rpg/issues/110) tracked the setting migration and first bounded incident journey; it is closed.
 - The first content slice centers on university, student housing, a part-time café, the East District and the Unit 213 rumor.
-- The first incident must support observation and retreat without forcing combat. Professional response is introduced as an ordinary service, while actual dispatch/payment behavior remains a later runtime gap.
-- [Issue #91 — Four-Person Tactical Timeline Encounter](https://github.com/TN13007/rpg/issues/91) remains a separate Combat delivery target. Combat should be available for situations that justify it, not mandatory for every anomaly.
+- The first incident supports observation and retreat without forcing combat. Professional response is introduced as an ordinary service, while actual dispatch/payment behavior remains a later runtime gap.
+- [Issue #91 — Turn-Based Combat, UI Redesign and Arousal MVP](https://github.com/TN13007/rpg/issues/91) owns the replacement of the current Timeline combat runtime with discrete Party and Enemy Turns using shared Action Points.
 
-The setting migration should preserve reusable runtime systems and avoid introducing a universal Quest, Incident, Social Network or World Simulation framework.
+Combat should be available for situations that justify it, not mandatory for every anomaly. Preserve reusable runtime behavior and avoid introducing a universal Quest, Incident, Social Network or World Simulation framework.
 
 ## Phase 1 — Establish a believable student routine
 
@@ -55,11 +55,24 @@ Add more classmates, coworkers, neighbors, local rumors and professional contact
 - NPC schedules and interactions remain understandable and testable.
 - Optional incidents coexist with daily-life activities rather than replacing them.
 
-## Phase 5 — Integrate specialized combat journeys
+## Phase 5 — Integrate discrete Party combat journeys
 
-Continue improving the Tactical Timeline as a separate combat domain. Connect it to the world only through concrete situations that require confrontation and define how injury, recovery and elapsed time affect daily life.
+Deliver a compact turn-based combat experience for confrontations where the player chooses to fight. The player spends a shared Action Point pool across the four-person Party, while enemies respond through authored action patterns and conditions. Training can gradually increase the Party's Action Capacity.
 
 **Exit criteria**
-- At least one complete journey can enter combat and return to the city with a visible consequence.
+- The player understands the Player Turn / Enemy Turn loop without tracking a real-time Timeline.
+- Shared AP creates meaningful choices about which Party members and skills to use.
+- Enemy patterns create readable, deterministic pressure without exposing committed future Intent.
+- Attack, Tease, Arousal and Orgasm produce understandable combat outcomes.
+- Downed and revival work within turn and AP rules.
+- A complete encounter can return to the same Location with its configured consequences.
 - Non-combat approaches remain valid when appropriate.
-- Combat complexity is justified by player-facing decisions, not by a desire to simulate every threat.
+
+## Phase 6 — Expand combat only where playtests justify it
+
+Use the first playable encounter to decide whether additional control states, cooldowns, enemy pattern branches, training milestones or combat resources create meaningful decisions. Do not rebuild the old Timeline under different names.
+
+**Exit criteria**
+- Every added mechanic creates an observable player decision.
+- Additional complexity improves Party combinations or enemy responses without hiding the turn structure.
+- The player can understand action costs, conditions and consequences from the interface.

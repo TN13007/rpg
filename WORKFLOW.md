@@ -2,8 +2,8 @@
 
 **Repository:** [TN13007/rpg](https://github.com/TN13007/rpg)  
 **Engine:** Godot 4.7.2 .NET / C#  
-**Last reviewed:** 2026-11-21  
-**Baseline:** latest `main`; open or unmerged PRs are proposals, not implemented behavior.
+**Last reviewed:** 2026-11-22  
+**Baseline:** latest main; open or unmerged PRs are proposals, not implemented behavior.
 
 > This is the only changing project-status and handoff tracker. Do not create separate status, Session-history, decision or learning trackers.
 
@@ -12,7 +12,7 @@
 | Question | Source |
 |---|---|
 | What game are we trying to make? | [Design documentation](Docs/Design/README.md) |
-| What does the current code actually do? | [Implementation documentation](Docs/Implementation/README.md), latest `main` and tests |
+| What does the current code actually do? | [Implementation documentation](Docs/Implementation/README.md), latest main and tests |
 | What problem are we solving now? | GitHub Issue |
 | What solution was proposed and verified? | Pull Request and its review/CI evidence |
 | How do we organize work and Git history? | [CONTRIBUTING.md](CONTRIBUTING.md) |
@@ -30,19 +30,21 @@ The accepted product direction is a player-directed modern student-life RPG:
 - Paranormal incidents exist as optional opportunities discovered through rumors, conversations and local information.
 - The player may investigate, ignore, leave or seek professional help; combat is not mandatory for every anomaly.
 - Phones, laptops and the Internet are ordinary tools, not magical artifacts.
-- Tactical Timeline combat remains a specialized rules domain for situations that justify confrontation.
+- Combat is a specialized, discrete turn-based interaction. The player controls a four-person Party through one shared Action Point pool; enemies act through authored patterns and conditions.
 
-The former fantasy Academy setting is superseded. New player-facing content must use the modern setting. The design source of truth is [Game Vision](Docs/Design/GameVision.md), [World and Narrative](Docs/Design/WorldAndNarrative.md), [Combat](Docs/Design/Combat.md) and [Product Roadmap](Docs/Design/Roadmap.md).
+The former fantasy Academy setting is superseded. New player-facing content must use the modern setting. The current combat target is defined in [Combat Design](Docs/Design/Combat.md) and is tracked by [Issue #91 — Turn-Based Combat, UI Redesign and Arousal MVP](https://github.com/TN13007/rpg/issues/91).
 
 ### Implementation reality
 
-The refactor branch replaces the Academy content with a modern city graph in `Data/Locations.json`, renames the location catalog to `LocationCatalog`, and updates the startup path. The authored setting includes university, student housing, campus facilities, a part-time café, East District locations, a paranormal response office and the Unit 213 incident.
+Latest main is commit cf5f67daf65dd79eedb50f3832ff2ae0a55239ca. PR #112 replaced the Academy setting with a modern student-life city; PR #127 integrated the mixed-threat Unit 213 encounter.
 
-The four-person combat party is now Alex, Noah, Mira and Sera, with an Unstable Presence as the authored enemy. Daily schedules and interactions are authored for Mira, Noah, Sera and Ms. Carter. The Unit 213 event supports observation, cautious entry and retreat without forcing combat.
+The authored world includes university, student housing, campus facilities, the East District and the Unit 213 incident. The current playable combat composition contains Alex, Noah, Mira and Sera against two Unit 213 manifestations: Unstable Presence and Unstable Echo. Daily NPC schedules and character-specific interactions are authored separately from Location actions.
 
-This branch has not yet been merged; latest `main` remains the previous Academy build until the refactor PR is accepted. CI has passed all .NET tests, the Godot 4.7.2 build, and headless main-scene/combat-preview smoke checks. A manual interactive player-journey playthrough has not yet been performed. Do not describe the full new journey as manually playtested until it has been opened and played in Godot.
+**The runtime on main is still Timeline-based.** It still uses CombatTimeline, Combat Clock, Remaining Progress, Speed, Recovery Cost, Stun/Delay and Enemy Intent. The current Combat UI still presents Timeline and Intent data. These are implementation facts, not the target design.
 
-The runtime still does not provide durable incident flags, delayed incident progression, a social-feed interface or actual professional dispatch/payment behavior. Do not add a generic Quest, Incident, Social Network or World Simulation framework without a concrete player-facing requirement.
+Turn-based shared AP, Action Capacity training, Enemy action patterns and the redesigned combat UI are design targets until the implementation refactor is merged. Do not update Implementation documentation to claim those features exist before the code, tests and Godot runtime are migrated.
+
+The current world runtime does not yet provide durable incident state, delayed incident progression, a social-feed interface or actual professional dispatch/payment behavior. Do not add a generic Quest, Incident, Social Network or World Simulation framework without a concrete player-facing requirement.
 
 ## 3. Session protocol
 
@@ -53,7 +55,7 @@ Each development Session should produce two separate outcomes:
 
 A merged feature, AI-generated code or passing CI does not by itself prove independent learning.
 
-1. **Context check:** inspect latest `main`, the active Issue, related PRs, relevant Design and Implementation documents, source code and tests.
+1. **Context check:** inspect latest main, the active Issue, related PRs, relevant Design and Implementation documents, source code and tests.
 2. **Define outcomes:** agree on one product outcome and one practical learning objective.
 3. **Implementation Brief:** for ambiguous or cross-layer work, summarize current behavior, evidence, responsibilities, proposed change, constraints and verification. Keep it as a temporary working artifact, not another permanent repository document.
 4. **Predict and execute:** the learner explains expected behavior first; implement one focused logical change at a time.
@@ -64,21 +66,21 @@ The Git workflow, commit granularity and PR requirements are defined only in [CO
 
 ## 4. Current handoff
 
-**Immediate implementation priority:** [Issue #110 — Modern student life and paranormal incident](https://github.com/TN13007/rpg/issues/110).
+**Immediate direction:** finish documenting and reviewing the discrete turn-based combat design under [Issue #91](https://github.com/TN13007/rpg/issues/91), then perform its Phase 0 implementation audit before changing runtime code.
 
-Review the refactor PR for these outcomes:
-- No active game content or runtime startup path depends on the fantasy Academy.
-- The modern campus/city graph loads with valid exits and content references.
-- Daily-life actions, NPC schedules and NPC interactions use the existing supported contracts.
-- The Unit 213 incident is optional and provides non-combat responses.
-- The four-person Tactical Timeline remains a separate system and existing combat tests remain valid.
-- Active documentation describes the modern setting and current runtime accurately.
+The target combat loop is:
 
-After the PR is merged, manually run `Scenes/Main.tscn` in Godot 4.7.2 .NET and verify the campus start, travel, NPC presence, daily actions, Unit 213 event, retreat and debug Combat encounter.
+1. Player Turn begins with the Party's shared Action Point pool refreshed to its current Action Capacity.
+2. The player spends AP on skills from any active Party member; the same member may be selected again while AP remains.
+3. The player may end early; unused AP does not carry over.
+4. Each living Enemy resolves one authored pattern action during Enemy Turn, using current conditions and deterministic encounter order.
+5. If the encounter continues, the next Round begins and Party AP refreshes.
 
-[Issue #91 — Four-Person Tactical Timeline Encounter](https://github.com/TN13007/rpg/issues/91) remains a separate Combat backlog item. Keep its Enemy Intent and second enemy behavior work independent from the setting migration. [Issue #79](https://github.com/TN13007/rpg/issues/79) remains a later progression backlog item.
+Action Capacity is a Party-level progression value bounded to 1–4 in the first slice. Training activities should improve it without creating an unlimited, consequence-free grind. Exact starting capacity, growth thresholds and costs remain open for playtesting.
 
-Do not begin autonomous NPC simulation, broad Character abstractions or a general refactor unless a demonstrated player-facing requirement needs them.
+**Important migration boundary:** Issue #91 owns replacing the current Timeline/Intent runtime, translating Downed/Revive, adding the HP/Arousal MVP, redesigning UI, and validating the complete Exploration → Combat → Exploration journey. Keep the existing Implementation documents accurate about the Timeline runtime until that migration is actually complete.
+
+Issue #117 currently contains a proposal based on the superseded Timeline/Intent model. It must not override the accepted direction in Issue #91. Reconcile or close that proposal before implementing any of its mechanics. Issue #79 remains a later progression backlog item and should not be pulled into the combat refactor without a concrete dependency.
 
 ## 5. Learning evidence
 
@@ -86,13 +88,11 @@ Record learning only when it was actually demonstrated. Product completion and l
 
 Use this compact format when a meaningful check occurs:
 
-```text
-YYYY-MM-DD — Issue / topic
-Product: Done / Partial / Blocked — PR or evidence link
-Learning: Not assessed / Needs practice / With support / Independent
-Evidence: what the learner explained, changed or verified independently
-Remaining gap: one specific concept or skill
-Next practice: one small exercise
-```
+    YYYY-MM-DD — Issue / topic
+    Product: Done / Partial / Blocked — PR or evidence link
+    Learning: Not assessed / Needs practice / With support / Independent
+    Evidence: what the learner explained, changed or verified independently
+    Remaining gap: one specific concept or skill
+    Next practice: one small exercise
 
-Do not maintain a historical table of every Session or duplicate completed implementation details from PRs. Keep only current blockers and useful learning evidence; PRs and Issues retain delivery history.
+Do not maintain a historical table of every Session or duplicate completed implementation details from PRs and Issues. Keep only current blockers and useful learning evidence; PRs and Issues retain delivery history.

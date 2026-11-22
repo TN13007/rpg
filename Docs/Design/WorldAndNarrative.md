@@ -1,7 +1,7 @@
 # World and Narrative Design
 
-**Status:** Accepted setting direction; incident details remain in development  
-**Last updated:** 2026-11-21
+**Status:** Accepted setting direction; incident details remain in development
+**Last updated:** 2026-11-22
 
 ## World structure
 
@@ -70,13 +70,15 @@ These are design possibilities, not claims that persistent incident progression 
 
 NPCs include classmates, friends, coworkers, neighbors and specialists. Their identities should be grounded in ordinary roles and motivations before any supernatural involvement.
 
-The current schedule model is a recurring daily timetable authored as time ranges, Locations and visible activities. It resolves where a scheduled NPC is at the current GameClock time; it does not imply pathfinding, needs, autonomous decision-making or continuous simulation. The player discovers present NPCs through `See around`; character interactions are authored separately from Location actions.
+The current schedule model is a recurring daily timetable authored as time ranges, Locations and visible activities. It resolves where a scheduled NPC is at the current GameClock time; it does not imply pathfinding, needs, autonomous decision-making or continuous simulation. The player discovers present NPCs through See around; character interactions are authored separately from Location actions.
 
 Relationships should be represented through the smallest set of dimensions or flags that produce observable differences. Avoid a large social simulation or relationship framework before a playable interaction needs it.
 
 ## Time and simulation boundaries
 
-Daily activities may advance GameClock in minutes or hours. Combat runs on its own Combat Timeline and pauses while the player chooses an action. The rule for translating a completed encounter back into world time must be defined by the relevant scenario; do not assume the two clocks are interchangeable.
+Daily activities may advance GameClock in minutes or hours. Combat proceeds through discrete Player Turns and Enemy Turns using a shared Party Action Point pool. Combat does not use a real-time Combat Timeline or advance GameClock for each action or Round.
+
+A completed encounter may apply one explicit world-time and activity cost through its session rules. That cost is separate from combat AP and is applied once at completion. Do not treat a combat Round as a fixed number of in-game minutes or merge GameClock and turn order into one universal clock.
 
 The game does not need to simulate every NPC or Location continuously. Use authored presence, conditional events or coarse updates where they are sufficient. Add autonomous simulation only when the player can notice it and make a meaningful decision because of it.
 

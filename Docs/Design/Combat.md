@@ -1,293 +1,250 @@
 # Combat Design
 
-**Status:** Core direction accepted; numeric balance and advanced edge cases remain provisional  
-**Last updated:** 2026-11-20
+**Status:** Discrete turn-based direction accepted; numeric tuning and selected edge cases remain open
+**Last updated:** 2026-11-22
 
 ## 1. Combat identity
 
-Combat is a challenging, turn-based Tactical Timeline system. The player directly controls a four-character party and wins by manipulating action order, coordinating skills, managing resources and responding to enemy threats.
+Combat is a discrete, party-command turn-based system designed to make decisions easy to read and fast to resolve. The player controls a four-character Party through one shared Action Point pool. The player can chain skills from any active party member before handing the turn to the enemies.
 
-The intended fantasy is to create deliberate sequences in which one character delays or disables a threat, another protects an ally, and another exploits the opening to finish the target. The player should feel like a tactician controlling the flow of battle, not a spectator waiting for automated allies.
+The intended experience is a continuous player-directed combo within a clear turn boundary: choose a character, use a skill, observe the result, then choose the next character or skill while Action Points remain. The player should think about the sequence and cost of actions, not wait for individual characters to recover on a real-time Timeline.
+
+Combat is a specialized response to dangerous situations. It does not replace investigation, retreat or professional help, and it is not the default response to every paranormal incident.
 
 ## 2. Accepted decisions
 
 | Dimension | Decision |
 |---|---|
-| Combat style | Turn-based, Continuous Timeline |
-| Difficulty | Challenging |
+| Combat style | Discrete turn-based; no real-time Timeline scheduler |
+| Round structure | Player Turn followed by Enemy Turn |
 | Party size | Four active characters |
-| Party control | Full control; player chooses every party member's action |
-| Positioning | None; no front/back rows or tactical grid |
-| Timeline | Shared time axis; each combatant has independent progress |
-| Time while choosing | Combat Clock pauses while the player selects an action |
-| Recovery | Each action defines its own Recovery Cost |
-| Tie-break | Higher Luck acts first; stable ID breaks a remaining tie |
-| Stun | Freezes Timeline progress; it does not consume or skip the target's pending progress |
-| Information | Partial; invisible/hidden enemies are omitted from the Timeline until revealed |
-| Resource persistence | Hybrid; selected resources persist while others recover through combat or rest |
-| Defeat state | Characters become Downed and may be revived |
-| World structure | University and city locations with optional paranormal incidents |
+| Party control | The player chooses every Party action; no autonomous Party AI |
+| Action economy | One shared Action Point pool for the whole Party |
+| Skill cost | Each skill use costs 1 AP in the first playable slice |
+| Action Capacity | Party-level progression value; AP capacity is bounded to 1–4 in the first slice |
+| Actor selection | Any active Party member can be selected for each action; the same member may act more than once in a Player Turn |
+| Turn ending | Player may end the turn early; unused AP does not carry over |
+| Enemy behavior | Authored deterministic action patterns evaluated against current conditions during Enemy Turn |
+| Enemy actions | Each living enemy resolves one pattern action per Enemy Turn in the first slice |
+| Initiative | No per-combatant initiative, Speed, Ready state or Luck tie-break scheduler |
+| Positioning | No front/back rows or tactical grid |
+| Combat time | No shared real-time Combat Clock; turn boundaries drive combat |
+| Enemy information | No committed future Enemy Intent or Intent UI |
+| HP | Reaching 0 HP incapacitates a Party member or defeats an Enemy |
+| Arousal | Starts at 0, is capped at 100 and triggers the configured Orgasm consequence at the threshold |
+| Defeat state | Party members become Downed and may be revived; all Party members Downed ends the encounter |
+| World time | GameClock is not advanced per combat action or turn; any encounter time cost is applied once at session completion |
 
-These are design decisions. They do not assert that the current code implements them.
+These are design decisions, not claims that the current runtime already implements them. Starting Action Capacity, training progression and numeric combat balance must be tested in a playable encounter.
 
-## 3. Timeline model
+## 3. Round and turn flow
 
-The Timeline is a visualization of a shared Combat Clock and each combatant's independent progress. It answers **who is expected to act next and when**. It is not a fixed turn queue and does not advance only the currently selected character.
+A Round consists of two phases:
 
-### 3.1 Progress and Speed
+1. **Player Turn:** refresh the shared AP pool to the Party's current Action Capacity. The player chooses an available skill and an eligible Party member, resolves the action, and spends 1 AP. Repeat while AP remains, or end the turn early.
+2. **Enemy Turn:** each living Enemy takes its turn in the encounter's authored deterministic order. It evaluates its action pattern against the current combat state and resolves one eligible pattern action.
 
-Each eligible combatant has:
+If the encounter remains active after the Enemy Turn, begin the next Round and refresh the Party's AP. There is no real-time waiting between actions and no combatant independently becomes Ready.
 
-- **Remaining Progress:** the amount of progress required before their next action.
-- **Effective Speed:** the rate at which they complete that progress.
-- **Ready:** a derived state reached when Remaining Progress reaches zero.
+Check victory, defeat and other terminal conditions immediately after every resolved action. If the encounter ends, stop the remaining Player or Enemy actions for that Round.
 
-While Combat Time advances, every eligible combatant progresses simultaneously:
+## 4. Shared Action Points
 
-`RemainingProgress = max(0, RemainingProgress - EffectiveSpeed * ElapsedCombatTime)`
+### 4.1 Action Capacity and the AP pool
 
-For a combatant that is not Stunned or otherwise prevented from progressing:
+Action Capacity determines how many skill uses the Party can make during one Player Turn. It is a single Party-level progression value, not four separate character action bars and not the sum of the four characters' Agility values.
 
-`TimeToReady = RemainingProgress / EffectiveSpeed`
+At the beginning of each Player Turn:
 
-The Combat Clock advances in real time at **1.0x** in the current implementation: one real-world second contributes one Combat second. The runtime supplies elapsed frame time to the simulation. Each frame's elapsed time is clamped at the earliest relevant event: a combatant becoming Ready or a timed combat effect reaching its scheduled time. This preserves event ordering without jumping over Ready events. There is no time-acceleration control in this slice. All eligible combatants progress over the same elapsed interval. Every active, non-Stunned combatant must have a strictly positive Effective Speed; Stun is represented as an eligibility/progress-freeze state, not by assigning zero Speed.
+- Set current AP to the Party's Action Capacity.
+- The player may select any active Party member for each skill use.
+- Every skill use consumes 1 AP in the first playable slice.
+- AP is shared across the Party; using an action with one character reduces the same pool available to everyone else.
+- The same character may be selected again while AP remains, provided the character and skill are still eligible.
+- Current AP cannot exceed the Action Capacity. Unspent AP is discarded when the Player Turn ends and never carries into a later Round.
 
-A combatant with zero Remaining Progress is Ready. Ready is not an action by itself; it means the combatant is eligible to be considered for the next action opportunity, subject to statuses and encounter state.
+The first playable slice bounds Action Capacity to 1–4 AP, matching the four-person Party and limiting the number of decisions in one Player Turn. The initial capacity and the rate at which it grows remain provisional.
 
-### 3.2 Initialization
+### 4.2 Action resolution and validation
 
-At encounter start, each active combatant receives the same configured Initial Progress. Effective Speed determines who reaches Ready first. This makes Speed relevant from the opening of combat without granting a side an arbitrary first-turn advantage.
+The player chooses an actor, skill and required target. The owning combat service validates the request against the current encounter state before spending AP.
 
-The Initial Progress value and all numeric tuning are provisional. They must be tuned in a playable encounter, not treated as permanent design constants.
+- A Downed, defeated or otherwise ineligible actor cannot act.
+- A skill can be used only when its target requirements and other conditions are satisfied.
+- Insufficient Stamina or another required resource rejects the action without spending AP.
+- An invalid actor, skill or target does not spend AP and does not mutate combat state.
+- After a successful action, spend 1 AP, resolve its effects and refresh the available choices.
 
-The current pacing target is that the slowest active combatant takes no more than **4 seconds** to recover from the largest Recovery Cost available in the encounter. Progress values use one shared scale:
+AP is separate from Stamina, HP and Arousal. AP controls the number of skill uses in the current Player Turn; a skill may also spend a gameplay resource or have a turn-based cooldown. Do not recreate Recovery Cost or elapsed-time scheduling through a differently named resource.
 
-`ProgressScale = (4 seconds × SlowestBaseSpeed) / LargestRecoveryCost`
+### 4.3 Combo sequence
 
-The same scale applies to Initial Progress, Recovery Cost and Delay so their relative timing remains consistent. Stun duration is already measured in Combat Time and is not scaled. This is a tuning target, not a player-facing timer or a limit on how long Stun can prevent an action.
+The player can distribute AP across the Party or concentrate several actions on one character. The system does not impose a default once-per-character-per-turn restriction in the first slice.
 
-### 3.3 Action recovery
+Example with 3 AP:
 
-Actions resolve instantaneously in the first Timeline implementation. Each action defines its own **Recovery Cost**, expressed in progress units rather than seconds.
+1. Alex uses Quick Strike (1 AP).
+2. Mira uses Disrupting Strike (1 AP).
+3. Alex uses another available skill (1 AP).
+4. AP reaches 0, so the Enemy Turn begins.
 
-After an action resolves, the acting combatant's Remaining Progress is set to that action's Recovery Cost. Their next action time is therefore determined by both Recovery Cost and current Effective Speed:
+The example is an action sequence, not a fixed script. Player choices, valid targets, resource costs, skill conditions and encounter state determine which combinations are possible. Playtests must check whether concentrating actions on one character dominates using the whole Party; do not add arbitrary actor locks before evidence shows they are needed.
 
-`TimeToNextAction = RecoveryCost / EffectiveSpeed`
+### 4.4 Ending the Player Turn
 
-A quick action can have a lower Recovery Cost; a heavy action can have a higher one. Other combatants retain their current progress and continue from where they were. Recovery is not a separate real-time animation duration and must not be counted twice.
+The Player Turn ends when AP reaches 0 or the player explicitly chooses End Turn. Ending early discards the remaining AP and gives the Enemy Turn control of the encounter. The player may therefore trade unused actions for an earlier enemy response, but the game must communicate that consequence clearly.
 
-**Resource Cost** is separate from Recovery Cost. Resource Cost spends a gameplay resource; Recovery Cost changes when the actor can act again.
+## 5. Enemy action patterns
 
-Casting time, channeling and interruptible action execution are not part of the first implementation. If introduced later, they must be modeled as a distinct action phase rather than silently added to Recovery.
+Enemies do not have individual Timelines and do not commit a visible future Intent. Their behavior is resolved only when their Enemy Turn arrives.
 
-### 3.4 Player decision pause
+Each Enemy uses a small authored ordered pattern. A pattern step contains an action, its target rule and optional conditions. When the Enemy becomes active during Enemy Turn:
 
-When a player-controlled party member becomes Ready, the Combat Clock pauses and the player chooses an action. No combatant progresses and no Combat-Time-based effect advances while the player is deciding. There is no real-world decision timer.
+1. Evaluate the pattern from its current position using the combat state as it exists at that moment.
+2. Select the first eligible step in authored priority order.
+3. Resolve that action and advance the pattern position according to the authored sequence.
+4. If no conditional step is eligible, use an explicit fallback step such as a basic attack, guard or wait.
 
-After the action is confirmed and resolved, the actor receives its Recovery Cost. The Combat Clock resumes on the next runtime frame. Any other combatants already Ready at that same Combat Time are resolved before elapsed time advances again.
+Each living Enemy resolves at most one pattern action per Enemy Turn in the first playable slice. Multiple effects inside one skill are still one action. Enemies act in the stable order authored by the encounter, not by Agility, Speed, Luck or a real-time readiness calculation.
 
-Enemy actions are selected and resolved by enemy behavior when an enemy becomes Ready. They do not require the player to wait through a real-time decision timer.
+Conditions may inspect current facts such as an Enemy's HP, a Party member's condition, whether an ally is Downed, or whether a target is valid. Conditions are evaluated at execution time, so an earlier Enemy action or a Player action can change what a later Enemy chooses.
 
-### 3.5 Multiple combatants Ready at the same time
+Enemy targets are selected when the action executes. A pattern must not reveal or lock an upcoming target during the Player Turn. If no valid target exists, the action follows its authored fallback or skip behavior; the exact policy must be deterministic and tested.
 
-When multiple combatants reach Ready at the same Combat Time, resolve them in this order:
+Keep patterns content-driven and small. Do not introduce behavior trees, a general-purpose AI framework or a separate intent/telegraph scheduler for the first slice.
 
-1. Higher Luck acts first.
-2. If Luck is equal, use stable combatant ID in ascending ordinal order.
+## 6. Skills, resources and cooldowns
 
-There is no random roll in this tie-break rule and no separate Action Priority in the first implementation.
+Skill selection and action count are separate from skill effects:
 
-Resolve one action at a time. After each action, immediately check encounter terminal conditions; if the encounter has ended, stop processing the timestamp. Otherwise, re-evaluate the remaining Ready combatants against the updated combat state. This matters because the first action may Stun, Down, Delay or otherwise affect another combatant that was waiting at the same timestamp.
+- AP pays for using a skill during the current Player Turn.
+- Stamina or another resource pays the skill's gameplay cost, if any.
+- HP and Arousal are combat meters changed by skill effects.
+- Cooldowns, if required in the first slice, are counted in completed Rounds rather than seconds.
 
-A combatant that remains Ready does not receive artificial extra Recovery merely because another combatant acted first.
+A successful skill consumes AP and its configured resource cost. A rejected skill consumes neither. Numeric resource costs are authored and validated by the owning combat rules.
 
-## 4. Timeline control and timed effects
+Do not add a broad status catalogue, casting phase, interrupt scheduler or timed effect engine unless a concrete encounter requires it. A control skill should have a clearly observable turn-based consequence, such as preventing a specified action, changing a condition or affecting a later pattern check.
 
-### 4.1 Speed modifiers
+## 7. HP and Arousal
 
-Speed determines the rate of progress, not the amount of progress required. Effects such as Slow and Haste modify Effective Speed:
+HP and Arousal are separate combat meters with separate effects.
 
-`EffectiveSpeed = BaseSpeed * ActiveSpeedModifiers`
+### 7.1 HP
 
-The exact modifier composition, stacking, caps and rounding are open balance/design details. The first implementation must define one deterministic policy and test it; it must not allow invalid negative or non-finite speeds.
+- Attack skills reduce the target's HP by their configured amount.
+- An Enemy at 0 HP is defeated and no longer takes an Enemy Turn.
+- A Party member at 0 HP becomes Downed and cannot perform normal actions.
+- Damage from any source, including an Orgasm consequence, uses the same HP and incapacitation rules.
 
-A Speed change takes effect when the effect is applied or expires. It changes the rate from that point onward; it does not retroactively rewrite progress already completed.
+### 7.2 Arousal and Orgasm
 
-### 4.2 Delay and acceleration
+- Arousal starts at 0 and is capped at 100.
+- Tease skills increase the target's Arousal by a fixed authored amount in the first playable slice.
+- When Arousal reaches 100, trigger exactly one Orgasm event for that threshold crossing.
+- The Orgasm event resets Arousal to 0 and applies its configured HP damage.
+- Excess Arousal from the triggering action is not carried into another threshold crossing in the first slice; one action can trigger at most one Orgasm event.
+- Orgasm damage can reduce HP to 0 and cause the normal defeat or Downed transition.
 
-Delay and Acceleration directly modify Remaining Progress:
+Do not add hidden Arousal resources, body-part multipliers or preference calculations to this MVP. Body Profile, body-region attributes, Exposure/Accessibility and Enemy Preference remain future extensions.
 
-- **Delay** adds progress that the target must complete before becoming Ready.
-- **Acceleration** removes progress, but Remaining Progress cannot become negative.
-- Neither effect is automatically a Stun or an Interrupt.
+The exact consequence of Arousal reaching 100 for Party members is not decided by this document. Do not assume that the Enemy Orgasm consequence automatically applies to the Party.
 
-Exact values and stacking rules are provisional. At least one meaningful action-order control mechanic must be demonstrated in the first playable encounter; the full catalogue is not required.
+## 8. Party, Downed and revival
 
-### 4.3 Stun — accepted freeze behavior
+All four Party members remain individually player-controlled. The player may select any active member for each AP-funded skill use. No autonomous companion behavior or command-ally queue is introduced.
 
-Stun prevents the target from gaining Timeline progress for the duration of the effect. Combat Time continues for everyone else, and Stun duration is measured in Combat Time.
+A Party member at 0 HP becomes Downed, remains visible in the Party roster and cannot act or be selected as a normal target. Enemies do not target Downed Party members by default.
 
-- If the target is partway through progress, that progress is preserved while Stunned.
-- When Stun expires, the target resumes from the preserved progress.
-- If the target was already Ready when Stun was applied, it remains Ready but cannot act until Stun expires. It may then act without having to rebuild progress.
-- Stun does not itself add Recovery or erase the target's progress.
-- Stun is distinct from Delay, which changes the amount of progress remaining.
+Initial revival direction:
 
-The exact Stun duration, resistance, refresh and stacking rules remain open. The first implementation must avoid indefinite or unbounded stun-lock behavior.
+- Any active Party member may use Revive on a Downed ally.
+- Revive consumes 1 AP and 4 Stamina.
+- Revive restores 25% of the target's maximum HP, rounded up to at least 1 HP.
+- Each Party member may be revived once per encounter. Being Downed again after revival cannot be reversed a second time in that encounter.
+- Revival does not apply Timeline Recovery Cost. The revived member becomes eligible for subsequent actions when the normal Player Turn and AP rules allow it.
+- If all Party members are Downed, the encounter ends in defeat immediately.
 
-### 4.4 Effect durations and event ordering
+If the controlled protagonist ends an encounter at 0 HP, the existing Exploration recovery direction remains: offer Request emergency rescue, advance GameClock by its configured cost and restore the protagonist to a small amount of HP. This is outside the in-combat AP system.
 
-Timed status durations use Combat Time, not the number of turns taken by a particular combatant. A duration is active on the half-open interval `[StartTime, EndTime)`: it is no longer active at its exact EndTime.
+Revival numbers are provisional and should be validated in the Unit 213 encounter. Bleed-out, permanent death and special Enemy rules for Downed targets are out of scope.
 
-When the Combat Clock reaches an event timestamp, process the timestamp as one deterministic event batch:
+## 9. World time and encounter completion
 
-1. Advance all eligible combatants' progress by the elapsed Combat Time.
-2. Resolve periodic effects due at that timestamp.
-3. Apply resulting HP changes and Downed/removal transitions.
-4. Expire effects whose EndTime is this timestamp.
-5. Re-evaluate readiness and action eligibility.
-6. Resolve the next eligible Ready combatant using the tie-break rule.
-7. Immediately check encounter victory, defeat and other terminal conditions. If the encounter has ended, stop processing this timestamp; otherwise re-evaluate readiness and continue with the next eligible Ready combatant.
+Combat has no shared elapsed-time simulation. Player Turns and Enemy Turns are discrete rule phases; they do not advance GameClock minute by minute.
 
-This ordering means an effect that expires at the same timestamp as a Ready event is expired before the action eligibility check. Periodic damage due at that timestamp is applied before a character can act; a character reduced to zero HP cannot act afterward.
+An encounter may apply one authored world-time and activity cost when the Combat session completes. That cost is separate from AP and is applied once, not once per skill or per Round. The encounter/session rules must make the completion cost visible and avoid charging it more than once.
 
-If an action or event creates a new effect at the current timestamp, resolve its immediate consequences before selecting the next Ready combatant.
+Daily activities continue to use GameClock. Do not merge world time and combat turns into a universal clock.
 
-## 5. Timeline information and visibility
+## 10. Combat presentation
 
-Timeline simulation and Timeline presentation are separate responsibilities. Hiding a combatant from the UI never removes it from the scheduler or pauses its actual progress.
+The combat interface should make the current decision obvious:
 
-- Party members are shown with their actual Timeline state and expected timing.
-- Detected enemies may be shown with their current Timeline state. Their action intent is a separate information layer and is not automatically revealed by showing their Timeline icon.
-- An invisible/hidden enemy is omitted entirely from the Timeline. No placeholder, question mark or estimated position is shown.
-- A hidden enemy continues progressing, can become Ready and can act normally.
-- When an enemy is revealed, its icon is added using its actual current progress. It does not restart or catch up from the moment of reveal.
+- Show the current Round and whether it is the Player Turn or Enemy Turn.
+- During Player Turn, show one shared AP counter and the remaining AP clearly.
+- Keep all four Party members visible with HP, Arousal and only resources that support a current decision.
+- Allow the player to select any eligible Party member, then choose an available skill and target.
+- Show Enemy cards with HP, Arousal and relevant current conditions.
+- Show hover, available-target, selected-target and invalid-target states clearly.
+- Present skill results, HP/Arousal changes, Downed/Revive and Orgasm as observable feedback.
+- During Enemy Turn, show each resolved Enemy action as it happens; do not display a committed future action or target.
 
-The exact detection/reveal rules and whether ordinary visible enemies' timing can be uncertain remain open. The first implementation should keep visibility filtering in the presentation layer and must not let UI knowledge alter combat simulation.
+Remove Timeline tracks, Timeline markers, Time-to-Ready, Remaining Progress, Recovery Cost labels and Enemy Intent UI. UI components render supplied presentation data and emit requests; they do not own combat calculations or state mutation.
 
-## 6. Action timing vocabulary
+## 11. Encounter design and difficulty
 
-| Term | Design meaning |
-|---|---|
-| Combat Time | Shared elapsed time inside an encounter |
-| Remaining Progress | Progress units a combatant still needs before becoming Ready |
-| Speed | Rate of progress per unit of Combat Time |
-| Initial Progress | Shared starting progress assigned at encounter start |
-| Recovery Cost | Progress assigned to an actor after its action resolves |
-| Resource Cost | Gameplay resource spent to use an action |
-| Delay | Adds to a target's Remaining Progress |
-| Acceleration | Reduces a target's Remaining Progress |
-| Stun | Freezes progress and action eligibility for a duration |
-| Slow / Haste | Modifies Effective Speed |
-| Interrupt | Cancels a defined action phase that is currently in progress |
-| Casting | A preparation phase before an action resolves |
-| Cooldown | Restricts reuse of an action until its cooldown condition is met |
+Difficulty should come from the order and opportunity cost of the Party's limited AP, resource use, target priority, enemy patterns, readable conditions and encounter objectives.
 
-These terms are not synonyms. The first implementation uses Combat Time, Remaining Progress, Speed, Initial Progress, Recovery Cost, Resource Cost, Stun and at least one action-order control mechanic. Casting, Interrupt and Cooldown behavior are not required for the first Timeline slice.
+An encounter should give the player meaningful choices about:
 
-## 7. Control-effect design constraints
+- Which Party member should act now.
+- Which skill is worth spending an AP on.
+- Whether to focus damage, control a threat, protect an ally or build Arousal.
+- Whether to spend the remaining AP or end the Player Turn early.
+- Which Enemy pattern condition must be disrupted before Enemy Turn.
 
-Control should be powerful enough to enable combo play, but repeated control must not become a universal stun-lock strategy. Enemies should have distinct control susceptibility and encounter-specific responses. Bosses should not be universally immune to every form of control.
+Do not create difficulty primarily through inflated HP, unavoidable damage, opaque randomness or hidden action-economy exceptions. Action Capacity must create a useful progression choice without making ordinary encounters require repetitive training.
 
-- Delay changes when a target can act; it does not automatically cancel the action.
-- Stun freezes progress and action eligibility; it is not merely a larger Delay.
-- Interrupt cancels a defined in-progress action; it is not implemented as a synonym for Stun.
-- Counter creates a response under a defined defensive condition.
-- Stagger / Break may create an opportunity window, but its relationship to Stun and vulnerability needs to be explicit.
-
-The complete status catalogue and numeric balance are outside the first encounter's scope.
-
-## 8. Party
-
-All four party members participate in combat. The player selects actions for every member; companions do not autonomously spend resources or override the player's plan.
-
-Character identity and build determine tactical contribution. Controller, Defender, Striker and Support are useful design lenses, not mandatory classes or fixed party slots. Characters may combine roles, and multiple party compositions should remain viable.
-
-No spatial formation is used. Target restrictions, area effects, protection and range may exist as explicit skill rules, but must not silently depend on a hidden front/back row or grid position.
-
-## 9. Enemy encounter design
-
-Enemies should differ by tactical problem, not only HP and damage. Candidate archetypes include:
-
-- **Skirmisher:** fast pressure against vulnerable party members.
-- **Brute:** slow, high-impact attacks that create a visible response window.
-- **Shaman:** buffs, healing or support actions that may be interrupted.
-- **Guardian:** protects allies or punishes careless attacks.
-- **Assassin:** threatens support or damage-dealing characters.
-
-An encounter should combine behaviors to create competing priorities. There should usually be more than one viable response.
-
-### 9.1 Committed enemy intent
-
-At encounter start, each living enemy commits to one action and (when required) one living party target. The committed action and target remain fixed while that enemy recovers, while the player chooses an action, and while the enemy is affected by Stun. The enemy plans its next intent only after resolving its current action. If its committed target is no longer a valid target when the action resolves, the action is lost rather than silently retargeted.
-
-The Timeline marker exposes the committed action and target in its tooltip. This is a readable preview of the next threat, not a second action-selection interface. Enemy behavior profiles may weight the actions already assigned to that enemy; they do not add actions or change action execution. The Unit 213 Unstable Presence uses a lightweight authored profile over its existing presence_* actions. No Academy encounter or additional enemy archetype is required.
-
-## 10. Downed and revival
-
-When HP reaches zero, a Party member enters **Downed** rather than immediately causing total party defeat. Enemies at zero HP are defeated in this first implementation.
-
-Rules for the first playable encounter:
-
-- A Downed Party member remains in the Party roster at zero HP but is removed from the Timeline and cannot take normal actions.
-- Enemy actions cannot target a Downed Party member.
-- Any active ally can use the built-in **Revive** action on a Downed ally. Revival costs 4 Stamina.
-- Revival restores 25% of maximum HP, rounded up to at least 1 HP.
-- Each Party member can be revived only once per encounter. A member who is Downed again cannot be revived a second time.
-- The revived member re-enters the Timeline with a Recovery Cost equal to the largest authored Recovery Cost in the active encounter roster. The ally performing Revive pays that same Recovery Cost. This makes revival consequential without allowing the revived character to act immediately.
-- If every Party member is Downed, the party loses the encounter immediately. No bleed-out timer is used in this slice.
-- If the controlled protagonist is still at zero HP after an encounter ends, Exploration offers only **Request emergency rescue**. It advances Game Time by 180 minutes and restores 5 HP; normal Player, Location and Travel interactions become available again afterward. This is a provisional recovery fallback, separate from in-combat Revive, and it does not restore other Party members.
-
-These are provisional encounter rules chosen to prove a finite, understandable revival loop. Downed targeting by special enemies, bleed-out/death and broader revival costs remain open for future encounters.
-
-## 11. Resource persistence
-
-The accepted direction is **hybrid persistence**. It should create decisions across an adventure without making every encounter feel like punishment for the previous one.
-
-HP and selected expedition resources may persist between encounters. Other resources may recover through combat actions, milestones, consumables, rest or returning to campus or another safe location. Exact resource types, regeneration rates, post-combat recovery and checkpoint rules remain open.
-
-Avoid adding overlapping resource bars unless each supports a distinct decision.
-
-## 12. Difficulty and encounter outcomes
-
-Challenging combat should come from readable but consequential threats, action-order trade-offs, recovery windows, resource and opportunity costs, distinct enemy behavior, control resistance, party protection and encounter objectives beyond maximum damage.
-
-Do not create difficulty primarily through inflated HP, unavoidable damage or hidden rules.
-
-An encounter may end through defeating required enemies, completing an objective, escaping where permitted, party defeat or a special encounter condition. Escape availability and costs remain open.
-
-## 13. Validation before balance
+## 12. Validation before balance
 
 A playable encounter must demonstrate:
 
-- The Timeline is understandable and meaningfully changes after actions.
-- Four active characters create interesting choices without excessive decision overhead.
-- Different party members have reasons to act beyond repeating their highest-damage skill.
-- Action-specific Recovery Cost and Speed produce predictable next-action timing.
-- Equal Ready times are resolved deterministically by Luck and stable ID.
-- Stun freezes progress and preserves it until the effect expires.
-- At least one action-order control mechanic creates a meaningful tactical outcome.
-- Hidden enemies are omitted from the Timeline without being removed from combat simulation.
-- Enemies threaten the party without relying on opaque randomness.
-- Downed and revival create tension without an endless revive loop.
-- Resource persistence encourages expedition decisions without excessive attrition.
+- The player can understand the Player Turn / Enemy Turn boundary without a Timeline.
+- The Party shares one AP pool; every successful skill use spends exactly 1 AP in the first slice.
+- AP refreshes at the beginning of each Player Turn and unused AP does not carry over.
+- The player can select any active Party member for each action, including selecting the same member again when AP remains.
+- Different action sequences create meaningfully different outcomes and using several Party members remains viable.
+- The player can end a Player Turn early and understands that the Enemy Turn will begin.
+- Enemies resolve deterministic authored patterns in stable order and evaluate conditions against current state.
+- Each living Enemy performs at most one pattern action per Enemy Turn in the first slice.
+- Invalid actor, skill, target or insufficient-resource requests do not spend AP.
+- Attack, Tease, Arousal threshold, Orgasm reset and Orgasm HP damage resolve correctly.
+- Downed, Revive, Party defeat and encounter victory stop further actions at the correct point.
+- GameClock is not advanced per combat action or turn; encounter completion cost is applied at most once.
+- The UI communicates AP, active phase, Party state, Enemy meters and action results without Timeline or Intent.
 
 Do not finalize numeric balance before this slice is playable.
 
-## 14. Explicitly open
+## 13. Explicitly open
 
-The following are intentionally not finalized:
+The following remain open and must be decided when a playable requirement needs them:
 
-- Numeric values and units for Initial Progress, Base Speed, Recovery Cost and control effects.
-- Exact Speed modifier stacking, caps and rounding.
-- Delay / Acceleration stacking and resistance.
-- Stun duration, resistance, refresh, stacking and anti-stun-lock rules.
-- Detection, reveal and the precision of enemy timing information.
-- Intent disclosure beyond the committed action and target shown on visible Timeline markers.
-- Casting, channeling, Interrupt and Cooldown rules.
-- Luck range, growth and whether any future effect modifies tie-break Luck.
-- Bleed-out/death and special enemy rules for targeting Downed characters.
-- Resource types and regeneration, escape rules, final party roles, character identities and skill lists.
-- Whether Stagger is universal or encounter-specific.
+- Starting Action Capacity and the amount/frequency of gains from Training.
+- Whether Action Capacity growth uses fixed thresholds, milestones or diminishing returns; avoid an unlimited grind loop.
+- Whether a future skill may cost more than 1 AP; the first slice keeps every skill at 1 AP.
+- Whether playtests justify a per-character action limit. The initial rule permits selecting the same active character more than once per Player Turn.
+- Exact Enemy pattern cursor behavior when a condition or target is invalid, and the fallback action for each Enemy.
+- Cooldown duration and the exact point at which completed Rounds decrement it.
+- Turn-based replacements for any existing Stun/Delay skills that are still needed by the first encounter.
+- Whether Party Arousal reaching 100 has a consequence, and what that consequence is.
+- Numeric HP/Arousal values, resource costs, training costs and Orgasm damage.
+- Escape rules, special encounter objectives and advanced Enemy actions.
 
-These open questions must not block the first implementation unless the encounter directly requires one. Resolve them only when a concrete playable requirement makes the decision necessary.
+Do not reintroduce Timeline, Combat Clock, Remaining Progress, Time-to-Ready or Recovery Cost as a workaround for an open question. Prefer the smallest deterministic rule that supports a visible player decision.
+
+## 14. Implementation boundary
+
+The current implementation documentation describes the Timeline-based runtime on main. That remains the implementation baseline until the refactor is merged. The design in this document describes the target behavior; do not update Implementation documentation to claim turn-based behavior exists before the code, tests and Godot runtime are migrated.
+
+Implementation work is tracked in [Issue #91 — Turn-Based Combat, UI Redesign and Arousal MVP](https://github.com/TN13007/rpg/issues/91).
