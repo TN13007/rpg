@@ -126,6 +126,8 @@ At the same afternoon decision point:
 
 These branches should remain viable for different player priorities. No single activity should be the universally optimal choice for every day.
 
+A concrete first-day content pack reusing the current student characters, locations, actions and NPC routines is specified in [Daily Life Content — First Playable Day](DailyLifeContent.md). It separates existing data from proposed schedule, economy and Knowledge additions.
+
 ## 5. Current implementation boundary
 
 The design target must not be confused with the current playable prototype:
