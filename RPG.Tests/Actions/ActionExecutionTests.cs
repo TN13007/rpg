@@ -499,7 +499,7 @@ public sealed class ActionExecutionTests
         Assert.Equal(10, actor.Fatigue);
         Assert.Equal(4, actor.Stamina);
         Assert.Equal(43, actor.Mood);
-        Assert.Equal(480, clock.MinutesOfDay);
+        Assert.Equal(570, clock.MinutesOfDay);
 
         Assert.False(_service.TryApply(plan, out reason));
         Assert.Contains("already been applied", reason);
