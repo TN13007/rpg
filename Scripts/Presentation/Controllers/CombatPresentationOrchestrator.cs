@@ -52,7 +52,8 @@ public sealed class CombatPresentationOrchestrator
 
         _gameModeController.ShowCombat();
         _combatPanel.BeginEncounter(title);
-        _sidebar.EnterCombat(snapshot.Enemies);
+        CombatViewData initialViewData = _mapper.Map(snapshot);
+        _sidebar.EnterCombat(initialViewData.Enemies);
 
         if (!string.IsNullOrWhiteSpace(openingMessage))
         {
@@ -65,7 +66,7 @@ public sealed class CombatPresentationOrchestrator
                 openingMessage));
         }
 
-        Present(_mapper.Map(snapshot));
+        Present(initialViewData);
     }
 
     /// <summary>Maps and presents the latest Domain result, including its ordered events.</summary>
