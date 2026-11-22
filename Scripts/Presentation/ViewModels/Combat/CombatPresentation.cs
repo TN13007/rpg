@@ -21,9 +21,11 @@ public enum CombatMessageCategory
 /// <summary>Identifies a presentation-only group for combat actions.</summary>
 public enum CombatActionCategory
 {
-    Offense,
-    Defense,
-    Support,
+    Attack,
+    Defence,
+    Allure,
+    Inventory,
+    Run,
     Other
 }
 
@@ -58,6 +60,8 @@ public sealed class EnemyCardViewData
     public int MaxHealth { get; }
     public string Condition { get; }
     public int? Arousal { get; }
+    /// <summary>Gets Lust when the Arousal runtime provides an authoritative value.</summary>
+    public int? Lust => Arousal;
 
     public EnemyCardViewData(
         string id,
@@ -95,6 +99,14 @@ public sealed class PartyMemberCardViewData
     public string Condition { get; }
     public bool CanAct { get; }
     public int? Arousal { get; }
+    /// <summary>Gets Lust when the Arousal runtime provides an authoritative value.</summary>
+    public int? Lust => Arousal;
+    /// <summary>Gets the current MP when the character runtime provides it.</summary>
+    public int? CurrentMp { get; }
+    /// <summary>Gets maximum MP when the character runtime provides it.</summary>
+    public int? MaxMp { get; }
+    /// <summary>Gets the data needed to compose this member's portrait.</summary>
+    public CharacterPortraitViewData Portrait { get; }
 
     public PartyMemberCardViewData(
         string id,
@@ -105,7 +117,10 @@ public sealed class PartyMemberCardViewData
         bool canAct,
         int currentStamina,
         int maxStamina,
-        int? arousal = null)
+        int? arousal = null,
+        int? currentMp = null,
+        int? maxMp = null,
+        CharacterPortraitViewData portrait = null)
     {
         if (string.IsNullOrWhiteSpace(id))
             throw new ArgumentException("Party member card ID is required.", nameof(id));
@@ -115,6 +130,10 @@ public sealed class PartyMemberCardViewData
             throw new ArgumentOutOfRangeException(nameof(currentStamina));
         if (arousal.HasValue && (arousal.Value < 0 || arousal.Value > 100))
             throw new ArgumentOutOfRangeException(nameof(arousal));
+        if (currentMp.HasValue != maxMp.HasValue)
+            throw new ArgumentException("Current and maximum MP must both be supplied or both be omitted.");
+        if (currentMp.HasValue && (maxMp.Value < 0 || currentMp.Value < 0 || currentMp.Value > maxMp.Value))
+            throw new ArgumentOutOfRangeException(nameof(currentMp));
 
         Id = id;
         Name = name ?? string.Empty;
@@ -125,6 +144,58 @@ public sealed class PartyMemberCardViewData
         CurrentStamina = currentStamina;
         MaxStamina = maxStamina;
         Arousal = arousal;
+        CurrentMp = currentMp;
+        MaxMp = maxMp;
+        Portrait = portrait ?? new CharacterPortraitViewData(
+            id,
+            name,
+            "res://Assets/CharacterPortrait.svg",
+            string.Equals(condition, "Downed", StringComparison.OrdinalIgnoreCase) ? "downed" : "idle",
+            string.Empty,
+            string.Empty,
+            condition);
+    }
+}
+
+/// <summary>Presentation-only visual layers used to compose a Party member portrait.</summary>
+public sealed class CharacterPortraitViewData
+{
+    public string CharacterId { get; }
+    public string Name { get; }
+    public string BasePosePath { get; }
+    public string OutfitLayerPath { get; }
+    public string ExpressionLayerPath { get; }
+    public string StatusOverlayPath { get; }
+    public string StanceId { get; }
+    public string ExpressionId { get; }
+    public string OutfitId { get; }
+    public string Status { get; }
+
+    public CharacterPortraitViewData(
+        string characterId,
+        string name,
+        string basePosePath,
+        string stanceId,
+        string expressionId,
+        string outfitId,
+        string status,
+        string outfitLayerPath = "",
+        string expressionLayerPath = "",
+        string statusOverlayPath = "")
+    {
+        if (string.IsNullOrWhiteSpace(characterId))
+            throw new ArgumentException("Portrait character ID is required.", nameof(characterId));
+
+        CharacterId = characterId;
+        Name = name ?? string.Empty;
+        BasePosePath = basePosePath ?? string.Empty;
+        StanceId = stanceId ?? string.Empty;
+        ExpressionId = expressionId ?? string.Empty;
+        OutfitId = outfitId ?? string.Empty;
+        Status = status ?? string.Empty;
+        OutfitLayerPath = outfitLayerPath ?? string.Empty;
+        ExpressionLayerPath = expressionLayerPath ?? string.Empty;
+        StatusOverlayPath = statusOverlayPath ?? string.Empty;
     }
 }
 
@@ -152,6 +223,7 @@ public sealed class CombatActionCardViewData
     public string Label { get; }
     public string CostLabel { get; }
     public string Description { get; }
+    public string EffectSummary { get; }
     public bool IsAvailable { get; }
     public string UnavailableReason { get; }
     public CombatActionCategory Category { get; }
@@ -168,7 +240,8 @@ public sealed class CombatActionCardViewData
         string unavailableReason,
         CombatActionCategory category,
         CombatActionTargetKind targetKind,
-        CombatActionTargetViewData[] targets)
+        CombatActionTargetViewData[] targets,
+        string effectSummary = "")
     {
         if (string.IsNullOrWhiteSpace(id))
             throw new ArgumentException("Combat action ID is required.", nameof(id));
@@ -180,6 +253,7 @@ public sealed class CombatActionCardViewData
         Label = label ?? string.Empty;
         CostLabel = costLabel ?? string.Empty;
         Description = description ?? string.Empty;
+        EffectSummary = effectSummary ?? string.Empty;
         IsAvailable = isAvailable;
         UnavailableReason = unavailableReason ?? string.Empty;
         Category = category;

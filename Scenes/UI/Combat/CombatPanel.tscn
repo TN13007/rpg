@@ -1,64 +1,75 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://Scripts/Presentation/UI/Combat/CombatPanel.cs" id="1"]
 [ext_resource type="PackedScene" path="res://Scenes/UI/Combat/CombatStatusPanel.tscn" id="2"]
 [ext_resource type="PackedScene" path="res://Scenes/UI/Combat/CombatMessageLog.tscn" id="3"]
 [ext_resource type="PackedScene" path="res://Scenes/UI/Combat/CombatActionPanel.tscn" id="4"]
 [ext_resource type="PackedScene" path="res://Scenes/UI/Combat/PartyRosterPanel.tscn" id="5"]
+[ext_resource type="PackedScene" path="res://Scenes/UI/Combat/EnemyRegion.tscn" id="6"]
+[ext_resource type="PackedScene" path="res://Scenes/UI/Combat/CharacterPortrait.tscn" id="7"]
 
 [node name="CombatPanel" type="PanelContainer"]
-layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
 script = ExtResource("1")
 
 [node name="Margin" type="MarginContainer" parent="."]
 layout_mode = 2
-theme_override_constants/margin_left = 18
-theme_override_constants/margin_top = 16
-theme_override_constants/margin_right = 18
-theme_override_constants/margin_bottom = 16
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 10
 
 [node name="Content" type="VBoxContainer" parent="Margin"]
 layout_mode = 2
+size_flags_horizontal = 3
 size_flags_vertical = 3
-theme_override_constants/separation = 10
+theme_override_constants/separation = 8
 
 [node name="Header" type="HBoxContainer" parent="Margin/Content"]
 layout_mode = 2
+theme_override_constants/separation = 8
 
 [node name="EncounterTitle" type="Label" parent="Margin/Content/Header"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 18
 theme_override_colors/font_color = Color(0.91, 0.89, 0.84, 1)
 text = "COMBAT ENCOUNTER"
+vertical_alignment = 1
 
-[node name="Mode" type="Label" parent="Margin/Content/Header"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 10
-theme_override_colors/font_color = Color(0.776, 0.647, 0.416, 1)
-text = "TURN-BASED COMBAT"
-
-[node name="PartyRosterPanel" parent="Margin/Content" instance=ExtResource("5")]
+[node name="CombatStatusPanel" parent="Margin/Content/Header" instance=ExtResource("2")]
 layout_mode = 2
 
-[node name="CombatStatusPanel" parent="Margin/Content" instance=ExtResource("2")]
+[node name="EndTurnButton" type="Button" parent="Margin/Content/Header"]
+custom_minimum_size = Vector2(100, 38)
 layout_mode = 2
+text = "End Turn"
 
-[node name="CombatMessageLog" parent="Margin/Content" instance=ExtResource("3")]
+[node name="ContinueButton" type="Button" parent="Margin/Content/Header"]
+visible = false
+custom_minimum_size = Vector2(160, 38)
 layout_mode = 2
+text = "Return to Exploration"
+
+[node name="BattlefieldRow" type="HBoxContainer" parent="Margin/Content"]
+layout_mode = 2
+size_flags_horizontal = 3
 size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="EnemyRegion" parent="Margin/Content/BattlefieldRow" instance=ExtResource("6")]
+layout_mode = 2
+
+[node name="CharacterPortrait" parent="Margin/Content/BattlefieldRow" instance=ExtResource("7")]
+layout_mode = 2
+
+[node name="PartyBar" parent="Margin/Content" instance=ExtResource("5")]
+layout_mode = 2
 
 [node name="CombatActionPanel" parent="Margin/Content" instance=ExtResource("4")]
 layout_mode = 2
 
-[node name="EndTurnButton" type="Button" parent="Margin/Content"]
+[node name="CombatMessageLog" parent="Margin/Content" instance=ExtResource("3")]
 visible = false
 layout_mode = 2
-custom_minimum_size = Vector2(0, 42)
-text = "End Player Turn"
-
-[node name="ContinueButton" type="Button" parent="Margin/Content"]
-visible = false
-layout_mode = 2
-custom_minimum_size = Vector2(0, 42)
-text = "Return to Exploration"

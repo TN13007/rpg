@@ -92,28 +92,32 @@ Revival does not restore an additional action opportunity to the revived member 
 
 ## 8. Combat UI direction
 
-The combat interface is organized around the character the player is currently directing.
+The Combat HUD is composed from three large screen regions. The visual layout is independent from combat rules and consumes Presentation-owned view data.
 
 **Screen composition**
 
-- **Combat header:** encounter title, Round, current phase and shared AP.
-- **Enemy area:** compact reusable Enemy cards. Each card shows identity, HP, condition and Arousal when the runtime supplies a real Arousal value. No Timeline or future Intent is displayed.
-- **Party roster:** four compact cards remain visible. Each communicates HP, condition, action eligibility and relevant resources. Arousal is shown only when real data is available.
-- **Active Party member panel:** visually focuses the selected actor. During combat it shows combat-relevant values such as HP and Stamina; it does not display the full Exploration profile, Fatigue, Mood or Gold.
-- **Action area:** category filters, action list, selected-action details, cost, availability/disabled reason and an explicit confirmation step.
-- **Combat log:** preserves the order of resolved events and identifies Player, Enemy and System messages.
-- **End Player Turn:** remains available throughout the Player Turn.
+1. **Enemy region:** a vertical Enemy card list. Each card shows only the Enemy name, HP and Lust. The UI does not expose other Enemy resources. Lust is the player-facing label for the Arousal meter and remains hidden until the runtime supplies a real value.
+2. **Character portrait region:** a large portrait for the Party member currently focused in the Party Bar. Selecting another Party member changes the portrait. Portrait view data identifies the base pose/stance, expression, outfit and status overlay. These visual states are data selections, not combat rules.
+3. **Party and action region:** the four-member Party Bar sits directly above the Action Panel. Each Party card shows name, HP, Lust and MP, with optional Lust/MP fields hidden until their runtime values exist. Party cards have no character icon because the large portrait is the character's visual identity.
+   - The Action Panel has three fixed columns: command categories, skill/action list and action details.
+   - Categories are Attack, Defence, Allure, Inventory and Run, stacked vertically.
+   - The middle column lists actions belonging to the selected category.
+   - The details column shows the selected action's description, effect/stat summary, target rule, availability reason and cost.
+   - The header shows the current Round, phase and remaining shared AP, labeled AP LEFT, with End Turn available during Player Turn.
 
 **Interaction behavior**
 
-- Eligible Party cards have clear hover, selected and can-act states. Already-acted and Downed members are visibly distinct and cannot be selected as the actor.
-- When an action requires an Enemy target, valid targets receive a visible hover/available treatment and a pointing-hand cursor. Invalid targets are dimmed and do not accept selection.
-- The chosen target receives clear selected feedback. Cancelling target selection clears target states and returns to the action details.
-- Revive uses a separate ally-target selection state.
-- Attack variants, Guard, Evade, Recover Stamina, Revive and Hit each receive a deliberate feedback cue. Messages and meter changes remain grounded in resolved events.
-- Components render Presentation-owned view data and emit selection IDs/events. They do not calculate damage, spend AP/Stamina, decide target validity or mutate combat state.
+- Selecting a living, eligible Party card changes the focused actor, updates the portrait and filters actions to that actor.
+- Selecting an action that needs no target executes it immediately. There is no separate Confirm button or confirmation step.
+- Selecting an Enemy-targeted action enters target selection immediately. Valid Enemy cards glow/highlight; invalid cards are dimmed and ignore clicks. Clicking a valid Enemy executes the pending action.
+- Selecting an ally-targeted action, such as Revive, displays the valid ally list in the action-list column. Clicking a valid ally executes it.
+- Target selection may be cancelled; cancelling clears all target highlights and restores the current action list.
+- Attack variants, Guard, Evade, Recover Stamina, Revive and Hit retain distinct visual feedback. The UI displays only meter values supplied by the runtime.
+- Components emit stable IDs and selection events. They do not calculate damage, spend AP/Stamina, decide target validity or mutate combat state.
 
-The combat UI must remain readable with one Enemy, multiple Enemies, four Party members, long names and changing HP/Arousal/Stamina values.
+The first implementation keeps the three regions in fixed positions while their content changes. The message-log control remains available for ordered event history but is hidden from the primary HUD so it does not displace the three-region layout.
+
+Lust/Arousal and MP view-data slots are optional. Until the associated Domain runtime supplies authoritative values, the corresponding labels and bars remain hidden. The current action system still spends Stamina for some actions; Stamina remains in the underlying combat data/action cost but is not shown as one of the Party Bar's three requested meters.
 
 ## 9. Encounter lifecycle and world time
 

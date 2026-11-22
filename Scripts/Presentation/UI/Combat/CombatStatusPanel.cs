@@ -1,6 +1,6 @@
 using Godot;
 
-/// <summary>Presents the Round, combat phase and shared Party Action Points.</summary>
+/// <summary>Presents the current Round, turn phase and remaining shared Party AP.</summary>
 public partial class CombatStatusPanel : PanelContainer
 {
     private Label _round;
@@ -16,13 +16,13 @@ public partial class CombatStatusPanel : PanelContainer
         _actionPoints = GetNode<Label>("Margin/Content/Heading/ActionPoints");
     }
 
-    /// <summary>Updates the current Round, phase label and shared AP display.</summary>
+    /// <summary>Updates the current Round, phase label and remaining shared AP.</summary>
     public void SetTurn(int round, string turnLabel, bool isPlayerTurn, int currentActionPoints, int actionCapacity)
     {
         _round.Text = "ROUND " + round.ToString("00");
         _turn.Text = (turnLabel ?? string.Empty).ToUpperInvariant();
         _actionPoints.Text = isPlayerTurn
-            ? "AP  " + currentActionPoints + " / " + actionCapacity
+            ? "AP LEFT  " + currentActionPoints + " / " + actionCapacity
             : string.Empty;
     }
 }

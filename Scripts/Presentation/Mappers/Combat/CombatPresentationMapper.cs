@@ -8,9 +8,7 @@ public sealed class CombatPresentationMapper
     public CombatViewData Map(CombatSnapshot snapshot)
     {
         if (snapshot == null)
-        {
             throw new ArgumentNullException(nameof(snapshot));
-        }
 
         return new CombatViewData(
             snapshot.Round,
@@ -28,18 +26,14 @@ public sealed class CombatPresentationMapper
     public CombatViewData Map(CombatResult result)
     {
         if (result == null)
-        {
             throw new ArgumentNullException(nameof(result));
-        }
 
         CombatSnapshot snapshot = result.Snapshot;
         int extraMessageCount = result.Success || string.IsNullOrWhiteSpace(result.FailureReason) ? 0 : 1;
         CombatMessage[] messages = new CombatMessage[result.Events.Length + extraMessageCount];
 
         for (int index = 0; index < result.Events.Length; index++)
-        {
             messages[index] = MapEvent(result.Events[index]);
-        }
 
         if (extraMessageCount == 1)
         {
@@ -68,18 +62,15 @@ public sealed class CombatPresentationMapper
     private static EnemyCardViewData[] MapEnemies(EnemyCombatStatus[] enemies)
     {
         if (enemies == null || enemies.Length == 0)
-        {
             return Array.Empty<EnemyCardViewData>();
-        }
 
         List<EnemyCardViewData> viewData = new List<EnemyCardViewData>();
         foreach (EnemyCombatStatus enemy in enemies)
         {
             if (enemy == null || !enemy.IsVisible)
-            {
                 continue;
-            }
 
+            // Lust is intentionally absent until the Arousal runtime supplies an authoritative value.
             viewData.Add(new EnemyCardViewData(
                 enemy.Id,
                 enemy.Name,
@@ -94,14 +85,27 @@ public sealed class CombatPresentationMapper
     private static PartyMemberCardViewData[] MapParty(PartyCombatStatus[] party)
     {
         if (party == null || party.Length == 0)
-        {
             return Array.Empty<PartyMemberCardViewData>();
-        }
 
         PartyMemberCardViewData[] viewData = new PartyMemberCardViewData[party.Length];
         for (int index = 0; index < party.Length; index++)
         {
             PartyCombatStatus member = party[index];
+            string stance = string.Equals(member.Condition, "Downed", StringComparison.OrdinalIgnoreCase)
+                ? "downed"
+                : string.Equals(member.Condition, "Wounded", StringComparison.OrdinalIgnoreCase)
+                    ? "hurt"
+                    : "idle";
+
+            CharacterPortraitViewData portrait = new CharacterPortraitViewData(
+                member.Id,
+                member.Name,
+                "res://Assets/CharacterPortrait.svg",
+                stance,
+                string.Empty,
+                string.Empty,
+                member.Condition);
+
             viewData[index] = new PartyMemberCardViewData(
                 member.Id,
                 member.Name,
@@ -110,7 +114,11 @@ public sealed class CombatPresentationMapper
                 member.Condition,
                 member.IsActive,
                 member.CurrentStamina,
-                member.MaxStamina);
+                member.MaxStamina,
+                arousal: null,
+                currentMp: null,
+                maxMp: null,
+                portrait: portrait);
         }
 
         return viewData;
@@ -119,9 +127,7 @@ public sealed class CombatPresentationMapper
     private static CombatActionCardViewData[] MapActions(CombatActionOption[] actions)
     {
         if (actions == null || actions.Length == 0)
-        {
             return Array.Empty<CombatActionCardViewData>();
-        }
 
         CombatActionCardViewData[] viewData = new CombatActionCardViewData[actions.Length];
         for (int index = 0; index < actions.Length; index++)
@@ -143,7 +149,7 @@ public sealed class CombatPresentationMapper
             viewData[index] = new CombatActionCardViewData(
                 action.Id,
                 action.ActorId,
-                action.Label,
+                GetActionDisplayName(action.Label),
                 action.CostLabel,
                 action.Description,
                 action.IsAvailable,
@@ -156,13 +162,27 @@ public sealed class CombatPresentationMapper
         return viewData;
     }
 
+    private static string GetActionDisplayName(string label)
+    {
+        if (string.IsNullOrWhiteSpace(label))
+            return string.Empty;
+
+        const string separator = " · ";
+        int separatorIndex = label.IndexOf(separator, StringComparison.Ordinal);
+        return separatorIndex >= 0
+            ? label.Substring(separatorIndex + separator.Length)
+            : label;
+    }
+
     private static CombatActionCategory MapActionCategory(string actionId)
     {
         return actionId switch
         {
-            "quick_strike" or "heavy_strike" or "disrupting_strike" => CombatActionCategory.Offense,
-            "guard" or "evade" => CombatActionCategory.Defense,
-            "catch_breath" or "revive_ally" => CombatActionCategory.Support,
+            "quick_strike" or "heavy_strike" or "disrupting_strike" => CombatActionCategory.Attack,
+            "guard" or "evade" or "catch_breath" or "revive_ally" => CombatActionCategory.Defence,
+            "tease" or "allure" => CombatActionCategory.Allure,
+            "use_item" or "item" => CombatActionCategory.Inventory,
+            "escape" or "run" => CombatActionCategory.Run,
             _ => CombatActionCategory.Other
         };
     }
@@ -170,9 +190,7 @@ public sealed class CombatPresentationMapper
     private static CombatFeedbackViewData[] MapFeedback(CombatEvent[] events)
     {
         if (events == null || events.Length == 0)
-        {
             return Array.Empty<CombatFeedbackViewData>();
-        }
 
         List<CombatFeedbackViewData> feedback = new List<CombatFeedbackViewData>();
         foreach (CombatEvent combatEvent in events)
@@ -196,14 +214,11 @@ public sealed class CombatPresentationMapper
                         string.Empty,
                         CombatFeedbackType.Attack));
                 }
-
                 continue;
             }
 
             if (combatEvent.Type != CombatEventType.PlayerAction)
-            {
                 continue;
-            }
 
             CombatFeedbackType? type = combatEvent.ActionId switch
             {
@@ -244,18 +259,14 @@ public sealed class CombatPresentationMapper
                     ? "PARTY"
                     : combatEvent.ActorName.ToUpperInvariant();
                 if (!string.IsNullOrWhiteSpace(combatEvent.TargetName))
-                {
                     text = combatEvent.Detail + " (Target: " + combatEvent.TargetName + ")";
-                }
                 break;
 
             case CombatEventType.EnemyAction:
                 type = CombatMessageType.Enemy;
                 speaker = combatEvent.ActorName;
                 if (!string.IsNullOrWhiteSpace(combatEvent.TargetName))
-                {
                     text = combatEvent.Detail + " (Target: " + combatEvent.TargetName + ")";
-                }
                 break;
 
             case CombatEventType.Damage:
