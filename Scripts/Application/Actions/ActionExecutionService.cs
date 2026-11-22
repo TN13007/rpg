@@ -95,6 +95,8 @@ public sealed class ActionExecutionService
             throw new ArgumentNullException(nameof(gameClock));
         }
 
+        // Availability and earlier preflight checks are advisory; actor state may have changed.
+        // Revalidate immediately before calculating time or mutating any runtime state.
         if (!CanExecute(action, actor, out failureReason))
         {
             actualDuration = 0;
