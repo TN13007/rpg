@@ -138,7 +138,7 @@ Collection-valued definitions are copied at construction and exposed through rea
 
 ### Runtime character state
 
-Each `Character` instance owns its current Health, Fatigue, Stamina, Mood and Gold. It reads identity, role, Level, Stats, limits and starting values from its immutable `CharacterData`; it does not own or mutate that definition. The Character methods (`TakeDamage`, `RestoreHealth`, `Revive`, `AddFatigue`, `RestoreFatigue`, `SpendStamina`, `RestoreStamina`, `ChangeMood` and `AddGold`) are the supported mutation surface and enforce each resource's bounds.
+Each `Character` instance owns its current Health, Fatigue, Stamina, Mood and Gold. It reads identity, role, Level, Stats, limits and starting values from its immutable `CharacterData`; it does not own or mutate that definition. The Character methods (`TakeDamage`, `RestoreHealth`, `Revive`, `AddFatigue`, `RestoreFatigue`, `SpendStamina`, `RestoreStamina`, `ChangeMood`, `AddGold` and `ResetToStartingValues`) are the supported mutation surface and enforce each resource's bounds.
 
 The Character is the authoritative owner of these resource values. Gameplay services are authorized to call its mutation methods only as part of their use case:
 - `ActionExecutionService` advances world time and applies action Fatigue; `ActionEffectExecutor` applies the effects authored on an Action.
