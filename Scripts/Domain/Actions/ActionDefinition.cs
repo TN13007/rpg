@@ -87,7 +87,7 @@ public sealed class ActionDefinition
         ActivityTimeModifier timeModifier = null,
         string feedback = "",
         double activityMet = 1.0,
-        ActionEffectDefinition[] effects = null,
+        IEnumerable<ActionEffectDefinition> effects = null,
         int? estimatedDurationMinMinutes = null,
         int? estimatedDurationMaxMinutes = null,
         string requiredNpcId = null)

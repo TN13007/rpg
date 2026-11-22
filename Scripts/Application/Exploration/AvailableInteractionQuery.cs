@@ -173,7 +173,7 @@ public sealed class AvailableInteractionQuery
 
     private static bool IsRecoveryAction(ActionDefinition action)
     {
-        return action.Effects.Length == 1
+        return action.Effects.Count == 1
             && action.Effects[0].Type == ActionEffectType.Revive
             && action.Effects[0].Amount > 0;
     }

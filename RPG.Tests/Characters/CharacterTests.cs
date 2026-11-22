@@ -137,15 +137,23 @@ public sealed class CharacterTests
     }
 
     [Fact]
-    public void ResetRestoresConfiguredFatigueAndStamina()
+    public void ResetToStartingValuesRestoresEveryPersistentResource()
     {
-        Character character = TestCharacterFactory.CreatePlayer(fatigue: 12.5, stamina: 4);
+        Character character = TestCharacterFactory.CreatePlayer(
+            health: 12, fatigue: 12.5, stamina: 4, mood: 35, gold: 7);
 
+        character.TakeDamage(5);
         character.AddFatigue(20);
         character.SpendStamina(2);
-        character.Reset();
+        character.ChangeMood(-10);
+        character.AddGold(10);
 
+        character.ResetToStartingValues();
+
+        Assert.Equal(12, character.Health);
         Assert.Equal(12.5, character.Fatigue);
         Assert.Equal(4, character.Stamina);
+        Assert.Equal(35, character.Mood);
+        Assert.Equal(7, character.Gold);
     }
 }

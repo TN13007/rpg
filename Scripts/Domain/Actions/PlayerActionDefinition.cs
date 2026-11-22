@@ -1,12 +1,13 @@
 using System;
+using System.Collections.Generic;
 
-/// <summary>Defines the player action data and its validation rules.</summary>
+/// <summary>Defines immutable authored Player Action data and its validation rules.</summary>
 public sealed class PlayerActionDefinition
 {
     /// <summary>Gets the action.</summary>
     public ActionDefinition Action { get; }
     /// <summary>Gets the available location ids.</summary>
-    public string[] AvailableLocationIds { get; }
+    public IReadOnlyList<string> AvailableLocationIds { get; }
 
     /// <summary>Initializes a new instance of <see cref="PlayerActionDefinition"/>.</summary>
     /// <param name="action">The action used to initialize the instance.</param>
@@ -14,7 +15,7 @@ public sealed class PlayerActionDefinition
     public PlayerActionDefinition(ActionDefinition action, string[] availableLocationIds = null)
     {
         Action = action ?? throw new ArgumentNullException(nameof(action));
-        AvailableLocationIds = availableLocationIds ?? Array.Empty<string>();
+        AvailableLocationIds = Array.AsReadOnly(availableLocationIds == null ? Array.Empty<string>() : (string[])availableLocationIds.Clone());
         foreach (string locationId in AvailableLocationIds)
         {
             if (string.IsNullOrWhiteSpace(locationId))
@@ -29,7 +30,7 @@ public sealed class PlayerActionDefinition
     /// <returns><see langword="true"/> when the operation succeeds; otherwise, <see langword="false"/>.</returns>
     public bool IsAvailableAt(string locationId)
     {
-        if (AvailableLocationIds.Length == 0) return true;
+        if (AvailableLocationIds.Count == 0) return true;
         foreach (string availableLocationId in AvailableLocationIds)
         {
             if (string.Equals(availableLocationId, locationId, StringComparison.Ordinal)) return true;

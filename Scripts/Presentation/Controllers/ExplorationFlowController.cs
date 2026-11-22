@@ -11,7 +11,7 @@ public sealed class ExplorationFlowController
     private readonly GameModeController _gameModeController;
     private readonly Character _player;
     private readonly ExplorationSessionState _sessionState;
-    private readonly PlayerActionDefinition[] _playerActions;
+    private readonly IReadOnlyList<PlayerActionDefinition> _playerActions;
     private readonly List<LocationContent> _locations;
     private readonly Func<string, LocationContent> _getLocation;
     private readonly ActionDefinition _travelAction;
@@ -55,7 +55,7 @@ public sealed class ExplorationFlowController
         GameModeController gameModeController,
         Character player,
         ExplorationSessionState sessionState,
-        PlayerActionDefinition[] playerActions,
+        IReadOnlyList<PlayerActionDefinition> playerActions,
         IEnumerable<LocationContent> locations,
         Func<string, LocationContent> getLocation,
         ActionDefinition travelAction,

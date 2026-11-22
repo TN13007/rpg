@@ -45,7 +45,7 @@ public sealed class CombatantDefinition
         }
 
         Actions = actions.ToArray();
-        if (Actions.Length == 0)
+        if (Actions.Count == 0)
         {
             throw new ArgumentException("A combatant must have at least one combat action.", nameof(actions));
         }

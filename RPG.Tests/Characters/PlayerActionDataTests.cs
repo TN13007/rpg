@@ -9,7 +9,7 @@ public sealed class PlayerActionDataTests
     {
         CharacterData player = LoadPlayerData();
 
-        Assert.Equal(3, player.PlayerActions.Length);
+        Assert.Equal(3, player.PlayerActions.Count);
         PlayerActionDefinition rest = Find(player, "rest");
         PlayerActionDefinition sleep = Find(player, "sleep");
         PlayerActionDefinition rescue = Find(player, "request_rescue");
