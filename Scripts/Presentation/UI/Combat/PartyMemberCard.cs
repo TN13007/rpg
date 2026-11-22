@@ -11,6 +11,9 @@ public partial class PartyMemberCard : Button
     private Label _healthLabel;
     private ProgressBar _healthBar;
     private Label _conditionLabel;
+    private Label _staminaLabel;
+    private Label _arousalLabel;
+    private ProgressBar _arousalBar;
     private string _memberId = string.Empty;
     private string _displayName = string.Empty;
     private CombatCardVfx _vfx;
@@ -33,7 +36,12 @@ public partial class PartyMemberCard : Button
         _healthLabel = GetNode<Label>("Margin/Content/Health");
         _healthBar = GetNode<ProgressBar>("Margin/Content/HealthBar");
         _conditionLabel = GetNode<Label>("Margin/Content/Condition");
+        _staminaLabel = GetNode<Label>("Margin/Content/Stamina");
+        _arousalLabel = GetNode<Label>("Margin/Content/ArousalLabel");
+        _arousalBar = GetNode<ProgressBar>("Margin/Content/ArousalBar");
         _vfx = GetNode<CombatCardVfx>("Vfx");
+        _arousalLabel.Visible = false;
+        _arousalBar.Visible = false;
 
         Pressed += HandlePressed;
         FocusMode = FocusModeEnum.All;
@@ -69,6 +77,18 @@ public partial class PartyMemberCard : Button
         _conditionLabel.AddThemeColorOverride(
             "font_color",
             member.Condition == "Downed" ? new Color("#E07A70") : UiTheme.Muted);
+        _staminaLabel.Text = member.MaxStamina > 0
+            ? "STA  " + member.CurrentStamina + " / " + member.MaxStamina
+            : string.Empty;
+        _staminaLabel.Visible = member.MaxStamina > 0;
+        _arousalLabel.Visible = member.Arousal.HasValue;
+        _arousalBar.Visible = member.Arousal.HasValue;
+        if (member.Arousal.HasValue)
+        {
+            _arousalLabel.Text = "AROUSAL  " + member.Arousal.Value + " / 100";
+            _arousalBar.MaxValue = 100;
+            _arousalBar.Value = member.Arousal.Value;
+        }
         UpdateStyle();
     }
 
