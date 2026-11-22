@@ -102,6 +102,24 @@ NPC interactions and Location Events can create opportunities without becoming m
 
 A casual conversation belongs to Loop 2 when it is a short contextual action. A consequential dialogue with relationship stages, negotiation or substantial branching belongs to the relevant Loop 3 domain.
 
+### 3.4 Shared activity data contract, domain-owned behavior
+
+Scheduled activities should share a small descriptive contract so classes, work shifts, club sessions and sports practice can be authored and queried consistently. This is a data contract, not a universal activity system.
+
+A scheduled activity record may identify:
+- A stable commitment ID and the existing action/content ID it invokes.
+- A recurrence rule: selected weekdays, or one specific campaign day.
+- An optional required Location.
+- An allowed start window expressed in GameClock minutes.
+- References to the activity's existing duration, costs and authored outcomes.
+- Optional domain-owned eligibility conditions.
+
+The shared schedule contract owns only when and where an opportunity is available. It must not duplicate duration/effects already owned by an ActionDefinition, nor encode academic attendance, club membership, skill practice, payroll or relationship outcomes as generic fields. The owning domain validates its own conditions and resolves its own result.
+
+NPC presence is related but distinct: `NpcScheduleDefinition` describes where an NPC is available, not an activity the player commits to. It may reuse the same weekday and time-window primitives, while retaining its own NPC-presence semantics. Existing schedules with no weekday restriction continue to mean every day.
+
+Flexible actions do not need a schedule record unless a concrete player-facing case requires one. Do not migrate every `PlayerActionDefinition` into the scheduled-activity contract.
+
 ## 4. Representative weekday journey
 
 This is a target example used to validate the design, not a mandatory route or final content schedule.
@@ -127,6 +145,8 @@ At the same afternoon decision point:
 These branches should remain viable for different player priorities. No single activity should be the universally optimal choice for every day.
 
 A concrete first-day content pack reusing the current student characters, locations, actions and NPC routines is specified in [Daily Life Content — First Playable Day](DailyLifeContent.md). It separates existing data from proposed schedule, economy and Knowledge additions.
+
+The content pack also includes a small Saturday contrast: recurring club participation, a sports-practice opportunity and optional social time. It is deliberately smaller than a full weekly timetable and validates the same schedule and state-ownership contracts under a less structured day.
 
 ## 5. Current implementation boundary
 
@@ -219,6 +239,26 @@ The current design direction distinguishes:
 Loop 2 can provide instruction, study and deliberate practice. Loop 3 can provide specialized practice, research and consequential use. The activity domain decides whether its context qualifies; the shared Progression rules own the resulting capability state.
 
 No universal XP pool, level formula, skill-point award, anti-farming rule or attribute-growth formula is approved by this document. Those rules remain open in [Progression Design](Progression.md). Do not implement a generic progression event/API until at least one complete activity demonstrates the required data and behavior.
+
+### 7.5 Persistent state and ownership
+
+Loop 2 and Loop 3 need durable facts, but that does not justify one untyped global flag bag. A shared persistence mechanism may eventually serialize domain records, while each domain remains the authority for the meaning, validation, lifecycle and mutation of its own state.
+
+| State / fact | Owning domain | Required shape for the current examples |
+|---|---|---|
+| Class or study completion | Academic / learning activity domain | Typed completion record with activity ID and campaign-day identity; enough to evaluate same-day acquisition conditions |
+| Learned Knowledge | Shared Progression — Knowledge | Character-owned Knowledge entry; acquisition is granted only when the relevant domain confirms its requirements |
+| Club membership | Club / extracurricular domain | Membership record keyed by character and club; joining/leaving rules belong to that domain |
+| Skill capability | Shared Progression — Skills | Character-owned Skill state; the activity domain supplies a valid practice/learning context |
+| First meeting and relationship state | Relationship / Social domain | NPC-specific relationship/history state; a casual interaction does not automatically imply relationship growth |
+| Incident outcome | Incident domain | Typed outcome for that incident; only expose facts to other domains through an explicit query/contract |
+
+Important boundaries:
+- A common storage format does not make these records interchangeable. Avoid arbitrary string keys, untyped values or generic counters without a demonstrated consumer.
+- The domain that owns a record is the only domain that may authoritatively change it. Other domains may query it through an explicit read contract.
+- Distinguish day-scoped evidence from campaign-persistent state. For example, lecture and library completion must be associated with the same campaign day; the resulting Knowledge, once granted, is persistent until a domain rule changes it.
+- Do not clear or overwrite durable state at midnight merely because a daily activity record is day-scoped. Define retention per record type.
+- Do not create a generic `GameState`, `FlagManager`, Quest State or Incident State framework in this design pass. First prove the concrete records and queries through the Monday/Saturday journeys and one later Loop 3 use.
 
 ## 8. Loop 2 activity scope
 
