@@ -3,7 +3,7 @@
 **Repository:** [TN13007/rpg](https://github.com/TN13007/rpg)  
 **Engine:** Godot 4.7.2 .NET / C#  
 **Last reviewed:** 2026-11-23  
-**Baseline:** `main` at `f736c065`; open or unmerged PRs are proposals, not implemented behavior.
+**Baseline:** `main` at `3181bcc8`; open or unmerged PRs are proposals, not implemented behavior.
 
 > This is the only changing project-status and handoff tracker. Do not create separate status, Session-history, decision or learning trackers.
 
@@ -75,7 +75,9 @@ The Git workflow, commit granularity and PR requirements are defined only in [CO
 
 ## 4. Current handoff
 
-**Immediate verification priority:** perform the outstanding interactive Godot 4.7.2 acceptance run for the merged Unit 213 Combat HUD (PR #136 / Issue #135).
+**Active design task:** [Issue #152 — Define Loop 2 daily-life journey and shared contracts](https://github.com/TN13007/rpg/issues/152). The Loop 2 activity inventory is in Game Vision; this task turns it into a coherent daily journey and decides only the shared Time/Calendar and currency contracts justified by that journey. Keep code implementation in separate Issues after the design is reviewed.
+
+The outstanding interactive Godot 4.7.2 acceptance run for the merged Unit 213 Combat HUD (PR #136 / Issue #135) remains an independent verification item; it is not a dependency for this design task.
 
 Verify the complete journey rather than isolated controls:
 
