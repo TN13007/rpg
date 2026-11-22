@@ -75,7 +75,7 @@ public partial class Sidebar : PanelContainer
 
     /// <summary>Updates combat enemies to reflect the latest combat state.</summary>
     /// <param name="enemies">The enemies used by this operation.</param>
-    public void UpdateCombatEnemies(EnemyCombatStatus[] enemies)
+    public void UpdateCombatEnemies(EnemyCardViewData[] enemies)
     {
         if (!_enemySection.Visible)
         {
