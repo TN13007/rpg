@@ -336,6 +336,12 @@ public partial class CombatActionPanel : PanelContainer
         ActionSelected?.Invoke(selection);
     }
 
+    private void ClearPendingTarget()
+    {
+        _pendingAction = null;
+        _validEnemyTargetIds.Clear();
+    }
+
     private void ClearDetails()
     {
         _detailTitle.Text = "Select a skill";
