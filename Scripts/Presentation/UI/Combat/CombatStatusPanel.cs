@@ -17,11 +17,11 @@ public partial class CombatStatusPanel : PanelContainer
     }
 
     /// <summary>Updates the current Round, phase label and shared AP display.</summary>
-    public void SetTurn(int round, string turnLabel, CombatPhase phase, int currentActionPoints, int actionCapacity)
+    public void SetTurn(int round, string turnLabel, bool isPlayerTurn, int currentActionPoints, int actionCapacity)
     {
         _round.Text = "ROUND " + round.ToString("00");
         _turn.Text = (turnLabel ?? string.Empty).ToUpperInvariant();
-        _actionPoints.Text = phase == CombatPhase.PlayerTurn
+        _actionPoints.Text = isPlayerTurn
             ? "AP  " + currentActionPoints + " / " + actionCapacity
             : string.Empty;
     }
