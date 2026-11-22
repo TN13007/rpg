@@ -43,7 +43,7 @@ NPCs should feel like students, friends, coworkers, residents and professionals 
 
 ### Character-Focused Turn-Based Combat
 
-Combat is a discrete turn-based system centered on the active character, party condition and enemy behavior patterns. The player directly controls the four-person party. HP and Satisfaction provide two distinct dimensions of enemy state; party members also expose HP, Satisfaction and relevant resources. Action frequency is governed by a discrete action-economy rule, while skills use turn-based cooldowns. Combat has no real-time Timeline or advance Enemy Intent display.
+Combat is a discrete turn-based system centered on the active character, party condition and enemy behavior patterns. The player directly controls the four-person party. HP and Arousal provide two distinct dimensions of enemy state; party members also expose HP, Satisfaction and relevant resources. Action frequency is governed by a discrete action-economy rule, while skills use turn-based cooldowns. Combat has no real-time Timeline or advance Enemy Intent display.
 
 A paranormal incident may never reach combat if the player observes, retreats or seeks help.
 
