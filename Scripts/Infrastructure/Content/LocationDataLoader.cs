@@ -21,7 +21,7 @@ public static class LocationDataLoader
         }
 
         string json = FileAccess.GetFileAsString(path);
-        LoadJson(json);
+        return LoadJson(json);
     }
 
     /// <summary>Parses and validates authored Location JSON.</summary>
