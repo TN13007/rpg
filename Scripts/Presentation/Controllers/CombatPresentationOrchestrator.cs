@@ -39,6 +39,7 @@ public sealed class CombatPresentationOrchestrator
         }
 
         _primaryCharacter = _partyMembers[0];
+        _combatPanel.PartyMemberSelected += HandlePartyMemberSelected;
     }
 
     /// <summary>Enters combat mode, shows the initial statuses and adds the opening message.</summary>
@@ -116,9 +117,14 @@ public sealed class CombatPresentationOrchestrator
             }
         }
 
-        Character activeCharacter = _partyMembers.FirstOrDefault(
-            character => character.Id == viewData.ActiveCombatantId);
+    }
 
-        _characterPanel.SetCharacter(new CharacterViewModel(activeCharacter ?? _primaryCharacter));
+    private void HandlePartyMemberSelected(string characterId)
+    {
+        Character selectedCharacter = _partyMembers.FirstOrDefault(
+            character => character.Id == characterId);
+
+        _characterPanel.SetCharacter(
+            new CharacterViewModel(selectedCharacter ?? _primaryCharacter));
     }
 }

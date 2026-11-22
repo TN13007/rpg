@@ -9,6 +9,8 @@ public partial class CombatPanel : PanelContainer
     public event Action<CombatActionRequest> ActionSelected;
     /// <summary>Raised when the player chooses to end the Player Turn.</summary>
     public event Action EndPlayerTurnRequested;
+    /// <summary>Raised when the roster's selected acting member changes.</summary>
+    public event Action<string> PartyMemberSelected;
     /// <summary>Raised when the player acknowledges completion and returns to Exploration.</summary>
     public event Action ContinueRequested;
     /// <summary>Raised when the player begins target selection for an action.</summary>
@@ -75,6 +77,7 @@ public partial class CombatPanel : PanelContainer
         }
 
         _partyRosterPanel.SetMembers(viewData.Party);
+        PartyMemberSelected?.Invoke(_partyRosterPanel.SelectedMemberId);
         _availableActions = viewData.AvailableActions;
         UpdateActionOptions();
         _statusPanel.SetTurn(
@@ -142,6 +145,7 @@ public partial class CombatPanel : PanelContainer
     private void HandlePartyMemberSelected(string memberId)
     {
         UpdateActionOptions();
+        PartyMemberSelected?.Invoke(memberId);
     }
 
     private void HandleActionSelected(CombatActionRequest request)
