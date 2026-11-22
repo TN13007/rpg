@@ -143,7 +143,7 @@ The design target must not be confused with the current playable prototype:
 
 The current work action is not yet schedule-gated, the current class action does not record attendance, and the current study action does not grant Knowledge or Skill growth. These are design gaps, not implemented features. The sample starting Location and weekday calendar are also target decisions, not current runtime behavior.
 
-## 5. Activity resolution contract
+## 6. Activity resolution contract
 
 An ordinary Loop 2 activity follows this conceptual flow:
 
@@ -158,7 +158,7 @@ A rejected action must not partially spend money, advance time, add Fatigue or a
 
 ## 7. Shared-system contracts required by Loop 2
 
-### 6.1 Time and lightweight weekly calendar
+### 7.1 Time and lightweight weekly calendar
 
 **Existing owner:** `GameClock` in the Domain layer.
 
@@ -176,7 +176,7 @@ The schedule data describes when an opportunity is available; GameClock remains 
 
 **Not included:** weather, traffic simulation, full academic timetable management, automatic NPC travel, or continuous world simulation.
 
-### 6.2 Currency and resource transactions
+### 7.2 Currency and resource transactions
 
 **Existing owner:** `Character` owns the current Gold balance and exposes bounded resource mutation. `ActionEffectExecutor` currently supports `AddGold`, but there is no spending operation.
 
@@ -191,7 +191,7 @@ The schedule data describes when an opportunity is available; GameClock remains 
 
 The first playable economy only needs a small number of meaningful examples, such as earning money from a work shift and choosing whether to pay for a meal or necessity. Shopping/inventory ownership remains a separate design dependency; spending Gold alone does not imply that a full inventory system exists.
 
-### 6.3 Character state
+### 7.3 Character state
 
 | State | Loop 2 role | Current rule / boundary |
 |---|---|---|
@@ -204,7 +204,7 @@ The first playable economy only needs a small number of meaningful examples, suc
 
 The existing Agility-based Travel duration modifier remains unchanged. Other attribute uses should be designed through concrete scenarios and coordinated with [Issue #114](https://github.com/TN13007/rpg/issues/114), not added as arbitrary bonuses to every activity.
 
-### 6.4 Progression as a shared cross-layer system
+### 7.4 Progression as a shared cross-layer system
 
 Progression is not owned by Loop 2 or Loop 3. Both may create opportunities to develop the same character capabilities.
 
