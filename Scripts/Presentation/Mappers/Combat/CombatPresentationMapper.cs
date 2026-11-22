@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-/// <summary>Maps Domain combat results and snapshots into presentation-only view data.</summary>
+/// <summary>Maps Domain combat results into Presentation-owned view data.</summary>
 public sealed class CombatPresentationMapper
 {
     /// <summary>Maps a Domain snapshot without adding historical messages.</summary>
@@ -18,9 +18,9 @@ public sealed class CombatPresentationMapper
             snapshot.CurrentActionPoints,
             snapshot.ActionCapacity,
             snapshot.ActiveTurnLabel,
-            snapshot.Enemies,
-            snapshot.Party,
-            snapshot.AvailableActions,
+            MapEnemies(snapshot.Enemies),
+            MapParty(snapshot.Party),
+            MapActions(snapshot.AvailableActions),
             Array.Empty<CombatMessage>());
     }
 
@@ -58,11 +58,111 @@ public sealed class CombatPresentationMapper
             snapshot.CurrentActionPoints,
             snapshot.ActionCapacity,
             snapshot.ActiveTurnLabel,
-            snapshot.Enemies,
-            snapshot.Party,
-            snapshot.AvailableActions,
+            MapEnemies(snapshot.Enemies),
+            MapParty(snapshot.Party),
+            MapActions(snapshot.AvailableActions),
             messages,
-            feedback: MapFeedback(result.Events));
+            MapFeedback(result.Events));
+    }
+
+    private static EnemyCardViewData[] MapEnemies(EnemyCombatStatus[] enemies)
+    {
+        if (enemies == null || enemies.Length == 0)
+        {
+            return Array.Empty<EnemyCardViewData>();
+        }
+
+        List<EnemyCardViewData> viewData = new List<EnemyCardViewData>();
+        foreach (EnemyCombatStatus enemy in enemies)
+        {
+            if (enemy == null || !enemy.IsVisible)
+            {
+                continue;
+            }
+
+            viewData.Add(new EnemyCardViewData(
+                enemy.Id,
+                enemy.Name,
+                enemy.CurrentHealth,
+                enemy.MaxHealth,
+                enemy.Condition));
+        }
+
+        return viewData.ToArray();
+    }
+
+    private static PartyMemberCardViewData[] MapParty(PartyCombatStatus[] party)
+    {
+        if (party == null || party.Length == 0)
+        {
+            return Array.Empty<PartyMemberCardViewData>();
+        }
+
+        PartyMemberCardViewData[] viewData = new PartyMemberCardViewData[party.Length];
+        for (int index = 0; index < party.Length; index++)
+        {
+            PartyCombatStatus member = party[index];
+            viewData[index] = new PartyMemberCardViewData(
+                member.Id,
+                member.Name,
+                member.CurrentHealth,
+                member.MaxHealth,
+                member.Condition,
+                member.IsActive);
+        }
+
+        return viewData;
+    }
+
+    private static CombatActionCardViewData[] MapActions(CombatActionOption[] actions)
+    {
+        if (actions == null || actions.Length == 0)
+        {
+            return Array.Empty<CombatActionCardViewData>();
+        }
+
+        CombatActionCardViewData[] viewData = new CombatActionCardViewData[actions.Length];
+        for (int index = 0; index < actions.Length; index++)
+        {
+            CombatActionOption action = actions[index];
+            CombatActionTargetViewData[] targets = new CombatActionTargetViewData[action.Targets.Length];
+            for (int targetIndex = 0; targetIndex < action.Targets.Length; targetIndex++)
+            {
+                CombatActionTargetOption target = action.Targets[targetIndex];
+                targets[targetIndex] = new CombatActionTargetViewData(target.Id, target.Name);
+            }
+
+            CombatActionTargetKind targetKind = action.Id == "revive_ally"
+                ? CombatActionTargetKind.Party
+                : targets.Length > 0
+                    ? CombatActionTargetKind.Enemy
+                    : CombatActionTargetKind.None;
+
+            viewData[index] = new CombatActionCardViewData(
+                action.Id,
+                action.ActorId,
+                action.Label,
+                action.CostLabel,
+                action.Description,
+                action.IsAvailable,
+                action.UnavailableReason,
+                MapActionCategory(action.Id),
+                targetKind,
+                targets);
+        }
+
+        return viewData;
+    }
+
+    private static CombatActionCategory MapActionCategory(string actionId)
+    {
+        return actionId switch
+        {
+            "quick_strike" or "heavy_strike" or "disrupting_strike" => CombatActionCategory.Offense,
+            "guard" or "evade" => CombatActionCategory.Defense,
+            "catch_breath" or "revive_ally" => CombatActionCategory.Support,
+            _ => CombatActionCategory.Other
+        };
     }
 
     private static CombatFeedbackViewData[] MapFeedback(CombatEvent[] events)
@@ -105,9 +205,9 @@ public sealed class CombatPresentationMapper
 
             CombatFeedbackType? type = combatEvent.ActionId switch
             {
-                "quick_strike" => CombatFeedbackType.Attack,
-                "heavy_strike" => CombatFeedbackType.Attack,
-                "disrupting_strike" => CombatFeedbackType.Attack,
+                "quick_strike" => CombatFeedbackType.QuickAttack,
+                "heavy_strike" => CombatFeedbackType.HeavyAttack,
+                "disrupting_strike" => CombatFeedbackType.DisruptingAttack,
                 "guard" => CombatFeedbackType.Guard,
                 "evade" => CombatFeedbackType.Evade,
                 "catch_breath" => CombatFeedbackType.Recover,
