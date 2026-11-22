@@ -118,9 +118,9 @@ Data/*.json
   -> Infrastructure GameContentLoader
       -> schema-specific readers (LocationDataLoader, CharacterDataLoader, NPC readers, etc.)
       -> Domain definitions
-      -> GameContentCatalog cross-content reference validation
-  -> indexed content catalogs
-      -> runtime objects and Application services
+      -> indexed content catalogs
+  -> GameContentCatalog cross-content reference validation
+  -> runtime objects and Application services
   -> Presentation
 ```
 
