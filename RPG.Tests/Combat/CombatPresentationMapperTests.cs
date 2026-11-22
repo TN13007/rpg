@@ -12,7 +12,7 @@ public sealed class CombatPresentationMapperTests
         CombatViewData viewData = mapper.Map(snapshot);
 
         Assert.Equal(3, viewData.Round);
-        Assert.Equal(CombatPhase.PlayerTurn, viewData.Phase);
+        Assert.True(viewData.IsPlayerTurn);
         Assert.Equal(1, viewData.CurrentActionPoints);
         Assert.Equal(3, viewData.ActionCapacity);
         Assert.Equal("PLAYER TURN", viewData.ActiveTurnLabel);
