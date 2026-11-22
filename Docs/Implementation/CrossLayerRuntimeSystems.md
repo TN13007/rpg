@@ -44,6 +44,33 @@ The current prototype exposes Health, Fatigue, Stamina, Mood and Gold.
 
 Exact current values and action effects must be checked in the relevant JSON definitions and Domain code before changing them. Do not copy tuning values into Design as permanent decisions.
 
+### Character data, base attributes and runtime resources
+
+The current Character model separates authored character definitions from mutable values held by the runtime object, but it does not yet implement a complete Base Stats → Derived Stats → Resources calculation pipeline.
+
+**Authored character data**
+
+- `CharacterData` contains identity fields (`id`, `name`, `role`, `level`), resource limits, starting resource values, `CharacterStats`, Player Actions and Combat Action IDs.
+- `CharacterDataLoader` reads these fields from `Data/Characters/*.json`; `CharacterCatalog` provides the loaded definitions to the runtime.
+- The serialized `stats` object currently supports six attributes: Strength, Agility, Intelligence, Endurance, Wisdom and Luck. `CharacterStats` is immutable and validates each attribute in the range 0–100.
+- These attributes are currently exposed through `Character.Stats` and used by the Character profile presentation to display the character's attributes. The current runtime does not use them to calculate combat power, resource limits or turn order. In particular, Agility and Luck do not determine initiative.
+
+**Runtime values and limits**
+
+- `Character` owns mutable Health, Fatigue, Stamina, Mood and Gold values. Its constructor initializes them from the corresponding `Starting*` fields in `CharacterData`; `Reset()` restores those starting values.
+- Maximum Health, Fatigue, Stamina and Mood are read directly from `CharacterData` (`maxHealth`, `maxFatigue`, `maxStamina`, `maxMood`). They are authored per character in JSON, not calculated from Strength, Endurance or another attribute.
+- Gold has a starting value and mutable runtime balance, but no maximum value in the current model.
+- Combat-specific Downed state, AP eligibility and once-per-encounter Revive usage are owned by the Combat runtime, not by a general Character status-effect framework.
+
+**Not implemented yet**
+
+- There is no `DerivedStats` model or `DerivedStatCalculator` in the current Character Domain.
+- There are no runtime Mana/MP or Arousal/Lust resources in `Character` at this revision.
+- Equipment, traits, skills and status effects do not yet contribute stat modifiers to a derived-stat calculation.
+- The current per-character resource limits must therefore not be described as derived from Base Stats. Any proposed formulas belong in Design until implemented and covered by tests.
+
+When documenting or changing character behavior, keep the distinction explicit: `CharacterStats` holds authored attributes; `CharacterData` holds authored limits and starting values; `Character` holds mutable runtime resources. Do not infer a calculation pipeline from the presence of the attribute data alone.
+
 ## 4. Location and Exploration flow
 
 The current prototype uses location-based navigation rather than free-roam movement.
