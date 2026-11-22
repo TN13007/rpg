@@ -115,8 +115,6 @@ public sealed class CombatViewData
     public CombatActionOption[] AvailableActions { get; }
     /// <summary>Gets new messages to append to the history.</summary>
     public CombatMessage[] NewMessages { get; }
-    /// <summary>Gets the combatant ID used for the persistent character panel, when one is selected.</summary>
-    public string ActiveCombatantId { get; }
     /// <summary>Gets visual feedback cues emitted by the latest operation.</summary>
     public CombatFeedbackViewData[] Feedback { get; }
 
@@ -131,7 +129,6 @@ public sealed class CombatViewData
         PartyCombatStatus[] party,
         CombatActionOption[] availableActions,
         CombatMessage[] newMessages,
-        string activeCombatantId = "",
         CombatFeedbackViewData[] feedback = null)
     {
         Round = round;
@@ -143,7 +140,6 @@ public sealed class CombatViewData
         Party = party ?? Array.Empty<PartyCombatStatus>();
         AvailableActions = availableActions ?? Array.Empty<CombatActionOption>();
         NewMessages = newMessages ?? Array.Empty<CombatMessage>();
-        ActiveCombatantId = activeCombatantId ?? string.Empty;
         Feedback = feedback ?? Array.Empty<CombatFeedbackViewData>();
     }
 }
