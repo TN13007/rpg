@@ -14,7 +14,7 @@ public sealed class CombatPresentationMapper
 
         return new CombatViewData(
             snapshot.Round,
-            snapshot.Phase,
+            snapshot.Phase == CombatPhase.PlayerTurn,
             snapshot.CurrentActionPoints,
             snapshot.ActionCapacity,
             snapshot.ActiveTurnLabel,
@@ -54,7 +54,7 @@ public sealed class CombatPresentationMapper
 
         return new CombatViewData(
             snapshot.Round,
-            snapshot.Phase,
+            snapshot.Phase == CombatPhase.PlayerTurn,
             snapshot.CurrentActionPoints,
             snapshot.ActionCapacity,
             snapshot.ActiveTurnLabel,
