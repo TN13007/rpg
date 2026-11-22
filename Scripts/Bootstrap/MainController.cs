@@ -22,6 +22,7 @@ public partial class MainController : Control
         GameContentCatalog content = GameContentLoader.Load("res://Data");
         CharacterData playerData = content.GetCharacter("player_student");
         Character player = new Character(playerData);
+        ExplorationSessionState explorationSessionState = new ExplorationSessionState("university_campus");
         _debugEncounterAction = content.CombatEncounter;
 
         GameClock gameClock = new GameClock();
@@ -71,6 +72,7 @@ public partial class MainController : Control
             characterPanel,
             _gameModeController,
             player,
+            explorationSessionState,
             playerData.PlayerActions,
             content.Locations,
             content.GetLocation,
