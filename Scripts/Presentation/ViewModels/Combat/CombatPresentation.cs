@@ -231,7 +231,7 @@ public sealed class CombatMessage
 public sealed class CombatViewData
 {
     public int Round { get; }
-    public CombatPhase Phase { get; }
+    public bool IsPlayerTurn { get; }
     public int CurrentActionPoints { get; }
     public int ActionCapacity { get; }
     public string ActiveTurnLabel { get; }
@@ -243,7 +243,7 @@ public sealed class CombatViewData
 
     public CombatViewData(
         int round,
-        CombatPhase phase,
+        bool isPlayerTurn,
         int currentActionPoints,
         int actionCapacity,
         string activeTurnLabel,
@@ -254,7 +254,7 @@ public sealed class CombatViewData
         CombatFeedbackViewData[] feedback = null)
     {
         Round = round;
-        Phase = phase;
+        IsPlayerTurn = isPlayerTurn;
         CurrentActionPoints = currentActionPoints;
         ActionCapacity = actionCapacity;
         ActiveTurnLabel = activeTurnLabel ?? string.Empty;
