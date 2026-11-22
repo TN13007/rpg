@@ -22,9 +22,38 @@ Design decisions do not imply implementation. If the desired experience and curr
 
 ## 2. Current project snapshot
 
-The accepted product direction is a player-directed modern student-life RPG built from cumulative gameplay layers. Loop 1 provides the shared Foundation; Loop 2 provides repeatable Daily Life; Loop 3 provides specialized activities. See [Game Vision](Docs/Design/GameVision.md) and [Daily Life](Docs/Design/DailyLife.md) for the design source of truth.
+### Product direction
 
-The modern student-life/city runtime and the discrete shared-AP Combat migration are merged. The Combat HUD is merged; its complete interactive Godot acceptance journey remains a separate verification item. Issues #134 and #137 remain separate Combat follow-ups.
+The accepted product direction is a player-directed modern student-life RPG. The complete experience is built from cumulative gameplay layers:
+
+- **Loop 1 — Foundation:** time, characters, locations, actions, resources and progression. It is used most frequently because every higher layer depends on it.
+- **Loop 2 — Daily Life:** classes, studying, work, money, rest, relationships, shops and city exploration. It gives the player a repeatable everyday context.
+- **Loop 3 — Specialized Activities:** social interaction, combat, romance/intimacy, investigation, recreation and other activities that add rules and decisions beyond ordinary daily actions.
+- **Loop 4+ — Extended Gameplay:** deeper combinations of party, skills, relationships, activities and persistent outcomes.
+
+Each layer builds on the capabilities of the previous layers. This is a dependency model, not a mandatory order of player actions. The intended identity combines the everyday freedom of *Degrees of Lewdity*, the party-based RPG and character-interaction direction of *Karryn's Prison*, and a stronger emphasis on practical skill-driven gameplay.
+
+The protagonist is an ordinary university student in a contemporary city. Paranormal incidents are optional; the player may investigate, ignore, leave or seek professional help. Combat is a specialized turn-based activity, not the mandatory response to every unusual situation.
+
+The design source of truth is [Game Vision](Docs/Design/GameVision.md), [World and Narrative](Docs/Design/WorldAndNarrative.md), [Combat](Docs/Design/Combat.md), [Progression](Docs/Design/Progression.md) and [Product Roadmap](Docs/Design/Roadmap.md).
+
+### Implementation reality
+
+The modern student-life/city refactor is merged into `main`; Issue #110 is closed. The authored setting includes the university, student housing, campus facilities, a part-time café, East District locations, a paranormal response office and the Unit 213 incident. The four-person Party is Alex, Noah, Mira and Sera. Unit 213 supports observation, cautious entry and retreat without forcing combat.
+
+The combat runtime migration is merged. PR #131 added the shared Domain ActionPool, and PR #133 replaced Timeline/Intent with discrete Player Turn → Enemy Turn rounds. The playable Unit 213 encounter starts with 2 shared AP; each successful Party action costs 1 AP; each living Enemy resolves one authored pattern step per Enemy Turn; world time and Fatigue are applied once at encounter completion.
+
+The three-region Combat HUD is also merged through PR #136, and Issue #135 is closed. It contains the Enemy region, selected-character portrait, four-member Party Bar and three-column Action Panel. Non-target actions execute on selection; target-dependent actions enter target selection directly. PR #136 CI passed 211 .NET tests, the Godot 4.7.2 Debug build, headless import/Main/Combat Preview checks and the repository naming audit. **Interactive Godot acceptance of the complete Unit 213 HUD journey is still not recorded.**
+
+The documentation alignment was merged through PR #139 (merge commit `f736c065`). The Design documentation now describes the layered gameplay vision and discrete shared-AP combat. PR #138 is an older duplicate of that documentation change and remains open; it is superseded by PR #139.
+
+Current runtime gaps and active follow-up work:
+
+- [Issue #134](https://github.com/TN13007/rpg/issues/134) owns the Tease/Arousal/Orgasm MVP. Arousal/Lust is not yet supplied by the Combat runtime; Presentation must not fabricate values.
+- [Issue #137](https://github.com/TN13007/rpg/issues/137) owns the derived MP resource. MP is not yet supplied by the Character/Combat runtime; the HUD must keep the optional field hidden until authoritative values exist.
+- The portrait contract supports pose, expression, outfit and status layers, but current content still uses a generic placeholder portrait.
+- Combat events are currently presented synchronously; sequential event/animation playback remains follow-up work.
+- Durable incident flags, delayed incident progression, a social-feed interface and actual professional dispatch/payment behavior are not implemented. Do not add a generic Quest, Incident, Social Network or World Simulation framework without a concrete player-facing requirement.
 
 ## 3. Session protocol
 
@@ -58,7 +87,9 @@ The intended boundary is:
 
 This is a synchronous Action execution boundary, not a general transaction framework. It does not implement Gold spending, Membership/Knowledge requirements, weekday commitments or start windows. Those remain separate Loop 2 implementation tasks.
 
-After this refactor, use the local Godot 4.7.2 .NET environment to run the .NET test suite and the relevant headless/build checks. Passing CI does not replace local runtime acceptance or demonstrate independent learning.
+The outstanding interactive Godot 4.7.2 acceptance run for the merged Unit 213 Combat HUD (PR #136 / Issue #135) remains an independent verification item; it is not a dependency for this refactor.
+
+After this refactor, use the local Godot 4.7.2 .NET environment to run the .NET test suite and relevant headless/build checks. Passing CI does not replace local runtime acceptance or demonstrate independent learning.
 
 ## 5. Learning evidence
 
