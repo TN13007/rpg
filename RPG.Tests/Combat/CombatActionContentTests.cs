@@ -71,8 +71,8 @@ public sealed class CombatActionContentTests
     [Fact]
     public void GameContentCatalogRejectsUnknownCharacterActionReferences()
     {
-        LocationCatalog locations = new LocationCatalog();
-        locations.LoadJson("{\"locations\":[{\"id\":\"test_location\",\"name\":\"Test\",\"region\":\"Test\",\"description\":\"Test\",\"exits\":[],\"actions\":[]}]}");
+        LocationCatalog locations = LocationDataLoader.LoadJson(
+            "{\"locations\":[{\"id\":\"test_location\",\"name\":\"Test\",\"region\":\"Test\",\"description\":\"Test\",\"exits\":[],\"actions\":[]}]}");
         CharacterData character = new CharacterData(
             "test_character", "Test", "Test", 1, 10, 100, 10, 100, 10, 0, 10, 50, 0,
             combatActionIds: new[] { "unknown_action" });
