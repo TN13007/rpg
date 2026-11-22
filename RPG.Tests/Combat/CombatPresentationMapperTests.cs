@@ -27,6 +27,36 @@ public sealed class CombatPresentationMapperTests
     }
 
     [Fact]
+    public void PresentationCardsAcceptOptionalArousalOnlyWhenARealValueIsSupplied()
+    {
+        EnemyCardViewData enemy = new EnemyCardViewData(
+            "enemy-1",
+            "Unstable Presence",
+            40,
+            60,
+            "Healthy",
+            arousal: 72);
+        PartyMemberCardViewData partyMember = new PartyMemberCardViewData(
+            "party-1",
+            "Alex",
+            20,
+            20,
+            "Healthy",
+            true,
+            currentStamina: 6,
+            maxStamina: 10,
+            arousal: 0);
+
+        Assert.Equal(72, enemy.Arousal);
+        Assert.Equal(0, partyMember.Arousal);
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            new EnemyCardViewData("enemy-2", "Invalid", 10, 10, "Healthy", arousal: 101));
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            new PartyMemberCardViewData(
+                "party-2", "Invalid", 10, 10, "Healthy", true, 5, 10, arousal: -1));
+    }
+
+    [Fact]
     public void MapsOnlyVisibleEnemiesIntoEnemyCardViewData()
     {
         CombatPresentationMapper mapper = new CombatPresentationMapper();
