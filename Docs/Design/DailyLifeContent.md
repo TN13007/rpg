@@ -159,6 +159,8 @@ Saturday is a second validation slice, not a complete weekly timetable. With Day
 | `saturday_sports_practice` | `sports_field` | Saturday, 10:30–11:00 | 60 min | Requires membership in the Campus Sports Club; records a deliberate practice outcome for the proposed `athletics` Skill |
 | `saturday_mira_hangout` | `student_union` | Saturday, 14:00–15:00 | 60 min | Optional social opportunity with Mira; uses Relationship/Social-owned state and does not grant automatic relationship growth |
 
+**Saturday NPC presence target:** Mira is scheduled at `student_union` from 14:00–16:00 on Saturday for this optional hangout. This is a proposed weekday-specific presence entry; it does not change her existing weekday schedule.
+
 These are proposed content records, not existing runtime behavior. The club membership belongs to the extracurricular domain; the `athletics` capability belongs to shared Progression. The practice activity supplies evidence that a valid practice occurred, but no numerical Skill increase, XP reward or growth formula is specified here. That rule requires a separate concrete Progression decision.
 
 The Saturday schedule should not make all three opportunities mandatory. The player may attend only the club session, practice without taking the social opportunity if eligible, spend the day elsewhere, or do nothing beyond recovery. Existing daily NPC schedules remain unchanged unless an explicit Saturday-specific schedule is authored.
