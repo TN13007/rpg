@@ -16,8 +16,7 @@ public static class GameContentLoader
         }
 
         string normalizedRoot = dataRoot.TrimEnd('/');
-        LocationCatalog locations = new LocationCatalog();
-        locations.Load(normalizedRoot + "/Locations.json");
+        LocationCatalog locations = LocationDataLoader.Load(normalizedRoot + "/Locations.json");
 
         string charactersPath = normalizedRoot + "/Characters";
         DirAccess characterDirectory = DirAccess.Open(charactersPath);
