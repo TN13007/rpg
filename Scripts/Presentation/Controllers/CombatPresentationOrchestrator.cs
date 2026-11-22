@@ -122,11 +122,6 @@ public sealed class CombatPresentationOrchestrator
 
     private void HandlePartyMemberSelected(PartyMemberCardViewData member)
     {
-        if (member == null)
-        {
-            return;
-        }
-
         _characterPanel.SetCombatCharacter(member);
     }
 }
