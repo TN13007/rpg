@@ -6,7 +6,7 @@ This is the authoritative source for the intended game and player experience.
 
 | Document | Owns |
 |---|---|
-| [Game Vision](GameVision.md) | High concept, experience priorities, core loop and student-life/paranormal relationship |
+| [Game Vision](GameVision.md) | High concept, layered gameplay architecture, complete player experience and product identity |
 | [Combat](Combat.md) | Discrete turn-based combat, Party control, action points, enemy patterns, survival and encounter principles |
 | [Progression](Progression.md) | Attributes, equipment, skills, builds and long-term character growth |
 | [World and Narrative](WorldAndNarrative.md) | World structure, evolving challenges, NPCs, relationships and story consequences |
