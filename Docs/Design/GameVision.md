@@ -106,7 +106,7 @@ Daily activities provide more than temporary rewards. They establish the player'
 
 The player should have meaningful reasons to engage with everyday life even when no specialized event is active.
 
-Daily Life is not a mandatory sequence of tasks. It is a flexible gameplay layer in which the player decides how to spend available time and resources.
+Daily Life is not a mandatory sequence of tasks. It is a flexible gameplay layer in which the player decides how to spend available time and resources. The detailed daily journey, activity types and shared-system contracts are defined in [Daily Life](DailyLife.md).
 
 ### Loop 3 — Specialized Activities
 

@@ -9,6 +9,8 @@ This is the authoritative source for the intended game and player experience.
 | [Game Vision](GameVision.md) | High concept, layered gameplay architecture, complete player experience and product identity |
 | [Combat](Combat.md) | Discrete turn-based combat, Party control, action points, enemy patterns, survival and encounter principles |
 | [Progression](Progression.md) | Attributes, equipment, skills, builds and long-term character growth |
+| [Daily Life](DailyLife.md) | Loop 2 daily journey, activity types, commitments and shared-system contracts |
+| [Daily Life Content](DailyLifeContent.md) | Concrete first playable Monday using existing student content plus explicitly proposed additions |
 | [World and Narrative](WorldAndNarrative.md) | World structure, evolving challenges, NPCs, relationships and story consequences |
 | [Roadmap](Roadmap.md) | Player-facing development phases and playable exit criteria |
 

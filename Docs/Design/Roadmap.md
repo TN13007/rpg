@@ -20,10 +20,16 @@ The setting migration should preserve reusable runtime systems and avoid introdu
 Deliver a connected daily-life journey across campus, housing and nearby city locations. The player can attend a class, study, eat, meet friends, work a shift, rest and travel between locations. NPC schedules should make the world feel occupied without requiring autonomous simulation.
 
 **Exit criteria**
-- The starting location and route through the university are coherent.
-- Everyday actions use the existing GameClock and supported effects.
-- At least three NPCs have recognizable daily routines and available interactions.
-- The player can complete a day without being forced into a paranormal event.
+- The starting location and route through the university, housing and nearby city are coherent.
+- The player can complete a representative weekday from morning through Sleep and the next-day transition.
+- A smaller weekend contrast demonstrates optional extracurricular practice and social opportunities using the same GameClock and domain-owned state.
+- At least one scheduled class or work commitment competes meaningfully with flexible study, social or recreation choices.
+- A small set of ordinary activities demonstrates both earning and spending money without requiring a city-wide economy.
+- Everyday actions use the existing GameClock and Character state; NPC presence and interactions refresh as time advances.
+- At least three NPCs have recognizable routines and available interactions.
+- The player can complete a day without being forced into a paranormal event or Combat.
+
+The detailed Loop 2 design contract is maintained in [Daily Life](DailyLife.md).
 
 ## Phase 2 — Prove an optional paranormal incident
 
