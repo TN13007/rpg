@@ -85,6 +85,7 @@ public partial class CombatActionPanel : PanelContainer
         _actions = actions ?? Array.Empty<CombatActionCardViewData>();
         _selectedAction = null;
         _selectedActionDetails.Visible = false;
+        _confirmActionButton.Visible = true;
         _actionGrid.Visible = true;
 
         if (wasSelectingEnemy)
@@ -339,6 +340,7 @@ public partial class CombatActionPanel : PanelContainer
         ClearPendingTarget();
         ClearChildren(_targetGrid);
         _targetSelection.Visible = false;
+        _confirmActionButton.Visible = true;
         _actionGrid.Visible = true;
         if (wasSelectingEnemy)
         {
