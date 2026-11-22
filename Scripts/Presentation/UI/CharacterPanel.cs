@@ -14,6 +14,7 @@ public partial class CharacterPanel : PanelContainer
     private Label _moodValue;
     private Label _gold;
     private Label _arousalValue;
+    private Control _healthHeader;
     private Control _fatigueHeader;
     private Control _moodHeader;
     private Control _staminaHeader;
@@ -32,6 +33,7 @@ public partial class CharacterPanel : PanelContainer
         _name = GetNode<Label>("Margin/Content/Name");
         _role = GetNode<Label>("Margin/Content/Role");
         _level = GetNode<Label>("Margin/Content/Level");
+        _healthHeader = GetNode<Control>("Margin/Content/HealthHeader");
         _healthValue = GetNode<Label>("Margin/Content/HealthHeader/HealthValue");
         _fatigueHeader = GetNode<Control>("Margin/Content/FatigueHeader");
         _fatigueValue = GetNode<Label>("Margin/Content/FatigueHeader/FatigueValue");
@@ -62,6 +64,8 @@ public partial class CharacterPanel : PanelContainer
 
         _sectionTitle.Text = "YOUR CHARACTER";
         _portrait.Visible = true;
+        _healthHeader.Visible = true;
+        _healthBar.Visible = true;
         _level.Visible = true;
         _fatigueHeader.Visible = true;
         _fatigueBar.Visible = true;
@@ -95,12 +99,7 @@ public partial class CharacterPanel : PanelContainer
     /// <summary>Displays only combat-relevant values for the currently selected Party member.</summary>
     public void SetCombatCharacter(PartyMemberCardViewData member)
     {
-        if (member == null)
-        {
-            return;
-        }
-
-        _sectionTitle.Text = "ACTIVE PARTY MEMBER";
+        _sectionTitle.Text = member == null ? "ENEMY TURN" : "ACTIVE PARTY MEMBER";
         _portrait.Visible = false;
         _level.Visible = false;
         _fatigueHeader.Visible = false;
@@ -108,7 +107,22 @@ public partial class CharacterPanel : PanelContainer
         _moodHeader.Visible = false;
         _moodBar.Visible = false;
         _gold.Visible = false;
+        _arousalHeader.Visible = member != null && member.Arousal.HasValue;
+        _arousalBar.Visible = member != null && member.Arousal.HasValue;
 
+        if (member == null)
+        {
+            _name.Text = "Enemies are acting";
+            _role.Text = "Party on standby";
+            _healthHeader.Visible = false;
+            _healthBar.Visible = false;
+            _staminaHeader.Visible = false;
+            _staminaBar.Visible = false;
+            return;
+        }
+
+        _healthHeader.Visible = true;
+        _healthBar.Visible = true;
         _name.Text = member.Name;
         _role.Text = member.Condition.ToUpperInvariant();
         _healthValue.Text = member.CurrentHealth + " / " + member.MaxHealth;
