@@ -83,7 +83,7 @@ Combat uses discrete Player Turns and Enemy Turns. A Round consists of one Playe
 
 ### Party Turn and shared AP
 
-- The encounter starts at Round 1 with 2/2 shared Party Action Points (AP). CombatService accepts an authored capacity from 1 to 4; the current playable Main scene uses the default capacity of 2.
+- The encounter starts at Round 1 with 2/2 shared Party Action Points (AP). CombatService accepts an authored capacity from 1 to 4; MainController explicitly supplies the Unit 213 encounter capacity of 2 AP.
 - Every successful Party action in the current slice costs exactly 1 AP, including Revive. Defensive and recovery actions may also spend Stamina as authored.
 - The player can choose any living, non-Downed Party member who has not acted in the current Round. A Party member may perform only one AP-funded action per Round, even when AP remains.
 - Action options are generated for every eligible Party member and carry the required ActorId. The UI labels each option with its actor; it does not choose the actor from Agility, Luck or an initiative order.
