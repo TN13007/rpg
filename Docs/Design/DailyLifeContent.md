@@ -70,7 +70,7 @@ These are proposed content records. The schedule system and weekday support do n
 |---|---|---|---|---:|---|
 | `monday_research_methods_lecture` | `lecture_hall` | Monday | 09:00–09:15 | 60 min | Attend the introductory lecture; current action adds Mood +1 |
 | `monday_corner_cafe_shift` | `corner_cafe` | Monday | 13:00–13:15 | 180 min | Complete the shift; current action adds 30 Gold |
-| `monday_club_open_meeting` | `student_union` | Monday | 15:00–15:10 | 60 min | Attend the Campus Sports Club meeting; completion creates a club-owned membership record |
+| `monday_club_open_meeting` | `student_union` | Monday | 15:00–15:10 | 60 min | Attend the Campus Sports Club meeting; Mood +2, MET 1.5; completion creates a club-owned membership record |
 
 The class and work shift reuse the existing `attend_lesson` and `work_shift` actions. The 60-minute club meeting uses a proposed `attend_club_meeting` action (Mood +2; MET 1.5) and creates a typed Campus Sports Club membership record on completion. The existing 15-minute `join_club` action only asks about clubs; it is not the meeting and does not grant membership.
 
@@ -175,7 +175,6 @@ These are proposed authored content records. Existing action fields such as dura
 
 | Action | Location | Duration | Authored effect / activity intensity | Additional requirement |
 |---|---|---:|---|---|
-| `attend_club_meeting` | `student_union` | 60 min | Mood +2; MET 1.5 | Completion creates Campus Sports Club membership |
 | `noah_training_session` | `sports_field` | 90 min | Mood +3; MET 4 | `requiredNpcId: noah`; also requires the Social-owned weekend invitation |
 | `club_riverside_outing` | `riverside_park` | 120 min | Mood +4; MET 2 | Requires club membership; proposed cost 8 Gold |
 
