@@ -66,13 +66,52 @@ public sealed class ExplorationInteractionQueryTests
     public void Query_DoesNotMutatePlayerState()
     {
         LoadContent();
-        Character player = TestCharacterFactory.CreatePlayer(fatigue: 45, stamina: 3);
+        Character player = TestCharacterFactory.CreatePlayer(
+            health: 12, fatigue: 45, stamina: 3, mood: 35, gold: 7);
         CharacterData playerData = LoadPlayerData();
 
-        new AvailableInteractionQuery().Query(player, playerData.PlayerActions, _locations.Get("student_apartment"), _locations.Get, _locations.Travel);
+        new AvailableInteractionQuery().Query(
+            player,
+            playerData.PlayerActions,
+            _locations.Get("student_apartment"),
+            _locations.Get,
+            _locations.Travel);
 
+        Assert.Equal(12, player.Health);
         Assert.Equal(45, player.Fatigue);
         Assert.Equal(3, player.Stamina);
+        Assert.Equal(35, player.Mood);
+        Assert.Equal(7, player.Gold);
+    }
+
+    [Fact]
+    public void QueryResults_AreReadOnlyForNormalRecoveryAndEventChoices()
+    {
+        LoadContent();
+        CharacterData playerData = LoadPlayerData();
+        AvailableInteractionQuery query = new AvailableInteractionQuery();
+
+        Character activePlayer = TestCharacterFactory.CreatePlayer();
+        IReadOnlyList<AvailableInteraction> normalChoices = query.Query(
+            activePlayer,
+            playerData.PlayerActions,
+            _locations.Get("student_apartment"),
+            _locations.Get,
+            _locations.Travel);
+        AssertReadOnly(normalChoices);
+
+        Character incapacitatedPlayer = TestCharacterFactory.CreatePlayer(health: 0);
+        IReadOnlyList<AvailableInteraction> recoveryChoices = query.Query(
+            incapacitatedPlayer,
+            playerData.PlayerActions,
+            _locations.Get("student_apartment"),
+            _locations.Get,
+            _locations.Travel);
+        AssertReadOnly(recoveryChoices);
+
+        LocationEventDefinition locationEvent = _locations.Get("campus_cafe").Events[0];
+        IReadOnlyList<AvailableInteraction> eventChoices = query.Query(locationEvent);
+        AssertReadOnly(eventChoices);
     }
 
     [Fact]
@@ -195,6 +234,17 @@ public sealed class ExplorationInteractionQueryTests
         Assert.DoesNotContain(absent, item => item.ActionId == "join_mira");
         Assert.Contains(absent, item => item.ActionId == "join_students");
         Assert.Contains(present, item => item.ActionId == "join_mira");
+    }
+
+    private static void AssertReadOnly(IReadOnlyList<AvailableInteraction> interactions)
+    {
+        Assert.NotEmpty(interactions);
+        IList<AvailableInteraction> mutableView =
+            Assert.IsAssignableFrom<IList<AvailableInteraction>>(interactions);
+
+        Assert.True(mutableView.IsReadOnly);
+        Assert.Throws<NotSupportedException>(() => mutableView.Add(interactions[0]));
+        Assert.Throws<NotSupportedException>(() => mutableView[0] = interactions[0]);
     }
 
     private void LoadContent()
