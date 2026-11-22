@@ -1,16 +1,15 @@
 using System;
 using Godot;
 
-/// <summary>Presents a selectable combat action action in the combat interface.</summary>
+/// <summary>Presents a target choice for an action such as Revive.</summary>
 public partial class CombatActionButton : Button
 {
-    /// <summary>Raised when action selected occurs.</summary>
-    public event Action<CombatActionRequest> ActionSelected;
+    /// <summary>Raised with a Presentation-owned selection intent when the target is chosen.</summary>
+    public event Action<CombatActionSelection> ActionSelected;
 
-    /// <summary>Gets the request.</summary>
-    public CombatActionRequest Request { get; set; }
+    /// <summary>Gets or sets the selection intent emitted by this button.</summary>
+    public CombatActionSelection Selection { get; set; }
 
-    /// <summary>Initializes the Godot control and connects its UI signals.</summary>
     public override void _Ready()
     {
         Pressed += EmitActionSelected;
@@ -18,9 +17,9 @@ public partial class CombatActionButton : Button
 
     private void EmitActionSelected()
     {
-        if (Request != null)
+        if (Selection != null)
         {
-            ActionSelected?.Invoke(Request);
+            ActionSelected?.Invoke(Selection);
         }
     }
 }
