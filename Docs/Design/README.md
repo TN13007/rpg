@@ -7,7 +7,7 @@ This is the authoritative source for the intended game and player experience.
 | Document | Owns |
 |---|---|
 | [Game Vision](GameVision.md) | High concept, experience priorities, core loop and student-life/paranormal relationship |
-| [Combat](Combat.md) | Tactical Timeline, party control, action timing, control effects, survival and encounter principles |
+| [Combat](Combat.md) | Turn-based combat, action economy, enemy patterns, HP/Satisfaction, party resources and cooldowns |
 | [Progression](Progression.md) | Attributes, equipment, skills, builds and long-term character growth |
 | [World and Narrative](WorldAndNarrative.md) | World structure, evolving challenges, NPCs, relationships and story consequences |
 | [Roadmap](Roadmap.md) | Player-facing development phases and playable exit criteria |
