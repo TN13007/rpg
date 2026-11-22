@@ -108,7 +108,9 @@ public sealed class CombatPresentationMapper
                 member.CurrentHealth,
                 member.MaxHealth,
                 member.Condition,
-                member.IsActive);
+                member.IsActive,
+                member.CurrentStamina,
+                member.MaxStamina);
         }
 
         return viewData;
