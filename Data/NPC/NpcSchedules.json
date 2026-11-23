@@ -35,9 +35,15 @@
         },
         {
           "startMinute": 1020,
-          "endMinute": 1320,
+          "endMinute": 1080,
           "locationId": "student_apartment",
-          "activityDescription": "She heads home and works on her assignments."
+          "activityDescription": "She heads home after campus activities and gets ready for the evening."
+        },
+        {
+          "startMinute": 1080,
+          "endMinute": 1380,
+          "locationId": "apartment_block",
+          "activityDescription": "She waits near the old apartment entrance with the others, checking her phone for the latest message."
         }
       ]
     },
@@ -67,6 +73,12 @@
           "endMinute": 1080,
           "locationId": "student_union",
           "activityDescription": "He helps organize an upcoming student event."
+        },
+        {
+          "startMinute": 1080,
+          "endMinute": 1380,
+          "locationId": "apartment_block",
+          "activityDescription": "He waits by the stairwell, trying to act like he is not nervous."
         }
       ]
     },
@@ -96,6 +108,12 @@
           "endMinute": 1080,
           "locationId": "riverside_park",
           "activityDescription": "She walks along the river after class."
+        },
+        {
+          "startMinute": 1080,
+          "endMinute": 1380,
+          "locationId": "apartment_block",
+          "activityDescription": "She watches the hallway lights and keeps track of the nearest exit."
         }
       ]
     },
