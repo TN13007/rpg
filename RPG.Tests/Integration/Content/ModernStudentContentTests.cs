@@ -133,7 +133,7 @@ public sealed class ModernStudentContentTests
 
         NpcInteractionDefinition miraInvitation = content.NpcInteractions.All
             .Single(interaction => interaction.CharacterId == "mira" && interaction.Id == "talk");
-        Assert.Contains("Noah wants to check it out tonight", miraInvitation.Feedback);
+        Assert.Contains("Noah wants to check it out tonight", miraInvitation.Action.Feedback);
     }
 
     private static GameContentCatalog LoadContent()
