@@ -8,10 +8,10 @@ public enum ActionEffectType
     RestoreHealth,
     /// <summary>Reduces the target character's Health.</summary>
     ReduceHealth,
-    /// <summary>Restores the target character's Fatigue.</summary>
-    RestoreFatigue,
-    /// <summary>Reduces the target character's Fatigue.</summary>
-    ReduceFatigue,
+    /// <summary>Increases the target character's Fatigue.</summary>
+    IncreaseFatigue,
+    /// <summary>Decreases the target character's Fatigue.</summary>
+    DecreaseFatigue,
     /// <summary>Restores the target character's Stamina.</summary>
     RestoreStamina,
     /// <summary>Reduces the target character's Stamina.</summary>
