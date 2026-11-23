@@ -57,7 +57,7 @@
           "durationMinutes": 60,
           "effects": [
             {
-              "type": "ChangeMood",
+              "type": "RestoreMood",
               "amount": 1
             }
           ],
@@ -113,7 +113,7 @@
               "amount": 3
             },
             {
-              "type": "ChangeMood",
+              "type": "RestoreMood",
               "amount": 2
             }
           ],
@@ -126,7 +126,7 @@
           "durationMinutes": 10,
           "effects": [
             {
-              "type": "ChangeMood",
+              "type": "RestoreMood",
               "amount": 1
             }
           ],
@@ -148,7 +148,7 @@
               "durationMinutes": 10,
               "effects": [
                 {
-                  "type": "ChangeMood",
+                  "type": "RestoreMood",
                   "amount": 1
                 }
               ],
@@ -287,8 +287,8 @@
               "durationMinutes": 5,
               "effects": [
                 {
-                  "type": "ChangeMood",
-                  "amount": -3
+                  "type": "ReduceMood",
+                  "amount": 3
                 }
               ],
               "feedback": "The door gives way with a dry click. Inside, a child's voice repeats the same unfinished sentence. When you step toward the bedroom, it calls your name. You back out before it can come closer.",
@@ -338,7 +338,7 @@
           "durationMinutes": 15,
           "effects": [
             {
-              "type": "ChangeMood",
+              "type": "RestoreMood",
               "amount": 1
             }
           ],
@@ -351,8 +351,8 @@
           "durationMinutes": 10,
           "effects": [
             {
-              "type": "ChangeMood",
-              "amount": -2
+              "type": "ReduceMood",
+              "amount": 2
             }
           ],
           "feedback": "Most listings are routine errands and event staffing. You leave the board feeling that none of them is quite what you are looking for.",
@@ -429,7 +429,7 @@
           "durationMinutes": 20,
           "effects": [
             {
-              "type": "ChangeMood",
+              "type": "RestoreMood",
               "amount": 2
             }
           ],
