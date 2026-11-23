@@ -80,7 +80,7 @@
       },
       "exits": [
         "campus_library_exterior",
-        "campus_cafe"
+        "campus_cafe_exterior"
       ],
       "actions": [
         {
@@ -103,8 +103,8 @@
       },
       "exits": [
         "campus_cafe_exterior",
-        "campus_library",
-        "student_union"
+        "campus_library_exterior",
+        "student_union_exterior"
       ],
       "actions": [
         {
@@ -334,7 +334,7 @@
       },
       "exits": [
         "student_union_exterior",
-        "campus_cafe"
+        "campus_cafe_exterior"
       ],
       "actions": [
         {

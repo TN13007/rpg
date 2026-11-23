@@ -25,6 +25,10 @@ public sealed class ModernStudentContentTests
         Assert.Contains(dormRoom.Interactables, item => item.Id == "laptop");
         Assert.Contains(content.GetLocation("dormitory_lobby").Exits, id => id == "dormitory_exterior");
         Assert.Contains(campusPlaza.Exits, id => id == "dormitory_exterior");
+        Assert.Contains(campusPlaza.Exits, id => id == "lecture_hall_exterior");
+        Assert.DoesNotContain(campusPlaza.Exits, id => id == "lecture_hall");
+        Assert.Contains(content.GetLocation("campus_library").Exits, id => id == "campus_cafe_exterior");
+        Assert.DoesNotContain(content.GetLocation("campus_library").Exits, id => id == "campus_cafe");
         Assert.True(campusPlaza.IsFastTravelDestination);
         Assert.True(content.GetLocation("lecture_hall_exterior").IsFastTravelDestination);
         Assert.False(content.GetLocation("lecture_hall").IsFastTravelDestination);
