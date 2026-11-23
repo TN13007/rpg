@@ -1,20 +1,20 @@
 using System;
 
-/// <summary>Contains a validated Action execution prepared for a single synchronous commit.</summary>
-public sealed class ActionExecutionPlan
+/// <summary>Contains a validated _action execution prepared for a single synchronous commit.</summary>
+public sealed class _actionExecutionPlan
 {
-    internal Character Actor { get; }
-    internal GameClock Clock { get; }
-    internal ActionDefinition Action { get; }
-    internal ActionEffectPlan EffectPlan { get; }
-    internal int PreparedDay { get; }
-    internal int PreparedMinutesOfDay { get; }
-    internal int PreparedHealth { get; }
-    internal double PreparedFatigue { get; }
-    internal int PreparedStamina { get; }
-    internal int PreparedMood { get; }
-    internal int PreparedGold { get; }
-    internal bool IsApplied { get; private set; }
+    internal Character _actor { get; }
+    internal Game_clock _clock { get; }
+    internal _actionDefinition _action { get; }
+    internal _action_effectPlan _effectPlan { get; }
+    internal int _preparedDay { get; }
+    internal int _preparedMinutesOfDay { get; }
+    internal int _preparedHealth { get; }
+    internal double _preparedFatigue { get; }
+    internal int _preparedStamina { get; }
+    internal int _preparedMood { get; }
+    internal int _preparedGold { get; }
+    internal bool _isApplied { get; private set; }
 
     /// <summary>Gets the duration that will be applied when this plan is committed.</summary>
     public int ActualDurationMinutes { get; }
@@ -22,45 +22,45 @@ public sealed class ActionExecutionPlan
     /// <summary>Gets the Fatigue change calculated for this execution.</summary>
     public double FatigueChange { get; }
 
-    internal ActionExecutionPlan(
-        ActionDefinition action,
+    internal _actionExecutionPlan(
+        _actionDefinition action,
         Character actor,
-        GameClock clock,
+        Game_clock clock,
         int actualDurationMinutes,
         double fatigueChange,
-        ActionEffectPlan effectPlan)
+        _action_effectPlan effectPlan)
     {
-        Action = action ?? throw new ArgumentNullException(nameof(action));
-        Actor = actor ?? throw new ArgumentNullException(nameof(actor));
-        Clock = clock ?? throw new ArgumentNullException(nameof(clock));
-        EffectPlan = effectPlan ?? throw new ArgumentNullException(nameof(effectPlan));
+        _action = action ?? throw new ArgumentNullException(nameof(action));
+        _actor = actor ?? throw new ArgumentNullException(nameof(actor));
+        _clock = clock ?? throw new ArgumentNullException(nameof(clock));
+        _effectPlan = effectPlan ?? throw new ArgumentNullException(nameof(effectPlan));
         ActualDurationMinutes = actualDurationMinutes;
         FatigueChange = fatigueChange;
 
-        PreparedDay = clock.Day;
-        PreparedMinutesOfDay = clock.MinutesOfDay;
-        PreparedHealth = actor.Health;
-        PreparedFatigue = actor.Fatigue;
-        PreparedStamina = actor.Stamina;
-        PreparedMood = actor.Mood;
-        PreparedGold = actor.Gold;
+        _preparedDay = clock.Day;
+        _preparedMinutesOfDay = clock.MinutesOfDay;
+        _preparedHealth = actor.Health;
+        _preparedFatigue = actor.Fatigue;
+        _preparedStamina = actor.Stamina;
+        _preparedMood = actor.Mood;
+        _preparedGold = actor.Gold;
     }
 
     /// <summary>Reports whether the runtime objects still match the state used to prepare this plan.</summary>
     internal bool MatchesPreparedState()
     {
-        return Clock.Day == PreparedDay
-            && Clock.MinutesOfDay == PreparedMinutesOfDay
-            && Actor.Health == PreparedHealth
-            && Actor.Fatigue.Equals(PreparedFatigue)
-            && Actor.Stamina == PreparedStamina
-            && Actor.Mood == PreparedMood
-            && Actor.Gold == PreparedGold;
+        return _clock.Day == _preparedDay
+            && _clock.MinutesOfDay == _preparedMinutesOfDay
+            && _actor.Health == _preparedHealth
+            && _actor.Fatigue.Equals(_preparedFatigue)
+            && _actor.Stamina == _preparedStamina
+            && _actor.Mood == _preparedMood
+            && _actor.Gold == _preparedGold;
     }
 
     /// <summary>Marks this plan as committed so it cannot be applied more than once.</summary>
     internal void MarkApplied()
     {
-        IsApplied = true;
+        _isApplied = true;
     }
 }
