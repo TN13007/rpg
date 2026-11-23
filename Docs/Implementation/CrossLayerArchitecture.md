@@ -8,19 +8,20 @@ This document is the single source for repository structure, layer ownership, de
 
 ## 1. Repository map
 
-| Path | Responsibility | Starting point |
+| Path | Responsibility | Start here |
 |---|---|---|
 | `Scripts/Bootstrap/` | Godot entry point and dependency composition | `MainController.cs` |
-| `Scripts/Domain/` | Runtime state, definitions, game rules and calculations | `Characters/`, `Combat/`, `Time/` |
-| `Scripts/Application/` | Use-case coordination, request validation and queries | `Actions/`, `Exploration/`, `Combat/` |
-| `Scripts/Presentation/` | UI, flow controllers, ViewModels, mappers and formatters | `Controllers/`, feature UI and mappers |
-| `Scripts/Infrastructure/` | Content loading and engine/platform adapters | `Content/` |
-| `Data/` | Authored JSON content and ID references | Matching loader/schema |
+| `Scripts/Core/` | Shared state, definitions and rules | `Actions/`, `Characters/`, `Activities/`, `Time/` |
+| `Scripts/Features/Exploration/` | Navigation, Location interactions, NPCs, Events and their presentation | Matching responsibility folder |
+| `Scripts/Features/Combat/` | Combat rules, encounter lifecycle, setup, content and presentation | `Rules/`, `Encounter/`, `Presentation/` |
+| `Scripts/Content/` | Cross-feature loaders, catalogs and reference validation | `GameContentLoader.cs`, `GameContentCatalog.cs` |
+| `Scripts/UI/` | Shared shell controls, styles and presentation utilities | `Shell/`, `Shared/` |
+| `Data/` | Authored JSON grouped by content category | `Locations/`, `Characters/`, `NPC/`, `Combat/` |
 | `Scenes/` | Godot scene composition and previews | `Main.tscn` |
-| `RPG.Tests/` | Automated tests grouped by feature | Matching feature folder |
+| `RPG.Tests/` | Tests arranged by Core, feature, content and integration responsibility | Matching production responsibility |
 | `Tools/` | Repository validation and supporting scripts | `Validate.py` |
 
-Code is organized layer-first, then by feature. Do not start by reading every C# file. [Scripts/README.md](../../Scripts/README.md) is a shorter source locator.
+The source tree is feature-first, with a small Core for genuinely shared capabilities. A feature folder contains its gameplay rules/queries, flow coordination, presentation and feature-specific content. The logical responsibilities below still apply; they are not mirrored as global `Domain/`, `Application/`, `Presentation/` and `Infrastructure/` directories. [Scripts/README.md](../../Scripts/README.md) is the practical file locator.
 
 ## 2. Layer ownership
 
@@ -34,13 +35,28 @@ Code is organized layer-first, then by feature. Do not start by reading every C#
 
 ## 3. Dependency direction
 
+Folder placement is feature-first; dependency ownership remains explicit:
+
 ```text
-Presentation -> Application -> Domain
-Bootstrap -> Presentation + Application + Domain + Infrastructure
-Infrastructure -> Domain contracts/types where required
+Bootstrap
+  -> Features + Core + Content + UI
+
+Feature UI / Presentation
+  -> Feature flow and use-case coordination
+  -> Core rules and state
+
+Feature Content loaders
+  -> authored Data + Core definitions
+
+Content/GameContentLoader
+  -> shared loaders + feature content loaders
+  -> Content/GameContentCatalog reference validation
+
+Core
+  -X-> Features / UI / Content
 ```
 
-Domain remains independent of Godot UI and Infrastructure. Application does not read files or render controls. Presentation asks Application to perform work and maps results for display. Bootstrap is the composition root that may know all layers.
+A feature may contain code that performs different logical roles (rules, use-case coordination, UI mapping or content loading) because those parts implement one gameplay responsibility. Keep dependencies pointing inward: feature rules do not depend on Godot UI; UI does not mutate authoritative state directly; loaders do not decide gameplay outcomes. Core remains independent of feature-specific behavior.
 
 Do not add interfaces, repositories, dependency-injection containers or factories pre-emptively. Introduce an abstraction only for a demonstrated replacement, isolation or testing need.
 
@@ -51,8 +67,8 @@ Do not add interfaces, repositories, dependency-injection containers or factorie
 ```text
 Data / content loaders
   -> Domain definitions + runtime state
-  -> Application AvailableInteractionQuery
-  -> Presentation ActionChoiceMapper
+  -> Features/Exploration/Interactions/AvailableInteractionQuery
+  -> Features/Exploration/Presentation/Mappers/ActionChoiceMapper
   -> ActionChoiceViewData
   -> StoryPanel
   -> ExplorationFlowController
@@ -71,10 +87,10 @@ When a selection arrives, `ExplorationFlowController` resolves it again against 
 ### NPC presence
 
 ```text
-Data/NpcSchedules.json
-  -> Infrastructure NpcScheduleDataLoader / NpcScheduleCatalog
+Data/NPC/NpcSchedules.json
+  -> Features/Exploration/NPC/Content/NpcScheduleDataLoader / NpcScheduleCatalog
   -> GameContentCatalog reference validation
-  -> Application NpcPresenceQuery
+  -> Features/Exploration/NPC/NpcPresenceQuery
        <- CharacterData + current Location + GameClock minute
   -> ExplorationFlowController
        -> Location/Event description
@@ -87,10 +103,10 @@ Schedules are read-only content. The query does not move NPCs or mutate state; i
 ### NPC interactions
 
 ```text
-Data/NpcInteractions.json
-  -> Infrastructure NpcInteractionDataLoader / NpcInteractionCatalog
+Data/NPC/NpcInteractions.json
+  -> Features/Exploration/NPC/Content/NpcInteractionDataLoader / NpcInteractionCatalog
   -> GameContentCatalog Character / Location reference validation
-  -> Application NpcInteractionQuery(characterId, locationId)
+  -> Features/Exploration/NPC/NpcInteractionQuery(characterId, locationId)
   -> ExplorationFlowController
        -> See around: list NPCs from NpcPresenceQuery
        -> select NPC: query that Character's available interactions
@@ -113,7 +129,7 @@ CombatPanel
   -> CombatPanel
 ```
 
-CombatService owns shared AP, Party action eligibility, Player/Enemy Turn transitions, deterministic EnemyPattern resolution, action resolution and combat-state mutation. Domain combat request/snapshot/result/event contracts live in Scripts/Domain/Combat/CombatContracts.cs. CombatSessionService coordinates encounter entry and one-time completion costs. The mapper converts results/events into presentation-safe data. UI does not calculate damage or mutate combat resources.
+CombatService owns shared AP, Party action eligibility, Player/Enemy Turn transitions, deterministic EnemyPattern resolution, action resolution and combat-state mutation. Domain combat request/snapshot/result/event contracts live in Scripts/Features/Combat/Rules/CombatContracts.cs. CombatSessionService coordinates encounter entry and one-time completion costs. The mapper converts results/events into presentation-safe data. UI does not calculate damage or mutate combat resources.
 
 ### Content loading
 
@@ -128,7 +144,7 @@ Data/*.json
   -> Presentation
 ```
 
-Definitions are authored content; schema-specific loaders parse and validate their JSON before constructing content catalogs. `LocationDataLoader` owns `Locations.json` file access, parsing and Location-level integrity checks; `LocationCatalog` only indexes the already-loaded `LocationContent` definitions. `GameContentCatalog` validates references between content domains. Runtime objects hold mutable state. A data definition can select only behavior already supported by code. Adding another content record that uses an existing behavior may be data-only; introducing a new behavior requires implementation and tests.
+Definitions are authored content; schema-specific loaders parse and validate their JSON before constructing content catalogs. `Features/Exploration/Locations/Content/LocationDataLoader` owns `Locations.json` file access, parsing and Location-level integrity checks; `Features/Exploration/Locations/Content/LocationCatalog` only indexes the already-loaded `LocationContent` definitions. `Content/GameContentCatalog` validates references between content domains. Runtime objects hold mutable state. A data definition can select only behavior already supported by code. Adding another content record that uses an existing behavior may be data-only; introducing a new behavior requires implementation and tests.
 
 ## 5. Character definitions and runtime resources
 
@@ -136,7 +152,7 @@ Character content and live character state have separate ownership.
 
 ### Authored definition data
 
-`Data/Characters/*.json` is parsed by `CharacterDataLoader` into `CharacterData` and indexed by `CharacterCatalog`. The definition owns identity, role, authored Level and base Stats, resource limits, starting resource values, Player Actions and combat action IDs. `CharacterStats`, `PlayerActionDefinition`, `ActionDefinition` and `ActionEffectDefinition` are authored definitions, not runtime state.
+`Data/Characters/*.json` is parsed by `Content/Characters/CharacterDataLoader` into `CharacterData` and indexed by `Content/Characters/CharacterCatalog`. The definition owns identity, role, authored Level and base Stats, resource limits, starting resource values, Player Actions and combat action IDs. `CharacterStats`, `PlayerActionDefinition`, `ActionDefinition` and `ActionEffectDefinition` are authored definitions, not runtime state.
 
 Collection-valued definitions are copied at construction and exposed through read-only lists. This includes nested Player Action location IDs and Action effects, as well as the action list on `CombatantDefinition`. Consumers may enumerate or query these collections but must not modify shared content. To change authored behavior, edit the source content or its loader/schema and construct a new definition.
 
@@ -146,9 +162,9 @@ Each `Character` instance owns its current Health, Fatigue, Stamina, Mood and Go
 
 The Character is the authoritative owner of these resource values. Gameplay services are authorized to call its mutation methods only as part of their use case:
 The current codebase compiles its layers into one assembly, so C# accessibility cannot enforce which layer calls a public Character mutator. This permission boundary is therefore an explicit architecture contract: keep mutation calls inside the owning Application/Domain use cases, cover the behavior with tests, and do not call mutators from Presentation.
-- `ActionExecutionService` advances world time and applies action Fatigue; `ActionEffectExecutor` applies the effects authored on an Action.
+- `Core/Actions/Execution/ActionExecutionService` advances world time and applies action Fatigue; `Core/Actions/Effects/ActionEffectExecutor` applies the effects authored on an Action.
 - `CombatService` coordinates combat actions, Stamina costs and victory rewards; `CombatEffectDispatcher` applies combat damage and other combat effects.
-- `CombatSessionService` applies the encounter's one-time world-time and Fatigue cost.
+- `Features/Combat/Encounter/CombatSessionService` applies the encounter's one-time world-time and Fatigue cost.
 - Bootstrap creates and shares the Player Character instance between Exploration and Combat. Party members retain their Character state across encounters; Enemy Characters are reset to authored starting values when a new encounter begins.
 
 `ResetToStartingValues` is an explicit full reset of the five persistent resources. It is used during construction and when an Enemy is prepared for a new encounter. Encounter-only state is separate: Action Points, downed/revival flags, enemy pattern progress and temporary Guard/Evade effects belong to the combat runtime and are reset by `CombatService`, not by Character.
@@ -173,15 +189,17 @@ If docs and code disagree, verify against current source and tests, then record 
 
 ## 7. Structural constraints
 
-- Put code in the layer that owns its responsibility, not the layer that happens to call it.
-- Group code by feature inside each layer.
+- Organize source folders by Core and gameplay feature, not by four global technical layers.
+- Put a feature's behavior, flow coordination, feature-specific content loading, presentation mapping and UI beside that feature, grouped by player-facing responsibility.
+- Put state and rules in Core only when shared by multiple features or foundational.
+- Put cross-feature loading/composition and cross-category reference validation in `Scripts/Content/`; keep a feature-specific loader/catalog beside the feature that owns that content.
+- Keep shared shell controls and reusable presentation utilities in `Scripts/UI/`; keep feature-only controls inside the owning feature.
+- Keep logical dependency constraints in Sections 2–3. Folder proximity does not authorize a dependency from Core into a Feature or direct UI mutation of gameplay state.
 - Keep one primary responsibility per file; closely related small contracts may share a file.
-- Keep Godot controls under `Presentation/UI` and scenes under `Scenes/`.
 - Move each `.cs.uid` sidecar with its script and update scene/resource references.
-- Preserve existing global C# types and serialized IDs during structural moves.
+- Preserve existing global C# types, serialized IDs and authored data meaning during structural moves.
 - Keep `MainController` as composition root; do not move feature rules into it.
 - Do not introduce universal executors for unrelated gameplay domains.
-
 
 ## 8. Action state preparation and commit
 
