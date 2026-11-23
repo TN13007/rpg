@@ -79,7 +79,7 @@ The Git workflow, commit granularity and PR requirements are defined only in [CO
 
 PR #155 merged the prepare-before-apply boundary. Issue #156 now completes its weak point: the previous Apply step still mutated GameClock and Character directly. The implementation should calculate an immutable proposed Character/clock state, then commit through one explicit State Change boundary while preserving Character and GameClock as authoritative owners. The 18 responsibility groups are a review framework, not a request for 18 placeholder classes. The mapping and justified exceptions live in [Function Responsibilities](Docs/Implementation/FunctionResponsibilities.md).
 
-The branch is based on the merged #155 commit. Gold spending, weekday commitments, start windows and Knowledge/Membership requirements remain separate Loop 2 work; do not fold them into this refactor.
+The branch is based on the merged #155 commit. Action Effects now use explicit positive-amount directional operations; Gold is a signed balance and may represent debt. Shop/purchase workflows, weekday commitments, start windows and Knowledge/Membership requirements remain separate Loop 2 work; do not fold them into this refactor.
 
 ## 5. Learning evidence
 
