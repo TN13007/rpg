@@ -15,8 +15,8 @@ public sealed class ActionEffectExecutor
                 throw new InvalidOperationException("An Action cannot contain a null effect.");
             if (!Enum.IsDefined(typeof(ActionEffectType), effect.Type))
                 throw new InvalidOperationException("An Action contains an unknown effect type.");
-            if (effect.Type != ActionEffectType.ChangeMood && effect.Amount < 0)
-                throw new InvalidOperationException("This Action effect cannot have a negative amount.");
+            if (effect.Amount <= 0)
+                throw new InvalidOperationException("Action effect amounts must be greater than zero.");
             preparedEffects.Add(effect);
         }
         return new ActionEffectPlan(preparedEffects);
