@@ -86,8 +86,8 @@ public partial class MainController : Control
             npcInteractionQuery,
             action => _combatController.StartEncounter(
                 action,
-                "Unit 213 Incident",
-                "An unstable presence emerges from the dark apartment."));
+                "Unit 213: The Crying Room",
+                "The apartment unfolds into impossible space. A towering presence drops from the ceiling while a second shape crawls out of the bedroom wall. Mira shouts for everyone to stay together."));
 
         _sidebar.TabSelected += OpenTab;
         _sidebar.DebugEncounterRequested += StartDebugEncounter;
