@@ -115,7 +115,7 @@ public sealed class LocationEventLoopTests
     }
 
     [Fact]
-    public void EventService_DifferentLocationsHaveIndependentDailyRolls()
+    public void EventService_DifferentLocationsCanTriggerIndependently()
     {
         LocationEventDefinition locationEvent = CreateEvent("guaranteed", 1);
         LocationEventService service = new LocationEventService(new Random(1));
