@@ -291,7 +291,7 @@
               "durationMinutes": 10,
               "effects": [],
               "feedback": "The knocks come in groups of three. Each time they stop, the handprint shifts closer to the edge of the door. Sera notices the hallway lights dim a moment before every knock.",
-              "activityMet": 1.2
+              "activityMet": 2
             },
             {
               "id": "enter_unit_213",
