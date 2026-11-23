@@ -134,6 +134,15 @@ public sealed class ModernStudentContentTests
         NpcInteractionDefinition miraInvitation = content.NpcInteractions.All
             .Single(interaction => interaction.CharacterId == "mira" && interaction.Id == "talk");
         Assert.Contains("Noah wants to check it out tonight", miraInvitation.Action.Feedback);
+        Assert.Equal("mira", incident.RequiredNpcId);
+
+        NpcPresenceQuery presenceQuery = new NpcPresenceQuery(
+            content.NpcSchedules.All,
+            content.Characters.All);
+        IReadOnlyList<NpcPresence> friendsAtTheApartment = presenceQuery.Query("apartment_block", 1080);
+        Assert.Equal(
+            new[] { "mira", "noah", "sera" },
+            friendsAtTheApartment.Select(presence => presence.CharacterId).OrderBy(id => id));
     }
 
     private static GameContentCatalog LoadContent()
