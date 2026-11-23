@@ -81,7 +81,7 @@ The branch currently:
 - Updates the encounter title/opening narration and adds content assertions.
 - Revises Game Vision, World and Narrative, and Roadmap to reflect the accepted student-life + supernatural adventure direction.
 
-**Verification status:** PR #173 is Draft. No GitHub Actions run was returned for its head commit at the last check. Automated tests have been updated but are not yet confirmed passing. No interactive Godot playthrough has been performed. Do not merge or mark Issue #172 complete until CI and the full dormitory → Mira invitation → Old Apartment Block → combat → return-to-Exploration journey have been verified.
+**Verification status:** PR #173 is Draft. GitHub Actions run #641 passed on head commit `249bae2bcae6114007efc43c7b9656996bd68f53`: repository validation, 265 .NET tests, Godot 4.7.2 .NET build, import/main-scene/combat-preview smoke checks and naming audit. No interactive playthrough has been performed. Do not merge or mark Issue #172 complete until the full dormitory → Mira invitation → evening meetup → Old Apartment Block → combat → return-to-Exploration journey has been manually verified.
 
 **Important boundaries:** Do not add a generic Quest/Episode/Incident framework, replace turn-based combat, or expand into broad relationship/economy/equipment systems for this slice. Use the existing content and runtime contracts unless a concrete player-facing blocker proves a change is necessary.
 
