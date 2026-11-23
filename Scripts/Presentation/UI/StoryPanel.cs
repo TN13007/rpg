@@ -162,7 +162,7 @@ public partial class StoryPanel : PanelContainer
     {
         long elapsedMinutes = _clockEndTotalMinutes - _clockStartTotalMinutes;
         long totalMinutes = _clockStartTotalMinutes
-            + (long)Math.Round(elapsedMinutes * progress);
+            + (long)Math.Round((double)elapsedMinutes * progress);
         int day = (int)(totalMinutes / 1440);
         int minutesOfDay = (int)(totalMinutes % 1440);
         _day.Text = GameClockDisplayFormatter.Format(_clockStartingDate, day, minutesOfDay);

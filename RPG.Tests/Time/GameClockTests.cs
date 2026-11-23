@@ -175,12 +175,30 @@ public sealed class GameClockTests
     }
 
     [Fact]
-    public void CanApplyState_RejectsDateOutsideCalendarRange()
+    public void ActionPreparation_RejectsCalendarOverflowWithoutChangingState()
     {
-        GameClock clock = new GameClock(startingDate: DateOnly.MaxValue);
-        GameClockState invalidState = new GameClockState(2, 0);
+        Character actor = TestCharacterFactory.CreatePlayer();
+        GameClock clock = new GameClock(
+            startingHour: 23,
+            startingMinute: 59,
+            startingDate: DateOnly.MaxValue);
+        ActionExecutionService service = new ActionExecutionService(
+            new ActivityTimeCalculator(),
+            new ActionEffectExecutor(),
+            new ActivityFatigueCalculator());
+        ActionDefinition action = new ActionDefinition("advance_time", "Advance time", 1);
 
-        Assert.False(clock.CanApplyState(invalidState));
+        Assert.False(service.TryPrepare(
+            action,
+            actor,
+            clock,
+            out ActionExecutionPlan plan,
+            out string failureReason));
+
+        Assert.Null(plan);
+        Assert.Contains("GameClock", failureReason);
+        Assert.Equal(DateOnly.MaxValue, clock.CurrentDate);
+        Assert.Equal(1439, clock.MinutesOfDay);
     }
 
     [Fact]

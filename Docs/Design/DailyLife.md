@@ -155,7 +155,7 @@ The design target must not be confused with the current playable prototype:
 | Area | Current `main` behavior | Loop 2 target |
 |---|---|---|
 | Starting context | `GameClock` starts at Day 1, 07:30; `MainController` starts Exploration at `university_campus` | The representative journey starts at student housing; the initial Location can be changed when the playable journey is implemented |
-| Calendar | Campaign day index, Gregorian date, weekday and minute-of-day derived from one GameClock | A readable Gregorian calendar; the initial campaign starts Monday, 1 September 2025 |
+| Calendar | Campaign day index, weekday and minute-of-day derived from one GameClock; no Gregorian date yet | A readable Gregorian calendar; the initial campaign starts Monday, 1 September 2025 |
 | NPC schedules | Authored daily time ranges repeat every day | Optional weekday restrictions for recurring NPC presence when content needs them |
 | Class | `attend_lesson` takes 60 minutes and changes Mood by +1 | A scheduled commitment with a weekday and allowed start window; academic progression still needs its own rules |
 | Study | `browse_library` takes 30 minutes and currently has no progression outcome | A flexible activity with a defined learning/practice outcome once Progression rules are approved |
