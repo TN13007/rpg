@@ -70,7 +70,9 @@ public sealed class ActionMoodFeedbackFormatterTests
             feedback: feedback,
             effects: new[]
             {
-                new ActionEffectDefinition(ActionEffectType.ChangeMood, amount)
+                new ActionEffectDefinition(
+                    amount < 0 ? ActionEffectType.ReduceMood : ActionEffectType.RestoreMood,
+                    Math.Abs(amount))
             });
     }
 }
