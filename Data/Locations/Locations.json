@@ -23,8 +23,6 @@
       "exits": [
         "lecture_hall_exterior",
         "campus_library_exterior",
-        "campus_cafe_exterior",
-        "student_union_exterior",
         "sports_field",
         "east_district",
         "dormitory_exterior"
@@ -39,7 +37,11 @@
           "activityMet": 1.3
         }
       ],
-      "fastTravelDestination": true
+      "fastTravelDestination": true,
+      "mapPosition": {
+        "column": 4,
+        "row": 1
+      }
     },
     {
       "id": "lecture_hall",
@@ -79,8 +81,7 @@
         "returnVisit": "The library remains a refuge from the noise outside. Students work at the shared desks, Sera often studies near the windows and the printer occasionally interrupts the silence."
       },
       "exits": [
-        "campus_library_exterior",
-        "campus_cafe_exterior"
+        "campus_library_exterior"
       ],
       "actions": [
         {
@@ -102,9 +103,7 @@
         "returnVisit": "The café grows busier toward lunchtime. The queue shifts slowly, and familiar groups occupy their usual tables while students trade updates between classes."
       },
       "exits": [
-        "campus_cafe_exterior",
-        "campus_library_exterior",
-        "student_union_exterior"
+        "campus_cafe_exterior"
       ],
       "actions": [
         {
@@ -203,12 +202,9 @@
       },
       "exits": [
         "university_campus",
-        "student_apartment_exterior",
-        "corner_cafe_exterior",
-        "apartment_block_exterior",
-        "response_office_exterior",
-        "campus_clinic_exterior",
-        "riverside_park"
+        "riverside_park",
+        "commercial_lane",
+        "residential_lane"
       ],
       "actions": [
         {
@@ -220,7 +216,11 @@
           "activityMet": 1
         }
       ],
-      "fastTravelDestination": true
+      "fastTravelDestination": true,
+      "mapPosition": {
+        "column": 8,
+        "row": 1
+      }
     },
     {
       "id": "corner_cafe",
@@ -333,8 +333,7 @@
         "returnVisit": "Club members come and go throughout the day. New posters appear beside the familiar announcements."
       },
       "exits": [
-        "student_union_exterior",
-        "campus_cafe_exterior"
+        "student_union_exterior"
       ],
       "actions": [
         {
@@ -387,7 +386,11 @@
           "activityMet": 3
         }
       ],
-      "fastTravelDestination": true
+      "fastTravelDestination": true,
+      "mapPosition": {
+        "column": 2,
+        "row": 0
+      }
     },
     {
       "id": "campus_clinic",
@@ -425,8 +428,8 @@
         "returnVisit": "The river keeps moving past the park. Joggers and students drift along the path as the light changes."
       },
       "exits": [
-        "east_district",
-        "sports_field"
+        "sports_field",
+        "east_district"
       ],
       "actions": [
         {
@@ -443,7 +446,11 @@
           "activityMet": 0.5
         }
       ],
-      "fastTravelDestination": true
+      "fastTravelDestination": true,
+      "mapPosition": {
+        "column": 7,
+        "row": 0
+      }
     },
     {
       "id": "dormitory_room",
@@ -605,7 +612,11 @@
         "university_campus"
       ],
       "actions": [],
-      "fastTravelDestination": true
+      "fastTravelDestination": true,
+      "mapPosition": {
+        "column": 2,
+        "row": 1
+      }
     },
     {
       "id": "campus_library_exterior",
@@ -617,10 +628,15 @@
       },
       "exits": [
         "campus_library",
-        "university_campus"
+        "university_campus",
+        "campus_cafe_exterior"
       ],
       "actions": [],
-      "fastTravelDestination": true
+      "fastTravelDestination": true,
+      "mapPosition": {
+        "column": 2,
+        "row": 2
+      }
     },
     {
       "id": "campus_cafe_exterior",
@@ -632,10 +648,15 @@
       },
       "exits": [
         "campus_cafe",
-        "university_campus"
+        "campus_library_exterior",
+        "student_union_exterior"
       ],
       "actions": [],
-      "fastTravelDestination": true
+      "fastTravelDestination": true,
+      "mapPosition": {
+        "column": 4,
+        "row": 2
+      }
     },
     {
       "id": "student_union_exterior",
@@ -647,10 +668,14 @@
       },
       "exits": [
         "student_union",
-        "university_campus"
+        "campus_cafe_exterior"
       ],
       "actions": [],
-      "fastTravelDestination": true
+      "fastTravelDestination": true,
+      "mapPosition": {
+        "column": 5,
+        "row": 3
+      }
     },
     {
       "id": "dormitory_exterior",
@@ -665,7 +690,11 @@
         "university_campus"
       ],
       "actions": [],
-      "fastTravelDestination": true
+      "fastTravelDestination": true,
+      "mapPosition": {
+        "column": 4,
+        "row": 4
+      }
     },
     {
       "id": "student_apartment_exterior",
@@ -677,10 +706,14 @@
       },
       "exits": [
         "student_apartment",
-        "east_district"
+        "residential_lane"
       ],
       "actions": [],
-      "fastTravelDestination": true
+      "fastTravelDestination": true,
+      "mapPosition": {
+        "column": 9,
+        "row": 5
+      }
     },
     {
       "id": "corner_cafe_exterior",
@@ -692,10 +725,14 @@
       },
       "exits": [
         "corner_cafe",
-        "east_district"
+        "commercial_lane"
       ],
       "actions": [],
-      "fastTravelDestination": true
+      "fastTravelDestination": true,
+      "mapPosition": {
+        "column": 7,
+        "row": 3
+      }
     },
     {
       "id": "apartment_block_exterior",
@@ -707,10 +744,14 @@
       },
       "exits": [
         "apartment_block",
-        "east_district"
+        "residential_lane"
       ],
       "actions": [],
-      "fastTravelDestination": true
+      "fastTravelDestination": true,
+      "mapPosition": {
+        "column": 7,
+        "row": 5
+      }
     },
     {
       "id": "response_office_exterior",
@@ -722,10 +763,14 @@
       },
       "exits": [
         "response_office",
-        "east_district"
+        "commercial_lane"
       ],
       "actions": [],
-      "fastTravelDestination": true
+      "fastTravelDestination": true,
+      "mapPosition": {
+        "column": 8,
+        "row": 3
+      }
     },
     {
       "id": "campus_clinic_exterior",
@@ -737,10 +782,55 @@
       },
       "exits": [
         "campus_clinic",
-        "east_district"
+        "commercial_lane"
       ],
       "actions": [],
-      "fastTravelDestination": true
+      "fastTravelDestination": true,
+      "mapPosition": {
+        "column": 9,
+        "row": 3
+      }
+    },
+    {
+      "id": "commercial_lane",
+      "name": "Commercial Lane",
+      "region": "EAST DISTRICT",
+      "description": {
+        "firstVisit": "A compact pedestrian street connects the East District with its cafés and local services.",
+        "returnVisit": "A compact pedestrian street connects the East District with its cafés and local services."
+      },
+      "exits": [
+        "east_district",
+        "corner_cafe_exterior",
+        "response_office_exterior",
+        "campus_clinic_exterior"
+      ],
+      "actions": [],
+      "fastTravelDestination": true,
+      "mapPosition": {
+        "column": 8,
+        "row": 2
+      }
+    },
+    {
+      "id": "residential_lane",
+      "name": "Residential Lane",
+      "region": "EAST DISTRICT",
+      "description": {
+        "firstVisit": "A quieter side street connects the East District with its apartment buildings.",
+        "returnVisit": "A quieter side street connects the East District with its apartment buildings."
+      },
+      "exits": [
+        "east_district",
+        "apartment_block_exterior",
+        "student_apartment_exterior"
+      ],
+      "actions": [],
+      "fastTravelDestination": true,
+      "mapPosition": {
+        "column": 8,
+        "row": 4
+      }
     }
   ]
 }
