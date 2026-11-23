@@ -3,7 +3,7 @@
 **Repository:** [TN13007/rpg](https://github.com/TN13007/rpg)  
 **Engine:** Godot 4.7.2 .NET / C#  
 **Last reviewed:** 2026-11-23  
-**Baseline:** `main` at `3181bcc8`; open or unmerged PRs are proposals, not implemented behavior.
+**Baseline:** `main` at `c4d81766`; open or unmerged PRs are proposals, not implemented behavior.
 
 > This is the only changing project-status and handoff tracker. Do not create separate status, Session-history, decision or learning trackers.
 
@@ -75,28 +75,21 @@ The Git workflow, commit granularity and PR requirements are defined only in [CO
 
 ## 4. Current handoff
 
-**Active design task:** [Issue #152 — Define Loop 2 daily-life journey and shared contracts](https://github.com/TN13007/rpg/issues/152). The Loop 2 activity inventory is in Game Vision; this task turns it into a coherent daily journey and decides only the shared Time/Calendar and currency contracts justified by that journey. Keep code implementation in separate Issues after the design is reviewed.
+**Active implementation task:** [Issue #154 — Prepare Action execution before applying runtime state](https://github.com/TN13007/rpg/issues/154).
 
-The outstanding interactive Godot 4.7.2 acceptance run for the merged Unit 213 Combat HUD (PR #136 / Issue #135) remains an independent verification item; it is not a dependency for this design task.
+The current Action runtime combines eligibility checks, time calculation, clock advancement, Fatigue mutation and Effect application in one execution path. The refactor introduces a prepare-before-apply boundary while preserving the authored Action JSON contract and existing gameplay behavior.
 
-Verify the complete journey rather than isolated controls:
+The intended boundary is:
 
-- One and multiple Enemies render with name and HP; optional Lust appears only when supplied.
-- All four Party members render with name and HP; optional Lust/MP remain hidden until real values exist.
-- Selecting each eligible Party member updates the portrait and action list.
-- Portrait presentation handles the supplied stance/status and optional outfit/expression layers.
-- Round and remaining shared AP update correctly.
-- Each action category filters the action list; action details show effect, target rule, availability and cost.
-- No-target actions execute immediately without confirmation.
-- Enemy-target actions highlight valid targets only; invalid targets ignore clicks; cancelling clears highlights.
-- Ally-target actions expose valid Party targets and execute on selection.
-- Feedback, End Turn, Enemy Turn, Victory/Defeat and return to Exploration work.
+- **Prepare:** revalidate the actor, calculate actual duration and Fatigue, verify the GameClock can advance, and validate/snapshot all configured effects without changing runtime state.
+- **Apply:** confirm the prepared Character and GameClock state has not changed, then advance time and apply the prepared Fatigue/effects once.
+- **Ownership:** Character and GameClock continue to own their state. The Action service orchestrates; calculators calculate; the Effect executor prepares and applies authored effects.
 
-After recording that acceptance evidence, select the next implementation task from the open follow-ups. Issue #134 (Arousal MVP) and Issue #137 (derived MP) remain separate scopes; do not combine them without an explicit dependency or agreed plan.
+This is a synchronous Action execution boundary, not a general transaction framework. It does not implement Gold spending, Membership/Knowledge requirements, weekday commitments or start windows. Those remain separate Loop 2 implementation tasks.
 
-[Issue #91](https://github.com/TN13007/rpg/issues/91) remains the umbrella for the combat redesign and MVP. Its issue description should be reconciled with the merged PR #133/#136 implementation and current Design documents before it is used as a detailed task specification.
+The outstanding interactive Godot 4.7.2 acceptance run for the merged Unit 213 Combat HUD (PR #136 / Issue #135) remains an independent verification item; it is not a dependency for this refactor.
 
-Do not begin autonomous NPC simulation, broad Character abstractions or a general refactor unless a demonstrated player-facing requirement needs them.
+After this refactor, use the local Godot 4.7.2 .NET environment to run the .NET test suite and relevant headless/build checks. Passing CI does not replace local runtime acceptance or demonstrate independent learning.
 
 ## 5. Learning evidence
 

@@ -444,6 +444,138 @@ public sealed class ActionExecutionTests
         Assert.Equal(570, clock.MinutesOfDay);
     }
 
+
+    [Fact]
+    public void TryPrepareCalculatesCompletePlanWithoutMutatingRuntimeState()
+    {
+        Character actor = TestCharacterFactory.CreatePlayer(
+            health: 12, fatigue: 10, stamina: 2, mood: 40, gold: 7, agility: 30);
+        GameClock clock = new GameClock(3, 9, 15);
+        ActionDefinition action = new ActionDefinition(
+            "prepared_walk",
+            "Prepared Walk",
+            20,
+            new ActivityTimeModifier(CharacterStat.Agility, 0.5),
+            activityMet: 2.5,
+            effects: new[]
+            {
+                new ActionEffectDefinition(ActionEffectType.RestoreStamina, 2),
+                new ActionEffectDefinition(ActionEffectType.ChangeMood, 3)
+            });
+
+        bool prepared = _service.TryPrepare(
+            action, actor, clock, out ActionExecutionPlan plan, out string reason);
+
+        Assert.True(prepared, reason);
+        Assert.Equal(17, plan.ActualDurationMinutes);
+        Assert.Equal(1.7, plan.FatigueChange, 6);
+        Assert.Equal(12, actor.Health);
+        Assert.Equal(10, actor.Fatigue);
+        Assert.Equal(2, actor.Stamina);
+        Assert.Equal(40, actor.Mood);
+        Assert.Equal(7, actor.Gold);
+        Assert.Equal(3, clock.Day);
+        Assert.Equal(555, clock.MinutesOfDay);
+    }
+
+    [Fact]
+    public void TryApplyCommitsPreparedStateExactlyOnce()
+    {
+        Character actor = TestCharacterFactory.CreatePlayer(fatigue: 10, stamina: 2, mood: 40, gold: 7);
+        GameClock clock = new GameClock(1, 9, 0);
+        ActionDefinition action = new ActionDefinition(
+            "prepared_rest",
+            "Prepared Rest",
+            30,
+            effects: new[]
+            {
+                new ActionEffectDefinition(ActionEffectType.RestoreStamina, 2),
+                new ActionEffectDefinition(ActionEffectType.ChangeMood, 3)
+            });
+
+        Assert.True(_service.TryPrepare(action, actor, clock, out ActionExecutionPlan plan, out string reason), reason);
+        Assert.True(_service.TryApply(plan, out reason), reason);
+
+        Assert.Equal(10, actor.Fatigue);
+        Assert.Equal(4, actor.Stamina);
+        Assert.Equal(43, actor.Mood);
+        Assert.Equal(570, clock.MinutesOfDay);
+
+        Assert.False(_service.TryApply(plan, out reason));
+        Assert.Contains("already been applied", reason);
+        Assert.Equal(10, actor.Fatigue);
+        Assert.Equal(4, actor.Stamina);
+        Assert.Equal(43, actor.Mood);
+        Assert.Equal(570, clock.MinutesOfDay);
+    }
+
+    [Fact]
+    public void TryApplyRejectsStalePlanWithoutApplyingPreparedChanges()
+    {
+        Character actor = TestCharacterFactory.CreatePlayer(fatigue: 10, stamina: 2, mood: 40, gold: 7);
+        GameClock clock = new GameClock(1, 9, 0);
+        ActionDefinition action = new ActionDefinition(
+            "prepared_action",
+            "Prepared Action",
+            30,
+            effects: new[]
+            {
+                new ActionEffectDefinition(ActionEffectType.AddGold, 50)
+            });
+
+        Assert.True(_service.TryPrepare(action, actor, clock, out ActionExecutionPlan plan, out string reason), reason);
+        actor.ChangeMood(1);
+
+        Assert.False(_service.TryApply(plan, out reason));
+        Assert.Contains("changed after", reason);
+        Assert.Equal(10, actor.Fatigue);
+        Assert.Equal(2, actor.Stamina);
+        Assert.Equal(41, actor.Mood);
+        Assert.Equal(7, actor.Gold);
+        Assert.Equal(1, clock.Day);
+        Assert.Equal(540, clock.MinutesOfDay);
+    }
+
+    [Fact]
+    public void TryPrepareRejectsClockOverflowWithoutMutatingCharacterOrClock()
+    {
+        Character actor = TestCharacterFactory.CreatePlayer(fatigue: 10, stamina: 2, mood: 40, gold: 7);
+        GameClock clock = new GameClock(int.MaxValue, 23, 59);
+        ActionDefinition action = new ActionDefinition("next_minute", "Next Minute", 1);
+
+        Assert.False(_service.TryPrepare(action, actor, clock, out ActionExecutionPlan plan, out string reason));
+        Assert.Null(plan);
+        Assert.Contains("cannot advance", reason);
+        Assert.Equal(10, actor.Fatigue);
+        Assert.Equal(2, actor.Stamina);
+        Assert.Equal(40, actor.Mood);
+        Assert.Equal(7, actor.Gold);
+        Assert.Equal(int.MaxValue, clock.Day);
+        Assert.Equal(1439, clock.MinutesOfDay);
+    }
+
+    [Fact]
+    public void TryPrepareRejectsMalformedEffectListBeforeAnyMutation()
+    {
+        Character actor = TestCharacterFactory.CreatePlayer(fatigue: 10, stamina: 2, mood: 40, gold: 7);
+        GameClock clock = new GameClock(1, 9, 0);
+        ActionDefinition action = new ActionDefinition(
+            "malformed_effects",
+            "Malformed Effects",
+            30,
+            effects: new ActionEffectDefinition[] { null });
+
+        Assert.False(_service.TryPrepare(action, actor, clock, out ActionExecutionPlan plan, out string reason));
+        Assert.Null(plan);
+        Assert.Contains("null effect", reason);
+        Assert.Equal(10, actor.Fatigue);
+        Assert.Equal(2, actor.Stamina);
+        Assert.Equal(40, actor.Mood);
+        Assert.Equal(7, actor.Gold);
+        Assert.Equal(1, clock.Day);
+        Assert.Equal(540, clock.MinutesOfDay);
+    }
+
     private ActionDefinition FindAction(string actionId)
     {
         foreach (LocationContent location in _locations.All)
