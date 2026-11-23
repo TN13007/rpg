@@ -26,10 +26,14 @@ public sealed class ExplorationFlowController
 
     private LocationEventDefinition _activeLocationEvent;
     private string _selectedNpcId;
+    private string _selectedInteractableId;
 
     private const string _seeAroundChoiceId = "navigation|see-around";
     private const string _backToPeopleChoiceId = "navigation|back-to-people";
+    private const string _backToLocationChoiceId = "navigation|back-to-location";
+    private const string _openFastTravelChoiceId = "navigation|fast-travel";
     private const string _selectNpcActionId = "select";
+    private const string _selectInteractableActionId = "select";
 
     /// <summary>Initializes a new instance of <see cref="ExplorationFlowController"/>.</summary>
     /// <param name="storyPanel">The StoryPanel that displays location pages, choices, NPC information and feedback.</param>
@@ -101,6 +105,7 @@ public sealed class ExplorationFlowController
 
         LocationContent location = _getLocation(_sessionState.CurrentLocationId);
         _selectedNpcId = null;
+        _selectedInteractableId = null;
         IReadOnlyList<NpcPresence> presentNpcs = _npcPresenceQuery.Query(location.Id, _gameClock.MinutesOfDay);
         HashSet<string> presentNpcIds = GetNpcIds(presentNpcs);
         IReadOnlyList<AvailableInteraction> interactions = _availableInteractionQuery.Query(
@@ -109,7 +114,8 @@ public sealed class ExplorationFlowController
             location,
             _getLocation,
             _travelAction,
-            presentNpcIds);
+            presentNpcIds,
+            _gameClock.MinutesOfDay);
         List<ActionChoiceViewData> choices = _actionChoiceMapper.Map(interactions, _player);
         if (_player.CanAct && presentNpcs.Count > 0)
         {
@@ -120,6 +126,18 @@ public sealed class ExplorationFlowController
                 "OBSERVE"));
         }
 
+        if (_player.CanAct && location.IsFastTravelDestination &&
+            _locations.Exists(destination =>
+                destination.IsFastTravelDestination &&
+                !string.Equals(destination.Id, location.Id, StringComparison.Ordinal)))
+        {
+            choices.Add(new ActionChoiceViewData(
+                _openFastTravelChoiceId,
+                "Fast Travel",
+                string.Empty,
+                "TRAVEL"));
+        }
+
         _gameModeController.ShowExploration();
         _storyPanel.ShowContent(
             location.Name,
@@ -128,6 +146,45 @@ public sealed class ExplorationFlowController
             choices,
             GameClockDisplayFormatter.Format(_gameClock));
         _storyPanel.ShowLocationButton(false);
+    }
+
+    private void ShowFastTravelDestinations()
+    {
+        if (!_player.CanAct)
+        {
+            ShowLocation();
+            _storyPanel.ShowFeedback("You cannot travel right now.");
+            return;
+        }
+
+        LocationContent currentLocation = _getLocation(_sessionState.CurrentLocationId);
+        if (!currentLocation.IsFastTravelDestination)
+        {
+            ShowLocation();
+            _storyPanel.ShowFeedback("Fast Travel is only available from outdoor arrival points.");
+            return;
+        }
+
+        IReadOnlyList<AvailableInteraction> destinations =
+            _availableInteractionQuery.QueryFastTravelDestinations(
+                _locations,
+                _sessionState.CurrentLocationId,
+                _travelAction);
+        List<ActionChoiceViewData> choices = _actionChoiceMapper.Map(destinations, _player);
+        choices.Add(new ActionChoiceViewData(
+            _backToLocationChoiceId,
+            "Back to location",
+            string.Empty,
+            "NAVIGATION"));
+
+        _gameModeController.ShowExploration();
+        _storyPanel.ShowContent(
+            "Fast Travel",
+            "DESTINATIONS",
+            "Choose an outdoor arrival point. You will arrive outside the destination; enter the building normally to reach its rooms.",
+            choices,
+            GameClockDisplayFormatter.Format(_gameClock));
+        _storyPanel.ShowLocationButton(true);
     }
 
     private static HashSet<string> GetNpcIds(IReadOnlyList<NpcPresence> presentNpcs)
@@ -154,6 +211,7 @@ public sealed class ExplorationFlowController
         }
 
         _selectedNpcId = null;
+        _selectedInteractableId = null;
         StringBuilder description = new StringBuilder("You take a moment to look around.");
         List<ActionChoiceViewData> choices = new List<ActionChoiceViewData>();
         foreach (NpcPresence presence in presentNpcs)
@@ -207,6 +265,7 @@ public sealed class ExplorationFlowController
         }
 
         _selectedNpcId = characterId;
+        _selectedInteractableId = null;
         IReadOnlyList<AvailableInteraction> interactions = _npcInteractionQuery.Query(
             characterId,
             _sessionState.CurrentLocationId);
@@ -237,6 +296,71 @@ public sealed class ExplorationFlowController
         _storyPanel.ShowLocationButton(true);
     }
 
+    private void ShowInteractableInteractions(string interactableId)
+    {
+        LocationContent location = _getLocation(_sessionState.CurrentLocationId);
+        LocationInteractableDefinition selected = FindInteractable(location, interactableId);
+        if (selected == null)
+        {
+            ShowLocation();
+            _storyPanel.ShowFeedback("That object is no longer available here.");
+            return;
+        }
+
+        _selectedNpcId = null;
+        _selectedInteractableId = interactableId;
+        IReadOnlyList<NpcPresence> presentNpcs = _npcPresenceQuery.Query(
+            location.Id,
+            _gameClock.MinutesOfDay);
+        IReadOnlyList<AvailableInteraction> interactions = _availableInteractionQuery.Query(
+            _player,
+            _playerActions,
+            location,
+            _getLocation,
+            _travelAction,
+            GetNpcIds(presentNpcs),
+            _gameClock.MinutesOfDay,
+            interactableId);
+        List<ActionChoiceViewData> choices = _actionChoiceMapper.Map(interactions, _player);
+        choices.Add(new ActionChoiceViewData(
+            _backToLocationChoiceId,
+            "Back to location",
+            string.Empty,
+            "NAVIGATION"));
+
+        string description = selected.Description;
+        if (interactions.Count == 0)
+        {
+            description += "\n\nThere are no available interactions with this object right now.";
+        }
+        else
+        {
+            description += "\n\nWhat would you like to do?";
+        }
+
+        _gameModeController.ShowExploration();
+        _storyPanel.ShowContent(
+            selected.Name,
+            location.Name.ToUpperInvariant(),
+            description,
+            choices,
+            GameClockDisplayFormatter.Format(_gameClock));
+        _storyPanel.ShowLocationButton(true);
+    }
+
+    private static LocationInteractableDefinition FindInteractable(LocationContent location, string interactableId)
+    {
+        foreach (LocationInteractableDefinition interactable in location.Interactables)
+        {
+            if (interactable.Id == interactableId)
+            {
+                return interactable;
+            }
+        }
+
+        return null;
+    }
+
     private string GetCurrentLocationDescription(LocationContent location)
     {
         return _sessionState.GetCurrentLocationDescription(location);
@@ -259,6 +383,7 @@ public sealed class ExplorationFlowController
         };
 
         _selectedNpcId = null;
+        _selectedInteractableId = null;
         _gameModeController.ShowExploration();
         _storyPanel.ShowContent(
             tab,
@@ -326,6 +451,18 @@ public sealed class ExplorationFlowController
             return;
         }
 
+        if (choiceId == _backToLocationChoiceId)
+        {
+            ShowLocation();
+            return;
+        }
+
+        if (choiceId == _openFastTravelChoiceId)
+        {
+            ShowFastTravelDestinations();
+            return;
+        }
+
         if (!ActionSelectionRequest.TryParse(choiceId, out ActionSelectionRequest request))
         {
             _storyPanel.ShowFeedback("That action selection is invalid or outdated.");
@@ -361,6 +498,10 @@ public sealed class ExplorationFlowController
                 }
 
                 ExecuteAction(locationAction);
+                return;
+
+            case InteractionSourceKind.Interactable:
+                HandleInteractableChoice(request);
                 return;
 
             case InteractionSourceKind.Npc:
@@ -414,6 +555,18 @@ public sealed class ExplorationFlowController
                 TravelTo(request.TargetId);
                 return;
 
+            case InteractionSourceKind.FastTravel:
+                if (request.SourceId != _sessionState.CurrentLocationId ||
+                    request.ActionId != _travelAction.Id ||
+                    string.IsNullOrWhiteSpace(request.TargetId))
+                {
+                    _storyPanel.ShowFeedback("That fast-travel selection is outdated.");
+                    return;
+                }
+
+                TravelTo(request.TargetId, true);
+                return;
+
             default:
                 _storyPanel.ShowFeedback("That action source is not supported.");
                 return;
@@ -431,6 +584,83 @@ public sealed class ExplorationFlowController
             + "\nIntelligence: " + stats.Intelligence
             + "\nEndurance: " + stats.Endurance
             + "\nWisdom: " + stats.Wisdom;
+    }
+
+    private void HandleInteractableChoice(ActionSelectionRequest request)
+    {
+        if (request.SourceId != _sessionState.CurrentLocationId ||
+            string.IsNullOrWhiteSpace(request.TargetId))
+        {
+            ShowLocation();
+            _storyPanel.ShowFeedback("That object selection is outdated.");
+            return;
+        }
+
+        LocationContent location = _getLocation(_sessionState.CurrentLocationId);
+        LocationInteractableDefinition interactable = FindInteractable(location, request.TargetId);
+        if (interactable == null)
+        {
+            ShowLocation();
+            _storyPanel.ShowFeedback("That object is no longer available here.");
+            return;
+        }
+
+        if (request.ActionId == _selectInteractableActionId)
+        {
+            if (_selectedInteractableId != null)
+            {
+                ShowLocation();
+                _storyPanel.ShowFeedback("That object list is outdated.");
+                return;
+            }
+
+            ShowInteractableInteractions(request.TargetId);
+            return;
+        }
+
+        if (!string.Equals(_selectedInteractableId, request.TargetId, StringComparison.Ordinal))
+        {
+            ShowLocation();
+            _storyPanel.ShowFeedback("That object interaction is outdated.");
+            return;
+        }
+
+        IReadOnlyList<NpcPresence> presentNpcs = _npcPresenceQuery.Query(
+            location.Id,
+            _gameClock.MinutesOfDay);
+        IReadOnlyList<AvailableInteraction> currentInteractions = _availableInteractionQuery.Query(
+            _player,
+            _playerActions,
+            location,
+            _getLocation,
+            _travelAction,
+            GetNpcIds(presentNpcs),
+            _gameClock.MinutesOfDay,
+            interactable.Id);
+
+        foreach (AvailableInteraction interaction in currentInteractions)
+        {
+            if (interaction.ActionId != request.ActionId ||
+                interaction.TargetId != request.TargetId)
+            {
+                continue;
+            }
+
+            foreach (PlayerActionDefinition playerAction in _playerActions)
+            {
+                if (playerAction.Action.Id == interaction.ActionId)
+                {
+                    ExecutePlayerAction(interaction.ActionId);
+                    return;
+                }
+            }
+
+            ExecuteAction(interaction.Action);
+            return;
+        }
+
+        _storyPanel.ShowFeedback("That object interaction is no longer available.");
+        ShowInteractableInteractions(request.TargetId);
     }
 
     private void ExecutePlayerAction(string actionId)
@@ -461,6 +691,38 @@ public sealed class ExplorationFlowController
                 if (!actionIds.Add(action.Id))
                 {
                     throw new InvalidOperationException("Duplicate action ID across locations: " + action.Id);
+                }
+            }
+
+            foreach (LocationInteractableDefinition interactable in location.Interactables)
+            {
+                foreach (ActionDefinition action in interactable.Actions)
+                {
+                    if (!actionIds.Add(action.Id))
+                    {
+                        throw new InvalidOperationException("Duplicate action ID across locations and objects: " + action.Id);
+                    }
+                }
+
+                foreach (string playerActionId in interactable.PlayerActionIds)
+                {
+                    bool playerActionFound = false;
+                    foreach (PlayerActionDefinition playerAction in _playerActions)
+                    {
+                        if (playerAction.Action.Id == playerActionId &&
+                            playerAction.IsAvailableAt(location.Id))
+                        {
+                            playerActionFound = true;
+                            break;
+                        }
+                    }
+
+                    if (!playerActionFound)
+                    {
+                        throw new InvalidOperationException(
+                            "Interactable '" + interactable.Id + "' in location '" + location.Id
+                            + "' references unavailable Player Action '" + playerActionId + "'.");
+                    }
                 }
             }
         }
@@ -545,14 +807,29 @@ public sealed class ExplorationFlowController
         return true;
     }
 
-    private void TravelTo(string destinationId)
+    private void TravelTo(string destinationId, bool isFastTravel = false)
     {
         int startDay = _gameClock.Day;
         int startMinutes = _gameClock.MinutesOfDay;
         LocationContent current = _getLocation(_sessionState.CurrentLocationId);
-        if (Array.IndexOf(current.Exits, destinationId) < 0)
+        LocationContent destination = _locations.Find(location =>
+            string.Equals(location.Id, destinationId, StringComparison.Ordinal));
+        if (destination == null)
         {
-            _storyPanel.ShowFeedback("That location is not connected to your current position.");
+            _storyPanel.ShowFeedback("That destination no longer exists.");
+            return;
+        }
+
+        bool isAdjacent = Array.IndexOf(current.Exits, destinationId) >= 0;
+        if (isFastTravel
+            ? !current.IsFastTravelDestination ||
+                !destination.IsFastTravelDestination ||
+                string.Equals(current.Id, destinationId, StringComparison.Ordinal)
+            : !isAdjacent)
+        {
+            _storyPanel.ShowFeedback(isFastTravel
+                ? "That is not a valid fast-travel destination."
+                : "That location is not connected to your current position.");
             return;
         }
 

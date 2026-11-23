@@ -34,6 +34,12 @@ public static class ActionDefinitionJsonReader
         string requiredNpcId = data.TryGetProperty("requiredNpcId", out JsonElement requiredNpcData)
             ? requiredNpcData.GetString()
             : null;
+        int? availableStartMinute = data.TryGetProperty("availableStartMinute", out JsonElement startMinuteData)
+            ? startMinuteData.GetInt32()
+            : null;
+        int? availableEndMinute = data.TryGetProperty("availableEndMinute", out JsonElement endMinuteData)
+            ? endMinuteData.GetInt32()
+            : null;
 
         return new ActionDefinition(
             id,
@@ -45,7 +51,9 @@ public static class ActionDefinitionJsonReader
             effects,
             estimatedDurationMinMinutes,
             estimatedDurationMaxMinutes,
-            requiredNpcId);
+            requiredNpcId,
+            availableStartMinute,
+            availableEndMinute);
     }
 
     private static ActionEffectDefinition[] ReadEffects(JsonElement data)

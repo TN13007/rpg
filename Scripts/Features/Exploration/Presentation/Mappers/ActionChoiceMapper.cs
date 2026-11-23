@@ -29,7 +29,9 @@ public sealed class ActionChoiceMapper
             InteractionSourceKind.Location,
             InteractionSourceKind.Npc,
             InteractionSourceKind.Travel,
-            InteractionSourceKind.Event
+            InteractionSourceKind.Event,
+            InteractionSourceKind.Interactable,
+            InteractionSourceKind.FastTravel
         })
         {
             foreach (AvailableInteraction interaction in interactions)
@@ -48,6 +50,8 @@ public sealed class ActionChoiceMapper
                     InteractionSourceKind.Npc => "WITH NPC",
                     InteractionSourceKind.Travel => "TRAVEL",
                     InteractionSourceKind.Event => "CURRENT SITUATION",
+                    InteractionSourceKind.Interactable => interaction.ActionId == "select" ? "OBJECTS" : "WITH OBJECT",
+                    InteractionSourceKind.FastTravel => "FAST TRAVEL",
                     _ => throw new ArgumentOutOfRangeException()
                 };
 

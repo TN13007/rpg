@@ -12,7 +12,11 @@ public enum InteractionSourceKind
     /// <summary>The interaction moves the player to another location.</summary>
     Travel,
     /// <summary>The interaction is a choice offered by a location event.</summary>
-    Event
+    Event,
+    /// <summary>The interaction is provided by a selectable object within a Location.</summary>
+    Interactable,
+    /// <summary>The interaction selects a non-adjacent outdoor fast-travel destination.</summary>
+    FastTravel
 }
 
 /// <summary>Provides available interaction functionality for the application.</summary>

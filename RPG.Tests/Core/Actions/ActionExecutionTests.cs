@@ -38,6 +38,32 @@ public sealed class ActionExecutionTests
     }
 
     [Fact]
+    public void TryExecuteRejectsActionOutsideItsDailyAvailabilityWindowWithoutMutation()
+    {
+        Character actor = TestCharacterFactory.CreatePlayer(fatigue: 10, stamina: 2, mood: 40, gold: 7);
+        GameClock clock = new GameClock(1, 8, 59);
+        ActionDefinition attendLesson = new ActionDefinition(
+            "attend_lesson",
+            "Attend the lecture",
+            60,
+            effects: new[] { new ActionEffectDefinition(ActionEffectType.RestoreMood, 1) },
+            availableStartMinute: 540,
+            availableEndMinute: 555);
+
+        bool success = _service.TryExecute(
+            attendLesson, actor, clock, out string reason, out int duration);
+
+        Assert.False(success);
+        Assert.Contains("not available at this time", reason);
+        Assert.Equal(0, duration);
+        Assert.Equal(10, actor.Fatigue);
+        Assert.Equal(2, actor.Stamina);
+        Assert.Equal(40, actor.Mood);
+        Assert.Equal(7, actor.Gold);
+        Assert.Equal(539, clock.MinutesOfDay);
+    }
+
+    [Fact]
     public void DeadActorCannotPerformActionOrAdvanceTime()
     {
         Character actor = TestCharacterFactory.CreatePlayer(health: 0, fatigue: 50);
@@ -275,6 +301,16 @@ public sealed class ActionExecutionTests
                 Assert.InRange(action.ActivityMet, 0, 20);
                 Assert.True(action.DurationMinutes >= 0);
             }
+
+            foreach (LocationInteractableDefinition interactable in location.Interactables)
+            {
+                foreach (ActionDefinition action in interactable.Actions)
+                {
+                    actionCount++;
+                    Assert.InRange(action.ActivityMet, 0, 20);
+                    Assert.True(action.DurationMinutes >= 0);
+                }
+            }
         }
 
         foreach (NpcInteractionDefinition interaction in LoadNpcInteractions().All)
@@ -284,8 +320,8 @@ public sealed class ActionExecutionTests
             Assert.True(interaction.Action.DurationMinutes >= 0);
         }
 
-        Assert.Equal(19, actionCount);
-        Assert.Equal(3, LoadPlayerData().PlayerActions.Count);
+        Assert.Equal(26, actionCount);
+        Assert.Equal(4, LoadPlayerData().PlayerActions.Count);
     }
 
     [Fact]
@@ -294,15 +330,15 @@ public sealed class ActionExecutionTests
         LoadLocationCatalog();
         Character actor = TestCharacterFactory.CreatePlayer(
             health: 20, fatigue: 0, stamina: 4, mood: 40, gold: 7);
-        GameClock clock = new GameClock(1, 7, 30);
+        GameClock clock = new GameClock(1, 9, 0);
 
         LocationContent campus = _locations.Get("university_campus");
         LocationContent lectureHall = _locations.Get("lecture_hall");
         LocationContent cafe = _locations.Get("campus_cafe");
         LocationContent sportsField = _locations.Get("sports_field");
 
-        Assert.Contains("campus_cafe", campus.Exits);
-        Assert.Contains("university_campus", cafe.Exits);
+        Assert.Contains("campus_library_exterior", campus.Exits);
+        Assert.Contains("campus_cafe_exterior", cafe.Exits);
         Assert.Contains(sportsField.Actions, action => action.Id == "practice");
         Assert.Contains(lectureHall.Actions, action => action.Id == "attend_lesson");
         Assert.Contains(cafe.Actions, action => action.Id == "eat_meal");
@@ -321,15 +357,16 @@ public sealed class ActionExecutionTests
         Assert.Equal(45, practice.DurationMinutes);
         Assert.Equal(3.0, practice.ActivityMet, 6);
 
-        Assert.True(_service.TryExecute(meal, actor, clock, out string reason, out int mealDuration), reason);
-        Assert.Equal(20, mealDuration);
-        Assert.Equal(0.666667, actor.Fatigue, 5);
-        Assert.Equal(42, actor.Mood);
-        Assert.Equal(7, actor.Stamina);
-
-        Assert.True(_service.TryExecute(lesson, actor, clock, out reason, out int lessonDuration), reason);
+        Assert.True(_service.TryExecute(lesson, actor, clock, out string reason, out int lessonDuration), reason);
         Assert.Equal(60, lessonDuration);
+        Assert.Equal(4.0, actor.Fatigue, 5);
+        Assert.Equal(41, actor.Mood);
+        Assert.Equal(4, actor.Stamina);
+
+        Assert.True(_service.TryExecute(meal, actor, clock, out reason, out int mealDuration), reason);
+        Assert.Equal(20, mealDuration);
         Assert.Equal(4.666667, actor.Fatigue, 5);
+        Assert.Equal(43, actor.Mood);
         Assert.Equal(7, actor.Stamina);
 
         Assert.True(_service.TryExecute(practice, actor, clock, out reason, out int practiceDuration), reason);
@@ -340,7 +377,7 @@ public sealed class ActionExecutionTests
         Assert.Equal(7, actor.Gold);
         Assert.Equal(43, actor.Mood);
         Assert.Equal(1, clock.Day);
-        Assert.Equal(575, clock.MinutesOfDay);
+        Assert.Equal(665, clock.MinutesOfDay);
     }
 
     [Fact]
@@ -371,8 +408,10 @@ public sealed class ActionExecutionTests
         LocationContent clinic = _locations.Get("campus_clinic");
         ActionDefinition treatment = FindAction("infirmary_treatment");
 
-        Assert.Contains("campus_clinic", _locations.Get("east_district").Exits);
-        Assert.Contains("east_district", clinic.Exits);
+        Assert.Contains("campus_clinic_exterior", _locations.Get("commercial_lane").Exits);
+        Assert.Contains("campus_clinic_exterior", clinic.Exits);
+        Assert.Contains("campus_clinic", _locations.Get("campus_clinic_exterior").Exits);
+        Assert.Contains("commercial_lane", _locations.Get("campus_clinic_exterior").Exits);
         Assert.Equal(60, treatment.DurationMinutes);
         Assert.Equal(1.3, treatment.ActivityMet, 6);
         ActionEffectDefinition effect = Assert.Single(treatment.Effects);

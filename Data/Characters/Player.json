@@ -75,7 +75,7 @@
       "feedback": "You sleep for eight hours and wake feeling restored.",
       "activityMet": 1,
       "availableLocationIds": [
-        "student_apartment"
+        "dormitory_room"
       ]
     },
     {
@@ -90,6 +90,17 @@
       ],
       "feedback": "Emergency assistance arrives after three hours. You recover with 5 HP.",
       "activityMet": 0
+    },
+    {
+      "id": "wait_fifteen_minutes",
+      "label": "Wait 15 minutes",
+      "durationMinutes": 15,
+      "activityMet": 0.5,
+      "effects": [],
+      "feedback": "You wait for a short while. The lecture room gradually fills as the class approaches.",
+      "availableLocationIds": [
+        "lecture_hall"
+      ]
     }
   ]
 }

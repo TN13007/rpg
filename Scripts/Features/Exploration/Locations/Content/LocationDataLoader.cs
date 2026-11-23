@@ -67,6 +67,14 @@ public static class LocationDataLoader
                 LocationEventDefinition[] events = locationData.TryGetProperty("events", out JsonElement eventsData)
                     ? ReadEvents(eventsData)
                     : Array.Empty<LocationEventDefinition>();
+                LocationInteractableDefinition[] interactables = locationData.TryGetProperty("interactables", out JsonElement interactablesData)
+                    ? ReadInteractables(interactablesData)
+                    : Array.Empty<LocationInteractableDefinition>();
+                bool isFastTravelDestination = locationData.TryGetProperty("fastTravelDestination", out JsonElement fastTravelData)
+                    && fastTravelData.ValueKind == JsonValueKind.True;
+                LocationGridPosition mapPosition = locationData.TryGetProperty("mapPosition", out JsonElement mapPositionData)
+                    ? ReadMapPosition(mapPositionData)
+                    : null;
 
                 if (loadedLocations.ContainsKey(id))
                 {
@@ -74,6 +82,7 @@ public static class LocationDataLoader
                 }
 
                 ValidateActionIds(id, actions);
+                ValidateInteractables(id, actions, interactables);
                 ValidateLocationEvents(id, actions, events);
                 loadedLocations.Add(id, new LocationContent(
                     id,
@@ -83,7 +92,10 @@ public static class LocationDataLoader
                     returnVisitDescription,
                     exits,
                     actions,
-                    events));
+                    events,
+                    interactables,
+                    isFastTravelDestination,
+                    mapPosition));
             }
 
             if (loadedLocations.Count == 0)
@@ -92,12 +104,131 @@ public static class LocationDataLoader
             }
 
             ValidateLocationExits(loadedLocations);
+            ValidateLocationMapPositions(loadedLocations);
 
             return new LocationCatalog(loadedLocations.Values, loadedTravel, loadedCombatEncounter);
         }
         catch (JsonException exception)
         {
             throw new InvalidOperationException("Invalid location content JSON.", exception);
+        }
+    }
+
+    private static LocationGridPosition ReadMapPosition(JsonElement data)
+    {
+        if (data.ValueKind != JsonValueKind.Object
+            || !data.TryGetProperty("column", out JsonElement columnData)
+            || !data.TryGetProperty("row", out JsonElement rowData)
+            || !columnData.TryGetInt32(out int column)
+            || !rowData.TryGetInt32(out int row)
+            || column < 0
+            || row < 0)
+        {
+            throw new InvalidOperationException("Location mapPosition must contain non-negative integer column and row values.");
+        }
+
+        return new LocationGridPosition(column, row);
+    }
+
+    private static LocationInteractableDefinition[] ReadInteractables(JsonElement data)
+    {
+        if (data.ValueKind != JsonValueKind.Array)
+        {
+            throw new InvalidOperationException("Location interactables must be an array.");
+        }
+
+        List<LocationInteractableDefinition> interactables = new List<LocationInteractableDefinition>();
+        foreach (JsonElement item in data.EnumerateArray())
+        {
+            string id = ReadString(item, "id");
+            string name = ReadString(item, "name");
+            string description = item.TryGetProperty("description", out JsonElement descriptionData)
+                ? descriptionData.GetString()
+                : string.Empty;
+            string[] playerActionIds = item.TryGetProperty("playerActionIds", out JsonElement playerActionsData)
+                ? ReadInteractablePlayerActionIds(playerActionsData)
+                : Array.Empty<string>();
+            ActionDefinition[] actions = item.TryGetProperty("actions", out JsonElement actionsData)
+                ? ReadActions(actionsData)
+                : Array.Empty<ActionDefinition>();
+
+            interactables.Add(new LocationInteractableDefinition(
+                id,
+                name,
+                description,
+                playerActionIds,
+                actions));
+        }
+
+        return interactables.ToArray();
+    }
+
+    private static string[] ReadInteractablePlayerActionIds(JsonElement data)
+    {
+        if (data.ValueKind != JsonValueKind.Array)
+        {
+            throw new InvalidOperationException("Interactable playerActionIds must be an array.");
+        }
+
+        List<string> ids = new List<string>();
+        foreach (JsonElement item in data.EnumerateArray())
+        {
+            string id = item.GetString();
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                throw new InvalidOperationException("Interactable player action IDs cannot be empty.");
+            }
+
+            ids.Add(id);
+        }
+
+        return ids.ToArray();
+    }
+
+    private static void ValidateInteractables(
+        string locationId,
+        ActionDefinition[] locationActions,
+        LocationInteractableDefinition[] interactables)
+    {
+        HashSet<string> interactableIds = new HashSet<string>(StringComparer.Ordinal);
+        HashSet<string> actionIds = new HashSet<string>(StringComparer.Ordinal);
+        foreach (ActionDefinition action in locationActions)
+        {
+            actionIds.Add(action.Id);
+        }
+
+        foreach (LocationInteractableDefinition interactable in interactables)
+        {
+            if (!interactableIds.Add(interactable.Id))
+            {
+                throw new InvalidOperationException(
+                    "Duplicate interactable ID '" + interactable.Id + "' in location '" + locationId + "'.");
+            }
+
+            HashSet<string> playerActionIds = new HashSet<string>(StringComparer.Ordinal);
+            foreach (string playerActionId in interactable.PlayerActionIds)
+            {
+                if (!playerActionIds.Add(playerActionId))
+                {
+                    throw new InvalidOperationException(
+                        "Duplicate Player Action reference '" + playerActionId + "' on interactable '" + interactable.Id + "'.");
+                }
+            }
+
+            foreach (ActionDefinition action in interactable.Actions)
+            {
+                if (action.Id == "select")
+                {
+                    throw new InvalidOperationException(
+                        "Interactable action ID 'select' is reserved for selecting the object itself.");
+                }
+
+                if (!actionIds.Add(action.Id))
+                {
+                    throw new InvalidOperationException(
+                        "Duplicate action ID '" + action.Id + "' in location '" + locationId + "'.");
+                }
+            }
         }
     }
 
@@ -209,6 +340,30 @@ public static class LocationDataLoader
             {
                 throw new InvalidOperationException(
                     "Duplicate action ID '" + action.Id + "' in location '" + locationId + "'.");
+            }
+        }
+    }
+
+    private static void ValidateLocationMapPositions(Dictionary<string, LocationContent> locations)
+    {
+        HashSet<(int Column, int Row)> occupiedCells = new HashSet<(int Column, int Row)>();
+
+        foreach (LocationContent location in locations.Values)
+        {
+            if (location.IsFastTravelDestination && location.MapPosition == null)
+            {
+                throw new InvalidOperationException("Fast-travel Location '" + location.Id + "' must define a mapPosition.");
+            }
+
+            if (location.MapPosition == null)
+            {
+                continue;
+            }
+
+            (int Column, int Row) cell = (location.MapPosition.Column, location.MapPosition.Row);
+            if (!occupiedCells.Add(cell))
+            {
+                throw new InvalidOperationException("Duplicate Location mapPosition at column " + cell.Column + ", row " + cell.Row + ".");
             }
         }
     }

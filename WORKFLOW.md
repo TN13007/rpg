@@ -3,7 +3,7 @@
 **Repository:** [TN13007/rpg](https://github.com/TN13007/rpg)  
 **Engine:** Godot 4.7.2 .NET / C#  
 **Last reviewed:** 2026-11-24  
-**Baseline:** `main` at `5a53843`; open or unmerged PRs are proposals, not implemented behavior. open or unmerged PRs are proposals, not implemented behavior.
+**Baseline:** `main` at `9388aa8`; open or unmerged PRs are proposals, not implemented behavior.
 
 > This is the only changing project-status and handoff tracker. Do not create separate status, Session-history, decision or learning trackers.
 
@@ -75,15 +75,17 @@ The Git workflow, commit granularity and PR requirements are defined only in [CO
 
 ## 4. Current handoff
 
-**Latest baseline:** `main` at `0cf6e9aa`. The feature-first source migration was merged through PR #164. The current source and data paths are under `Scripts/Core/`, `Scripts/Features/`, `Scripts/Content/` and `Data/Locations/` / `Data/NPC/`.
+**Latest baseline:** `main` at `9388aa807919279c62474a7ebfeba3c2c64abd4f`. The feature-first source migration was merged through PR #164. The campus morning content and Campus Plaza clarification were merged through PR #166, which closes Issue #165. The current main runtime still starts Alex at `university_campus` at 07:30.
 
-**Active content task:** [Issue #165 — Author the first campus morning journey](https://github.com/TN13007/rpg/issues/165), proposed in [Draft PR #166](https://github.com/TN13007/rpg/pull/166) on branch `feat/issue-165-campus-opening-morning`.
+**Active implementation:** [Issue #167 — Add the dormitory-to-campus opening journey](https://github.com/TN13007/rpg/issues/167), [Draft PR #168](https://github.com/TN13007/rpg/pull/168), on branch `feat/issue-167-dormitory-opening-journey`.
 
-The current runtime starts Alex at `university_campus` on Monday, 1 September 2025 at 07:30. The PR aligns `DailyLifeContent.md` with that actual start, writes a time-specific morning route between separate campus Locations, treats `university_campus` as the physical Campus Plaza, and refines existing Location descriptions, action feedback and NPC schedule/interaction text. Existing JSON schemas and authored IDs are preserved.
+The proposal changes the opening start to a private `dormitory_room`, adds separate Bathroom and Lobby Locations, and connects the Lobby to the existing Campus Plaza. The room introduces target-first Bed, Laptop and Wardrobe interactions. Bed reuses the existing Sleep Player Action; laptop applications and wardrobe choices are selectable placeholders without simulated app state or invented persistent effects.
 
-The 09:00 Research Methods lecture is a content target, not an enforced time window. The current runtime does not yet gate classes or other commitments by weekday/start window. NPC presence is currently determined by the existing clock-time schedules, which repeat every day. No generic schedule framework, wait action, relationship progression or mandatory incident/combat is part of this task.
+The outdoor world layout now uses a simple 2D grid: Campus Plaza connects to the Lecture Hall, Library, Dormitory, Sports Field and East District; the Library, Campus Café and Student Union form a short connected campus walkway; East District branches through Commercial Lane and Residential Lane to the local destinations. Sixteen outdoor arrival points carry unique `mapPosition` grid coordinates. These coordinates are map presentation data only; normal travel still follows authored exits.
 
-**Next handoff:** inspect CI for PR #166. If automated validation passes, open the project in Godot 4.7.2 .NET and manually verify the opening campus descriptions, the 07:30 NPC presence, travel/action time progression and the late-morning café interactions. Record actual runtime observations before considering the PR review-ready. Do not merge automatically.
+The branch also adds a 15-minute Wait action at the Lecture Hall and an authored daily 09:00–09:15 availability window for `attend_lesson`. Fast Travel is implemented as a separate destination-selection page. It lists only authored outdoor arrival points and building entrances; interior Locations such as the Lecture Hall, private dormitory room and bathroom are excluded. Selecting a destination uses the existing Travel Action for time and Fatigue, then places the player outside the building. Existing NPC schedule and interaction contracts remain in use.
+
+**Fast-travel follow-up:** [Issue #169](https://github.com/TN13007/rpg/issues/169) is implemented on dependent branch `feat/issue-169-building-fast-travel`, targeting the dormitory journey branch until PR #168 is merged. Review the Fast Travel destination list and entrance-to-interior transitions alongside the parent journey. Both PRs remain proposals until merged; do not treat their behavior as part of `main` yet.
 
 ## 5. Learning evidence
 
