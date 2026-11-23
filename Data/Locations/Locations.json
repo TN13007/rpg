@@ -310,7 +310,8 @@
               "feedback": "You pull everyone back to the street and call the Paranormal Response Office. Whatever is inside can wait until you have a safer plan.",
               "activityMet": 0.8
             }
-          ]
+          ],
+          "requiredNpcId": "mira"
         }
       ]
     },
