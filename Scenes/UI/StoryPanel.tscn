@@ -58,7 +58,7 @@ text = "+0:10"
 
 [node name="SpatialMap" type="Control" parent="Margin/Content"]
 visible = false
-custom_minimum_size = Vector2(0, 370)
+custom_minimum_size = Vector2(0, 392)
 layout_mode = 2
 size_flags_horizontal = 3
 script = ExtResource("2")

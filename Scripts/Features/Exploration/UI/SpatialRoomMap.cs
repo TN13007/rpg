@@ -22,11 +22,12 @@ public partial class SpatialRoomMap : Control
     private static readonly Dictionary<string, GridCell> _exitCells =
         new Dictionary<string, GridCell>(StringComparer.Ordinal)
         {
-            ["dormitory_lobby"] = new GridCell(4, 7),
-            ["dormitory_bathroom"] = new GridCell(8, 7)
+            ["dormitory_lobby"] = new GridCell(4, 8),
+            ["dormitory_bathroom"] = new GridCell(8, 8)
         };
 
     private readonly SpatialGrid _grid = CreateGrid();
+    private readonly HashSet<string> _availableInteractables = new HashSet<string>(StringComparer.Ordinal);
     private readonly Dictionary<string, NpcPresence> _presentNpcs = new Dictionary<string, NpcPresence>(StringComparer.Ordinal);
     private readonly Dictionary<string, GridCell[]> _npcRoutes = new Dictionary<string, GridCell[]>(StringComparer.Ordinal);
     private readonly Dictionary<string, int> _npcRouteIndices = new Dictionary<string, int>(StringComparer.Ordinal);
@@ -39,7 +40,7 @@ public partial class SpatialRoomMap : Control
 
     public override void _Ready()
     {
-        CustomMinimumSize = new Vector2(0, 370);
+        CustomMinimumSize = new Vector2(0, 392);
         FocusMode = FocusModeEnum.All;
         QueueRedraw();
     }
@@ -62,6 +63,18 @@ public partial class SpatialRoomMap : Control
 
         if (locationChanged) _playerCell = _playerStart;
         _exits = exits == null ? Array.Empty<string>() : (string[])exits.Clone();
+        _availableInteractables.Clear();
+        if (interactables != null)
+        {
+            foreach (LocationInteractableDefinition interactable in interactables)
+            {
+                if (interactable != null)
+                {
+                    _availableInteractables.Add(interactable.Id);
+                }
+            }
+        }
+
         _presentNpcs.Clear();
 
         if (presentNpcs != null)
@@ -128,7 +141,7 @@ public partial class SpatialRoomMap : Control
         if (!Visible) return;
 
         DrawRect(
-            new Rect2(0, 0, _mapOffset * 2 + _columns * _cellSize, _mapOffset * 2 + _rows * _cellSize),
+            new Rect2(0, 0, _mapOffset * 2 + _columns * _cellSize, 392),
             new Color(0.055f, 0.067f, 0.082f, 1), true);
 
         for (int row = 0; row < _rows; row++)
@@ -145,9 +158,12 @@ public partial class SpatialRoomMap : Control
             }
         }
 
-        DrawFurniture("BED", _interactableCells["bed"], new Color(0.56f, 0.36f, 0.32f, 1), new Vector2(2, 2));
-        DrawFurniture("LAPTOP", _interactableCells["laptop"], new Color(0.33f, 0.48f, 0.61f, 1), Vector2.One);
-        DrawFurniture("WARDROBE", _interactableCells["wardrobe"], new Color(0.48f, 0.39f, 0.29f, 1), Vector2.One);
+        if (_availableInteractables.Contains("bed"))
+            DrawFurniture("BED", _interactableCells["bed"], new Color(0.56f, 0.36f, 0.32f, 1), new Vector2(2, 2));
+        if (_availableInteractables.Contains("laptop"))
+            DrawFurniture("LAPTOP", _interactableCells["laptop"], new Color(0.33f, 0.48f, 0.61f, 1), Vector2.One);
+        if (_availableInteractables.Contains("wardrobe"))
+            DrawFurniture("WARD", _interactableCells["wardrobe"], new Color(0.48f, 0.39f, 0.29f, 1), new Vector2(2, 1));
 
         foreach (string exitId in _exits)
         {
@@ -200,6 +216,9 @@ public partial class SpatialRoomMap : Control
         blocked.Add(new GridCell(3, 3));
         blocked.Add(new GridCell(8, 2));
         blocked.Add(new GridCell(9, 5));
+        blocked.Add(new GridCell(10, 5));
+        blocked.Remove(new GridCell(4, _rows - 1));
+        blocked.Remove(new GridCell(8, _rows - 1));
         return new SpatialGrid(_columns, _rows, blocked);
     }
 
@@ -295,7 +314,7 @@ public partial class SpatialRoomMap : Control
     {
         foreach (KeyValuePair<string, GridCell> entry in _interactableCells)
         {
-            if (GridCellDistance(entry.Value, _playerCell) > 1) continue;
+            if (!_availableInteractables.Contains(entry.Key) || GridCellDistance(entry.Value, _playerCell) > 1) continue;
             label = "Interact: " + entry.Key;
             sourceKind = InteractionSourceKind.Interactable;
             targetId = entry.Key;
