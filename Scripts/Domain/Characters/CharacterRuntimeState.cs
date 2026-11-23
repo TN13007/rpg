@@ -62,9 +62,9 @@ public sealed class CharacterRuntimeState : IEquatable<CharacterRuntimeState>
             case ActionEffectType.ReduceHealth:
                 return Copy(health: (int)Math.Max(0L, Health - amount));
             case ActionEffectType.RestoreFatigue:
-                return Copy(fatigue: Math.Max(0.0, Fatigue - amount));
-            case ActionEffectType.ReduceFatigue:
                 return Copy(fatigue: Math.Min(MaxFatigue, Fatigue + amount));
+            case ActionEffectType.ReduceFatigue:
+                return Copy(fatigue: Math.Max(0.0, Fatigue - amount));
             case ActionEffectType.RestoreStamina:
                 return Copy(stamina: (int)Math.Min(MaxStamina, (long)Stamina + amount));
             case ActionEffectType.ReduceStamina:
