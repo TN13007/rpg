@@ -127,13 +127,20 @@ public sealed class CharacterTests
     }
 
     [Fact]
-    public void GoldCannotDecreaseAndCannotOverflow()
+    public void GoldSupportsDebtAndSaturatesAtIntegerBoundaries()
     {
         Character character = TestCharacterFactory.CreatePlayer(gold: 20);
-        character.AddGold(-100);
-        Assert.Equal(20, character.Gold);
+        character.ReduceGold(50);
+        Assert.Equal(-30, character.Gold);
+        character.AddGold(10);
+        Assert.Equal(-20, character.Gold);
+        character.ReduceGold(int.MaxValue);
+        Assert.Equal(int.MinValue, character.Gold);
         character.AddGold(int.MaxValue);
-        Assert.Equal(int.MaxValue, character.Gold);
+        Assert.Equal(-1, character.Gold);
+
+        Character characterWithStartingDebt = TestCharacterFactory.CreatePlayer(gold: -15);
+        Assert.Equal(-15, characterWithStartingDebt.Gold);
     }
 
     [Fact]
