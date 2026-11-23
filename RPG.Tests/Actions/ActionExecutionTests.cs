@@ -197,7 +197,7 @@ public sealed class ActionExecutionTests
     public void NonPositiveEffectAmountsAreRejected()
     {
         Assert.Throws<ArgumentOutOfRangeException>(() =>
-            new ActionEffectDefinition(ActionEffectType.RestoreFatigue, -1));
+            new ActionEffectDefinition(ActionEffectType.IncreaseFatigue, -1));
         Assert.Throws<ArgumentOutOfRangeException>(() =>
             new ActionEffectDefinition(ActionEffectType.RestoreStamina, -1));
         foreach (ActionEffectType type in Enum.GetValues(typeof(ActionEffectType)))
@@ -217,7 +217,7 @@ public sealed class ActionExecutionTests
             effects: new[]
             {
                 new ActionEffectDefinition(ActionEffectType.RestoreHealth, 10),
-                new ActionEffectDefinition(ActionEffectType.ReduceFatigue, 10),
+                new ActionEffectDefinition(ActionEffectType.DecreaseFatigue, 10),
                 new ActionEffectDefinition(ActionEffectType.RestoreStamina, 10),
                 new ActionEffectDefinition(ActionEffectType.RestoreMood, 10),
                 new ActionEffectDefinition(ActionEffectType.AddGold, 25)
