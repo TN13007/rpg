@@ -20,6 +20,7 @@ public partial class StoryPanel : PanelContainer
     private Label _choicesTitle;
     private Label _feedback;
     private Button _returnButton;
+    private SpatialRoomMap _spatialMap;
     private Tween _clockTween;
     private Tween _feedbackTween;
     private long _clockStartTotalMinutes;
@@ -41,6 +42,8 @@ public partial class StoryPanel : PanelContainer
         _choicesTitle = GetNode<Label>("Margin/Content/ChoicesTitle");
         _feedback = GetNode<Label>("Margin/Content/Feedback");
         _returnButton = GetNode<Button>("Margin/Content/Header/ReturnButton");
+        _spatialMap = GetNode<SpatialRoomMap>("Margin/Content/SpatialMap");
+        _spatialMap.TargetActivated += HandleSpatialTargetActivated;
         _returnButton.Pressed += HandleReturnPressed;
         _returnButton.Visible = false;
         UiTheme.StyleButton(_returnButton);
@@ -52,7 +55,20 @@ public partial class StoryPanel : PanelContainer
     /// <param name="text">The text used by this operation.</param>
     /// <param name="choices">The choices used by this operation.</param>
     /// <param name="dayLabel">The day label used by this operation.</param>
-    public void ShowContent(string title, string subtitle, string text, IReadOnlyList<ActionChoiceViewData> choices, string dayLabel)
+    /// <param name="locationId">The current Location ID; only Locations with a spatial layout display the grid map.</param>
+    /// <param name="interactables">The current Location's interactable objects.</param>
+    /// <param name="presentNpcs">NPCs scheduled at the current Location and time.</param>
+    /// <param name="exits">The current Location's connected destinations.</param>
+    public void ShowContent(
+        string title,
+        string subtitle,
+        string text,
+        IReadOnlyList<ActionChoiceViewData> choices,
+        string dayLabel,
+        string locationId = null,
+        IReadOnlyList<LocationInteractableDefinition> interactables = null,
+        IReadOnlyList<NpcPresence> presentNpcs = null,
+        string[] exits = null)
     {
         _title.Text = title;
         _subtitle.Text = subtitle;
@@ -62,6 +78,7 @@ public partial class StoryPanel : PanelContainer
         }
 
         _story.Text = text;
+        _spatialMap.SetLocation(locationId, interactables, presentNpcs, exits);
         _feedback.Text = "Choose an option to continue.";
         _returnButton.Visible = false;
         ClearChoices();
@@ -216,6 +233,11 @@ public partial class StoryPanel : PanelContainer
     private void HandleReturnPressed()
     {
         ReturnToLocationRequested?.Invoke();
+    }
+
+    private void HandleSpatialTargetActivated(string choiceId)
+    {
+        ChoiceSelected?.Invoke(choiceId);
     }
 
     private void ClearChoices()
