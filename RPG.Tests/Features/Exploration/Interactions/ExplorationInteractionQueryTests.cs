@@ -132,7 +132,7 @@ public sealed class ExplorationInteractionQueryTests
         Assert.Contains(interactions, item =>
             item.SourceKind == InteractionSourceKind.Travel &&
             item.SourceId == "apartment_block" &&
-            item.TargetId == "east_district");
+            item.TargetId == "apartment_block_exterior");
     }
 
     [Fact]
@@ -153,7 +153,7 @@ public sealed class ExplorationInteractionQueryTests
         Assert.Contains(interactions, item =>
             item.SourceKind == InteractionSourceKind.Travel &&
             item.SourceId == "campus_clinic" &&
-            item.TargetId == "east_district");
+            item.TargetId == "campus_clinic_exterior");
     }
 
     [Fact]
