@@ -51,7 +51,7 @@ public sealed class ActionEffectExecutorTests
         CharacterRuntimeState nextCharacter = CharacterRuntimeState.Capture(actor)
             .AddFatigue(2)
             .Apply(new ActionEffectDefinition(ActionEffectType.RestoreStamina, 3));
-        GameClockState nextClock = clock.CaptureState().AdvanceMinutes(30);
+        GameClockState nextClock = new GameClockState(clock.Day, clock.MinutesOfDay).AdvanceMinutes(30);
         ActionStateChange change = new ActionStateChange(nextCharacter, nextClock);
         ActionStateChangeApplier applier = new ActionStateChangeApplier();
 
