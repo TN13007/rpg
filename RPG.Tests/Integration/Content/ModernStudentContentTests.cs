@@ -11,7 +11,10 @@ public sealed class ModernStudentContentTests
         GameContentCatalog content = LoadContent();
 
         Assert.Equal(13, content.Locations.Count());
-        Assert.Equal("University Campus", content.GetLocation("university_campus").Name);
+        LocationContent campusPlaza = content.GetLocation("university_campus");
+        Assert.Equal("Campus Plaza", campusPlaza.Name);
+        Assert.Equal("NORTH CAMPUS", campusPlaza.Region);
+        Assert.Equal(campusPlaza.Region, content.GetLocation("lecture_hall").Region);
         Assert.Equal("The 2:13 AM Incident", content.GetLocation("apartment_block").Events.Single().Title);
         Assert.Equal("Response coordinator", content.GetCharacter("ms_carter").Role);
 

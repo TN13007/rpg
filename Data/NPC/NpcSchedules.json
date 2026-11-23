@@ -7,31 +7,31 @@
           "startMinute": 420,
           "endMinute": 540,
           "locationId": "university_campus",
-          "activityDescription": "She checks the day's class announcements near the main plaza."
+          "activityDescription": "She checks the day's notices beside the central plaza and scrolls through a neighborhood post between announcements."
         },
         {
           "startMinute": 540,
           "endMinute": 660,
           "locationId": "lecture_hall",
-          "activityDescription": "She attends her morning lectures and takes notes."
+          "activityDescription": "She attends the morning lecture, follows the slides and compares notes with classmates."
         },
         {
           "startMinute": 660,
           "endMinute": 720,
           "locationId": "campus_cafe",
-          "activityDescription": "She has lunch with a few classmates."
+          "activityDescription": "She joins classmates for lunch and catches up on the morning's conversations."
         },
         {
           "startMinute": 720,
           "endMinute": 900,
           "locationId": "campus_library",
-          "activityDescription": "She studies at a desk near the windows."
+          "activityDescription": "She studies at a desk near the library windows."
         },
         {
           "startMinute": 900,
           "endMinute": 1020,
           "locationId": "student_union",
-          "activityDescription": "She looks through club announcements and event flyers."
+          "activityDescription": "She looks through club announcements and event flyers at the Student Union."
         },
         {
           "startMinute": 1020,
@@ -48,19 +48,19 @@
           "startMinute": 420,
           "endMinute": 510,
           "locationId": "sports_field",
-          "activityDescription": "He runs drills before his first class."
+          "activityDescription": "He runs laps and finishes a set of drills before his first class."
         },
         {
           "startMinute": 510,
           "endMinute": 660,
           "locationId": "lecture_hall",
-          "activityDescription": "He sits near the back and follows the lecture."
+          "activityDescription": "He heads to the Lecture Hall after training and sits near the back."
         },
         {
           "startMinute": 660,
           "endMinute": 750,
           "locationId": "campus_cafe",
-          "activityDescription": "He grabs lunch between classes."
+          "activityDescription": "He grabs lunch between classes and talks about the morning's training."
         },
         {
           "startMinute": 900,
@@ -77,19 +77,19 @@
           "startMinute": 420,
           "endMinute": 540,
           "locationId": "campus_library",
-          "activityDescription": "She gets an early start on her coursework."
+          "activityDescription": "She gets an early start on coursework at a window-side desk and keeps a few reference books open."
         },
         {
           "startMinute": 540,
           "endMinute": 660,
           "locationId": "lecture_hall",
-          "activityDescription": "She attends her morning lecture."
+          "activityDescription": "She attends the morning lecture and writes down questions to review later."
         },
         {
           "startMinute": 660,
           "endMinute": 720,
           "locationId": "campus_cafe",
-          "activityDescription": "She takes a short lunch break."
+          "activityDescription": "She takes a short lunch break with classmates."
         },
         {
           "startMinute": 900,
