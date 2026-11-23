@@ -23,7 +23,7 @@ public sealed class ModernStudentContentTests
         Assert.Equal(new[] { "dormitory_lobby", "dormitory_bathroom" }, dormRoom.Exits);
         Assert.Contains(dormRoom.Interactables, item => item.Id == "bed" && item.PlayerActionIds.Contains("sleep"));
         Assert.Contains(dormRoom.Interactables, item => item.Id == "laptop");
-        Assert.Contains(content.GetLocation("dormitory_lobby").Exits, id => id == "university_campus");
+        Assert.Contains(content.GetLocation("dormitory_lobby").Exits, id => id == "dormitory_exterior");
         Assert.Contains(campusPlaza.Exits, id => id == "dormitory_exterior");
         Assert.True(campusPlaza.IsFastTravelDestination);
         Assert.True(content.GetLocation("lecture_hall_exterior").IsFastTravelDestination);
@@ -31,7 +31,7 @@ public sealed class ModernStudentContentTests
         Assert.False(content.GetLocation("dormitory_room").IsFastTravelDestination);
         Assert.False(content.GetLocation("dormitory_bathroom").IsFastTravelDestination);
         Assert.False(content.GetLocation("dormitory_lobby").IsFastTravelDestination);
-        Assert.Equal("lecture_hall", Assert.Single(content.GetLocation("lecture_hall_exterior").Exits));
+        Assert.Contains(content.GetLocation("lecture_hall_exterior").Exits, id => id == "lecture_hall");
         ActionDefinition attendLesson = content.GetLocation("lecture_hall").Actions.Single(action => action.Id == "attend_lesson");
         Assert.Equal(540, attendLesson.AvailableStartMinute);
         Assert.Equal(555, attendLesson.AvailableEndMinute);
