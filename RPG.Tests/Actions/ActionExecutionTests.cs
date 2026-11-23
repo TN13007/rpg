@@ -217,7 +217,7 @@ public sealed class ActionExecutionTests
             effects: new[]
             {
                 new ActionEffectDefinition(ActionEffectType.RestoreHealth, 10),
-                new ActionEffectDefinition(ActionEffectType.RestoreFatigue, 10),
+                new ActionEffectDefinition(ActionEffectType.ReduceFatigue, 10),
                 new ActionEffectDefinition(ActionEffectType.RestoreStamina, 10),
                 new ActionEffectDefinition(ActionEffectType.RestoreMood, 10),
                 new ActionEffectDefinition(ActionEffectType.AddGold, 25)
