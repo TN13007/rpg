@@ -181,3 +181,8 @@ If docs and code disagree, verify against current source and tests, then record 
 - Preserve existing global C# types and serialized IDs during structural moves.
 - Keep `MainController` as composition root; do not move feature rules into it.
 - Do not introduce universal executors for unrelated gameplay domains.
+
+
+## 8. Action state preparation and commit
+
+Action execution calculates its complete result before writing either authoritative owner. `CharacterRuntimeState` and `GameClockState` are immutable snapshots; `ActionEffectExecutor.Apply` and the state calculation methods return new values. `ActionStateChange` groups the proposed Character and clock values. `ActionStateChangeApplier` validates both owners before committing through `Character.ApplyRuntimeState` and `GameClock.ApplyState`. The service rejects stale plans by comparing the live owners with the snapshots captured during preparation. This is a synchronous single-threaded commit boundary, not a general transaction or concurrency lock. See [Function Responsibilities](FunctionResponsibilities.md) for the 18-group mapping and explicit exceptions.

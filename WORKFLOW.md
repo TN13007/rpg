@@ -3,7 +3,7 @@
 **Repository:** [TN13007/rpg](https://github.com/TN13007/rpg)  
 **Engine:** Godot 4.7.2 .NET / C#  
 **Last reviewed:** 2026-11-23  
-**Baseline:** `main` at `c4d81766`; open or unmerged PRs are proposals, not implemented behavior.
+**Baseline:** `main` at `4623913`; open or unmerged PRs are proposals, not implemented behavior.
 
 > This is the only changing project-status and handoff tracker. Do not create separate status, Session-history, decision or learning trackers.
 
@@ -75,21 +75,11 @@ The Git workflow, commit granularity and PR requirements are defined only in [CO
 
 ## 4. Current handoff
 
-**Active implementation task:** [Issue #154 — Prepare Action execution before applying runtime state](https://github.com/TN13007/rpg/issues/154).
+**Active implementation task:** [Issue #156 — Apply function-responsibility framework to Action execution](https://github.com/TN13007/rpg/issues/156).
 
-The current Action runtime combines eligibility checks, time calculation, clock advancement, Fatigue mutation and Effect application in one execution path. The refactor introduces a prepare-before-apply boundary while preserving the authored Action JSON contract and existing gameplay behavior.
+PR #155 merged the prepare-before-apply boundary. Issue #156 now completes its weak point: the previous Apply step still mutated GameClock and Character directly. The implementation should calculate an immutable proposed Character/clock state, then commit through one explicit State Change boundary while preserving Character and GameClock as authoritative owners. The 18 responsibility groups are a review framework, not a request for 18 placeholder classes. The mapping and justified exceptions live in [Function Responsibilities](Docs/Implementation/FunctionResponsibilities.md).
 
-The intended boundary is:
-
-- **Prepare:** revalidate the actor, calculate actual duration and Fatigue, verify the GameClock can advance, and validate/snapshot all configured effects without changing runtime state.
-- **Apply:** confirm the prepared Character and GameClock state has not changed, then advance time and apply the prepared Fatigue/effects once.
-- **Ownership:** Character and GameClock continue to own their state. The Action service orchestrates; calculators calculate; the Effect executor prepares and applies authored effects.
-
-This is a synchronous Action execution boundary, not a general transaction framework. It does not implement Gold spending, Membership/Knowledge requirements, weekday commitments or start windows. Those remain separate Loop 2 implementation tasks.
-
-The outstanding interactive Godot 4.7.2 acceptance run for the merged Unit 213 Combat HUD (PR #136 / Issue #135) remains an independent verification item; it is not a dependency for this refactor.
-
-After this refactor, use the local Godot 4.7.2 .NET environment to run the .NET test suite and relevant headless/build checks. Passing CI does not replace local runtime acceptance or demonstrate independent learning.
+The branch is based on the merged #155 commit. Gold spending, weekday commitments, start windows and Knowledge/Membership requirements remain separate Loop 2 work; do not fold them into this refactor.
 
 ## 5. Learning evidence
 

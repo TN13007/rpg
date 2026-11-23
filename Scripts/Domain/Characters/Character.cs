@@ -9,6 +9,42 @@ public sealed class Character
 {
     private readonly CharacterData _data;
 
+    /// <summary>Captures the current resources as an immutable calculation snapshot.</summary>
+    internal CharacterRuntimeState CaptureRuntimeState()
+    {
+        return new CharacterRuntimeState(
+            Health, Fatigue, Stamina, Mood, Gold,
+            MaxHealth, MaxFatigue, MaxStamina, MaxMood);
+    }
+
+    /// <summary>Checks whether a prepared snapshot belongs to this Character and respects its limits.</summary>
+    internal bool CanApplyRuntimeState(CharacterRuntimeState state)
+    {
+        return state != null
+            && state.MaxHealth == MaxHealth
+            && state.MaxFatigue.Equals(MaxFatigue)
+            && state.MaxStamina == MaxStamina
+            && state.MaxMood == MaxMood
+            && state.Health >= 0 && state.Health <= MaxHealth
+            && !double.IsNaN(state.Fatigue) && !double.IsInfinity(state.Fatigue)
+            && state.Fatigue >= 0 && state.Fatigue <= MaxFatigue
+            && state.Stamina >= 0 && state.Stamina <= MaxStamina
+            && state.Mood >= 0 && state.Mood <= MaxMood
+            && state.Gold >= 0;
+    }
+
+    /// <summary>Commits a prepared resource snapshot through the Character state owner.</summary>
+    internal void ApplyRuntimeState(CharacterRuntimeState state)
+    {
+        if (!CanApplyRuntimeState(state))
+            throw new System.InvalidOperationException("The prepared resource state is invalid for this Character.");
+        Health = state.Health;
+        Fatigue = state.Fatigue;
+        Stamina = state.Stamina;
+        Mood = state.Mood;
+        Gold = state.Gold;
+    }
+
     /// <summary>Gets the character's stable content identifier.</summary>
     public string Id => _data.Id;
 
