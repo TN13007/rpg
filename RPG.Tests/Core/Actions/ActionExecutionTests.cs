@@ -337,8 +337,8 @@ public sealed class ActionExecutionTests
         LocationContent cafe = _locations.Get("campus_cafe");
         LocationContent sportsField = _locations.Get("sports_field");
 
-        Assert.Contains("campus_cafe", campus.Exits);
-        Assert.Contains("university_campus", cafe.Exits);
+        Assert.Contains("campus_library_exterior", campus.Exits);
+        Assert.Contains("campus_cafe_exterior", cafe.Exits);
         Assert.Contains(sportsField.Actions, action => action.Id == "practice");
         Assert.Contains(lectureHall.Actions, action => action.Id == "attend_lesson");
         Assert.Contains(cafe.Actions, action => action.Id == "eat_meal");
@@ -408,8 +408,10 @@ public sealed class ActionExecutionTests
         LocationContent clinic = _locations.Get("campus_clinic");
         ActionDefinition treatment = FindAction("infirmary_treatment");
 
-        Assert.Contains("campus_clinic", _locations.Get("east_district").Exits);
-        Assert.Contains("east_district", clinic.Exits);
+        Assert.Contains("campus_clinic_exterior", _locations.Get("commercial_lane").Exits);
+        Assert.Contains("campus_clinic_exterior", clinic.Exits);
+        Assert.Contains("campus_clinic", _locations.Get("campus_clinic_exterior").Exits);
+        Assert.Contains("commercial_lane", _locations.Get("campus_clinic_exterior").Exits);
         Assert.Equal(60, treatment.DurationMinutes);
         Assert.Equal(1.3, treatment.ActivityMet, 6);
         ActionEffectDefinition effect = Assert.Single(treatment.Effects);
