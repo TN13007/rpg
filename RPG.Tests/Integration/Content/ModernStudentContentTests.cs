@@ -16,7 +16,7 @@ public sealed class ModernStudentContentTests
         Assert.Equal("Campus Plaza", campusPlaza.Name);
         Assert.Equal("NORTH CAMPUS", campusPlaza.Region);
         Assert.Equal(campusPlaza.Region, content.GetLocation("lecture_hall").Region);
-        Assert.Equal("The 2:13 AM Incident", content.GetLocation("apartment_block").Events.Single().Title);
+        Assert.Equal("The Crying Room", content.GetLocation("apartment_block").Events.Single().Title);
         Assert.Equal("Response coordinator", content.GetCharacter("ms_carter").Role);
 
         LocationContent dormRoom = content.GetLocation("dormitory_room");
