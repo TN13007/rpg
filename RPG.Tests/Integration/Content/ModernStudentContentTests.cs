@@ -132,7 +132,7 @@ public sealed class ModernStudentContentTests
         Assert.Null(incident.Choices[2].EncounterActionId);
 
         NpcInteractionDefinition miraInvitation = content.NpcInteractions.All
-            .Single(interaction => interaction.CharacterId == "mira" && interaction.Id == "talk");
+            .Single(interaction => interaction.CharacterId == "mira" && interaction.Action.Id == "talk");
         Assert.Contains("Noah wants to check it out tonight", miraInvitation.Action.Feedback);
         Assert.Equal("mira", incident.RequiredNpcId);
 
