@@ -115,16 +115,25 @@ public sealed class ModernStudentContentTests
     }
 
     [Fact]
-    public void Unit213IncidentOffersNonCombatResponses()
+    public void Unit213IncidentConnectsTheFriendInvitationToPartyCombat()
     {
         GameContentCatalog content = LoadContent();
-        LocationEventDefinition incident = Assert.Single(content.GetLocation("apartment_block").Events);
+        LocationContent apartmentBlock = content.GetLocation("apartment_block");
+        LocationEventDefinition incident = Assert.Single(apartmentBlock.Events);
 
         Assert.Equal("apartment_213_incident", incident.Id);
+        Assert.Equal("The Crying Room", incident.Title);
         Assert.Equal(
             new[] { "listen_from_hallway", "enter_unit_213", "leave_the_building" },
             incident.Choices.Select(choice => choice.Id));
-        Assert.All(incident.Choices, choice => Assert.Null(choice.EncounterActionId));
+        Assert.Null(incident.Choices[0].EncounterActionId);
+        Assert.Equal("start_unit_213", incident.Choices[1].EncounterActionId);
+        Assert.Equal("start_unit_213", apartmentBlock.Actions.Single(action => action.Id == "start_unit_213").Id);
+        Assert.Null(incident.Choices[2].EncounterActionId);
+
+        NpcInteractionDefinition miraInvitation = content.NpcInteractions.All
+            .Single(interaction => interaction.CharacterId == "mira" && interaction.Id == "talk");
+        Assert.Contains("Noah wants to check it out tonight", miraInvitation.Feedback);
     }
 
     private static GameContentCatalog LoadContent()
