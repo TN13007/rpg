@@ -1,6 +1,6 @@
 [gd_scene load_steps=5 format=3]
 
-[ext_resource type="Script" path="res://Scripts/Presentation/UI/Combat/CombatActionPanel.cs" id="1"]
+[ext_resource type="Script" path="res://Scripts/Features/Combat/UI/CombatActionPanel.cs" id="1"]
 [ext_resource type="PackedScene" path="res://Scenes/UI/Combat/ActionCategoryList.tscn" id="2"]
 [ext_resource type="PackedScene" path="res://Scenes/UI/Combat/ActionList.tscn" id="3"]
 [ext_resource type="PackedScene" path="res://Scenes/UI/Combat/ActionDetailsPanel.tscn" id="4"]

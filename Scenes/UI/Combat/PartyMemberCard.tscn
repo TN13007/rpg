@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3]
 
-[ext_resource type="Script" path="res://Scripts/Presentation/UI/Combat/PartyMemberCard.cs" id="1"]
-[ext_resource type="Script" path="res://Scripts/Presentation/UI/Combat/CombatCardVfx.cs" id="2"]
+[ext_resource type="Script" path="res://Scripts/Features/Combat/UI/PartyMemberCard.cs" id="1"]
+[ext_resource type="Script" path="res://Scripts/Features/Combat/UI/CombatCardVfx.cs" id="2"]
 
 [node name="PartyMemberCard" type="Button"]
 custom_minimum_size = Vector2(0, 126)
