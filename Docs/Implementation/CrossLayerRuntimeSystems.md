@@ -40,7 +40,7 @@ The current prototype exposes Health, Fatigue, Stamina, Mood and Gold.
 - Fatigue is a cumulative daily-life exertion value. It does not currently cause unconsciousness or block ordinary actions.
 - Stamina is a separate Combat resource used by defensive actions. Insufficient Stamina rejects the requested action; it does not end Combat.
 - Mood is a tracked character value; current effects may change it, but it is not the future party progression system.
-- GameClock owns the campaign day index, derived weekday, minute-of-day, elapsed-time advancement and midnight rollover. The game composition assigns Monday to campaign Day 1; weekday is calculated from the day index and is not independently mutable. Sleep is a configured 480-minute Player Action.
+- GameClock owns the one-based campaign day, Gregorian starting/current date, derived weekday, minute-of-day, elapsed-time advancement and midnight rollover. The initial game composition assigns Monday, 1 September 2025 to campaign Day 1. CurrentDate and Weekday are derived; they are not independently mutable. The calendar uses Gregorian month/year/leap-year rules and rejects advancement beyond 9999-12-31. Sleep remains a configured 480-minute Player Action; it advances the calendar only when midnight is crossed.
 
 Exact current values and action effects must be checked in the relevant JSON definitions and Domain code before changing them. Do not copy tuning values into Design as permanent decisions.
 
@@ -90,9 +90,9 @@ The current choice sources include Player Actions, Location Actions, NPC interac
 
 `GameContentLoader` loads `Data/NpcSchedules.json` into `NpcScheduleCatalog`. Each schedule references an existing Character ID and contains non-overlapping half-open time intervals (`startMinute` inclusive, `endMinute` exclusive), a Location ID and an authored activity description. `GameContentCatalog` validates Character, Location and required-NPC references before the runtime starts.
 
-`NpcPresenceQuery` combines the current Location, `GameClock.MinutesOfDay`, schedule definitions and Character data. `ExplorationFlowController` uses the result to offer `See around`, display the people currently present and revalidate the selected NPC before an interaction executes. Events with an event-level NPC requirement are not triggered while that NPC is absent; an unavailable NPC-specific Event does not consume the Location's daily event attempt. Event choice NPC requirements are checked again when selected. Presence is evaluated when the current context is shown; there is no per-frame NPC movement simulation.
+`NpcPresenceQuery` combines the current Location, `GameClock.MinutesOfDay`, schedule definitions and Character data. `ExplorationFlowController` uses the result to offer `See around`, display the people currently present and revalidate the selected NPC before an interaction executes. Events with an event-level NPC requirement are eligible only while that NPC is present; unavailable entries are skipped. Event choice NPC requirements are checked again when selected. Presence is evaluated when the current context is shown; there is no per-frame NPC movement simulation.
 
-The current schedule repeats every in-game day because `GameClock` has a day index but no weekday calendar. An unscheduled time range means the NPC is not present at a player-facing Location. The current content authors daily schedules for Mira, Noah, Sera and Ms. Carter. Each scheduled Character can be discovered through `See around` when present. NPC interactions can apply to every scheduled Location or specify an explicit `availableLocationIds` list.
+The current NPC schedules still repeat every in-game day because `NpcScheduleDefinition` does not yet contain weekday restrictions. `GameClock` exposes a Gregorian CurrentDate and derived Weekday, but schedule content has not yet been migrated to consume them. An unscheduled time range means the NPC is not present at a player-facing Location. The current content authors daily schedules for Mira, Noah, Sera and Ms. Carter. Each scheduled Character can be discovered through `See around` when present. NPC interactions can apply to every scheduled Location or specify an explicit `availableLocationIds` list.
 
 When the controlled character is at zero Health, the Exploration query suppresses normal Player, Location and Travel choices and exposes only an authored recovery Player Action. The current `Request emergency rescue` action advances GameClock by 180 minutes and revives the character with 5 HP. The action execution service permits this single-effect Revive action only while the character is incapacitated; normal interactions return after recovery.
 
@@ -101,6 +101,8 @@ When the controlled character is at zero Health, the Exploration query suppresse
 Location Events represent authored situations associated with a Location. The current modern setting uses Location Events for everyday conversations and the Unit 213 incident. The Unit 213 event offers observation, cautious entry and retreat; it does not force Combat.
 
 An Event is not synonymous with Combat or Encounter. It may offer a choice that starts the dedicated Combat flow or resolves through the normal action path. Keep the Event decision and the specialized Combat resolution separate.
+
+In the current prototype, a Location's Event pool is evaluated after a successful arrival. There is no once-per-day attempt limit, cooldown, repeat policy or persistent completion state. A future Event/Quest system will own those rules; `GameClock.Day`, `CurrentDate` and `Weekday` do not currently determine Event eligibility.
 
 The current Event definition still contains one description and a set of choices; it is not a general multi-page scene engine. Do not treat the current event selection rules as a finalized world-event scheduler. Verify the relevant `LocationEventService`, content definitions and tests before changing trigger timing or repeat behavior.
 

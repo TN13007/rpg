@@ -3,7 +3,7 @@
 **Repository:** [TN13007/rpg](https://github.com/TN13007/rpg)  
 **Engine:** Godot 4.7.2 .NET / C#  
 **Last reviewed:** 2026-11-23  
-**Baseline:** `main` at `4623913`; open or unmerged PRs are proposals, not implemented behavior.
+**Baseline:** `main` at `8f2182e`; open or unmerged PRs are proposals, not implemented behavior.
 
 > This is the only changing project-status and handoff tracker. Do not create separate status, Session-history, decision or learning trackers.
 
@@ -75,19 +75,20 @@ The Git workflow, commit granularity and PR requirements are defined only in [CO
 
 ## 4. Current handoff
 
-**Active Loop 2 implementation task:** [Issue #158 — Derive weekday from the shared GameClock](https://github.com/TN13007/rpg/issues/158). The implementation is proposed in [PR #159](https://github.com/TN13007/rpg/pull/159), which remains a draft pending review and verification.
+**Active Loop 2 implementation task:** [Issue #160 — Add Gregorian campaign dates to GameClock](https://github.com/TN13007/rpg/issues/160), proposed in the current branch `feat/issue-160-gregorian-game-calendar`.
 
-PR #157 is merged. Action Effects now use explicit positive-amount directional operations, and Gold is a signed balance that may represent debt. This is a shared foundation change; it does not implement purchase validation or a general transaction framework.
+PR #159 is merged at `8f2182e`; GameClock derives weekday from campaign Day. PR #157 is also merged. Action Effects use explicit positive-amount directional operations, and Gold is a signed balance that may represent debt. This is a shared foundation change; it does not implement purchase validation or a general transaction framework.
 
-The Loop 2 implementation sequence is:
-1. Derive weekday from the existing GameClock day index.
-2. Add the shared scheduled-activity data contract and availability query.
-3. Implement atomic Gold spending/adjustment at the owning activity boundary, consistent with the signed-balance design.
-4. Add only the typed, domain-owned persistent records required by the Monday/Saturday slice.
-5. Extend selected NPC presence schedules with weekday restrictions while preserving every-day behavior when weekdays are omitted.
-6. Validate the Monday and Saturday player journeys in Godot.
+The current calendar task adds a Gregorian campaign date beginning Monday, 1 September 2025, derives weekday/date from the same GameClock, displays the calendar in Exploration and Combat time feedback, and preserves the authored 480-minute Sleep behavior. Campaign Day/date/weekday currently serve time progression and calendar presentation only; no gameplay system may use them for availability, daily throttles or reset rules yet. Location Event and future Quest repeat/cooldown/completion rules are deferred to a dedicated system. No daily reset, schedule framework or Loop 3 gameplay is included.
 
-Do not implement the later steps inside Issue #158. Each step requires its own focused Issue and acceptance criteria.
+After the calendar is reviewed and merged, continue the Loop 2 implementation sequence:
+1. Add the shared scheduled-activity data contract and availability query.
+2. Implement atomic Gold spending/adjustment at the owning activity boundary, consistent with the signed-balance design.
+3. Add only the typed, domain-owned persistent records required by the selected Loop 2 slice.
+4. Extend selected NPC presence schedules with weekday restrictions while preserving every-day behavior when weekdays are omitted.
+5. Validate a complete ordinary student-life journey in Godot without making Loop 3 activities acceptance requirements.
+
+Keep each later capability in its own focused Issue and acceptance criteria.
 
 ## 5. Learning evidence
 

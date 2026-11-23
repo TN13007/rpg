@@ -1,3 +1,4 @@
+using System;
 using Xunit;
 
 public sealed class CombatSessionServiceTests
@@ -61,16 +62,18 @@ public sealed class CombatSessionServiceTests
         Assert.Equal(3.6, player.Fatigue, 2);
 
         Assert.True(session.TryConsumeTimeAdvance(
+            out DateOnly startingDate,
             out int startDay,
             out int startMinutes,
             out int endDay,
             out int endMinutes));
+        Assert.Equal(new DateOnly(2025, 9, 1), startingDate);
         Assert.Equal(1, startDay);
         Assert.Equal(450, startMinutes);
         Assert.Equal(1, endDay);
         Assert.Equal(480, endMinutes);
         Assert.False(session.TryConsumeTimeAdvance(
-            out _, out _, out _, out _));
+            out _, out _, out _, out _, out _));
     }
 
     [Fact]

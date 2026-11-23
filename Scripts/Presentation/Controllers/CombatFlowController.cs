@@ -67,6 +67,7 @@ public sealed class CombatFlowController
         showLocation();
 
         if (_combatSession.TryConsumeTimeAdvance(
+            out DateOnly startingDate,
             out int startDay,
             out int startMinutes,
             out int endDay,
@@ -76,7 +77,8 @@ public sealed class CombatFlowController
                 startDay,
                 startMinutes,
                 endDay,
-                endMinutes);
+                endMinutes,
+                startingDate);
         }
     }
 

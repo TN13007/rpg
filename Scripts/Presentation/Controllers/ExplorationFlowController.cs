@@ -539,7 +539,8 @@ public sealed class ExplorationFlowController
             startDay,
             startMinutes,
             _gameClock.Day,
-            _gameClock.MinutesOfDay);
+            _gameClock.MinutesOfDay,
+            _gameClock.StartingDate);
         _storyPanel.ShowFeedback(ActionMoodFeedbackFormatter.Format(action, _player.Mood - moodBeforeAction));
         return true;
     }
@@ -574,7 +575,8 @@ public sealed class ExplorationFlowController
             startDay,
             startMinutes,
             _gameClock.Day,
-            _gameClock.MinutesOfDay);
+            _gameClock.MinutesOfDay,
+            _gameClock.StartingDate);
         _storyPanel.ShowFeedback("You arrive at " + _getLocation(destinationId).Name + ".");
         TryTriggerLocationEvent();
     }
@@ -588,7 +590,6 @@ public sealed class ExplorationFlowController
             _gameClock.MinutesOfDay);
         if (!_locationEventService.TryTrigger(
             location,
-            _gameClock.Day,
             _player.CanAct,
             out LocationEventDefinition triggeredEvent,
             presentNpcIds))
