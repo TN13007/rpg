@@ -590,7 +590,6 @@ public sealed class ExplorationFlowController
             _gameClock.MinutesOfDay);
         if (!_locationEventService.TryTrigger(
             location,
-            _gameClock.Day,
             _player.CanAct,
             out LocationEventDefinition triggeredEvent,
             presentNpcIds))

@@ -47,36 +47,36 @@ public sealed class LocationEventLoopTests
     }
 
     [Fact]
-    public void EventService_TriggersGuaranteedEventOnlyOncePerLocationPerDay()
+    public void EventService_TriggersGuaranteedEventOnRepeatedVisits()
     {
         LocationEventDefinition locationEvent = CreateEvent("guaranteed", 1);
         LocationContent location = CreateLocation("courtyard", locationEvent);
         LocationEventService service = new LocationEventService(new Random(1));
 
-        bool firstResult = service.TryTrigger(location, 1, true, out LocationEventDefinition firstEvent);
-        bool secondResult = service.TryTrigger(location, 1, true, out LocationEventDefinition secondEvent);
-        bool nextDayResult = service.TryTrigger(location, 2, true, out LocationEventDefinition nextDayEvent);
+        bool firstResult = service.TryTrigger(location, true, out LocationEventDefinition firstEvent);
+        bool secondResult = service.TryTrigger(location, true, out LocationEventDefinition secondEvent);
+        bool thirdResult = service.TryTrigger(location, true, out LocationEventDefinition thirdEvent);
 
         Assert.True(firstResult);
         Assert.Same(locationEvent, firstEvent);
-        Assert.False(secondResult);
-        Assert.Null(secondEvent);
-        Assert.True(nextDayResult);
-        Assert.Same(locationEvent, nextDayEvent);
+        Assert.True(secondResult);
+        Assert.Same(locationEvent, secondEvent);
+        Assert.True(thirdResult);
+        Assert.Same(locationEvent, thirdEvent);
     }
 
     [Fact]
-    public void EventService_RequiredNpcMustBePresentAndAbsenceDoesNotConsumeDailyAttempt()
+    public void EventService_RequiredNpcMustBePresentToTrigger()
     {
         LocationEventDefinition locationEvent = CreateEvent("mira_arrival", 1, "mira");
         LocationContent location = CreateLocation("campus_cafe", locationEvent);
         LocationEventService service = new LocationEventService(new Random(1));
 
         bool absent = service.TryTrigger(
-            location, 1, true, out LocationEventDefinition absentEvent,
+            location, true, out LocationEventDefinition absentEvent,
             new HashSet<string>(StringComparer.Ordinal));
         bool present = service.TryTrigger(
-            location, 1, true, out LocationEventDefinition presentEvent,
+            location, true, out LocationEventDefinition presentEvent,
             new HashSet<string>(StringComparer.Ordinal) { "mira" });
 
         Assert.False(absent);
@@ -100,13 +100,13 @@ public sealed class LocationEventLoopTests
     }
 
     [Fact]
-    public void EventService_FailedChanceIsNotRerolledOnSameDay()
+    public void EventService_ZeroChanceNeverTriggers()
     {
         LocationContent location = CreateLocation("courtyard", CreateEvent("never", 0));
         LocationEventService service = new LocationEventService(new Random(1));
 
-        bool firstResult = service.TryTrigger(location, 1, true, out LocationEventDefinition firstEvent);
-        bool secondResult = service.TryTrigger(location, 1, true, out LocationEventDefinition secondEvent);
+        bool firstResult = service.TryTrigger(location, true, out LocationEventDefinition firstEvent);
+        bool secondResult = service.TryTrigger(location, true, out LocationEventDefinition secondEvent);
 
         Assert.False(firstResult);
         Assert.False(secondResult);
@@ -120,21 +120,21 @@ public sealed class LocationEventLoopTests
         LocationEventDefinition locationEvent = CreateEvent("guaranteed", 1);
         LocationEventService service = new LocationEventService(new Random(1));
 
-        bool firstLocation = service.TryTrigger(CreateLocation("courtyard", locationEvent), 1, true, out _);
-        bool secondLocation = service.TryTrigger(CreateLocation("classroom", locationEvent), 1, true, out _);
+        bool firstLocation = service.TryTrigger(CreateLocation("courtyard", locationEvent), true, out _);
+        bool secondLocation = service.TryTrigger(CreateLocation("classroom", locationEvent), true, out _);
 
         Assert.True(firstLocation);
         Assert.True(secondLocation);
     }
 
     [Fact]
-    public void EventService_UnavailableCharacterDoesNotConsumeDailyAttempt()
+    public void EventService_PlayerMustBeAbleToActToTrigger()
     {
         LocationContent location = CreateLocation("courtyard", CreateEvent("guaranteed", 1));
         LocationEventService service = new LocationEventService(new Random(1));
 
-        bool unavailableResult = service.TryTrigger(location, 1, false, out LocationEventDefinition unavailableEvent);
-        bool availableResult = service.TryTrigger(location, 1, true, out LocationEventDefinition availableEvent);
+        bool unavailableResult = service.TryTrigger(location, false, out LocationEventDefinition unavailableEvent);
+        bool availableResult = service.TryTrigger(location, true, out LocationEventDefinition availableEvent);
 
         Assert.False(unavailableResult);
         Assert.Null(unavailableEvent);
@@ -150,21 +150,21 @@ public sealed class LocationEventLoopTests
         LocationContent location = CreateLocation("courtyard", first, second);
         LocationEventService service = new LocationEventService(new Random(1));
 
-        bool result = service.TryTrigger(location, 1, true, out LocationEventDefinition triggeredEvent);
+        bool result = service.TryTrigger(location, true, out LocationEventDefinition triggeredEvent);
 
         Assert.True(result);
         Assert.Same(first, triggeredEvent);
     }
 
     [Fact]
-    public void EventService_LocationWithoutEventsDoesNotConsumeDailyAttempt()
+    public void EventService_EmptyEventPoolDoesNotBlockLaterSelection()
     {
         LocationEventService service = new LocationEventService(new Random(1));
         LocationContent emptyLocation = CreateLocation("courtyard");
         LocationContent eventLocation = CreateLocation("courtyard", CreateEvent("guaranteed", 1));
 
-        bool emptyResult = service.TryTrigger(emptyLocation, 1, true, out LocationEventDefinition emptyEvent);
-        bool eventResult = service.TryTrigger(eventLocation, 1, true, out LocationEventDefinition triggeredEvent);
+        bool emptyResult = service.TryTrigger(emptyLocation, true, out LocationEventDefinition emptyEvent);
+        bool eventResult = service.TryTrigger(eventLocation, true, out LocationEventDefinition triggeredEvent);
 
         Assert.False(emptyResult);
         Assert.Null(emptyEvent);
@@ -180,7 +180,7 @@ public sealed class LocationEventLoopTests
         LocationContent location = CreateLocation("courtyard", first, second);
         LocationEventService service = new LocationEventService(new Random(1));
 
-        bool result = service.TryTrigger(location, 1, true, out LocationEventDefinition triggeredEvent);
+        bool result = service.TryTrigger(location, true, out LocationEventDefinition triggeredEvent);
 
         Assert.True(result);
         Assert.Same(second, triggeredEvent);
@@ -214,7 +214,7 @@ public sealed class LocationEventLoopTests
             Array.Empty<ActionDefinition>());
         LocationEventService service = new LocationEventService(new Random(1));
 
-        Assert.Throws<ArgumentException>(() => service.TryTrigger(location, 1, true, out _));
+        Assert.Throws<ArgumentException>(() => service.TryTrigger(location, true, out _));
     }
 
     [Fact]
@@ -223,9 +223,7 @@ public sealed class LocationEventLoopTests
         LocationEventService service = new LocationEventService(new Random(1));
         LocationContent location = CreateLocation("courtyard", CreateEvent("guaranteed", 1));
 
-        Assert.Throws<ArgumentNullException>(() => service.TryTrigger(null, 1, true, out _));
-        Assert.Throws<ArgumentOutOfRangeException>(() => service.TryTrigger(location, 0, true, out _));
-        Assert.Throws<ArgumentOutOfRangeException>(() => service.TryTrigger(location, -1, true, out _));
+        Assert.Throws<ArgumentNullException>(() => service.TryTrigger(null, true, out _));
         Assert.Throws<ArgumentNullException>(() => new LocationEventService(null));
     }
 
@@ -284,7 +282,7 @@ public sealed class LocationEventLoopTests
 
         LocationContent apartmentBlock = WithGuaranteedEvents(_locations.Get("apartment_block"));
         LocationEventService eventService = new LocationEventService(new Random(1));
-        bool triggered = eventService.TryTrigger(apartmentBlock, clock.Day, player.CanAct, out LocationEventDefinition locationEvent);
+        bool triggered = eventService.TryTrigger(apartmentBlock, player.CanAct, out LocationEventDefinition locationEvent);
 
         Assert.True(triggered);
         Assert.NotNull(locationEvent);
@@ -311,7 +309,7 @@ public sealed class LocationEventLoopTests
         LoadLocationCatalog();
         LocationContent apartmentBlock = WithGuaranteedEvents(_locations.Get("apartment_block"));
         LocationEventService eventService = new LocationEventService(new Random(1));
-        Assert.True(eventService.TryTrigger(apartmentBlock, 1, true, out LocationEventDefinition locationEvent));
+        Assert.True(eventService.TryTrigger(apartmentBlock, true, out LocationEventDefinition locationEvent));
 
         LocationEventChoiceDefinition enterChoice = FindChoice(locationEvent, "enter_unit_213");
         Assert.Null(enterChoice.EncounterActionId);

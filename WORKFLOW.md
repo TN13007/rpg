@@ -79,7 +79,7 @@ The Git workflow, commit granularity and PR requirements are defined only in [CO
 
 PR #159 is merged at `8f2182e`; GameClock derives weekday from campaign Day. PR #157 is also merged. Action Effects use explicit positive-amount directional operations, and Gold is a signed balance that may represent debt. This is a shared foundation change; it does not implement purchase validation or a general transaction framework.
 
-The current calendar task adds a Gregorian campaign date beginning Monday, 1 September 2025, derives weekday/date from the same GameClock, displays the calendar in Exploration and Combat time feedback, and preserves the authored 480-minute Sleep behavior. It does not add a daily reset, schedule framework or Loop 3 gameplay.
+The current calendar task adds a Gregorian campaign date beginning Monday, 1 September 2025, derives weekday/date from the same GameClock, displays the calendar in Exploration and Combat time feedback, and preserves the authored 480-minute Sleep behavior. Campaign Day/date/weekday currently serve time progression and calendar presentation only; no gameplay system may use them for availability, daily throttles or reset rules yet. Location Event and future Quest repeat/cooldown/completion rules are deferred to a dedicated system. No daily reset, schedule framework or Loop 3 gameplay is included.
 
 After the calendar is reviewed and merged, continue the Loop 2 implementation sequence:
 1. Add the shared scheduled-activity data contract and availability query.
