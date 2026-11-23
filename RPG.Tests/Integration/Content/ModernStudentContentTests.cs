@@ -16,7 +16,7 @@ public sealed class ModernStudentContentTests
         Assert.Equal("Campus Plaza", campusPlaza.Name);
         Assert.Equal("NORTH CAMPUS", campusPlaza.Region);
         Assert.Equal(campusPlaza.Region, content.GetLocation("lecture_hall").Region);
-        Assert.Equal("The 2:13 AM Incident", content.GetLocation("apartment_block").Events.Single().Title);
+        Assert.Equal("The Crying Room", content.GetLocation("apartment_block").Events.Single().Title);
         Assert.Equal("Response coordinator", content.GetCharacter("ms_carter").Role);
 
         LocationContent dormRoom = content.GetLocation("dormitory_room");
@@ -115,16 +115,34 @@ public sealed class ModernStudentContentTests
     }
 
     [Fact]
-    public void Unit213IncidentOffersNonCombatResponses()
+    public void Unit213IncidentConnectsTheFriendInvitationToPartyCombat()
     {
         GameContentCatalog content = LoadContent();
-        LocationEventDefinition incident = Assert.Single(content.GetLocation("apartment_block").Events);
+        LocationContent apartmentBlock = content.GetLocation("apartment_block");
+        LocationEventDefinition incident = Assert.Single(apartmentBlock.Events);
 
         Assert.Equal("apartment_213_incident", incident.Id);
+        Assert.Equal("The Crying Room", incident.Title);
         Assert.Equal(
             new[] { "listen_from_hallway", "enter_unit_213", "leave_the_building" },
             incident.Choices.Select(choice => choice.Id));
-        Assert.All(incident.Choices, choice => Assert.Null(choice.EncounterActionId));
+        Assert.Null(incident.Choices[0].EncounterActionId);
+        Assert.Equal("start_unit_213", incident.Choices[1].EncounterActionId);
+        Assert.Equal("start_unit_213", apartmentBlock.Actions.Single(action => action.Id == "start_unit_213").Id);
+        Assert.Null(incident.Choices[2].EncounterActionId);
+
+        NpcInteractionDefinition miraInvitation = content.NpcInteractions.All
+            .Single(interaction => interaction.CharacterId == "mira" && interaction.Action.Id == "talk");
+        Assert.Contains("Noah wants to check it out tonight", miraInvitation.Action.Feedback);
+        Assert.Equal("mira", incident.RequiredNpcId);
+
+        NpcPresenceQuery presenceQuery = new NpcPresenceQuery(
+            content.NpcSchedules.All,
+            content.Characters.All);
+        IReadOnlyList<NpcPresence> friendsAtTheApartment = presenceQuery.Query("apartment_block", 1080);
+        Assert.Equal(
+            new[] { "mira", "noah", "sera" },
+            friendsAtTheApartment.Select(presence => presence.CharacterId).OrderBy(id => id));
     }
 
     private static GameContentCatalog LoadContent()

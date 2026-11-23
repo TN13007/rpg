@@ -104,13 +104,15 @@ public sealed class NpcScheduleTests
         NpcScheduleCatalog catalog = NpcScheduleDataLoader.LoadJson(json);
         NpcScheduleDefinition miraSchedule = catalog.Get("mira");
 
-        Assert.Equal(6, miraSchedule.Entries.Length);
+        Assert.Equal(7, miraSchedule.Entries.Length);
         Assert.Equal("university_campus", miraSchedule.GetEntryAt(450).LocationId);
         Assert.Equal("university_campus", miraSchedule.GetEntryAt(500).LocationId);
         Assert.Equal("lecture_hall", miraSchedule.GetEntryAt(550).LocationId);
         Assert.Equal("campus_cafe", miraSchedule.GetEntryAt(690).LocationId);
         Assert.Equal("campus_library", miraSchedule.GetEntryAt(800).LocationId);
         Assert.Equal("student_union", miraSchedule.GetEntryAt(950).LocationId);
+        Assert.Equal("student_apartment", miraSchedule.GetEntryAt(1050).LocationId);
+        Assert.Equal("apartment_block", miraSchedule.GetEntryAt(1140).LocationId);
     }
 
     [Fact]

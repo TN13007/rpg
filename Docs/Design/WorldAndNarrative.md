@@ -1,7 +1,7 @@
 # World and Narrative Design
 
 **Status:** Accepted setting direction; incident details remain in development  
-**Last updated:** 2026-11-23
+**Last updated:** 2026-11-24
 
 ## World structure
 
@@ -49,11 +49,11 @@ The game should communicate risk without requiring the player to solve every mys
 
 ## Narrative direction
 
-Stories should emerge from the contrast between recognizable daily routines and unexplained events. A strange incident can interrupt a lecture, become a topic at lunch, appear on a neighborhood forum or affect a part-time shift.
+Stories should emerge from the contrast between recognizable student routines and extraordinary trouble. A friend can turn a lunch conversation into a late-night investigation; a harmless rumor can become an explosive encounter; the next morning, the same friends return to class and try to act normal.
 
-The protagonist's personal relationships and ordinary responsibilities remain central. Paranormal incidents should deepen the world and its characters rather than replace student life with a constant emergency.
+The tone is energetic, funny and suspenseful rather than grimdark. Danger can create adrenaline without making trauma, hopelessness or tragedy the default emotional payoff. Friendship, banter, romance and everyday plans remain important before, during and after supernatural adventures.
 
-Avoid assuming a single world-ending conspiracy, a chosen-one prophecy or a mandatory sequence of escalating bosses. A small event can be complete and satisfying without revealing a grand secret.
+Prefer self-contained episodes with memorable hooks, a compact investigation, a clear encounter or alternative resolution, and an aftermath that reconnects to ordinary life. Episodes may contribute to longer character and world arcs, but each first needs to work as a satisfying adventure on its own. Avoid a mandatory world-ending conspiracy or chosen-one prophecy.
 
 ## Consequences and continuity
 

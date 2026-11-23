@@ -255,7 +255,7 @@
       "region": "EAST DISTRICT",
       "description": {
         "firstVisit": "The apartment block stands behind a row of shuttered shops. Several windows are boarded up, and the entry intercom has a handwritten note saying the building is awaiting renovation. The lobby smells of damp concrete. A stairwell light flickers above the directory; Unit 213 is still listed, though the name beside it has been scratched away.",
-        "returnVisit": "The old apartment block is as quiet as before. The entry light flickers and the directory still lists Unit 213 without a resident's name."
+        "returnVisit": "The hallway is quiet now. The door to Unit 213 hangs slightly open, and the friends who came with you are still trying to decide whether what happened was real. Outside, the city carries on as if nothing happened."
       },
       "exits": [
         "apartment_block_exterior"
@@ -268,46 +268,50 @@
           "effects": [],
           "feedback": "The notice says the upper floors have been closed for months. Unit 213 is not listed among the apartments cleared for renovation.",
           "activityMet": 0.8
+        },
+        {
+          "id": "start_unit_213",
+          "label": "Face whatever is inside Unit 213",
+          "durationMinutes": 0,
+          "effects": [],
+          "feedback": "You take one breath, exchange a look with your friends and push the door open."
         }
       ],
       "events": [
         {
           "id": "apartment_213_incident",
-          "title": "The 2:13 AM Incident",
+          "title": "The Crying Room",
           "region": "OLD APARTMENT BLOCK",
-          "description": "A faint child's sob comes from somewhere above you. It stops as soon as you reach the second-floor landing. A moment later, three soft knocks come from behind the door marked 213. Your phone shows 2:13 a.m. in an old forum screenshot, but it is not that late now. The building is otherwise silent.",
+          "description": "A child's sob echoes down the stairwell, then cuts off mid-breath. Three knocks answer from behind the door marked 213. The apartment directory has no name beside it, but a fresh wet handprint slowly appears on the brass number. Your phone camera flickers. Behind you, Mira whispers, \"Okay. That is definitely not a plumbing problem.\" Noah steps forward while Sera checks the hallway for another exit.",
           "chance": 1,
           "choices": [
             {
               "id": "listen_from_hallway",
-              "label": "Stay in the hallway and listen",
+              "label": "Stay back and study the pattern",
               "durationMinutes": 10,
               "effects": [],
-              "feedback": "The crying returns in short bursts, each separated by the same interval. You notice that the sound seems to come from inside the bedroom, not the hallway.",
+              "feedback": "The knocks come in groups of three. Each time they stop, the handprint shifts closer to the edge of the door. Sera notices the hallway lights dim a moment before every knock.",
               "activityMet": 2
             },
             {
               "id": "enter_unit_213",
-              "label": "Open the door to Unit 213",
-              "durationMinutes": 5,
-              "effects": [
-                {
-                  "type": "ReduceMood",
-                  "amount": 3
-                }
-              ],
-              "feedback": "The door gives way with a dry click. Inside, a child's voice repeats the same unfinished sentence. When you step toward the bedroom, it calls your name. You back out before it can come closer.",
-              "activityMet": 1.5
+              "label": "Push into Unit 213 with your friends",
+              "durationMinutes": 0,
+              "effects": [],
+              "feedback": "You push the door open. The room stretches farther than the building should allow. Something unfolds from the ceiling, and the hallway door slams shut behind your group.",
+              "activityMet": 1.5,
+              "encounterActionId": "start_unit_213"
             },
             {
               "id": "leave_the_building",
-              "label": "Leave the building",
-              "durationMinutes": 1,
+              "label": "Back out and call the response office",
+              "durationMinutes": 5,
               "effects": [],
-              "feedback": "You decide not to take the risk. The street noise feels unusually comforting after the silence inside.",
-              "activityMet": 0.5
+              "feedback": "You pull everyone back to the street and call the Paranormal Response Office. Whatever is inside can wait until you have a safer plan.",
+              "activityMet": 0.8
             }
-          ]
+          ],
+          "requiredNpcId": "mira"
         }
       ]
     },

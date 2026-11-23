@@ -1,23 +1,21 @@
 # Game Vision — Modern Student Life RPG
 
 **Status:** Revised product direction  
-**Last updated:** 2026-11-23
+**Last updated:** 2026-11-24
 
 ## 1. High concept
 
-A life-simulation RPG about an ordinary university student living in a contemporary city. The player manages everyday life, develops characters, builds relationships, forms a party and participates in a range of activities—from familiar student routines to specialized challenges and dangerous encounters.
+A high-energy student-life RPG with supernatural adventures. By day, the player attends classes, plays sports, makes friends, dates, earns money and enjoys campus life. After hours, the same group of students investigates strange places and fights supernatural entities through party-based turn-based combat.
 
-The game combines the life-simulation structure and player freedom of *Degrees of Lewdity* with the party-based RPG and character-interaction direction of *Karryn's Prison*. A defining emphasis is the practical influence of character skills: development should change what characters can do and how effectively they perform, rather than only increasing numerical attributes.
+The central fantasy is living an exciting ordinary life while becoming increasingly capable of handling extraordinary threats. The contrast is intentional: energetic school-life comedy, friendship and romance sit alongside suspenseful, explosive supernatural encounters. The tone favors excitement and humor over grimdark tragedy or hopelessness.
 
-The experience is built in layers. Foundational systems support everyday activities. Everyday activities establish context, resources and progression for more specialized gameplay. Further layers introduce deeper interactions, challenges and systems that expand the player's possibilities.
+Daily life and supernatural adventures are not separate modes or separate games. Everyday activities let the player develop character capabilities, earn money, build friendships and prepare for encounters. Adventures test those capabilities and can return new opportunities, equipment, knowledge and consequences to ordinary life.
 
-The complete experience is the combination of these layers. No single loop represents the entire game. The foundation appears most frequently because every higher layer depends on it.
-
-The protagonist is an ordinary student, not a chosen one or a predetermined hero. The world contains ordinary people, recognizable places and unexplained phenomena. The player decides how to spend time, which relationships to pursue, which activities to engage in and how much of the unusual side of the world to explore.
+The protagonist is an ordinary university student, not a chosen one or a predetermined hero. The player chooses how to spend time, which relationships to pursue, how to prepare and which supernatural incidents to confront.
 
 ## 2. Core experience
 
-The player moves through a continuous experience that combines everyday life with increasingly specialized activities.
+The player moves through one continuous experience: ordinary student life creates the people, resources and capabilities that make supernatural adventures possible; adventures then feed new outcomes back into ordinary life.
 
 The experience is built around five principles:
 
@@ -27,7 +25,7 @@ The experience is built around five principles:
 4. **Character-driven gameplay:** Attributes, skills, resources and development meaningfully influence what the player can accomplish.
 5. **Interconnected progression:** Outcomes from one activity can influence opportunities and decisions in other activities.
 
-Daily life and specialized gameplay are not separate games. They are different layers of the same experience.
+Daily life and supernatural action are two sides of the same experience. The player should enjoy ordinary activities for their own character-driven moments, not only as a checklist of bonuses before combat.
 
 ## 3. Layered gameplay architecture
 

@@ -1,7 +1,7 @@
 # Product Roadmap
 
 **Status:** Directional player-facing sequence  
-**Last updated:** 2026-11-23
+**Last updated:** 2026-11-24
 
 This roadmap is organized around outcomes the player can experience. It is not an implementation task list. Current tasks, blockers and delivery status belong in GitHub Issues/PRs and [WORKFLOW.md](../../WORKFLOW.md).
 
@@ -10,8 +10,8 @@ This roadmap is organized around outcomes the player can experience. It is not a
 The active direction is a single modern student-life setting. The former fantasy Academy content has been replaced, not retained as a parallel scenario.
 
 - The first content slice centers on university, student housing, a part-time café, the East District and the Unit 213 rumor.
-- The first incident should support observation and retreat without forcing combat. Professional response is introduced as an ordinary service; actual dispatch/payment behavior remains a runtime gap.
-- Combat is a separate, optional turn-based system for situations that justify confrontation. It must not become the mandatory resolution for every anomaly.
+- The first supernatural episode should connect a friend invitation, investigation and a party-based turn-based encounter, then return the player to ordinary student life.
+- Combat remains optional when the player chooses to back out or seek help; it is not the mandatory response to every anomaly.
 
 The setting migration should preserve reusable runtime systems and avoid introducing a universal Quest, Incident, Social Network or World Simulation framework.
 
@@ -31,16 +31,17 @@ Deliver a connected daily-life journey across campus, housing and nearby city lo
 
 The detailed Loop 2 design contract is maintained in [Daily Life](DailyLife.md).
 
-## Phase 2 — Prove an optional paranormal incident
+## Phase 2 — Prove the student-life-to-supernatural loop
 
-Deliver one bounded incident, beginning with a rumor and ending with a player-chosen response. Unit 213 is the first candidate: reports describe a child crying at the same time each night in a vacant apartment.
+Deliver one bounded episode using Unit 213: a friend introduces the lead, the group investigates the abandoned apartment, the player chooses whether to enter, and the existing party combat resolves the confrontation. The player then returns to the ordinary world.
 
 **Exit criteria**
-- The player can discover the rumor through ordinary conversation or local information.
-- The player can investigate, observe, enter cautiously or leave.
-- The player can ignore the incident and continue ordinary life.
-- The event does not require combat to reach a valid outcome.
-- The narrative distinguishes what the player observed from what is known to be true.
+- The player can discover the lead through an existing friend interaction.
+- The player can inspect clues and choose to confront the presence or back out.
+- The confrontation uses the existing turn-based four-character Party combat.
+- Combat completion returns the player to Exploration without breaking the ordinary journey.
+- The aftermath makes the supernatural episode feel connected to student life.
+- The episode works without introducing a generic Quest or Episode framework.
 
 ## Phase 3 — Add consequences only where proven necessary
 
