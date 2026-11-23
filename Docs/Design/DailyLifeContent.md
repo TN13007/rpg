@@ -25,9 +25,9 @@ This is a vertical content slice, not a complete academic timetable or a full we
 
 | Field | First-day target | Existing player data |
 |---|---|---|
-| Campaign day | Day 1, Monday | GameClock currently has a day index but no weekday |
+| Campaign day | Day 1, Monday, 1 September 2025 | `GameClock` derives the weekday from the configured Day 1 date |
 | Start time | 07:30 | 07:30 |
-| Starting Location | `student_apartment` | MainController currently starts at `university_campus` |
+| Starting Location | `university_campus` | `MainController` starts at `university_campus` |
 | Health | 20 / 20 | 20 / 20 |
 | Fatigue | 0 / 100 | 0 / 100 |
 | Stamina | 8 / 10 | 8 / 10 |
@@ -42,7 +42,7 @@ Reuse these existing Location IDs:
 
 | Location ID | Role in this day |
 |---|---|
-| `student_apartment` | Start/end point, Rest and Sleep |
+| `student_apartment` | Optional evening return point, Rest and Sleep |
 | `east_district` | Connector between housing and campus/café |
 | `university_campus` | Campus hub and notice board |
 | `campus_library` | Study and Sera encounter |
@@ -50,17 +50,20 @@ Reuse these existing Location IDs:
 | `campus_cafe` | Meal and lunchtime social opportunity |
 | `corner_cafe` | Paid work shift |
 | `student_union` | Club meeting and student social opportunity |
+| `sports_field` | Noah's morning training and optional practice |
 
-The current base Travel duration is 10 minutes per connected edge, before the existing Agility modifier. The sample route from the apartment to the Library is:
+The current base Travel duration is 10 minutes per connected edge, before the existing Agility modifier. The opening route from the Campus to the Library and then the Lecture Hall is:
 
 ```text
-Student Apartment
-  -> East District             10 min
-  -> University Campus         10 min
+University Campus
   -> Campus Library            10 min
+Campus Library
+  -> University Campus         10 min
+University Campus
+  -> Lecture Hall              10 min
 ```
 
-Do not add direct exits merely to shorten this sample. The route should use the existing Location graph.
+The Library-to-Lecture-Hall leg therefore takes 20 minutes through the Campus hub. Keep the existing Location graph; do not add direct exits merely to shorten the sample.
 
 ## 4. Monday commitments
 
@@ -139,29 +142,44 @@ This is a concrete Knowledge outcome, not a universal XP reward. Attending class
 
 The rumor from `lunch_table_conversation.join_the_conversation` or `east_district.browse_forum` may also be recorded as an optional, campaign-persistent Investigation-owned clue (`heard_unit_213_rumor`). It does not gate, trigger or suppress `apartment_213_incident`; the incident remains independently discoverable.
 
-## 8. Example player journey
+## 8. Example player journey — first morning on campus
 
-One valid route, not a required sequence:
+This is one representative route, not a mandatory checklist. It starts at the Location the current game actually loads and follows the existing travel graph and action durations.
 
-| Time | Action | State / decision |
-|---|---|---|
-| 07:30 | Start at `student_apartment` | Day 1 Monday; 20 Gold |
-| 07:30–08:00 | Travel via East District to Campus Library | 30 minutes of base travel |
-| 08:00–08:30 | `browse_library` | Study before class; no Knowledge yet |
-| 08:30–08:40 | Talk with Sera | Optional 10-minute conversation |
-| 08:40–09:00 | Travel to Lecture Hall via Campus | Arrive for the class |
-| 09:00–10:00 | Attend the lecture | Class commitment completed |
-| 10:00–11:00 | Free choice / travel to Campus Café | The player may eat, meet students or use another available action |
-| 11:00–12:00 | Lunch opportunity | Mira, Noah and Sera can be encountered |
-| 12:00–13:00 | Free choice and travel | Prepare for work, study or another activity |
-| 13:00–16:00 | Work shift **or** use the afternoon for other activities | Work grants 30 Gold; the Club Meeting begins at 15:00 and cannot also be attended |
-| 15:00–16:00 | Club Meeting if not working | Social opportunity; no mandatory relationship increase |
-| 16:00 onward | Return home, Rest, optional conversation with Mira | The player decides when to end the day |
-| 23:00–07:00 | Sleep | 480 minutes; wake on Day 2 at 07:00 |
+**Starting context:** Monday, 1 September 2025, 07:30, at `university_campus`. The player is Alex (`player_student`), has 20 Gold, Health 20/20, Fatigue 0/100, Stamina 8/10 and Mood 70/100. Mira is near the central plaza, Noah is at the Sports Field and Sera is in the Library.
 
-Travel durations in the example use the current base value and ignore the Agility reduction for readability. Actual arrival time must use the existing Travel calculation.
+| Time | Location | Action / movement | What happens |
+|---|---|---|---|
+| 07:30–07:40 | University Campus | `inspect_board` | Alex checks the day's notices: the introductory Research Methods lecture is listed for 09:00, alongside club and volunteer announcements. |
+| 07:40–07:50 | University Campus | Talk with Mira | Mira asks about the morning and mentions a neighborhood post she saw online. The player can leave the topic there. |
+| 07:50–08:00 | Campus Library | Travel from Campus (10 min) | Sera is already studying near the windows. |
+| 08:00–08:30 | Campus Library | `browse_library` | Alex reviews the course outline and prepares a few questions before class. |
+| 08:30–08:40 | Campus Library | Talk with Sera | Sera recommends reference material and mentions questions she plans to raise in the lecture. |
+| 08:40–09:00 | Lecture Hall | Travel via Campus (20 min) | The player returns through the Campus hub and reaches the Lecture Hall for the proposed 09:00 start. |
+| 09:00–10:00 | Lecture Hall | `attend_lesson` | The lecturer introduces source checking, firsthand accounts and comparing conflicting information. Mira, Noah and Sera are also present. |
+| 10:00–10:10 | Lecture Hall | Talk with Noah | Noah has finished the lecture and talks about his morning training and a possible weekend session. |
+| 10:10–10:30 | Campus Café | Travel via Campus (20 min) | Alex leaves the Lecture Hall, crosses the central plaza and reaches the café. |
+| 10:30–10:50 | Campus Café | `eat_meal` | A meal restores Stamina +3 and Mood +2 under the current authored action effects. |
+| 10:50–11:00 | Campus Café | `talk_first_years` | Alex exchanges brief stories about classes and campus activities. |
+| 11:00–11:15 | Campus Café | `join_mira_for_lunch` | Mira is now at the café. Alex joins her table and hears what other students have been discussing. |
+| 11:15 onward | Campus | Free choice | The player can stay and talk, visit the Student Union or Sports Field, study again, or leave campus. No route is forced. |
 
-The morning example deliberately leaves little spare time. An extra stop can push the player past the class start window. The player should be able to skip the Library, Sera or the class rather than being forced down this route.
+### Alternative: meet Noah before class
+
+The player can replace the early Mira conversation with a visit to the Sports Field:
+
+1. 07:30–07:40: travel from University Campus to Sports Field.
+2. 07:40–07:50: talk with Noah while he finishes his drills.
+3. 07:50–08:00: return to University Campus.
+4. 08:00–08:10: travel to Campus Library.
+5. 08:10–08:40: study in the Library.
+6. 08:40–09:00: travel through Campus to the Lecture Hall.
+
+This route reaches the proposed lecture start but gives up the early conversation with Mira and the optional conversation with Sera. If the player also talks with Sera after studying, the route reaches the Lecture Hall at 09:10 instead. That is a meaningful time trade-off, not a hidden punishment.
+
+The example assumes the existing base Travel duration of 10 minutes per connected edge and does not apply the Agility reduction, so actual arrival may be earlier. The 09:00 lecture is a content target, not an enforced time gate in the current runtime: `attend_lesson` can currently be selected whenever the player is at the Lecture Hall. The same distinction applies to other proposed commitments. NPC presence, by contrast, is currently queried from the authored clock-time schedules.
+
+The `lunch_table_conversation` Location Event is optional contextual content at the Campus Café. It is not a prerequisite for meeting Mira, attending class or progressing through the day. The player can ignore the neighborhood rumor and complete this morning without leaving campus or entering Combat.
 
 ## 9. Saturday contrast — invitation, training, work and club outing
 

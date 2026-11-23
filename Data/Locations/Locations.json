@@ -17,8 +17,8 @@
       "name": "University Campus",
       "region": "NORTH CAMPUS",
       "description": {
-        "firstVisit": "The university is already awake when you arrive. Students cross the open plaza with coffee cups, backpacks and half-finished conversations. Bicycles are chained along the railings, a campus shuttle pulls away from the curb, and the glass-fronted lecture buildings reflect the pale morning light. You have a full day ahead, but nothing is demanding your attention yet.",
-        "returnVisit": "Students move between the lecture buildings and the central plaza. The campus notice board is covered with class updates, club announcements and flyers for events around the city."
+        "firstVisit": "The campus is already in motion when you arrive on Monday morning. Students cross the central plaza with coffee cups and half-open backpacks; a shuttle pulls away from the curb while bicycles rattle against the racks. The notice board stands beside the main walkway, with the lecture hall, library and café all within a short walk. Mira is checking the announcements nearby. The day is beginning, but you are free to decide how to spend the morning.",
+        "returnVisit": "The central plaza stays busy as students move between classes. The notice board carries updated lecture announcements, club activities and a few notices from the East District. The library and café remain easy places to step away from the crowd."
       },
       "exits": [
         "lecture_hall",
@@ -31,10 +31,10 @@
       "actions": [
         {
           "id": "inspect_board",
-          "label": "Check the campus notice board",
+          "label": "Check today's campus notices",
           "durationMinutes": 10,
           "effects": [],
-          "feedback": "You scan class announcements, club recruitment posts and a few neighborhood notices. Most of it can wait.",
+          "feedback": "The board lists a 09:00 introductory Research Methods lecture in the Lecture Hall, club activities at the Student Union and several volunteer notices. A neighborhood post from the East District catches your eye, but nothing requires you to follow it.",
           "activityMet": 1.3
         }
       ]
@@ -44,8 +44,8 @@
       "name": "Lecture Hall",
       "region": "NORTH CAMPUS",
       "description": {
-        "firstVisit": "Rows of tiered seats face a wide projection screen. Students settle in, open laptops and compare notes before the lecturer arrives. A few seats near the aisle are still free.",
-        "returnVisit": "The lecture hall fills and empties between classes. The projector hums softly while students get their notes ready."
+        "firstVisit": "Rows of tiered seats face a wide projection screen. Students compare notes while the lecturer arranges the morning's Research Methods slides. A few seats near the aisle are still free, and the room gradually fills as the 09:00 lecture approaches.",
+        "returnVisit": "The lecture hall empties between classes. The projector hums softly while students pack their laptops and compare notes before heading to the next building."
       },
       "exits": [
         "university_campus"
@@ -61,7 +61,7 @@
               "amount": 1
             }
           ],
-          "feedback": "You follow the lecture, take a few notes and leave with a clearer understanding of the topic.",
+          "feedback": "The lecturer introduces basic research methods: trace a claim to its source, distinguish firsthand observations from hearsay and compare accounts for contradictions. You take notes and leave with a clearer plan for your coursework.",
           "activityMet": 2
         }
       ]
@@ -71,8 +71,8 @@
       "name": "Campus Library",
       "region": "NORTH CAMPUS",
       "description": {
-        "firstVisit": "The library is quiet without feeling empty. Long shared desks sit beneath rows of warm lights, charging outlets are built into the tables, and the upper floor is lined with study rooms that students reserve online. A printer rattles near the front desk.",
-        "returnVisit": "The library remains a steady refuge from the noise outside. Students work at the shared desks while the printer occasionally interrupts the silence."
+        "firstVisit": "The library is quiet without feeling empty. Long shared desks sit beneath warm lights, reference shelves line the back wall and a printer rattles near the front desk. Sera has settled at a window-side desk with her coursework spread out. It is a good place to prepare before the morning lecture.",
+        "returnVisit": "The library remains a refuge from the noise outside. Students work at the shared desks, Sera often studies near the windows and the printer occasionally interrupts the silence."
       },
       "exits": [
         "university_campus",
@@ -84,7 +84,7 @@
           "label": "Find a place to study",
           "durationMinutes": 30,
           "effects": [],
-          "feedback": "You find a quiet desk, open your notes and spend some time catching up on coursework.",
+          "feedback": "You find a quiet desk, review the course outline and mark a few questions to follow up during the morning lecture.",
           "activityMet": 1.2
         }
       ]
@@ -94,8 +94,8 @@
       "name": "Campus Café",
       "region": "NORTH CAMPUS",
       "description": {
-        "firstVisit": "The campus café smells of espresso and toasted bread. A queue forms near the counter while students occupy nearly every table, some chatting between classes and others staring at laptops over cooling drinks.",
-        "returnVisit": "The café is busy as usual. The queue shifts slowly and familiar groups have claimed their preferred tables."
+        "firstVisit": "The campus café smells of espresso and toasted bread. A short queue forms near the counter while students claim tables between classes. By late morning, familiar groups gather near the windows to compare notes and make plans for the rest of the day.",
+        "returnVisit": "The café grows busier toward lunchtime. The queue shifts slowly, and familiar groups occupy their usual tables while students trade updates between classes."
       },
       "exits": [
         "university_campus",
@@ -130,7 +130,7 @@
               "amount": 1
             }
           ],
-          "feedback": "You exchange a few stories about classes, deadlines and what everyone plans to do after campus.",
+          "feedback": "You exchange a few stories with other students about the morning lecture, upcoming deadlines and which campus activities are worth checking out.",
           "activityMet": 1.2
         }
       ],
@@ -365,8 +365,8 @@
       "name": "Sports Field",
       "region": "NORTH CAMPUS",
       "description": {
-        "firstVisit": "The sports field sits behind the gym. Students run laps, practice drills and gather near the equipment shed. The noise of the campus feels far away here.",
-        "returnVisit": "The field is busy with practice sessions and casual games. Someone is always using the track."
+        "firstVisit": "The sports field sits behind the gym. A few students run laps while others practice passing drills near the equipment shed. Noah is finishing his morning training before heading to class. The noise of the central campus feels far away here.",
+        "returnVisit": "Students use the field for short practice sessions throughout the day. The equipment shed is open, and the track remains busy between classes."
       },
       "exits": [
         "university_campus",
@@ -378,7 +378,7 @@
           "label": "Practice for a while",
           "durationMinutes": 45,
           "effects": [],
-          "feedback": "You repeat a few basic drills until your movements feel less clumsy.",
+          "feedback": "You repeat a few basic drills, take a short water break and finish feeling more familiar with the movements.",
           "activityMet": 3
         }
       ]

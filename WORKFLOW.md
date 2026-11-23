@@ -75,13 +75,15 @@ The Git workflow, commit granularity and PR requirements are defined only in [CO
 
 ## 4. Current handoff
 
-**Current structural proposal:** branch `refactor/feature-first-project-structure` reorganizes the source tree around shared Core capabilities and gameplay responsibilities. The proposal moves existing code, tests, content files and Godot C# UID sidecars; it does not intentionally change gameplay rules or add player-facing behavior. Review the resulting tree and verify Godot scene/resource references before merging.
+**Latest baseline:** `main` at `0cf6e9aa`. The feature-first source migration was merged through PR #164. The current source and data paths are under `Scripts/Core/`, `Scripts/Features/`, `Scripts/Content/` and `Data/Locations/` / `Data/NPC/`.
 
-The calendar work is already implemented on `main` through PR #161. Campaign Day 1 is Monday, 1 September 2025; date and weekday derive from the shared GameClock. Sleep remains a 480-minute Action. The calendar does not introduce daily resets, availability gates, daily throttles or NPC weekday scheduling.
+**Active content task:** [Issue #165 — Author the first campus morning journey](https://github.com/TN13007/rpg/issues/165), proposed in [Draft PR #166](https://github.com/TN13007/rpg/pull/166) on branch `feat/issue-165-campus-opening-morning`.
 
-**After the structural migration is merged:** resume Loop 2 by selecting one concrete student-life player journey from [Daily Life design](Docs/Design/DailyLife.md) and implementing it end-to-end. Do not pre-build a generic schedule framework, persistence system or unrelated world simulation before the selected activity requires it. Product progress must be demonstrated through a playable result, not only foundation refactors.
+The current runtime starts Alex at `university_campus` on Monday, 1 September 2025 at 07:30. The PR aligns `DailyLifeContent.md` with that actual start, writes a time-specific morning route through the existing campus locations, and refines existing Location descriptions, action feedback and NPC schedule/interaction text. Existing JSON schemas and authored IDs are preserved.
 
-Each new capability still gets a focused Issue, acceptance criteria and PR.
+The 09:00 Research Methods lecture is a content target, not an enforced time window. The current runtime does not yet gate classes or other commitments by weekday/start window. NPC presence is currently determined by the existing clock-time schedules, which repeat every day. No generic schedule framework, wait action, relationship progression or mandatory incident/combat is part of this task.
+
+**Next handoff:** inspect CI for PR #166. If automated validation passes, open the project in Godot 4.7.2 .NET and manually verify the opening campus descriptions, the 07:30 NPC presence, travel/action time progression and the late-morning café interactions. Record actual runtime observations before considering the PR review-ready. Do not merge automatically.
 
 ## 5. Learning evidence
 
