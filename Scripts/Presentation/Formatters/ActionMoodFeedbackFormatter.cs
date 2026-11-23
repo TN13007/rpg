@@ -17,7 +17,7 @@ public static class ActionMoodFeedbackFormatter
         bool hasMoodEffect = false;
         foreach (ActionEffectDefinition effect in action.Effects)
         {
-            if (effect.Type == ActionEffectType.ChangeMood)
+            if (effect.Type == ActionEffectType.RestoreMood || effect.Type == ActionEffectType.ReduceMood)
             {
                 hasMoodEffect = true;
                 break;

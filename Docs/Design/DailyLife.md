@@ -161,7 +161,7 @@ The design target must not be confused with the current playable prototype:
 | Study | `browse_library` takes 30 minutes and currently has no progression outcome | A flexible activity with a defined learning/practice outcome once Progression rules are approved |
 | Work | `work_shift` takes 180 minutes and currently adds 30 Gold at the Corner Café | A scheduled commitment with a start window and explicit income outcome |
 | Meal | `eat_meal` takes 20 minutes, restores 3 Stamina and adds 2 Mood; it currently has no Gold cost | A small paid/low-cost choice once spending is implemented and prices are authored |
-| Currency | Character can receive Gold; no spending operation exists | Explicit validated spending and earning with no debt or partial mutation |
+| Currency | Character can receive Gold; no spending operation exists on the current main baseline | Signed Gold balance with explicit increases/reductions; a reduction may create debt, without a separate loan system |
 
 The current work action is not yet schedule-gated, the current class action does not record attendance, and the current study action does not grant Knowledge or Skill growth. These are design gaps, not implemented features. The sample starting Location and weekday calendar are also target decisions, not current runtime behavior.
 
@@ -200,15 +200,15 @@ The schedule data describes when an opportunity is available; GameClock remains 
 
 ### 7.2 Currency and resource transactions
 
-**Existing owner:** `Character` owns the current Gold balance and exposes bounded resource mutation. `ActionEffectExecutor` currently supports `AddGold`, but there is no spending operation.
+**Existing owner:** `Character` owns the current Gold balance. The Action effect contract supports explicit `AddGold` and `ReduceGold` adjustments.
 
-**Proposed extension:**
-- Gold is a non-negative shared currency balance.
+**Proposed rule:**
+- Gold is a signed shared balance. A positive value is money available; a negative value represents debt.
 - A successful work shift or explicit reward may add Gold.
-- A purchase or paid service declares an explicit Gold cost.
-- Spending is rejected when the balance is insufficient; debt, overdraft, loans, interest and a city-wide economy are out of scope.
+- A paid activity declares an explicit Gold reduction. The reduction may cross zero and create debt; insufficient balance alone does not reject the activity.
+- Debt is a balance state, not a separate loan system. Do not add automatic borrowing, interest, repayment schedules or a city-wide economy.
 - The Character remains the authoritative owner of the balance. Do not add a separate ResourceManager or wallet object for the current scope.
-- A cost is validated before any state mutation. A successful activity spends its cost exactly once; a rejected activity changes nothing.
+- A cost is applied exactly once. Any action rejected for another validation reason must leave Gold, time and other resources unchanged.
 - Prices and rewards are authored content values. Do not invent a global pricing formula or balance every shop in this design pass.
 
 The first playable economy only needs a small number of meaningful examples, such as earning money from a work shift and choosing whether to pay for a meal or necessity. Shopping/inventory ownership remains a separate design dependency; spending Gold alone does not imply that a full inventory system exists.
@@ -221,7 +221,7 @@ The first playable economy only needs a small number of meaningful examples, suc
 | Fatigue | Accumulated exertion and a planning signal for rest | Calculated from activity intensity and actual duration; no automatic action lock or threshold penalty is currently approved |
 | Stamina | Primarily a Combat resource | Do not turn it into a second daily work-energy bar |
 | Mood | Readable emotional condition affected by authored activities | Current value/bands may be displayed; no hidden success modifier is implied |
-| Gold | Money available for authored income and expenses | Current runtime supports gains; spending is a required shared extension, not yet implemented |
+| Gold | Signed balance for authored income and expenses; negative values represent debt | Action effects apply explicit increases/reductions; affordability and purchase rules remain owned by the relevant activity domain |
 | Attributes | Broad character characteristics | Preserve authored base values; do not invent new formulas or universal checks |
 
 The existing Agility-based Travel duration modifier remains unchanged. Other attribute uses should be designed through concrete scenarios and coordinated with [Issue #114](https://github.com/TN13007/rpg/issues/114), not added as arbitrary bonuses to every activity.
@@ -306,7 +306,7 @@ Loop 2's first complete playable slice should demonstrate:
 - At least one flexible activity remains available before and after that commitment.
 - The player can deliberately miss a commitment without the game applying an undocumented penalty.
 - The player can choose between a paid work shift and at least one meaningful alternative.
-- Gold can be earned and spent in a small, understandable transaction; insufficient funds reject the purchase without partial mutation.
+- Gold can be earned and reduced by a small, understandable paid activity; the balance may become negative and visibly represent debt.
 - Travel and activities advance the same GameClock and calculate Fatigue once from actual duration.
 - NPC presence and interactions refresh as time advances.
 - Sleep advances exactly 480 minutes, handles midnight rollover and applies its authored recovery once.
@@ -319,7 +319,7 @@ Loop 2's first complete playable slice should demonstrate:
 - A full real-world calendar with months, years, holidays or time zones.
 - A comprehensive timetable/course/grade/tuition simulator.
 - A full job-search, promotion, payroll or career-management simulator.
-- A city-wide market, debt, loans, investments, rent simulation or dynamic prices.
+- A city-wide market, loan products, automatic interest/repayment, investments, rent simulation or dynamic prices.
 - A universal activity dispatcher or universal interaction executor.
 - Continuous autonomous NPC needs, movement or decision-making.
 - A generic Quest, Event, Schedule, Resource or World Simulation framework.

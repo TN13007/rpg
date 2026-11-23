@@ -142,7 +142,7 @@ Collection-valued definitions are copied at construction and exposed through rea
 
 ### Runtime character state
 
-Each `Character` instance owns its current Health, Fatigue, Stamina, Mood and Gold. It reads identity, role, Level, Stats, limits and starting values from its immutable `CharacterData`; it does not own or mutate that definition. The Character methods (`TakeDamage`, `RestoreHealth`, `Revive`, `AddFatigue`, `RestoreFatigue`, `SpendStamina`, `RestoreStamina`, `ChangeMood`, `AddGold` and `ResetToStartingValues`) are the supported mutation surface and enforce each resource's bounds.
+Each `Character` instance owns its current Health, Fatigue, Stamina, Mood and Gold. It reads identity, role, Level, Stats, limits and starting values from its immutable `CharacterData`; it does not own or mutate that definition. The Character methods (`TakeDamage`, `RestoreHealth`, `Revive`, `AddFatigue`, `RestoreFatigue`, `SpendStamina`, `RestoreStamina`, `ChangeMood`, `AddGold`, `ReduceGold` and `ResetToStartingValues`) are the supported mutation surface and enforce each resource's bounds.
 
 The Character is the authoritative owner of these resource values. Gameplay services are authorized to call its mutation methods only as part of their use case:
 The current codebase compiles its layers into one assembly, so C# accessibility cannot enforce which layer calls a public Character mutator. This permission boundary is therefore an explicit architecture contract: keep mutation calls inside the owning Application/Domain use cases, cover the behavior with tests, and do not call mutators from Presentation.
@@ -157,7 +157,7 @@ The current codebase compiles its layers into one assembly, so C# accessibility 
 
 Health, Fatigue, Stamina, Mood and Gold are Character-owned runtime resources. Their current and maximum values are displayed through `CharacterViewModel`; Presentation receives a read-only snapshot and does not mutate gameplay state. There is no separate Resource Manager: the Character already owns the invariants and the current prototype has no demonstrated need for another owner.
 
-Gold currently supports authored gains and combat victory rewards only. A purchase/spending rule is not defined yet, so this change does not invent a Gold cost API or shop behavior. Level and base Stats are currently authored values; progression remains a separate design decision documented in [Progression](../Design/Progression.md).
+Gold is a signed Character balance: positive values represent available money and negative values represent debt. Action effects use explicit `AddGold` and `ReduceGold` operations; reducing Gold may cross zero. This does not introduce a shop, loan or repayment schedule. Level and base Stats are currently authored values; progression remains a separate design decision documented in [Progression](../Design/Progression.md).
 
 ## 6. Code discovery
 
@@ -181,3 +181,10 @@ If docs and code disagree, verify against current source and tests, then record 
 - Preserve existing global C# types and serialized IDs during structural moves.
 - Keep `MainController` as composition root; do not move feature rules into it.
 - Do not introduce universal executors for unrelated gameplay domains.
+
+
+## 8. Action state preparation and commit
+
+`ActionEffectDefinition` uses explicit directional effects rather than signed amounts: every authored `Amount` must be greater than zero, while the calculated result may be unchanged (zero delta) after resource bounds are applied. `IncreaseFatigue` raises the Fatigue value; `DecreaseFatigue` lowers it. Health, Fatigue, Stamina and Mood remain within their Character limits. Gold is a signed balance: a negative value represents debt, and `ReduceGold` may move the balance below zero.
+
+Action execution calculates its complete result before writing either authoritative owner. `CharacterRuntimeState` and `GameClockState` are immutable snapshots; `ActionEffectExecutor.Apply` and the state calculation methods return new values. `ActionStateChange` groups the proposed Character and clock values. `ActionStateChangeApplier` validates both owners before committing through `Character.ApplyRuntimeState` and `GameClock.ApplyState`. The service rejects stale plans by comparing the live owners with the snapshots captured during preparation. This is a synchronous single-threaded commit boundary, not a general transaction or concurrency lock. See [Function Responsibilities](FunctionResponsibilities.md) for the 18-group mapping and explicit exceptions.

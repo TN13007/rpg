@@ -6,19 +6,23 @@ public sealed class ActionExecutionService
     private readonly ActivityTimeCalculator _timeCalculator;
     private readonly ActivityFatigueCalculator _fatigueCalculator;
     private readonly ActionEffectExecutor _effectExecutor;
+    private readonly ActionStateChangeApplier _stateChangeApplier;
 
     /// <summary>Creates the Action execution service with its focused calculators and effect handler.</summary>
     /// <param name="timeCalculator">Calculates the actual duration of an authored Action.</param>
     /// <param name="effectExecutor">Prepares and applies authored Action effects.</param>
     /// <param name="fatigueCalculator">Calculates Fatigue gained from an activity; a default is created when omitted.</param>
+    /// <param name="stateChangeApplier">Commits prepared state through its authoritative owners; a default is created when omitted.</param>
     public ActionExecutionService(
         ActivityTimeCalculator timeCalculator,
         ActionEffectExecutor effectExecutor,
-        ActivityFatigueCalculator fatigueCalculator = null)
+        ActivityFatigueCalculator fatigueCalculator = null,
+        ActionStateChangeApplier stateChangeApplier = null)
     {
         _timeCalculator = timeCalculator ?? throw new ArgumentNullException(nameof(timeCalculator));
         _effectExecutor = effectExecutor ?? throw new ArgumentNullException(nameof(effectExecutor));
         _fatigueCalculator = fatigueCalculator ?? new ActivityFatigueCalculator();
+        _stateChangeApplier = stateChangeApplier ?? new ActionStateChangeApplier();
     }
 
     /// <summary>Checks whether the actor is allowed to execute the Action in the actor's current state.</summary>
@@ -110,13 +114,22 @@ public sealed class ActionExecutionService
             return false;
         }
 
+        CharacterRuntimeState preparedCharacterState = CharacterRuntimeState.Capture(actor);
+        GameClockState preparedClockState = gameClock.CaptureState();
+        CharacterRuntimeState changedCharacterState = preparedCharacterState.AddFatigue(fatigueChange);
+        changedCharacterState = _effectExecutor.Apply(effectPlan, changedCharacterState);
+        GameClockState changedClockState = preparedClockState.AdvanceMinutes(actualDuration);
+        ActionStateChange stateChange = new ActionStateChange(changedCharacterState, changedClockState);
+
         plan = new ActionExecutionPlan(
             action,
             actor,
             gameClock,
             actualDuration,
             fatigueChange,
-            effectPlan);
+            preparedCharacterState,
+            preparedClockState,
+            stateChange);
         failureReason = string.Empty;
         return true;
     }
@@ -155,11 +168,13 @@ public sealed class ActionExecutionService
             return false;
         }
 
-        // All checks and effect validation are complete. These synchronous domain mutations
-        // use already-validated values and have no expected failure path.
-        plan._clock.AdvanceMinutes(plan.ActualDurationMinutes);
-        plan._actor.AddFatigue(plan.FatigueChange);
-        _effectExecutor.Apply(plan._effectPlan, plan._actor);
+        if (!_stateChangeApplier.CanApply(plan._stateChange, plan._actor, plan._clock))
+        {
+            failureReason = "The prepared Action state is no longer valid for its owners.";
+            return false;
+        }
+
+        _stateChangeApplier.Apply(plan._stateChange, plan._actor, plan._clock);
         plan.MarkApplied();
 
         failureReason = string.Empty;

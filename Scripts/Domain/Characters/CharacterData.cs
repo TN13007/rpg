@@ -82,7 +82,6 @@ public sealed class CharacterData
             throw new ArgumentOutOfRangeException(nameof(startingFatigue));
         if (startingStamina < 0 || startingStamina > maxStamina) throw new ArgumentOutOfRangeException(nameof(startingStamina));
         if (startingMood < 0 || startingMood > maxMood) throw new ArgumentOutOfRangeException(nameof(startingMood));
-        if (startingGold < 0) throw new ArgumentOutOfRangeException(nameof(startingGold));
 
         Id = id;
         Name = name;

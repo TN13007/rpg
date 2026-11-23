@@ -6,14 +6,24 @@ public enum ActionEffectType
 {
     /// <summary>Restores the target character's Health.</summary>
     RestoreHealth,
-    /// <summary>Reduces the target character's Fatigue.</summary>
-    RestoreFatigue,
+    /// <summary>Reduces the target character's Health.</summary>
+    ReduceHealth,
+    /// <summary>Increases the target character's Fatigue.</summary>
+    IncreaseFatigue,
+    /// <summary>Decreases the target character's Fatigue.</summary>
+    DecreaseFatigue,
     /// <summary>Restores the target character's Stamina.</summary>
     RestoreStamina,
-    /// <summary>Changes the target character's Mood.</summary>
-    ChangeMood,
+    /// <summary>Reduces the target character's Stamina.</summary>
+    ReduceStamina,
+    /// <summary>Restores the target character's Mood.</summary>
+    RestoreMood,
+    /// <summary>Reduces the target character's Mood.</summary>
+    ReduceMood,
     /// <summary>Adds Gold to the target character.</summary>
     AddGold,
+    /// <summary>Reduces Gold from the target character.</summary>
+    ReduceGold,
     /// <summary>Revives a defeated character with the configured Health amount.</summary>
     Revive
 }
@@ -36,9 +46,9 @@ public sealed class ActionEffectDefinition
             throw new ArgumentOutOfRangeException(nameof(type));
         }
 
-        if (type != ActionEffectType.ChangeMood && amount < 0)
+        if (amount <= 0)
         {
-            throw new ArgumentOutOfRangeException(nameof(amount), "This effect amount cannot be negative.");
+            throw new ArgumentOutOfRangeException(nameof(amount), "Effect amount must be greater than zero.");
         }
 
         Type = type;

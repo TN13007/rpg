@@ -114,7 +114,7 @@ public sealed class ActionExecutionTests
         ActionDefinition action = FindNpcInteraction("mira", "talk");
 
         ActionEffectDefinition moodEffect = Assert.Single(action.Effects);
-        Assert.Equal(ActionEffectType.ChangeMood, moodEffect.Type);
+        Assert.Equal(ActionEffectType.RestoreMood, moodEffect.Type);
         Assert.Equal(2, moodEffect.Amount);
 
         bool success = _service.TryExecute(
@@ -194,12 +194,17 @@ public sealed class ActionExecutionTests
     }
 
     [Fact]
-    public void NegativeFatigueAndStaminaRestoreEffectsAreRejected()
+    public void NonPositiveEffectAmountsAreRejected()
     {
         Assert.Throws<ArgumentOutOfRangeException>(() =>
-            new ActionEffectDefinition(ActionEffectType.RestoreFatigue, -1));
+            new ActionEffectDefinition(ActionEffectType.IncreaseFatigue, -1));
         Assert.Throws<ArgumentOutOfRangeException>(() =>
             new ActionEffectDefinition(ActionEffectType.RestoreStamina, -1));
+        foreach (ActionEffectType type in Enum.GetValues(typeof(ActionEffectType)))
+        {
+            Assert.Throws<ArgumentOutOfRangeException>(() => new ActionEffectDefinition(type, 0));
+            Assert.Throws<ArgumentOutOfRangeException>(() => new ActionEffectDefinition(type, -1));
+        }
     }
 
     [Fact]
@@ -212,9 +217,9 @@ public sealed class ActionExecutionTests
             effects: new[]
             {
                 new ActionEffectDefinition(ActionEffectType.RestoreHealth, 10),
-                new ActionEffectDefinition(ActionEffectType.RestoreFatigue, 10),
+                new ActionEffectDefinition(ActionEffectType.DecreaseFatigue, 10),
                 new ActionEffectDefinition(ActionEffectType.RestoreStamina, 10),
-                new ActionEffectDefinition(ActionEffectType.ChangeMood, 10),
+                new ActionEffectDefinition(ActionEffectType.RestoreMood, 10),
                 new ActionEffectDefinition(ActionEffectType.AddGold, 25)
             });
 
@@ -347,8 +352,8 @@ public sealed class ActionExecutionTests
         ActionDefinition action = FindAction("inspect_requests");
 
         ActionEffectDefinition moodEffect = Assert.Single(action.Effects);
-        Assert.Equal(ActionEffectType.ChangeMood, moodEffect.Type);
-        Assert.Equal(-2, moodEffect.Amount);
+        Assert.Equal(ActionEffectType.ReduceMood, moodEffect.Type);
+        Assert.Equal(2, moodEffect.Amount);
 
         bool success = _service.TryExecute(
             action, actor, clock, out string reason, out int duration);
@@ -460,7 +465,7 @@ public sealed class ActionExecutionTests
             effects: new[]
             {
                 new ActionEffectDefinition(ActionEffectType.RestoreStamina, 2),
-                new ActionEffectDefinition(ActionEffectType.ChangeMood, 3)
+                new ActionEffectDefinition(ActionEffectType.RestoreMood, 3)
             });
 
         bool prepared = _service.TryPrepare(
@@ -490,7 +495,7 @@ public sealed class ActionExecutionTests
             effects: new[]
             {
                 new ActionEffectDefinition(ActionEffectType.RestoreStamina, 2),
-                new ActionEffectDefinition(ActionEffectType.ChangeMood, 3)
+                new ActionEffectDefinition(ActionEffectType.RestoreMood, 3)
             });
 
         Assert.True(_service.TryPrepare(action, actor, clock, out ActionExecutionPlan plan, out string reason), reason);

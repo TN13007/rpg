@@ -1,20 +1,15 @@
 using System;
 
-/// <summary>Contains a validated Action execution prepared for a single synchronous commit.</summary>
+/// <summary>Contains a validated Action execution and its immutable proposed state change.</summary>
 public sealed class ActionExecutionPlan
 {
     internal Character _actor { get; }
     internal GameClock _clock { get; }
     internal ActionDefinition _action { get; }
-    internal ActionEffectPlan _effectPlan { get; }
-    internal int _preparedDay { get; }
-    internal int _preparedMinutesOfDay { get; }
-    internal int _preparedHealth { get; }
-    internal double _preparedFatigue { get; }
-    internal int _preparedStamina { get; }
-    internal int _preparedMood { get; }
-    internal int _preparedGold { get; }
+    internal CharacterRuntimeState _preparedCharacterState { get; }
+    internal GameClockState _preparedClockState { get; }
     internal bool _isApplied { get; private set; }
+    internal ActionStateChange _stateChange { get; }
 
     /// <summary>Gets the duration that will be applied when this plan is committed.</summary>
     public int ActualDurationMinutes { get; }
@@ -28,34 +23,25 @@ public sealed class ActionExecutionPlan
         GameClock clock,
         int actualDurationMinutes,
         double fatigueChange,
-        ActionEffectPlan effectPlan)
+        CharacterRuntimeState preparedCharacterState,
+        GameClockState preparedClockState,
+        ActionStateChange stateChange)
     {
         _action = action ?? throw new ArgumentNullException(nameof(action));
         _actor = actor ?? throw new ArgumentNullException(nameof(actor));
         _clock = clock ?? throw new ArgumentNullException(nameof(clock));
-        _effectPlan = effectPlan ?? throw new ArgumentNullException(nameof(effectPlan));
+        _preparedCharacterState = preparedCharacterState ?? throw new ArgumentNullException(nameof(preparedCharacterState));
+        _preparedClockState = preparedClockState ?? throw new ArgumentNullException(nameof(preparedClockState));
+        _stateChange = stateChange ?? throw new ArgumentNullException(nameof(stateChange));
         ActualDurationMinutes = actualDurationMinutes;
         FatigueChange = fatigueChange;
-
-        _preparedDay = clock.Day;
-        _preparedMinutesOfDay = clock.MinutesOfDay;
-        _preparedHealth = actor.Health;
-        _preparedFatigue = actor.Fatigue;
-        _preparedStamina = actor.Stamina;
-        _preparedMood = actor.Mood;
-        _preparedGold = actor.Gold;
     }
 
-    /// <summary>Reports whether the runtime objects still match the state used to prepare this plan.</summary>
+    /// <summary>Reports whether the runtime owners still match the state used to prepare this plan.</summary>
     internal bool MatchesPreparedState()
     {
-        return _clock.Day == _preparedDay
-            && _clock.MinutesOfDay == _preparedMinutesOfDay
-            && _actor.Health == _preparedHealth
-            && _actor.Fatigue.Equals(_preparedFatigue)
-            && _actor.Stamina == _preparedStamina
-            && _actor.Mood == _preparedMood
-            && _actor.Gold == _preparedGold;
+        return _clock.CaptureState().Equals(_preparedClockState)
+            && _actor.CaptureRuntimeState().Equals(_preparedCharacterState);
     }
 
     /// <summary>Marks this plan as committed so it cannot be applied more than once.</summary>

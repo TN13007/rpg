@@ -50,6 +50,28 @@ public sealed class GameClock
         return elapsedDays <= int.MaxValue - (long)Day;
     }
 
+    /// <summary>Captures the current clock position as an immutable value.</summary>
+    internal GameClockState CaptureState()
+    {
+        return new GameClockState(Day, MinutesOfDay);
+    }
+
+    /// <summary>Checks whether a prepared clock state is valid for this owner.</summary>
+    internal bool CanApplyState(GameClockState state)
+    {
+        return state != null && state.Day >= 1 && state.MinutesOfDay >= 0
+            && state.MinutesOfDay < _minutesPerDay;
+    }
+
+    /// <summary>Commits a prepared clock position through the GameClock state owner.</summary>
+    internal void ApplyState(GameClockState state)
+    {
+        if (!CanApplyState(state))
+            throw new InvalidOperationException("The prepared clock state is invalid.");
+        Day = state.Day;
+        MinutesOfDay = state.MinutesOfDay;
+    }
+
     /// <summary>Advances minutes by the supplied amount.</summary>
     /// <param name="amount">The non-negative number of minutes to advance.</param>
     public void AdvanceMinutes(int amount)
