@@ -5,18 +5,19 @@ using Xunit;
 public sealed class PlayerActionDataTests
 {
     [Fact]
-    public void PlayerData_LoadsRestGloballyAndSleepOnlyInStudentApartment()
+    public void PlayerData_LoadsRestGloballyAndSleepOnlyInDormitoryRoom()
     {
         CharacterData player = LoadPlayerData();
 
-        Assert.Equal(3, player.PlayerActions.Count);
+        Assert.Equal(4, player.PlayerActions.Count);
         PlayerActionDefinition rest = Find(player, "rest");
         PlayerActionDefinition sleep = Find(player, "sleep");
         PlayerActionDefinition rescue = Find(player, "request_rescue");
 
         Assert.True(rest.IsAvailableAt("student_apartment"));
         Assert.True(rest.IsAvailableAt("university_campus"));
-        Assert.True(sleep.IsAvailableAt("student_apartment"));
+        Assert.True(sleep.IsAvailableAt("dormitory_room"));
+        Assert.False(sleep.IsAvailableAt("student_apartment"));
         Assert.False(sleep.IsAvailableAt("university_campus"));
         Assert.Equal(480, sleep.Action.DurationMinutes);
         Assert.Equal("Sleep for 8 hours", sleep.Action.Label);

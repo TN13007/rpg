@@ -79,6 +79,10 @@ public sealed class ActionDefinition
     public int? EstimatedDurationMaxMinutes { get; }
     /// <summary>Gets the required npc id.</summary>
     public string RequiredNpcId { get; }
+    /// <summary>Gets the first minute of the day when the action is available, inclusive.</summary>
+    public int? AvailableStartMinute { get; }
+    /// <summary>Gets the minute of the day when the action stops being available, exclusive.</summary>
+    public int? AvailableEndMinute { get; }
 
     /// <summary>Initializes a new instance of <see cref="ActionDefinition"/>.</summary>
     /// <param name="id">The id used to initialize the instance.</param>
@@ -91,6 +95,8 @@ public sealed class ActionDefinition
     /// <param name="estimatedDurationMinMinutes">The estimated duration min minutes used to initialize the instance.</param>
     /// <param name="estimatedDurationMaxMinutes">The estimated duration max minutes used to initialize the instance.</param>
     /// <param name="requiredNpcId">The required npc id used to initialize the instance.</param>
+    /// <param name="availableStartMinute">The inclusive start minute of an optional daily availability window.</param>
+    /// <param name="availableEndMinute">The exclusive end minute of an optional daily availability window.</param>
     public ActionDefinition(
         string id,
         string label,
@@ -101,7 +107,9 @@ public sealed class ActionDefinition
         IEnumerable<ActionEffectDefinition> effects = null,
         int? estimatedDurationMinMinutes = null,
         int? estimatedDurationMaxMinutes = null,
-        string requiredNpcId = null)
+        string requiredNpcId = null,
+        int? availableStartMinute = null,
+        int? availableEndMinute = null)
     {
         if (string.IsNullOrWhiteSpace(id)) throw new ArgumentException("Action ID is required.", nameof(id));
         if (string.IsNullOrWhiteSpace(label)) throw new ArgumentException("Action label is required.", nameof(label));
@@ -121,6 +129,19 @@ public sealed class ActionDefinition
             throw new ArgumentOutOfRangeException(nameof(estimatedDurationMinMinutes));
         }
 
+        if (availableStartMinute.HasValue != availableEndMinute.HasValue)
+        {
+            throw new ArgumentException("Both action availability window bounds must be provided together.");
+        }
+        if (availableStartMinute.HasValue &&
+            (availableStartMinute.Value < 0 ||
+             availableStartMinute.Value >= 1440 ||
+             availableEndMinute.Value <= availableStartMinute.Value ||
+             availableEndMinute.Value > 1440))
+        {
+            throw new ArgumentOutOfRangeException(nameof(availableStartMinute));
+        }
+
         Id = id;
         Label = label;
         DurationMinutes = durationMinutes;
@@ -131,5 +152,26 @@ public sealed class ActionDefinition
         EstimatedDurationMinMinutes = estimatedDurationMinMinutes;
         EstimatedDurationMaxMinutes = estimatedDurationMaxMinutes;
         RequiredNpcId = string.IsNullOrWhiteSpace(requiredNpcId) ? null : requiredNpcId;
+        AvailableStartMinute = availableStartMinute;
+        AvailableEndMinute = availableEndMinute;
+    }
+
+    /// <summary>Determines whether the action is available at the supplied minute of the day.</summary>
+    /// <param name="minuteOfDay">The current minute after midnight, or null when the current time is unknown.</param>
+    /// <returns>True when no window is authored or the supplied time is inside the authored window.</returns>
+    public bool IsAvailableAt(int? minuteOfDay)
+    {
+        if (!AvailableStartMinute.HasValue)
+        {
+            return true;
+        }
+
+        if (!minuteOfDay.HasValue)
+        {
+            return false;
+        }
+
+        return minuteOfDay.Value >= AvailableStartMinute.Value
+            && minuteOfDay.Value < AvailableEndMinute.Value;
     }
 }

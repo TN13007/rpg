@@ -26,7 +26,8 @@
         "campus_cafe",
         "student_union",
         "sports_field",
-        "east_district"
+        "east_district",
+        "dormitory_lobby"
       ],
       "actions": [
         {
@@ -62,7 +63,9 @@
             }
           ],
           "feedback": "The lecturer introduces basic research methods: trace a claim to its source, distinguish firsthand observations from hearsay and compare accounts for contradictions. You take notes and leave with a clearer plan for your coursework.",
-          "activityMet": 2
+          "activityMet": 2,
+          "availableStartMinute": 540,
+          "availableEndMinute": 555
         }
       ]
     },
@@ -435,6 +438,153 @@
           ],
           "feedback": "You sit by the river for a while. The noise of the city fades into the background.",
           "activityMet": 0.5
+        }
+      ]
+    },
+    {
+      "id": "dormitory_room",
+      "name": "Dormitory Room",
+      "region": "STUDENT RESIDENCE",
+      "description": {
+        "firstVisit": "Morning light slips through the curtains of your private dormitory room. Your bed is still unmade, your laptop rests on the desk beside a few notebooks, and a wardrobe stands against the wall. The bathroom is through the inner door; the dormitory lobby is just outside your room. It is 07:30. You have time before the morning lecture.",
+        "returnVisit": "Your private dormitory room is quiet. The bed, laptop and wardrobe are where you left them, and the bathroom and shared lobby are only a few steps away."
+      },
+      "exits": [
+        "dormitory_lobby",
+        "dormitory_bathroom"
+      ],
+      "actions": [],
+      "interactables": [
+        {
+          "id": "bed",
+          "name": "Bed",
+          "description": "Your bed is warm and comfortable. You can sleep here or leave it for later.",
+          "playerActionIds": [
+            "sleep"
+          ],
+          "actions": []
+        },
+        {
+          "id": "laptop",
+          "name": "Laptop",
+          "description": "Your laptop is open on the desk. Its applications are represented as selectable placeholders in this prototype.",
+          "actions": [
+            {
+              "id": "open_course_portal",
+              "label": "Open Course Portal",
+              "durationMinutes": 0,
+              "activityMet": 0,
+              "effects": [],
+              "feedback": "The Course Portal is a placeholder. Its timetable, assignments and course materials are not implemented yet."
+            },
+            {
+              "id": "check_email",
+              "label": "Check Email",
+              "durationMinutes": 0,
+              "activityMet": 0,
+              "effects": [],
+              "feedback": "Your inbox opens as a placeholder. Email messages and replies are not implemented yet."
+            },
+            {
+              "id": "browse_web",
+              "label": "Browse the Web",
+              "durationMinutes": 0,
+              "activityMet": 0,
+              "effects": [],
+              "feedback": "The browser opens as a placeholder. Web browsing is not implemented yet."
+            }
+          ]
+        },
+        {
+          "id": "wardrobe",
+          "name": "Wardrobe",
+          "description": "A small wardrobe holds your everyday clothes.",
+          "actions": [
+            {
+              "id": "check_wardrobe",
+              "label": "Look through your clothes",
+              "durationMinutes": 0,
+              "activityMet": 0,
+              "effects": [],
+              "feedback": "Your clothes are neatly stored. Outfit selection is not implemented yet."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dormitory_bathroom",
+      "name": "Dormitory Bathroom",
+      "region": "STUDENT RESIDENCE",
+      "description": {
+        "firstVisit": "The shared bathroom is compact and clean. A sink and mirror sit beside the shower, with a small shelf for toiletries. The door leads back to your private room.",
+        "returnVisit": "The bathroom is quiet and familiar. Your room is just through the door."
+      },
+      "exits": [
+        "dormitory_room"
+      ],
+      "actions": [],
+      "interactables": [
+        {
+          "id": "mirror",
+          "name": "Mirror",
+          "description": "A mirror hangs above the sink.",
+          "actions": [
+            {
+              "id": "check_appearance",
+              "label": "Check your appearance",
+              "durationMinutes": 0,
+              "activityMet": 0,
+              "effects": [],
+              "feedback": "You take a quick look in the mirror. Detailed appearance customization is not implemented yet."
+            }
+          ]
+        },
+        {
+          "id": "shower",
+          "name": "Shower",
+          "description": "The shower is available if you need to freshen up.",
+          "actions": [
+            {
+              "id": "use_shower",
+              "label": "Take a shower",
+              "durationMinutes": 0,
+              "activityMet": 0,
+              "effects": [],
+              "feedback": "The shower interaction is a placeholder. Hygiene and appearance effects are not implemented yet."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "dormitory_lobby",
+      "name": "Dormitory Lobby",
+      "region": "STUDENT RESIDENCE",
+      "description": {
+        "firstVisit": "The dormitory lobby opens onto the campus walkway. A front desk, a notice board and a row of mailboxes line the entrance. Students pass through on their way to class; the doors lead outside toward Campus Plaza.",
+        "returnVisit": "Students come and go through the dormitory lobby. The notice board and front desk remain beside the entrance."
+      },
+      "exits": [
+        "university_campus",
+        "dormitory_room"
+      ],
+      "actions": [],
+      "interactables": [
+        {
+          "id": "dorm_notice_board",
+          "name": "Notice Board",
+          "description": "The board carries dormitory announcements and reminders.",
+          "actions": [
+            {
+              "id": "read_dorm_notices",
+              "label": "Read dormitory notices",
+              "durationMinutes": 0,
+              "activityMet": 0,
+              "effects": [],
+              "feedback": "The notices list routine reminders and building announcements. A full dormitory notice system is not implemented yet."
+            }
+          ]
         }
       ]
     }

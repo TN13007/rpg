@@ -49,6 +49,7 @@ public sealed class GameContentCatalog
         ValidateNpcScheduleReferences();
         ValidateNpcInteractionReferences();
         ValidateRequiredNpcReferences();
+        ValidateInteractablePlayerActionReferences();
     }
 
     /// <summary>Returns location.</summary>
@@ -74,6 +75,60 @@ public sealed class GameContentCatalog
     {
         CharacterData character = Characters.Get(characterId);
         return CombatActions.Resolve(character.CombatActionIds);
+    }
+
+    private void ValidateInteractablePlayerActionReferences()
+    {
+        bool hasPlayerActionReferences = false;
+        foreach (LocationContent location in Locations)
+        {
+            foreach (LocationInteractableDefinition interactable in location.Interactables)
+            {
+                if (interactable.PlayerActionIds.Length > 0)
+                {
+                    hasPlayerActionReferences = true;
+                    break;
+                }
+            }
+
+            if (hasPlayerActionReferences)
+            {
+                break;
+            }
+        }
+
+        if (!hasPlayerActionReferences)
+        {
+            return;
+        }
+
+        CharacterData player = Characters.Get("player_student");
+        foreach (LocationContent location in Locations)
+        {
+            foreach (LocationInteractableDefinition interactable in location.Interactables)
+            {
+                foreach (string playerActionId in interactable.PlayerActionIds)
+                {
+                    bool actionFound = false;
+                    foreach (PlayerActionDefinition playerAction in player.PlayerActions)
+                    {
+                        if (playerAction.Action.Id == playerActionId &&
+                            playerAction.IsAvailableAt(location.Id))
+                        {
+                            actionFound = true;
+                            break;
+                        }
+                    }
+
+                    if (!actionFound)
+                    {
+                        throw new InvalidOperationException(
+                            "Interactable '" + interactable.Id + "' in location '" + location.Id
+                            + "' references unavailable Player Action '" + playerActionId + "'.");
+                    }
+                }
+            }
+        }
     }
 
     private void ValidateNpcScheduleReferences()
@@ -114,6 +169,14 @@ public sealed class GameContentCatalog
             foreach (ActionDefinition action in location.Actions)
             {
                 ValidateRequiredNpcReference(action);
+            }
+
+            foreach (LocationInteractableDefinition interactable in location.Interactables)
+            {
+                foreach (ActionDefinition action in interactable.Actions)
+                {
+                    ValidateRequiredNpcReference(action);
+                }
             }
 
             foreach (LocationEventDefinition locationEvent in location.Events)

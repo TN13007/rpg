@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.IO;
 using Xunit;
@@ -7,7 +8,7 @@ public sealed class ExplorationInteractionQueryTests
 {
     private LocationCatalog _locations;
     [Fact]
-    public void Query_OffersRestEverywhereAndSleepOnlyInStudentApartment()
+    public void Query_OffersRestEverywhereAndSleepThroughTheDormitoryBedOnly()
     {
         LoadContent();
         Character player = TestCharacterFactory.CreatePlayer();
@@ -16,13 +17,106 @@ public sealed class ExplorationInteractionQueryTests
 
         IReadOnlyList<AvailableInteraction> studentApartmentChoices = query.Query(
             player, playerData.PlayerActions, _locations.Get("student_apartment"), _locations.Get, _locations.Travel);
+        IReadOnlyList<AvailableInteraction> dormitoryChoices = query.Query(
+            player, playerData.PlayerActions, _locations.Get("dormitory_room"), _locations.Get, _locations.Travel);
         IReadOnlyList<AvailableInteraction> campusChoices = query.Query(
             player, playerData.PlayerActions, _locations.Get("university_campus"), _locations.Get, _locations.Travel);
 
         Assert.Contains(studentApartmentChoices, item => item.SourceKind == InteractionSourceKind.Player && item.ActionId == "rest");
-        Assert.Contains(studentApartmentChoices, item => item.SourceKind == InteractionSourceKind.Player && item.ActionId == "sleep");
+        Assert.DoesNotContain(studentApartmentChoices, item => item.ActionId == "sleep");
+        Assert.Contains(dormitoryChoices, item => item.SourceKind == InteractionSourceKind.Player && item.ActionId == "rest");
+        Assert.DoesNotContain(dormitoryChoices, item => item.SourceKind == InteractionSourceKind.Player && item.ActionId == "sleep");
+        Assert.Contains(dormitoryChoices, item => item.SourceKind == InteractionSourceKind.Interactable && item.TargetId == "bed");
         Assert.Contains(campusChoices, item => item.SourceKind == InteractionSourceKind.Player && item.ActionId == "rest");
         Assert.DoesNotContain(campusChoices, item => item.SourceKind == InteractionSourceKind.Player && item.ActionId == "sleep");
+    }
+
+    [Fact]
+    public void Query_OffersInteractableTargetsAndOnlyTheirOwnActions()
+    {
+        LoadContent();
+        Character player = TestCharacterFactory.CreatePlayer();
+        CharacterData playerData = LoadPlayerData();
+        LocationContent dormRoom = _locations.Get("dormitory_room");
+        AvailableInteractionQuery query = new AvailableInteractionQuery();
+
+        IReadOnlyList<AvailableInteraction> roomChoices = query.Query(
+            player,
+            playerData.PlayerActions,
+            dormRoom,
+            _locations.Get,
+            _locations.Travel,
+            currentMinuteOfDay: 450);
+
+        Assert.Contains(roomChoices, item =>
+            item.SourceKind == InteractionSourceKind.Interactable &&
+            item.ActionId == "select" &&
+            item.TargetId == "bed");
+        Assert.Contains(roomChoices, item =>
+            item.SourceKind == InteractionSourceKind.Interactable &&
+            item.ActionId == "select" &&
+            item.TargetId == "laptop");
+
+        IReadOnlyList<AvailableInteraction> bedChoices = query.Query(
+            player,
+            playerData.PlayerActions,
+            dormRoom,
+            _locations.Get,
+            _locations.Travel,
+            currentMinuteOfDay: 450,
+            selectedInteractableId: "bed");
+        Assert.Single(bedChoices);
+        Assert.Contains(bedChoices, item =>
+            item.SourceKind == InteractionSourceKind.Interactable &&
+            item.ActionId == "sleep" &&
+            item.TargetId == "bed");
+
+        IReadOnlyList<AvailableInteraction> laptopChoices = query.Query(
+            player,
+            playerData.PlayerActions,
+            dormRoom,
+            _locations.Get,
+            _locations.Travel,
+            currentMinuteOfDay: 450,
+            selectedInteractableId: "laptop");
+        Assert.Equal(
+            new[] { "open_course_portal", "check_email", "browse_web" },
+            laptopChoices.Select(item => item.ActionId));
+        Assert.All(laptopChoices, item => Assert.Equal("laptop", item.TargetId));
+        AssertReadOnly(roomChoices);
+        AssertReadOnly(bedChoices);
+        AssertReadOnly(laptopChoices);
+    }
+
+    [Fact]
+    public void Query_OffersAttendOnlyDuringTheLectureWindowAndWaitsBeforeIt()
+    {
+        LoadContent();
+        Character player = TestCharacterFactory.CreatePlayer();
+        CharacterData playerData = LoadPlayerData();
+        LocationContent lectureHall = _locations.Get("lecture_hall");
+        AvailableInteractionQuery query = new AvailableInteractionQuery();
+
+        IReadOnlyList<AvailableInteraction> withoutClock = query.Query(
+            player, playerData.PlayerActions, lectureHall, _locations.Get, _locations.Travel);
+        Assert.DoesNotContain(withoutClock, item => item.ActionId == "attend_lesson");
+
+        IReadOnlyList<AvailableInteraction> beforeClass = query.Query(
+            player, playerData.PlayerActions, lectureHall, _locations.Get, _locations.Travel,
+            currentMinuteOfDay: 539);
+        Assert.DoesNotContain(beforeClass, item => item.ActionId == "attend_lesson");
+        Assert.Contains(beforeClass, item =>
+            item.SourceKind == InteractionSourceKind.Player && item.ActionId == "wait_fifteen_minutes");
+
+        IReadOnlyList<AvailableInteraction> classStarting = query.Query(
+            player, playerData.PlayerActions, lectureHall, _locations.Get, _locations.Travel,
+            currentMinuteOfDay: 540);
+        Assert.Contains(classStarting, item => item.ActionId == "attend_lesson");
+
+        IReadOnlyList<AvailableInteraction> classClosed = query.Query(
+            player, playerData.PlayerActions, lectureHall, _locations.Get, _locations.Travel,
+            currentMinuteOfDay: 555);
+        Assert.DoesNotContain(classClosed, item => item.ActionId == "attend_lesson");
     }
 
     [Fact]
@@ -133,8 +227,37 @@ public sealed class ExplorationInteractionQueryTests
         Assert.Contains(choices, choice =>
             ActionSelectionRequest.TryParse(choice.Id, out ActionSelectionRequest request) &&
             request.SourceKind == InteractionSourceKind.Player &&
-            request.ActionId == "sleep" &&
+            request.ActionId == "rest" &&
             request.SourceId == player.Id);
+    }
+
+    [Fact]
+    public void Mapper_GroupsInteractableTargetsAndPreservesTargetIdentity()
+    {
+        LoadContent();
+        Character player = TestCharacterFactory.CreatePlayer();
+        CharacterData playerData = LoadPlayerData();
+        IReadOnlyList<AvailableInteraction> interactions = new AvailableInteractionQuery().Query(
+            player,
+            playerData.PlayerActions,
+            _locations.Get("dormitory_room"),
+            _locations.Get,
+            _locations.Travel);
+        ActionChoiceMapper mapper = new ActionChoiceMapper(
+            new ActionDurationEstimateMapper(new ActivityTimeCalculator()));
+
+        List<ActionChoiceViewData> choices = mapper.Map(interactions, player);
+
+        Assert.Contains(choices, choice => choice.GroupTitle == "OBJECTS");
+        Assert.Contains(choices, choice =>
+            ActionSelectionRequest.TryParse(choice.Id, out ActionSelectionRequest request) &&
+            request.SourceKind == InteractionSourceKind.Interactable &&
+            request.ActionId == "select" &&
+            request.TargetId == "bed");
+        Assert.DoesNotContain(choices, choice =>
+            ActionSelectionRequest.TryParse(choice.Id, out ActionSelectionRequest request) &&
+            request.SourceKind == InteractionSourceKind.Player &&
+            request.ActionId == "sleep");
     }
 
     [Fact]

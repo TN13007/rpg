@@ -22,7 +22,7 @@ public partial class MainController : Control
         GameContentCatalog content = GameContentLoader.Load("res://Data");
         CharacterData playerData = content.GetCharacter("player_student");
         Character player = new Character(playerData);
-        ExplorationSessionState explorationSessionState = new ExplorationSessionState("university_campus");
+        ExplorationSessionState explorationSessionState = new ExplorationSessionState("dormitory_room");
         _debugEncounterAction = content.CombatEncounter;
 
         GameClock gameClock = new GameClock(startingDate: new DateOnly(2025, 9, 1));

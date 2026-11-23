@@ -60,6 +60,26 @@ public sealed class ActionExecutionService
         return true;
     }
 
+    private bool CanExecute(
+        ActionDefinition action,
+        Character actor,
+        GameClock gameClock,
+        out string failureReason)
+    {
+        if (!CanExecute(action, actor, out failureReason))
+        {
+            return false;
+        }
+
+        if (!action.IsAvailableAt(gameClock.MinutesOfDay))
+        {
+            failureReason = "This action is not available at this time.";
+            return false;
+        }
+
+        return true;
+    }
+
     /// <summary>Prepares an Action without mutating the Character or GameClock.</summary>
     /// <param name="action">The authored Action to prepare.</param>
     /// <param name="actor">The Character attempting to perform the Action.</param>
@@ -90,7 +110,7 @@ public sealed class ActionExecutionService
         }
 
         plan = null;
-        if (!CanExecute(action, actor, out failureReason))
+        if (!CanExecute(action, actor, gameClock, out failureReason))
         {
             return false;
         }
@@ -157,7 +177,7 @@ public sealed class ActionExecutionService
             return false;
         }
 
-        if (!CanExecute(plan._action, plan._actor, out failureReason))
+        if (!CanExecute(plan._action, plan._actor, plan._clock, out failureReason))
         {
             return false;
         }

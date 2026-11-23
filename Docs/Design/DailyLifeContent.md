@@ -27,7 +27,7 @@ This is a vertical content slice, not a complete academic timetable or a full we
 |---|---|---|
 | Campaign day | Day 1, Monday, 1 September 2025 | `GameClock` derives the weekday from the configured Day 1 date |
 | Start time | 07:30 | 07:30 |
-| Starting Location | `university_campus` | `MainController` starts at `university_campus` |
+| Starting Location | `dormitory_room` | The current prototype branch starts Alex in `dormitory_room`; `main` still starts at `university_campus` until Issue #167 is merged |
 | Health | 20 / 20 | 20 / 20 |
 | Fatigue | 0 / 100 | 0 / 100 |
 | Stamina | 8 / 10 | 8 / 10 |
@@ -42,7 +42,10 @@ Reuse these existing Location IDs:
 
 | Location ID | Role in this day |
 |---|---|
-| `student_apartment` | Optional evening return point, Rest and Sleep |
+| `dormitory_room` | Private room and first playable starting point; Bed, Laptop and Wardrobe targets |
+| `dormitory_bathroom` | Optional bathroom space connected to the private room |
+| `dormitory_lobby` | Shared dormitory entrance and route outside to Campus Plaza |
+| `student_apartment` | Separate East District apartment location |
 | `east_district` | Connector between housing and campus/café |
 | `university_campus` | Central plaza, outdoor connector and notice board |
 | `campus_library` | Study and Sera encounter |
@@ -88,7 +91,7 @@ The work shift and club meeting intentionally overlap. The player cannot complet
 | `browse_library` | `campus_library` | 30 min | Free | Study; may complete the Knowledge condition in Section 7 | Existing action; progression is proposed |
 | `eat_meal` | `campus_cafe` | 20 min | 5 Gold | Stamina +3, Mood +2 | Existing effects; proposed Gold cost |
 | `rest` | Any suitable safe Location; prefer apartment | 30 min | Free | Fatigue -5, Stamina +3, Mood +2 | Existing player action |
-| `sleep` | `student_apartment` | 480 min | Free | Health +20, Fatigue -100, Stamina +10, Mood +10, clamped to character limits | Existing player action |
+| `sleep` | `dormitory_room` | 480 min | Free | Health +20, Fatigue -100, Stamina +10, Mood +10, clamped to character limits | Existing Player Action exposed through the Bed target |
 
 The proposed meal price is 5 Gold. With 20 starting Gold, the player can afford ordinary food before working. Completing the existing shift adds 30 Gold, so work creates a clear income opportunity without introducing debt, rent or a general shop economy.
 
@@ -144,50 +147,49 @@ This is a concrete Knowledge outcome, not a universal XP reward. Attending class
 
 The rumor from `lunch_table_conversation.join_the_conversation` or `east_district.browse_forum` may also be recorded as an optional, campaign-persistent Investigation-owned clue (`heard_unit_213_rumor`). It does not gate, trigger or suppress `apartment_213_incident`; the incident remains independently discoverable.
 
-## 8. Example player journey — first morning on campus
+## 8. Example player journey — from the dormitory to the first lecture
 
-This is one representative route, not a mandatory checklist. It starts at the Location the current game actually loads and follows the existing travel graph and action durations.
+This is the current opening route for Issue #167. It is a suggested path, not a mandatory checklist. The player can inspect the room, use the bathroom or leave immediately.
 
-**Starting context:** Monday, 1 September 2025, 07:30, at `university_campus`. The player is Alex (`player_student`), has 20 Gold, Health 20/20, Fatigue 0/100, Stamina 8/10 and Mood 70/100. Mira is near the central plaza, Noah is at the Sports Field and Sera is in the Library.
+**Starting context:** Monday, 1 September 2025, 07:30, in `dormitory_room`. Alex (`player_student`) keeps the existing starting resources: 20 Gold, Health 20/20, Fatigue 0/100, Stamina 8/10 and Mood 70/100.
 
-| Time | Location | Action / movement | What happens |
+### 8.1 Private room
+
+The player sees the room description and chooses a target rather than receiving every furniture action as a flat list.
+
+| Target | Choices | Runtime status |
+|---|---|---|
+| Bed | Sleep | Reuses the existing 480-minute Player Action |
+| Laptop | Course Portal, Email, Web Browser | Selectable placeholders; no application simulation or persistent effects |
+| Wardrobe | Look through clothes | Placeholder; outfit selection is not implemented |
+
+Selecting a target opens only the choices belonging to that object. The player can return to the room without spending time. Sleep remains a real action and advances the shared GameClock.
+
+### 8.2 Bathroom, lobby and campus
+
+| Approx. time | Location | Choice / movement | What happens |
 |---|---|---|---|
-| 07:30–07:40 | Campus Plaza | `inspect_board` | Alex checks the day's notices: the introductory Research Methods lecture is listed for 09:00, alongside club and volunteer announcements. |
-| 07:40–07:50 | Campus Plaza | Talk with Mira | Mira asks about the morning and mentions a neighborhood post she saw online. The player can leave the topic there. |
-| 07:50–08:00 | Campus Library | Travel from Campus (10 min) | Sera is already studying near the windows. |
-| 08:00–08:30 | Campus Library | `browse_library` | Alex reviews the course outline and prepares a few questions before class. |
-| 08:30–08:40 | Campus Library | Talk with Sera | Sera recommends reference material and mentions questions she plans to raise in the lecture. |
-| 08:40–09:00 | Lecture Hall | Travel via Campus (20 min) | The player returns through the Campus hub and reaches the Lecture Hall for the proposed 09:00 start. |
-| 09:00–10:00 | Lecture Hall | `attend_lesson` | The lecturer introduces source checking, firsthand accounts and comparing conflicting information. Mira, Noah and Sera are also present. |
-| 10:00–10:10 | Lecture Hall | Talk with Noah | Noah has finished the lecture and talks about his morning training and a possible weekend session. |
-| 10:10–10:30 | Campus Café | Travel via Campus (20 min) | Alex leaves the Lecture Hall, crosses the central plaza and reaches the café. |
-| 10:30–10:50 | Campus Café | `eat_meal` | A meal restores Stamina +3 and Mood +2 under the current authored action effects. |
-| 10:50–11:00 | Campus Café | `talk_first_years` | Alex exchanges brief stories about classes and campus activities. |
-| 11:00–11:15 | Campus Café | `join_mira_for_lunch` | Mira is now at the café. Alex joins her table and hears what other students have been discussing. |
-| 11:15 onward | Campus | Free choice | The player can stay and talk, visit the Student Union or Sports Field, study again, or leave campus. No route is forced. |
+| 07:30–07:40 | Dormitory Room → Dormitory Lobby | `Leave` | Alex leaves the private room and enters the shared lobby. |
+| 07:40–07:50 | Dormitory Lobby → Campus Plaza | `Go outside` | Alex exits the dormitory and reaches the campus walkway. |
+| 07:50–08:00 | Campus Plaza → Lecture Hall | `Travel to Lecture Hall` | The player can choose the Lecture Hall directly from the existing Campus Plaza exits. |
+| 08:00–09:00 | Lecture Hall | `Wait 15 minutes` | The player may wait in short increments until the class window opens. |
+| 09:00–10:00 | Lecture Hall | `Attend the lecture` | Attend is available from 09:00 through 09:14. The action is hidden outside that window. |
 
-### Alternative: meet Noah before class
+The Bathroom is an optional branch from the Dormitory Room. Visiting it and returning adds the existing Travel duration for those connections. The Lobby and Campus Plaza remain separate visitable Locations; `region` continues to group Locations and is not itself a travel node.
 
-The player can replace the early Mira conversation with a visit to the Sports Field:
+Travel uses the existing shared Travel action and connected Location exits. From Campus Plaza, the player can choose the Lecture Hall directly or visit the Library, Café, Student Union or Sports Field first. This is direct travel through the existing graph, not a separate fast-travel service.
 
-1. 07:30–07:40: travel from Campus Plaza to Sports Field.
-2. 07:40–07:50: talk with Noah while he finishes his drills.
-3. 07:50–08:00: return to Campus Plaza.
-4. 08:00–08:10: travel to Campus Library.
-5. 08:10–08:40: study in the Library.
-6. 08:40–09:00: travel through Campus to the Lecture Hall.
+The table uses the base 10-minute Travel duration for illustration. The existing Agility modifier may reduce actual travel time. The class availability window is a daily time-of-day gate for this opening prototype; weekday-specific commitment scheduling is not introduced here.
 
-This route reaches the proposed lecture start but gives up the early conversation with Mira and the optional conversation with Sera. If the player also talks with Sera after studying, the route reaches the Lecture Hall at 09:10 instead. That is a meaningful time trade-off, not a hidden punishment.
+### 8.3 Classmates
 
-The example assumes the existing base Travel duration of 10 minutes per connected edge and does not apply the Agility reduction, so actual arrival may be earlier. The 09:00 lecture is a content target, not an enforced time gate in the current runtime: `attend_lesson` can currently be selected whenever the player is at the Lecture Hall. The same distinction applies to other proposed commitments. NPC presence, by contrast, is currently queried from the authored clock-time schedules.
-
-The `lunch_table_conversation` Location Event is optional contextual content at the Campus Café. It is not a prerequisite for meeting Mira, attending class or progressing through the day. The player can ignore the neighborhood rumor and complete this morning without leaving campus or entering Combat.
+When an NPC is present at the Lecture Hall, the player can choose `See around`, select a person from the people list and then choose an authored interaction. The existing NPC schedule and interaction queries remain the source of truth; this change does not add relationship progression or autonomous NPC simulation.
 
 ## 9. Saturday contrast — invitation, training, work and club outing
 
 Saturday is a second validation slice, not a complete weekly timetable. With Day 1 set to Monday, the first Saturday is Day 6. It tests whether Monday choices can create optional weekend opportunities without turning the week into a checklist.
 
-**Starting context:** Saturday, 08:00, at `student_apartment`. There is no scheduled lecture. The player may train with Noah, work a shift, join a club outing, study, recover or spend the day elsewhere.
+**Starting context:** Saturday, 08:00, at `dormitory_room`. There is no scheduled lecture. The player may train with Noah, work a shift, join a club outing, study, recover or spend the day elsewhere.
 
 ### 9.1 Actions and commitments
 

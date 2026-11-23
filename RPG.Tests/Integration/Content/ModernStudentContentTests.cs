@@ -10,13 +10,23 @@ public sealed class ModernStudentContentTests
     {
         GameContentCatalog content = LoadContent();
 
-        Assert.Equal(13, content.Locations.Count());
+        Assert.Equal(16, content.Locations.Count());
         LocationContent campusPlaza = content.GetLocation("university_campus");
         Assert.Equal("Campus Plaza", campusPlaza.Name);
         Assert.Equal("NORTH CAMPUS", campusPlaza.Region);
         Assert.Equal(campusPlaza.Region, content.GetLocation("lecture_hall").Region);
         Assert.Equal("The 2:13 AM Incident", content.GetLocation("apartment_block").Events.Single().Title);
         Assert.Equal("Response coordinator", content.GetCharacter("ms_carter").Role);
+
+        LocationContent dormRoom = content.GetLocation("dormitory_room");
+        Assert.Equal(new[] { "dormitory_lobby", "dormitory_bathroom" }, dormRoom.Exits);
+        Assert.Contains(dormRoom.Interactables, item => item.Id == "bed" && item.PlayerActionIds.Contains("sleep"));
+        Assert.Contains(dormRoom.Interactables, item => item.Id == "laptop");
+        Assert.Contains(content.GetLocation("dormitory_lobby").Exits, id => id == "university_campus");
+        Assert.Contains(campusPlaza.Exits, id => id == "dormitory_lobby");
+        ActionDefinition attendLesson = content.GetLocation("lecture_hall").Actions.Single(action => action.Id == "attend_lesson");
+        Assert.Equal(540, attendLesson.AvailableStartMinute);
+        Assert.Equal(555, attendLesson.AvailableEndMinute);
 
         foreach (LocationContent location in content.Locations)
         {

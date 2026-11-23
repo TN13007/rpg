@@ -11,6 +11,8 @@ public sealed class AvailableInteractionQuery
     /// <param name="locationResolver">Resolves each exit ID to the destination Location used to label a Travel choice.</param>
     /// <param name="travelAction">The shared Action definition that supplies Travel duration and effects.</param>
     /// <param name="presentNpcIds">NPC Character IDs currently present; actions with unmet NPC requirements are omitted.</param>
+    /// <param name="currentMinuteOfDay">The current minute after midnight used to filter time-gated actions.</param>
+    /// <param name="selectedInteractableId">Optional object ID; when supplied, only that object's actions are returned.</param>
     /// <returns>A read-only list of available interactions. When the Player cannot act, only eligible recovery actions are returned.</returns>
     public IReadOnlyList<AvailableInteraction> Query(
         Character player,
@@ -18,7 +20,9 @@ public sealed class AvailableInteractionQuery
         LocationContent location,
         Func<string, LocationContent> locationResolver,
         ActionDefinition travelAction,
-        ISet<string> presentNpcIds = null)
+        ISet<string> presentNpcIds = null,
+        int? currentMinuteOfDay = null,
+        string selectedInteractableId = null)
     {
         if (player == null) throw new ArgumentNullException(nameof(player));
         if (playerActions == null) throw new ArgumentNullException(nameof(playerActions));
@@ -30,12 +34,20 @@ public sealed class AvailableInteractionQuery
 
         if (!player.CanAct)
         {
-            AddRecoveryActions(interactions, player, playerActions, location.Id);
+            AddRecoveryActions(interactions, player, playerActions, location.Id, currentMinuteOfDay);
             return interactions.AsReadOnly();
         }
 
-        AddLocationActions(interactions, location, presentNpcIds);
-        AddPlayerActions(interactions, player, playerActions, location.Id);
+        if (!string.IsNullOrWhiteSpace(selectedInteractableId))
+        {
+            AddInteractableActions(
+                interactions, location, selectedInteractableId, playerActions, presentNpcIds, currentMinuteOfDay);
+            return interactions.AsReadOnly();
+        }
+
+        AddLocationActions(interactions, location, presentNpcIds, currentMinuteOfDay);
+        AddPlayerActions(interactions, player, playerActions, location, currentMinuteOfDay);
+        AddInteractableTargets(interactions, location);
         AddTravelActions(interactions, location, locationResolver, travelAction);
 
         return interactions.AsReadOnly();
@@ -77,14 +89,97 @@ public sealed class AvailableInteractionQuery
     private static void AddLocationActions(
         List<AvailableInteraction> interactions,
         LocationContent location,
-        ISet<string> presentNpcIds)
+        ISet<string> presentNpcIds,
+        int? currentMinuteOfDay)
     {
         foreach (ActionDefinition action in location.Actions)
         {
-            if (!IsEventEncounterAction(location, action.Id) && IsNpcRequirementSatisfied(action, presentNpcIds))
+            if (!IsEventEncounterAction(location, action.Id) &&
+                IsNpcRequirementSatisfied(action, presentNpcIds) &&
+                action.IsAvailableAt(currentMinuteOfDay))
             {
                 interactions.Add(new AvailableInteraction(
                     InteractionSourceKind.Location, location.Id, action.Id, string.Empty, action));
+            }
+        }
+    }
+
+    private static void AddInteractableTargets(
+        List<AvailableInteraction> interactions,
+        LocationContent location)
+    {
+        foreach (LocationInteractableDefinition interactable in location.Interactables)
+        {
+            ActionDefinition selection = new ActionDefinition(
+                "select",
+                interactable.Name,
+                0,
+                feedback: interactable.Description,
+                activityMet: 0);
+            interactions.Add(new AvailableInteraction(
+                InteractionSourceKind.Interactable,
+                location.Id,
+                "select",
+                interactable.Id,
+                selection));
+        }
+    }
+
+    private static void AddInteractableActions(
+        List<AvailableInteraction> interactions,
+        LocationContent location,
+        string interactableId,
+        IReadOnlyList<PlayerActionDefinition> playerActions,
+        ISet<string> presentNpcIds,
+        int? currentMinuteOfDay)
+    {
+        LocationInteractableDefinition selected = null;
+        foreach (LocationInteractableDefinition interactable in location.Interactables)
+        {
+            if (interactable.Id == interactableId)
+            {
+                selected = interactable;
+                break;
+            }
+        }
+
+        if (selected == null)
+        {
+            return;
+        }
+
+        foreach (string playerActionId in selected.PlayerActionIds)
+        {
+            foreach (PlayerActionDefinition playerAction in playerActions)
+            {
+                if (playerAction != null &&
+                    playerAction.Action.Id == playerActionId &&
+                    playerAction.IsAvailableAt(location.Id) &&
+                    playerAction.Action.IsAvailableAt(currentMinuteOfDay) &&
+                    !HasReviveEffect(playerAction.Action))
+                {
+                    interactions.Add(new AvailableInteraction(
+                        InteractionSourceKind.Interactable,
+                        location.Id,
+                        playerAction.Action.Id,
+                        selected.Id,
+                        playerAction.Action));
+                    break;
+                }
+            }
+        }
+
+        foreach (ActionDefinition action in selected.Actions)
+        {
+            if (action.IsAvailableAt(currentMinuteOfDay) &&
+                IsNpcRequirementSatisfied(action, presentNpcIds))
+            {
+                interactions.Add(new AvailableInteraction(
+                    InteractionSourceKind.Interactable,
+                    location.Id,
+                    action.Id,
+                    selected.Id,
+                    action));
             }
         }
     }
@@ -93,12 +188,15 @@ public sealed class AvailableInteractionQuery
         List<AvailableInteraction> interactions,
         Character player,
         IReadOnlyList<PlayerActionDefinition> playerActions,
-        string locationId)
+        LocationContent location,
+        int? currentMinuteOfDay)
     {
         foreach (PlayerActionDefinition playerAction in playerActions)
         {
             if (playerAction != null &&
-                playerAction.IsAvailableAt(locationId) &&
+                playerAction.IsAvailableAt(location.Id) &&
+                playerAction.Action.IsAvailableAt(currentMinuteOfDay) &&
+                !IsExposedByInteractable(location, playerAction.Action.Id) &&
                 !HasReviveEffect(playerAction.Action))
             {
                 interactions.Add(new AvailableInteraction(
@@ -111,16 +209,34 @@ public sealed class AvailableInteractionQuery
         }
     }
 
+    private static bool IsExposedByInteractable(LocationContent location, string actionId)
+    {
+        foreach (LocationInteractableDefinition interactable in location.Interactables)
+        {
+            foreach (string playerActionId in interactable.PlayerActionIds)
+            {
+                if (playerActionId == actionId)
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     private static void AddRecoveryActions(
         List<AvailableInteraction> interactions,
         Character player,
         IReadOnlyList<PlayerActionDefinition> playerActions,
-        string locationId)
+        string locationId,
+        int? currentMinuteOfDay)
     {
         foreach (PlayerActionDefinition playerAction in playerActions)
         {
             if (playerAction != null &&
                 playerAction.IsAvailableAt(locationId) &&
+                playerAction.Action.IsAvailableAt(currentMinuteOfDay) &&
                 IsRecoveryAction(playerAction.Action))
             {
                 interactions.Add(new AvailableInteraction(
@@ -142,9 +258,16 @@ public sealed class AvailableInteractionQuery
         foreach (string exitId in location.Exits)
         {
             LocationContent destination = locationResolver(exitId);
+            string travelLabel = location.Id == "dormitory_room" && exitId == "dormitory_lobby"
+                ? "Leave"
+                : location.Id == "dormitory_room" && exitId == "dormitory_bathroom"
+                    ? "Go to Bathroom"
+                    : location.Id == "dormitory_lobby" && exitId == "university_campus"
+                        ? "Go outside"
+                        : "Travel to " + destination.Name;
             ActionDefinition travelChoice = new ActionDefinition(
                 travelAction.Id,
-                "Travel to " + destination.Name,
+                travelLabel,
                 travelAction.DurationMinutes,
                 travelAction.TimeModifier,
                 travelAction.Feedback,
