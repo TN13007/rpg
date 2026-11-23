@@ -83,6 +83,7 @@ The current prototype uses location-based navigation rather than free-roam movem
 - The flow controller validates the current source/context and dispatches to the owning execution path.
 - Adjacent Travel follows the current Location's authored exits. Fast Travel is a separate destination-selection page that lists only Locations explicitly marked `fastTravelDestination: true`; it may cross non-adjacent areas but still executes the shared Travel Action, so time and Fatigue rules remain consistent.
 - Fast-travel arrival points are outdoor Locations such as Campus Plaza, district/park spaces and authored building entrances. Interior Locations such as lecture rooms, private dormitory rooms, bathrooms and building service areas are not eligible. A player arriving at an entrance must use its normal exit to enter the building.
+- Outdoor map Locations may author a `mapPosition` with zero-based `column` and `row` integers. These positions provide a simple grid layout for a future 2D map; they do not change travel connectivity or imply that every grid cell is a Location. The campus route is organized as a short chain of entrances, while East District branches through Commercial Lane and Residential Lane instead of exposing every shop/building directly from the district hub.
 - Travel changes the current Location; the destination's configured Event pool may then be evaluated.
 - The current implementation does not retain a general persistent Interaction Context for arbitrary NPCs or objects.
 
