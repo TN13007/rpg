@@ -11,7 +11,7 @@ public sealed class ModernStudentContentTests
     {
         GameContentCatalog content = LoadContent();
 
-        Assert.Equal(26, content.Locations.Count());
+        Assert.Equal(28, content.Locations.Count());
         LocationContent campusPlaza = content.GetLocation("university_campus");
         Assert.Equal("Campus Plaza", campusPlaza.Name);
         Assert.Equal("NORTH CAMPUS", campusPlaza.Region);
@@ -26,9 +26,20 @@ public sealed class ModernStudentContentTests
         Assert.Contains(content.GetLocation("dormitory_lobby").Exits, id => id == "dormitory_exterior");
         Assert.Contains(campusPlaza.Exits, id => id == "dormitory_exterior");
         Assert.Contains(campusPlaza.Exits, id => id == "lecture_hall_exterior");
+        Assert.DoesNotContain(campusPlaza.Exits, id => id == "student_union_exterior");
+        Assert.DoesNotContain(campusPlaza.Exits, id => id == "campus_cafe_exterior");
         Assert.DoesNotContain(campusPlaza.Exits, id => id == "lecture_hall");
-        Assert.Contains(content.GetLocation("campus_library").Exits, id => id == "campus_cafe_exterior");
-        Assert.DoesNotContain(content.GetLocation("campus_library").Exits, id => id == "campus_cafe");
+        Assert.Equal(new[] { "campus_library_exterior" }, content.GetLocation("campus_library").Exits);
+        Assert.Equal(new[] { "campus_cafe_exterior" }, content.GetLocation("campus_cafe").Exits);
+        Assert.Equal(new[] { "student_union_exterior" }, content.GetLocation("student_union").Exits);
+        Assert.Contains(content.GetLocation("campus_library_exterior").Exits, id => id == "campus_cafe_exterior");
+        Assert.Contains(content.GetLocation("campus_cafe_exterior").Exits, id => id == "student_union_exterior");
+        Assert.Equal(new[] { "east_district", "corner_cafe_exterior", "response_office_exterior", "campus_clinic_exterior" },
+            content.GetLocation("commercial_lane").Exits);
+        Assert.Equal(new[] { "east_district", "apartment_block_exterior", "student_apartment_exterior" },
+            content.GetLocation("residential_lane").Exits);
+        Assert.Equal(5, campusPlaza.Exits.Length);
+        Assert.Equal(4, content.GetLocation("east_district").Exits.Length);
         Assert.True(campusPlaza.IsFastTravelDestination);
         Assert.True(content.GetLocation("lecture_hall_exterior").IsFastTravelDestination);
         Assert.False(content.GetLocation("lecture_hall").IsFastTravelDestination);
@@ -73,6 +84,20 @@ public sealed class ModernStudentContentTests
                 "dormitory_lobby",
                 new ActionDefinition("travel", "Travel", 10));
         Assert.Empty(interiorDestinations);
+    }
+
+    [Fact]
+    public void OutdoorFastTravelLocationsHaveUniqueGridPositions()
+    {
+        GameContentCatalog content = LoadContent();
+        LocationContent[] destinations = content.Locations.Where(location => location.IsFastTravelDestination).ToArray();
+
+        Assert.Equal(16, destinations.Length);
+        Assert.All(destinations, location => Assert.NotNull(location.MapPosition));
+        Assert.Equal(destinations.Length, destinations.Select(location =>
+            (location.MapPosition.Column, location.MapPosition.Row)).Distinct().Count());
+        Assert.Null(content.GetLocation("lecture_hall").MapPosition);
+        Assert.Null(content.GetLocation("dormitory_room").MapPosition);
     }
 
     [Fact]
