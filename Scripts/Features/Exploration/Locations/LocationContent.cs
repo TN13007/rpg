@@ -9,6 +9,8 @@ public sealed class LocationContent
     public string Name { get; }
     /// <summary>Gets the region.</summary>
     public string Region { get; }
+    /// <summary>Gets whether this Location is an outdoor fast-travel arrival point.</summary>
+    public bool IsFastTravelDestination { get; }
 
     // Kept as an alias for callers that still use the original single description.
     /// <summary>Gets the description.</summary>
@@ -68,11 +70,13 @@ public sealed class LocationContent
         string[] exits,
         ActionDefinition[] actions,
         LocationEventDefinition[] events = null,
-        LocationInteractableDefinition[] interactables = null)
+        LocationInteractableDefinition[] interactables = null,
+        bool isFastTravelDestination = false)
     {
         Id = id;
         Name = name;
         Region = region;
+        IsFastTravelDestination = isFastTravelDestination;
         FirstVisitDescription = firstVisitDescription ?? string.Empty;
         ReturnVisitDescription = returnVisitDescription ?? FirstVisitDescription;
         Exits = exits ?? Array.Empty<string>();

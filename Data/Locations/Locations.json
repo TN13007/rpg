@@ -21,13 +21,13 @@
         "returnVisit": "The central plaza stays busy as students move between classes. The notice board carries updated lecture announcements, club activities and a few notices from the East District. The library and café remain easy places to step away from the crowd."
       },
       "exits": [
-        "lecture_hall",
-        "campus_library",
-        "campus_cafe",
-        "student_union",
+        "lecture_hall_exterior",
+        "campus_library_exterior",
+        "campus_cafe_exterior",
+        "student_union_exterior",
         "sports_field",
         "east_district",
-        "dormitory_lobby"
+        "dormitory_exterior"
       ],
       "actions": [
         {
@@ -38,7 +38,8 @@
           "feedback": "The board lists a 09:00 introductory Research Methods lecture in the Lecture Hall, club activities at the Student Union and several volunteer notices. A neighborhood post from the East District catches your eye, but nothing requires you to follow it.",
           "activityMet": 1.3
         }
-      ]
+      ],
+      "fastTravelDestination": true
     },
     {
       "id": "lecture_hall",
@@ -49,7 +50,7 @@
         "returnVisit": "The lecture hall empties between classes. The projector hums softly while students pack their laptops and compare notes before heading to the next building."
       },
       "exits": [
-        "university_campus"
+        "lecture_hall_exterior"
       ],
       "actions": [
         {
@@ -78,7 +79,7 @@
         "returnVisit": "The library remains a refuge from the noise outside. Students work at the shared desks, Sera often studies near the windows and the printer occasionally interrupts the silence."
       },
       "exits": [
-        "university_campus",
+        "campus_library_exterior",
         "campus_cafe"
       ],
       "actions": [
@@ -101,7 +102,7 @@
         "returnVisit": "The café grows busier toward lunchtime. The queue shifts slowly, and familiar groups occupy their usual tables while students trade updates between classes."
       },
       "exits": [
-        "university_campus",
+        "campus_cafe_exterior",
         "campus_library",
         "student_union"
       ],
@@ -179,7 +180,7 @@
         "returnVisit": "Your apartment is quiet and familiar. The desk is waiting for your coursework and the bed is an easy place to disappear for a while."
       },
       "exits": [
-        "east_district"
+        "student_apartment_exterior"
       ],
       "actions": [
         {
@@ -202,11 +203,11 @@
       },
       "exits": [
         "university_campus",
-        "student_apartment",
-        "corner_cafe",
-        "apartment_block",
-        "response_office",
-        "campus_clinic",
+        "student_apartment_exterior",
+        "corner_cafe_exterior",
+        "apartment_block_exterior",
+        "response_office_exterior",
+        "campus_clinic_exterior",
         "riverside_park"
       ],
       "actions": [
@@ -218,7 +219,8 @@
           "feedback": "Several posts mention Unit 213 in the old apartment block. The reports disagree, but multiple people describe hearing a child crying at 2:13 a.m.",
           "activityMet": 1
         }
-      ]
+      ],
+      "fastTravelDestination": true
     },
     {
       "id": "corner_cafe",
@@ -229,7 +231,7 @@
         "returnVisit": "The café is busy with its usual mix of regulars, delivery orders and students taking a break from work or study."
       },
       "exits": [
-        "east_district"
+        "corner_cafe_exterior"
       ],
       "actions": [
         {
@@ -256,7 +258,7 @@
         "returnVisit": "The old apartment block is as quiet as before. The entry light flickers and the directory still lists Unit 213 without a resident's name."
       },
       "exits": [
-        "east_district"
+        "apartment_block_exterior"
       ],
       "actions": [
         {
@@ -318,7 +320,7 @@
         "returnVisit": "The office is open during business hours. A small sign directs visitors to the reception desk."
       },
       "exits": [
-        "east_district"
+        "response_office_exterior"
       ],
       "actions": []
     },
@@ -331,7 +333,7 @@
         "returnVisit": "Club members come and go throughout the day. New posters appear beside the familiar announcements."
       },
       "exits": [
-        "university_campus",
+        "student_union_exterior",
         "campus_cafe"
       ],
       "actions": [
@@ -384,7 +386,8 @@
           "feedback": "You repeat a few basic drills, take a short water break and finish feeling more familiar with the movements.",
           "activityMet": 3
         }
-      ]
+      ],
+      "fastTravelDestination": true
     },
     {
       "id": "campus_clinic",
@@ -395,7 +398,7 @@
         "returnVisit": "The clinic continues to handle routine appointments and minor injuries."
       },
       "exits": [
-        "east_district"
+        "campus_clinic_exterior"
       ],
       "actions": [
         {
@@ -439,7 +442,8 @@
           "feedback": "You sit by the river for a while. The noise of the city fades into the background.",
           "activityMet": 0.5
         }
-      ]
+      ],
+      "fastTravelDestination": true
     },
     {
       "id": "dormitory_room",
@@ -566,7 +570,7 @@
         "returnVisit": "Students come and go through the dormitory lobby. The notice board and front desk remain beside the entrance."
       },
       "exits": [
-        "university_campus",
+        "dormitory_exterior",
         "dormitory_room"
       ],
       "actions": [],
@@ -587,6 +591,156 @@
           ]
         }
       ]
+    },
+    {
+      "id": "lecture_hall_exterior",
+      "name": "Lecture Hall Entrance",
+      "region": "NORTH CAMPUS",
+      "description": {
+        "firstVisit": "The main entrance to the Lecture Hall faces the Campus Plaza. Students gather beneath the timetable before heading inside.",
+        "returnVisit": "The Lecture Hall entrance remains a steady meeting point between classes."
+      },
+      "exits": [
+        "lecture_hall",
+        "university_campus"
+      ],
+      "actions": [],
+      "fastTravelDestination": true
+    },
+    {
+      "id": "campus_library_exterior",
+      "name": "Library Entrance",
+      "region": "NORTH CAMPUS",
+      "description": {
+        "firstVisit": "The library entrance opens onto a quiet path beside the Campus Plaza. A notice board lists opening hours and study events.",
+        "returnVisit": "Students come and go through the library entrance throughout the day."
+      },
+      "exits": [
+        "campus_library",
+        "university_campus"
+      ],
+      "actions": [],
+      "fastTravelDestination": true
+    },
+    {
+      "id": "campus_cafe_exterior",
+      "name": "Campus Café Entrance",
+      "region": "NORTH CAMPUS",
+      "description": {
+        "firstVisit": "The campus café entrance sits beside the main walkway, with a menu board facing the plaza.",
+        "returnVisit": "The café entrance is busy around class breaks and lunchtime."
+      },
+      "exits": [
+        "campus_cafe",
+        "university_campus"
+      ],
+      "actions": [],
+      "fastTravelDestination": true
+    },
+    {
+      "id": "student_union_exterior",
+      "name": "Student Union Entrance",
+      "region": "NORTH CAMPUS",
+      "description": {
+        "firstVisit": "Club posters and event notices cover the glass doors of the Student Union.",
+        "returnVisit": "Students gather near the Student Union entrance to discuss activities."
+      },
+      "exits": [
+        "student_union",
+        "university_campus"
+      ],
+      "actions": [],
+      "fastTravelDestination": true
+    },
+    {
+      "id": "dormitory_exterior",
+      "name": "Dormitory Entrance",
+      "region": "STUDENT RESIDENCE",
+      "description": {
+        "firstVisit": "The student residence entrance faces the campus walkway. Mailboxes and a front desk are visible through the glass doors.",
+        "returnVisit": "Residents pass through the dormitory entrance on their way in and out."
+      },
+      "exits": [
+        "dormitory_lobby",
+        "university_campus"
+      ],
+      "actions": [],
+      "fastTravelDestination": true
+    },
+    {
+      "id": "student_apartment_exterior",
+      "name": "Student Apartment Entrance",
+      "region": "RESIDENTIAL DISTRICT",
+      "description": {
+        "firstVisit": "The apartment entrance opens from a quiet side street in the East District.",
+        "returnVisit": "Residents pass through the apartment entrance throughout the day."
+      },
+      "exits": [
+        "student_apartment",
+        "east_district"
+      ],
+      "actions": [],
+      "fastTravelDestination": true
+    },
+    {
+      "id": "corner_cafe_exterior",
+      "name": "Corner Café Entrance",
+      "region": "EAST DISTRICT",
+      "description": {
+        "firstVisit": "A small sign hangs above the Corner Café entrance between the neighboring shops.",
+        "returnVisit": "The Corner Café entrance sits along the district's pedestrian street."
+      },
+      "exits": [
+        "corner_cafe",
+        "east_district"
+      ],
+      "actions": [],
+      "fastTravelDestination": true
+    },
+    {
+      "id": "apartment_block_exterior",
+      "name": "Old Apartment Block Entrance",
+      "region": "EAST DISTRICT",
+      "description": {
+        "firstVisit": "The old apartment block entrance is set back from the street behind a row of shuttered shops.",
+        "returnVisit": "The apartment block entrance remains quiet except for occasional visitors."
+      },
+      "exits": [
+        "apartment_block",
+        "east_district"
+      ],
+      "actions": [],
+      "fastTravelDestination": true
+    },
+    {
+      "id": "response_office_exterior",
+      "name": "Response Office Entrance",
+      "region": "EAST DISTRICT",
+      "description": {
+        "firstVisit": "A narrow stairway beside the repair shop leads up to the Paranormal Response Office.",
+        "returnVisit": "The response office entrance is easy to miss among the storefronts."
+      },
+      "exits": [
+        "response_office",
+        "east_district"
+      ],
+      "actions": [],
+      "fastTravelDestination": true
+    },
+    {
+      "id": "campus_clinic_exterior",
+      "name": "Campus Clinic Entrance",
+      "region": "EAST DISTRICT",
+      "description": {
+        "firstVisit": "A clean sign marks the clinic entrance beside the district walkway.",
+        "returnVisit": "Visitors enter the clinic through the glass doors facing the street."
+      },
+      "exits": [
+        "campus_clinic",
+        "east_district"
+      ],
+      "actions": [],
+      "fastTravelDestination": true
     }
   ]
 }

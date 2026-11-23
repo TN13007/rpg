@@ -31,6 +31,7 @@ public sealed class ExplorationFlowController
     private const string _seeAroundChoiceId = "navigation|see-around";
     private const string _backToPeopleChoiceId = "navigation|back-to-people";
     private const string _backToLocationChoiceId = "navigation|back-to-location";
+    private const string _openFastTravelChoiceId = "navigation|fast-travel";
     private const string _selectNpcActionId = "select";
     private const string _selectInteractableActionId = "select";
 
@@ -125,6 +126,18 @@ public sealed class ExplorationFlowController
                 "OBSERVE"));
         }
 
+        if (_player.CanAct && location.IsFastTravelDestination &&
+            _locations.Exists(destination =>
+                destination.IsFastTravelDestination &&
+                !string.Equals(destination.Id, location.Id, StringComparison.Ordinal)))
+        {
+            choices.Add(new ActionChoiceViewData(
+                _openFastTravelChoiceId,
+                "Fast Travel",
+                string.Empty,
+                "TRAVEL"));
+        }
+
         _gameModeController.ShowExploration();
         _storyPanel.ShowContent(
             location.Name,
@@ -133,6 +146,37 @@ public sealed class ExplorationFlowController
             choices,
             GameClockDisplayFormatter.Format(_gameClock));
         _storyPanel.ShowLocationButton(false);
+    }
+
+    private void ShowFastTravelDestinations()
+    {
+        if (!_player.CanAct)
+        {
+            ShowLocation();
+            _storyPanel.ShowFeedback("You cannot travel right now.");
+            return;
+        }
+
+        IReadOnlyList<AvailableInteraction> destinations =
+            _availableInteractionQuery.QueryFastTravelDestinations(
+                _locations,
+                _sessionState.CurrentLocationId,
+                _travelAction);
+        List<ActionChoiceViewData> choices = _actionChoiceMapper.Map(destinations, _player);
+        choices.Add(new ActionChoiceViewData(
+            _backToLocationChoiceId,
+            "Back to location",
+            string.Empty,
+            "NAVIGATION"));
+
+        _gameModeController.ShowExploration();
+        _storyPanel.ShowContent(
+            "Fast Travel",
+            "DESTINATIONS",
+            "Choose an outdoor arrival point. You will arrive outside the destination; enter the building normally to reach its rooms.",
+            choices,
+            GameClockDisplayFormatter.Format(_gameClock));
+        _storyPanel.ShowLocationButton(true);
     }
 
     private static HashSet<string> GetNpcIds(IReadOnlyList<NpcPresence> presentNpcs)
@@ -405,6 +449,12 @@ public sealed class ExplorationFlowController
             return;
         }
 
+        if (choiceId == _openFastTravelChoiceId)
+        {
+            ShowFastTravelDestinations();
+            return;
+        }
+
         if (!ActionSelectionRequest.TryParse(choiceId, out ActionSelectionRequest request))
         {
             _storyPanel.ShowFeedback("That action selection is invalid or outdated.");
@@ -495,6 +545,18 @@ public sealed class ExplorationFlowController
                 }
 
                 TravelTo(request.TargetId);
+                return;
+
+            case InteractionSourceKind.FastTravel:
+                if (request.SourceId != _sessionState.CurrentLocationId ||
+                    request.ActionId != _travelAction.Id ||
+                    string.IsNullOrWhiteSpace(request.TargetId))
+                {
+                    _storyPanel.ShowFeedback("That fast-travel selection is outdated.");
+                    return;
+                }
+
+                TravelTo(request.TargetId, true);
                 return;
 
             default:
@@ -737,14 +799,29 @@ public sealed class ExplorationFlowController
         return true;
     }
 
-    private void TravelTo(string destinationId)
+    private void TravelTo(string destinationId, bool isFastTravel = false)
     {
         int startDay = _gameClock.Day;
         int startMinutes = _gameClock.MinutesOfDay;
         LocationContent current = _getLocation(_sessionState.CurrentLocationId);
-        if (Array.IndexOf(current.Exits, destinationId) < 0)
+        LocationContent destination = _locations.Find(location =>
+            string.Equals(location.Id, destinationId, StringComparison.Ordinal));
+        if (destination == null)
         {
-            _storyPanel.ShowFeedback("That location is not connected to your current position.");
+            _storyPanel.ShowFeedback("That destination no longer exists.");
+            return;
+        }
+
+        bool isAdjacent = Array.IndexOf(current.Exits, destinationId) >= 0;
+        if (isFastTravel
+            ? !current.IsFastTravelDestination ||
+                !destination.IsFastTravelDestination ||
+                string.Equals(current.Id, destinationId, StringComparison.Ordinal)
+            : !isAdjacent)
+        {
+            _storyPanel.ShowFeedback(isFastTravel
+                ? "That is not a valid fast-travel destination."
+                : "That location is not connected to your current position.");
             return;
         }
 

@@ -70,6 +70,8 @@ public static class LocationDataLoader
                 LocationInteractableDefinition[] interactables = locationData.TryGetProperty("interactables", out JsonElement interactablesData)
                     ? ReadInteractables(interactablesData)
                     : Array.Empty<LocationInteractableDefinition>();
+                bool isFastTravelDestination = locationData.TryGetProperty("fastTravelDestination", out JsonElement fastTravelData)
+                    && fastTravelData.ValueKind == JsonValueKind.True;
 
                 if (loadedLocations.ContainsKey(id))
                 {
@@ -88,7 +90,8 @@ public static class LocationDataLoader
                     exits,
                     actions,
                     events,
-                    interactables));
+                    interactables,
+                    isFastTravelDestination));
             }
 
             if (loadedLocations.Count == 0)
