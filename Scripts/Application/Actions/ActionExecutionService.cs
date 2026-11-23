@@ -132,7 +132,7 @@ public sealed class ActionExecutionService
             throw new ArgumentNullException(nameof(plan));
         }
 
-        if (plan.IsApplied)
+        if (plan._isApplied)
         {
             failureReason = "This Action execution plan has already been applied.";
             return false;
@@ -144,12 +144,12 @@ public sealed class ActionExecutionService
             return false;
         }
 
-        if (!CanExecute(plan.Action, plan.Actor, out failureReason))
+        if (!CanExecute(plan._action, plan._actor, out failureReason))
         {
             return false;
         }
 
-        if (!plan.Clock.CanAdvanceMinutes(plan.ActualDurationMinutes))
+        if (!plan._clock.CanAdvanceMinutes(plan.ActualDurationMinutes))
         {
             failureReason = "The GameClock can no longer advance by the prepared Action duration.";
             return false;
@@ -157,9 +157,9 @@ public sealed class ActionExecutionService
 
         // All checks and effect validation are complete. These synchronous domain mutations
         // use already-validated values and have no expected failure path.
-        plan.Clock.AdvanceMinutes(plan.ActualDurationMinutes);
-        plan.Actor.AddFatigue(plan.FatigueChange);
-        _effectExecutor.Apply(plan.EffectPlan, plan.Actor);
+        plan._clock.AdvanceMinutes(plan.ActualDurationMinutes);
+        plan._actor.AddFatigue(plan.FatigueChange);
+        _effectExecutor.Apply(plan._effectPlan, plan._actor);
         plan.MarkApplied();
 
         failureReason = string.Empty;
