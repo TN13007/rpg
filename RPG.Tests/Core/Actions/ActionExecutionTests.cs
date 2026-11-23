@@ -625,7 +625,7 @@ public sealed class ActionExecutionTests
 
     private static NpcInteractionCatalog LoadNpcInteractions()
     {
-        string path = Path.Combine(AppContext.BaseDirectory, "Data", "NpcInteractions.json");
+        string path = Path.Combine(AppContext.BaseDirectory, "Data", "NPC", "NpcInteractions.json");
         return NpcInteractionDataLoader.LoadJson(File.ReadAllText(path));
     }
 
@@ -637,7 +637,7 @@ public sealed class ActionExecutionTests
 
     private void LoadLocationCatalog()
     {
-        string path = Path.Combine(AppContext.BaseDirectory, "Data", "Locations.json");
+        string path = Path.Combine(AppContext.BaseDirectory, "Data", "Locations", "Locations.json");
         _locations = LocationDataLoader.LoadJson(File.ReadAllText(path));
     }
 }

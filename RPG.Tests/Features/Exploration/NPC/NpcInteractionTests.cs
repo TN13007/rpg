@@ -9,7 +9,7 @@ public sealed class NpcInteractionTests
     public void DataLoader_ReadsNpcInteractionsAndLocationRestrictions()
     {
         string json = File.ReadAllText(Path.Combine(
-            AppContext.BaseDirectory, "Data", "NpcInteractions.json"));
+            AppContext.BaseDirectory, "Data", "NPC", "NpcInteractions.json"));
         NpcInteractionCatalog catalog = NpcInteractionDataLoader.LoadJson(json);
         IReadOnlyList<NpcInteractionDefinition> interactions = catalog.GetForCharacter("mira");
 
@@ -24,7 +24,7 @@ public sealed class NpcInteractionTests
     public void Query_ReturnsOnlyInteractionsForSelectedNpcAndCurrentLocation()
     {
         string json = File.ReadAllText(Path.Combine(
-            AppContext.BaseDirectory, "Data", "NpcInteractions.json"));
+            AppContext.BaseDirectory, "Data", "NPC", "NpcInteractions.json"));
         NpcInteractionCatalog catalog = NpcInteractionDataLoader.LoadJson(json);
         NpcInteractionQuery query = new NpcInteractionQuery(catalog);
 

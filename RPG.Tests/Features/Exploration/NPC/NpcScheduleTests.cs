@@ -100,7 +100,7 @@ public sealed class NpcScheduleTests
     public void DataLoader_ReadsAuthoredMiraSchedule()
     {
         string json = File.ReadAllText(Path.Combine(
-            AppContext.BaseDirectory, "Data", "NpcSchedules.json"));
+            AppContext.BaseDirectory, "Data", "NPC", "NpcSchedules.json"));
         NpcScheduleCatalog catalog = NpcScheduleDataLoader.LoadJson(json);
         NpcScheduleDefinition miraSchedule = catalog.Get("mira");
 

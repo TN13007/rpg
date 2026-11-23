@@ -460,7 +460,7 @@ public sealed class LocationEventLoopTests
 
     private void LoadLocationCatalog()
     {
-        string path = System.IO.Path.Combine(System.AppContext.BaseDirectory, "Data", "Locations.json");
+        string path = System.IO.Path.Combine(System.AppContext.BaseDirectory, "Data", "Locations", "Locations.json");
         _locations = LocationDataLoader.LoadJson(System.IO.File.ReadAllText(path));
     }
 }

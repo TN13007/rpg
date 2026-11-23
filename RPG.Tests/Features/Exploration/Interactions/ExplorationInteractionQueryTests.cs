@@ -284,7 +284,7 @@ public sealed class ExplorationInteractionQueryTests
     private void LoadContent()
     {
         _locations = LocationDataLoader.LoadJson(File.ReadAllText(
-            Path.Combine(AppContext.BaseDirectory, "Data", "Locations.json")));
+            Path.Combine(AppContext.BaseDirectory, "Data", "Locations", "Locations.json")));
     }
 
     private static CharacterData LoadPlayerData()

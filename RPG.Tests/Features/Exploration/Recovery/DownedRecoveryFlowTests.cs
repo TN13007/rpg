@@ -178,12 +178,12 @@ public sealed class DownedRecoveryFlowTests
             new CombatActionCatalog(CombatActionJsonReader.Read(File.ReadAllText(
                 Path.Combine(AppContext.BaseDirectory, "Data", "Combat", "CombatActions.json")))),
             NpcScheduleDataLoader.LoadJson(File.ReadAllText(
-                Path.Combine(AppContext.BaseDirectory, "Data", "NpcSchedules.json"))));
+                Path.Combine(AppContext.BaseDirectory, "Data", "NPC", "NpcSchedules.json"))));
     }
 
     private static LocationCatalog LoadLocations()
     {
-        string path = Path.Combine(AppContext.BaseDirectory, "Data", "Locations.json");
+        string path = Path.Combine(AppContext.BaseDirectory, "Data", "Locations", "Locations.json");
         return LocationDataLoader.LoadJson(File.ReadAllText(path));
     }
 

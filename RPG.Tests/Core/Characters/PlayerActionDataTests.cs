@@ -30,7 +30,7 @@ public sealed class PlayerActionDataTests
     [Fact]
     public void PlayerData_DoesNotLoadLegacySelfActions()
     {
-        string path = Path.Combine(AppContext.BaseDirectory, "Data", "Locations.json");
+        string path = Path.Combine(AppContext.BaseDirectory, "Data", "Locations", "Locations.json");
         string json = File.ReadAllText(path);
 
         Assert.DoesNotContain("\"selfActions\"", json, StringComparison.Ordinal);
