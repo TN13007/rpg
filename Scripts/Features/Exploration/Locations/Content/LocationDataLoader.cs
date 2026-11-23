@@ -72,6 +72,9 @@ public static class LocationDataLoader
                     : Array.Empty<LocationInteractableDefinition>();
                 bool isFastTravelDestination = locationData.TryGetProperty("fastTravelDestination", out JsonElement fastTravelData)
                     && fastTravelData.ValueKind == JsonValueKind.True;
+                LocationGridPosition mapPosition = locationData.TryGetProperty("mapPosition", out JsonElement mapPositionData)
+                    ? ReadMapPosition(mapPositionData)
+                    : null;
 
                 if (loadedLocations.ContainsKey(id))
                 {
@@ -91,7 +94,8 @@ public static class LocationDataLoader
                     actions,
                     events,
                     interactables,
-                    isFastTravelDestination));
+                    isFastTravelDestination,
+                    mapPosition));
             }
 
             if (loadedLocations.Count == 0)
@@ -107,6 +111,22 @@ public static class LocationDataLoader
         {
             throw new InvalidOperationException("Invalid location content JSON.", exception);
         }
+    }
+
+    private static LocationGridPosition ReadMapPosition(JsonElement data)
+    {
+        if (data.ValueKind != JsonValueKind.Object
+            || !data.TryGetProperty("column", out JsonElement columnData)
+            || !data.TryGetProperty("row", out JsonElement rowData)
+            || !columnData.TryGetInt32(out int column)
+            || !rowData.TryGetInt32(out int row)
+            || column < 0
+            || row < 0)
+        {
+            throw new InvalidOperationException("Location mapPosition must contain non-negative integer column and row values.");
+        }
+
+        return new LocationGridPosition(column, row);
     }
 
     private static LocationInteractableDefinition[] ReadInteractables(JsonElement data)
