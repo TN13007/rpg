@@ -157,6 +157,14 @@ public sealed class ExplorationFlowController
             return;
         }
 
+        LocationContent currentLocation = _getLocation(_sessionState.CurrentLocationId);
+        if (!currentLocation.IsFastTravelDestination)
+        {
+            ShowLocation();
+            _storyPanel.ShowFeedback("Fast Travel is only available from outdoor arrival points.");
+            return;
+        }
+
         IReadOnlyList<AvailableInteraction> destinations =
             _availableInteractionQuery.QueryFastTravelDestinations(
                 _locations,

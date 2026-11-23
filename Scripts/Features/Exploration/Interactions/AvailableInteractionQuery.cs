@@ -67,10 +67,27 @@ public sealed class AvailableInteractionQuery
         if (string.IsNullOrWhiteSpace(currentLocationId)) throw new ArgumentException("Current Location ID is required.", nameof(currentLocationId));
         if (travelAction == null) throw new ArgumentNullException(nameof(travelAction));
 
-        List<AvailableInteraction> interactions = new List<AvailableInteraction>();
-        foreach (LocationContent destination in locations)
+        List<LocationContent> knownLocations = new List<LocationContent>();
+        LocationContent currentLocation = null;
+        foreach (LocationContent location in locations)
         {
-            if (destination == null || !destination.IsFastTravelDestination ||
+            if (location == null) continue;
+            knownLocations.Add(location);
+            if (string.Equals(location.Id, currentLocationId, StringComparison.Ordinal))
+            {
+                currentLocation = location;
+            }
+        }
+
+        List<AvailableInteraction> interactions = new List<AvailableInteraction>();
+        if (currentLocation == null || !currentLocation.IsFastTravelDestination)
+        {
+            return interactions.AsReadOnly();
+        }
+
+        foreach (LocationContent destination in knownLocations)
+        {
+            if (!destination.IsFastTravelDestination ||
                 string.Equals(destination.Id, currentLocationId, StringComparison.Ordinal))
             {
                 continue;

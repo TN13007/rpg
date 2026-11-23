@@ -62,6 +62,13 @@ public sealed class ModernStudentContentTests
         Assert.DoesNotContain(destinations, item => item.TargetId == "dormitory_room");
         Assert.DoesNotContain(destinations, item => item.TargetId == "dormitory_bathroom");
         Assert.All(destinations, item => Assert.Equal(InteractionSourceKind.FastTravel, item.SourceKind));
+
+        IReadOnlyList<AvailableInteraction> interiorDestinations = new AvailableInteractionQuery()
+            .QueryFastTravelDestinations(
+                content.Locations,
+                "dormitory_lobby",
+                new ActionDefinition("travel", "Travel", 10));
+        Assert.Empty(interiorDestinations);
     }
 
     [Fact]
