@@ -104,6 +104,7 @@ public static class LocationDataLoader
             }
 
             ValidateLocationExits(loadedLocations);
+            ValidateLocationMapPositions(loadedLocations);
 
             return new LocationCatalog(loadedLocations.Values, loadedTravel, loadedCombatEncounter);
         }
@@ -339,6 +340,30 @@ public static class LocationDataLoader
             {
                 throw new InvalidOperationException(
                     "Duplicate action ID '" + action.Id + "' in location '" + locationId + "'.");
+            }
+        }
+    }
+
+    private static void ValidateLocationMapPositions(Dictionary<string, LocationContent> locations)
+    {
+        HashSet<(int Column, int Row)> occupiedCells = new HashSet<(int Column, int Row)>();
+
+        foreach (LocationContent location in locations.Values)
+        {
+            if (location.IsFastTravelDestination && location.MapPosition == null)
+            {
+                throw new InvalidOperationException("Fast-travel Location '" + location.Id + "' must define a mapPosition.");
+            }
+
+            if (location.MapPosition == null)
+            {
+                continue;
+            }
+
+            (int Column, int Row) cell = (location.MapPosition.Column, location.MapPosition.Row);
+            if (!occupiedCells.Add(cell))
+            {
+                throw new InvalidOperationException("Duplicate Location mapPosition at column " + cell.Column + ", row " + cell.Row + ".");
             }
         }
     }
