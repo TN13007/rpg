@@ -465,7 +465,7 @@ public sealed class ActionExecutionTests
             effects: new[]
             {
                 new ActionEffectDefinition(ActionEffectType.RestoreStamina, 2),
-                new ActionEffectDefinition(ActionEffectType.ChangeMood, 3)
+                new ActionEffectDefinition(ActionEffectType.RestoreMood, 3)
             });
 
         bool prepared = _service.TryPrepare(
@@ -495,7 +495,7 @@ public sealed class ActionExecutionTests
             effects: new[]
             {
                 new ActionEffectDefinition(ActionEffectType.RestoreStamina, 2),
-                new ActionEffectDefinition(ActionEffectType.ChangeMood, 3)
+                new ActionEffectDefinition(ActionEffectType.RestoreMood, 3)
             });
 
         Assert.True(_service.TryPrepare(action, actor, clock, out ActionExecutionPlan plan, out string reason), reason);
