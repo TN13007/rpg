@@ -1,20 +1,31 @@
 using System;
 
-/// <summary>Tracks the current in-game day and minute of the day.</summary>
+/// <summary>Tracks the current in-game day, weekday and minute of the day.</summary>
 public sealed class GameClock
 {
     private const int _minutesPerDay = 24 * 60;
+    private readonly DayOfWeek _startingWeekday;
 
     /// <summary>Gets the day.</summary>
     public int Day { get; private set; }
     /// <summary>Gets the minutes of day.</summary>
     public int MinutesOfDay { get; private set; }
+    /// <summary>Gets the weekday assigned to campaign Day 1.</summary>
+    public DayOfWeek StartingWeekday => _startingWeekday;
+    /// <summary>Gets the weekday derived from the current day index.</summary>
+    public DayOfWeek Weekday =>
+        (DayOfWeek)(((int)_startingWeekday + (Day - 1) % 7) % 7);
 
     /// <summary>Initializes a new instance of <see cref="GameClock"/>.</summary>
     /// <param name="startingDay">The starting day used to initialize the instance.</param>
     /// <param name="startingHour">The starting hour used to initialize the instance.</param>
     /// <param name="startingMinute">The starting minute used to initialize the instance.</param>
-    public GameClock(int startingDay = 1, int startingHour = 7, int startingMinute = 30)
+    /// <param name="startingWeekday">The weekday assigned to campaign Day 1.</param>
+    public GameClock(
+        int startingDay = 1,
+        int startingHour = 7,
+        int startingMinute = 30,
+        DayOfWeek startingWeekday = DayOfWeek.Monday)
     {
         if (startingDay < 1)
         {
@@ -31,8 +42,14 @@ public sealed class GameClock
             throw new ArgumentOutOfRangeException(nameof(startingMinute));
         }
 
+        if (!Enum.IsDefined(typeof(DayOfWeek), startingWeekday))
+        {
+            throw new ArgumentOutOfRangeException(nameof(startingWeekday));
+        }
+
         Day = startingDay;
         MinutesOfDay = startingHour * 60 + startingMinute;
+        _startingWeekday = startingWeekday;
     }
 
     /// <summary>Checks whether the clock can advance without overflowing its day counter.</summary>
