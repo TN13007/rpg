@@ -320,7 +320,7 @@ public sealed class ActionExecutionTests
             Assert.True(interaction.Action.DurationMinutes >= 0);
         }
 
-        Assert.Equal(26, actionCount);
+        Assert.Equal(27, actionCount);
         Assert.Equal(4, LoadPlayerData().PlayerActions.Count);
     }
 
