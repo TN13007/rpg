@@ -57,7 +57,7 @@ public sealed class ModernStudentContentTests
         string charactersDirectory = Path.Combine(dataDirectory, "Characters");
 
         LocationCatalog locations = LocationDataLoader.LoadJson(
-            File.ReadAllText(Path.Combine(dataDirectory, "Locations", "Locations", "Locations.json")));
+            File.ReadAllText(Path.Combine(dataDirectory, "Locations", "Locations.json")));
 
         CharacterData[] characters = Directory.GetFiles(charactersDirectory, "*.json")
             .Select(path => CharacterDataLoader.LoadJson(File.ReadAllText(path), path))
@@ -67,9 +67,9 @@ public sealed class ModernStudentContentTests
             CombatActionJsonReader.Read(File.ReadAllText(
                 Path.Combine(dataDirectory, "Combat", "CombatActions.json"))));
         NpcScheduleCatalog schedules = NpcScheduleDataLoader.LoadJson(
-            File.ReadAllText(Path.Combine(dataDirectory, "NPC", "NPC", "NpcSchedules.json")));
+            File.ReadAllText(Path.Combine(dataDirectory, "NPC", "NpcSchedules.json")));
         NpcInteractionCatalog interactions = NpcInteractionDataLoader.LoadJson(
-            File.ReadAllText(Path.Combine(dataDirectory, "NPC", "NPC", "NpcInteractions.json")));
+            File.ReadAllText(Path.Combine(dataDirectory, "NPC", "NpcInteractions.json")));
 
         return new GameContentCatalog(
             locations,
