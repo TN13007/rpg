@@ -43,7 +43,7 @@
           "amount": 3
         },
         {
-          "type": "ChangeMood",
+          "type": "RestoreMood",
           "amount": 2
         }
       ],
@@ -60,7 +60,7 @@
           "amount": 20
         },
         {
-          "type": "ChangeMood",
+          "type": "RestoreMood",
           "amount": 10
         },
         {
