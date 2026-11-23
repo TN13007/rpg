@@ -84,11 +84,11 @@ The current prototype uses location-based navigation rather than free-roam movem
 - Travel changes the current Location; the destination's configured Event pool may then be evaluated.
 - The current implementation does not retain a general persistent Interaction Context for arbitrary NPCs or objects.
 
-The current choice sources include Player Actions, Location Actions, NPC interactions, Travel choices and Event choices. Character-specific interactions are loaded from `Data/NpcInteractions.json`, queried for the selected NPC and current Location, and displayed after the player chooses `See around` and selects a person. The selection is revalidated against current NPC presence before execution. Event definitions and choices may still declare `requiredNpcId` for authored, situation-specific scenes; those requirements are checked before a choice is offered and again when selected. Location Actions describe the place itself rather than embedding actions for individual NPCs.
+The current choice sources include Player Actions, Location Actions, NPC interactions, Travel choices and Event choices. Character-specific interactions are loaded from `Data/NPC/NpcInteractions.json`, queried for the selected NPC and current Location, and displayed after the player chooses `See around` and selects a person. The selection is revalidated against current NPC presence before execution. Event definitions and choices may still declare `requiredNpcId` for authored, situation-specific scenes; those requirements are checked before a choice is offered and again when selected. Location Actions describe the place itself rather than embedding actions for individual NPCs.
 
 ### NPC presence and daily schedules
 
-`GameContentLoader` loads `Data/NpcSchedules.json` into `NpcScheduleCatalog`. Each schedule references an existing Character ID and contains non-overlapping half-open time intervals (`startMinute` inclusive, `endMinute` exclusive), a Location ID and an authored activity description. `GameContentCatalog` validates Character, Location and required-NPC references before the runtime starts.
+`GameContentLoader` loads `Data/NPC/NpcSchedules.json` into `NpcScheduleCatalog`. Each schedule references an existing Character ID and contains non-overlapping half-open time intervals (`startMinute` inclusive, `endMinute` exclusive), a Location ID and an authored activity description. `GameContentCatalog` validates Character, Location and required-NPC references before the runtime starts.
 
 `NpcPresenceQuery` combines the current Location, `GameClock.MinutesOfDay`, schedule definitions and Character data. `ExplorationFlowController` uses the result to offer `See around`, display the people currently present and revalidate the selected NPC before an interaction executes. Events with an event-level NPC requirement are eligible only while that NPC is present; unavailable entries are skipped. Event choice NPC requirements are checked again when selected. Presence is evaluated when the current context is shown; there is no per-frame NPC movement simulation.
 
@@ -139,7 +139,7 @@ After the complete Enemy Turn, and only if the encounter remains active, Round i
 ### Ownership and current limits
 
 - CombatService mutates the live Character instances retained by the ordered CombatantDefinition[] roster. It partitions that roster into Party and Enemy lists; it does not create Godot scenes.
-- Domain contracts (CombatActionRequest, CombatSnapshot, CombatResult, CombatEvent and ICombatService) live in Scripts/Domain/Combat/CombatContracts.cs. Presentation owns only view data, formatted messages and visual feedback models.
+- Domain contracts (CombatActionRequest, CombatSnapshot, CombatResult, CombatEvent and ICombatService) live in Scripts/Features/Combat/Rules/CombatContracts.cs. Presentation owns only view data, formatted messages and visual feedback models.
 - CombatPresentationMapper maps the ordered Domain result into CombatViewData. CombatPanel displays Round, phase, shared AP, Party statuses, Enemy statuses, action options, the event history and an End Player Turn control.
 - Enemy cards display current status only. They do not show the next Enemy action or its target.
 - The simulation no longer uses CombatTimeline, Remaining Progress, Speed, Recovery Cost, Delay/Stun durations, frame-delta advancement or weighted Enemy Intent.

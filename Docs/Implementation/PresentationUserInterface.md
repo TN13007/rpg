@@ -62,7 +62,7 @@ Current composition:
 
 ### Presentation ownership and mapping
 
-- CombatPresentationMapper converts Domain snapshots/results into Presentation-owned classes in Scripts/Presentation/ViewModels/Combat/CombatPresentation.cs.
+- CombatPresentationMapper converts Domain snapshots/results into Presentation-owned classes in Scripts/Features/Combat/Presentation/CombatPresentation.cs.
 - Reusable controls consume EnemyCardViewData, PartyMemberCardViewData, CharacterPortraitViewData, CombatActionCardViewData, CombatMessage and CombatFeedbackViewData. UI controls do not receive Domain EnemyCombatStatus, PartyCombatStatus or CombatActionOption objects directly.
 - CombatViewData contains Round, Player Turn state, shared AP values, Presentation-owned Enemy/Party/action arrays, messages and feedback.
 - EnemyCard renders Enemy name, HP and optional Lust. PartyMemberCard renders name, HP and optional Lust/MP. Underlying Stamina remains in Party view data because the current Domain action rules spend Stamina, but the Party Bar does not show it.

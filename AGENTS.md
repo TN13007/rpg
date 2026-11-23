@@ -19,13 +19,14 @@ Do not read every document or every source file by default. Follow the task's ac
 | Area | Responsibility | Starting point |
 |---|---|---|
 | `Scripts/Bootstrap/` | Godot entry point and dependency composition | `MainController.cs` |
-| `Scripts/Domain/` | Runtime state, definitions, rules and calculations | Feature folders such as `Characters/`, `Combat/`, `Time/` |
-| `Scripts/Application/` | Use-case coordination, request validation and queries | `Actions/`, `Exploration/`, `Combat/` |
-| `Scripts/Presentation/` | UI, flow controllers, ViewModels and mappers | `Controllers/`, feature UI and mappers |
-| `Scripts/Infrastructure/` | Content loading and engine/platform adapters | `Content/` |
-| `Data/` | Authored JSON content and ID references | Identify the matching loader/schema first |
+| `Scripts/Core/` | Shared game state and rules used by multiple features | `Actions/`, `Characters/`, `Activities/`, `Time/` |
+| `Scripts/Features/Exploration/` | Location navigation, interactions, NPCs and Location Events | Matching responsibility subfolder |
+| `Scripts/Features/Combat/` | Combat rules, encounter lifecycle, setup and Combat UI | `Rules/`, `Encounter/`, `Presentation/` |
+| `Scripts/Content/` | Cross-feature data loading and reference validation | `GameContentLoader.cs`, `GameContentCatalog.cs` |
+| `Scripts/UI/` | Shared game shell and reusable UI components | `Shell/`, `Shared/` |
+| `Data/` | Authored JSON content grouped by category | `Locations/`, `Characters/`, `NPC/`, `Combat/` |
 | `Scenes/` | Godot scene composition and previews | `Main.tscn` |
-| `RPG.Tests/` | Automated tests grouped by feature | Matching feature folder |
+| `RPG.Tests/` | Tests grouped by Core, feature, content and integration responsibility | Matching production responsibility |
 | `Tools/` | Repository validation and supporting scripts | `Validate.py` |
 
 [Cross-Layer Architecture](Docs/Implementation/CrossLayerArchitecture.md) owns layer boundaries, dependencies and runtime flows. [Scripts/README.md](Scripts/README.md) is a short source-code locator only.
@@ -44,8 +45,9 @@ If documentation and code disagree, report the mismatch and verify against imple
 
 ## Architectural constraints
 
-- Follow the dependency direction: Presentation → Application → Domain; Bootstrap composes all layers; Infrastructure adapts content/platform concerns.
-- Domain must not depend on Godot UI, Presentation or Infrastructure. Application must not render controls or read files. Presentation must not own authoritative gameplay rules. Infrastructure must not decide gameplay outcomes.
+- Keep logical dependency direction even though folders are feature-first: UI/Presentation calls feature flows and use cases; feature rules use Core; content loaders construct definitions; Bootstrap composes the runtime.
+- Core must not depend on Features, UI or Content. Gameplay rules must not depend on Godot controls or JSON file access. Content loading must not decide gameplay outcomes.
+- Put feature-specific behavior, UI, tests and schema-specific loaders beside their owning feature. Put code in Core only when genuinely shared or foundational. Put cross-feature loading and reference validation in Content.
 - Keep `MainController` as the composition root.
 - Do not add interfaces, repositories, factories, dependency-injection containers or universal executors pre-emptively. Require a demonstrated replacement, isolation or testing need.
 - Preserve authored IDs, serialized contracts, scene paths and public type names unless a focused migration explicitly requires changing them.

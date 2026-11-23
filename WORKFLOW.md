@@ -2,8 +2,8 @@
 
 **Repository:** [TN13007/rpg](https://github.com/TN13007/rpg)  
 **Engine:** Godot 4.7.2 .NET / C#  
-**Last reviewed:** 2026-11-23  
-**Baseline:** `main` at `8f2182e`; open or unmerged PRs are proposals, not implemented behavior.
+**Last reviewed:** 2026-11-24  
+**Baseline:** `main` at `5a53843`; open or unmerged PRs are proposals, not implemented behavior. open or unmerged PRs are proposals, not implemented behavior.
 
 > This is the only changing project-status and handoff tracker. Do not create separate status, Session-history, decision or learning trackers.
 
@@ -75,20 +75,13 @@ The Git workflow, commit granularity and PR requirements are defined only in [CO
 
 ## 4. Current handoff
 
-**Active Loop 2 implementation task:** [Issue #160 — Add Gregorian campaign dates to GameClock](https://github.com/TN13007/rpg/issues/160), proposed in the current branch `feat/issue-160-gregorian-game-calendar`.
+**Current structural proposal:** branch `refactor/feature-first-project-structure` reorganizes the source tree around shared Core capabilities and gameplay responsibilities. The proposal moves existing code, tests, content files and Godot C# UID sidecars; it does not intentionally change gameplay rules or add player-facing behavior. Review the resulting tree and verify Godot scene/resource references before merging.
 
-PR #159 is merged at `8f2182e`; GameClock derives weekday from campaign Day. PR #157 is also merged. Action Effects use explicit positive-amount directional operations, and Gold is a signed balance that may represent debt. This is a shared foundation change; it does not implement purchase validation or a general transaction framework.
+The calendar work is already implemented on `main` through PR #161. Campaign Day 1 is Monday, 1 September 2025; date and weekday derive from the shared GameClock. Sleep remains a 480-minute Action. The calendar does not introduce daily resets, availability gates, daily throttles or NPC weekday scheduling.
 
-The current calendar task adds a Gregorian campaign date beginning Monday, 1 September 2025, derives weekday/date from the same GameClock, displays the calendar in Exploration and Combat time feedback, and preserves the authored 480-minute Sleep behavior. Campaign Day/date/weekday currently serve time progression and calendar presentation only; no gameplay system may use them for availability, daily throttles or reset rules yet. Location Event and future Quest repeat/cooldown/completion rules are deferred to a dedicated system. No daily reset, schedule framework or Loop 3 gameplay is included.
+**After the structural migration is merged:** resume Loop 2 by selecting one concrete student-life player journey from [Daily Life design](Docs/Design/DailyLife.md) and implementing it end-to-end. Do not pre-build a generic schedule framework, persistence system or unrelated world simulation before the selected activity requires it. Product progress must be demonstrated through a playable result, not only foundation refactors.
 
-After the calendar is reviewed and merged, continue the Loop 2 implementation sequence:
-1. Add the shared scheduled-activity data contract and availability query.
-2. Implement atomic Gold spending/adjustment at the owning activity boundary, consistent with the signed-balance design.
-3. Add only the typed, domain-owned persistent records required by the selected Loop 2 slice.
-4. Extend selected NPC presence schedules with weekday restrictions while preserving every-day behavior when weekdays are omitted.
-5. Validate a complete ordinary student-life journey in Godot without making Loop 3 activities acceptance requirements.
-
-Keep each later capability in its own focused Issue and acceptance criteria.
+Each new capability still gets a focused Issue, acceptance criteria and PR.
 
 ## 5. Learning evidence
 
