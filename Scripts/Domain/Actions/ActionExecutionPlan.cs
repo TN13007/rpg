@@ -1,12 +1,12 @@
 using System;
 
-/// <summary>Contains a validated _action execution prepared for a single synchronous commit.</summary>
-public sealed class _actionExecutionPlan
+/// <summary>Contains a validated Action execution prepared for a single synchronous commit.</summary>
+public sealed class ActionExecutionPlan
 {
     internal Character _actor { get; }
-    internal Game_clock _clock { get; }
-    internal _actionDefinition _action { get; }
-    internal _action_effectPlan _effectPlan { get; }
+    internal GameClock _clock { get; }
+    internal ActionDefinition _action { get; }
+    internal ActionEffectPlan _effectPlan { get; }
     internal int _preparedDay { get; }
     internal int _preparedMinutesOfDay { get; }
     internal int _preparedHealth { get; }
@@ -22,13 +22,13 @@ public sealed class _actionExecutionPlan
     /// <summary>Gets the Fatigue change calculated for this execution.</summary>
     public double FatigueChange { get; }
 
-    internal _actionExecutionPlan(
-        _actionDefinition action,
+    internal ActionExecutionPlan(
+        ActionDefinition action,
         Character actor,
-        Game_clock clock,
+        GameClock clock,
         int actualDurationMinutes,
         double fatigueChange,
-        _action_effectPlan effectPlan)
+        ActionEffectPlan effectPlan)
     {
         _action = action ?? throw new ArgumentNullException(nameof(action));
         _actor = actor ?? throw new ArgumentNullException(nameof(actor));
