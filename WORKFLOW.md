@@ -3,7 +3,7 @@
 **Repository:** [TN13007/rpg](https://github.com/TN13007/rpg)  
 **Engine:** Godot 4.7.2 .NET / C#  
 **Last reviewed:** 2026-11-24  
-**Baseline:** `main` at `9388aa8`; open or unmerged PRs are proposals, not implemented behavior.
+**Baseline:** `main` at `6f73c887`; open or unmerged PRs are proposals, not implemented behavior.
 
 > This is the only changing project-status and handoff tracker. Do not create separate status, Session-history, decision or learning trackers.
 
@@ -24,16 +24,11 @@ Design decisions do not imply implementation. If the desired experience and curr
 
 ### Product direction
 
-The accepted product direction is a player-directed modern student-life RPG. The complete experience is built from cumulative gameplay layers:
+The accepted product direction is a high-energy student-life RPG with supernatural adventures. By day, the player attends classes, plays sports, socializes, dates, works and enjoys campus life. After hours, the same student group investigates strange places and fights supernatural entities through the existing party-based turn-based combat.
 
-- **Loop 1 — Foundation:** time, characters, locations, actions, resources and progression. It is used most frequently because every higher layer depends on it.
-- **Loop 2 — Daily Life:** classes, studying, work, money, rest, relationships, shops and city exploration. It gives the player a repeatable everyday context.
-- **Loop 3 — Specialized Activities:** social interaction, combat, romance/intimacy, investigation, recreation and other activities that add rules and decisions beyond ordinary daily actions.
-- **Loop 4+ — Extended Gameplay:** deeper combinations of party, skills, relationships, activities and persistent outcomes.
+Daily life is enjoyable in its own right and also develops the capabilities, money, relationships and party support that make adventures possible. Supernatural episodes return new outcomes and consequences to ordinary life. The tone is energetic, funny and suspenseful rather than grimdark.
 
-Each layer builds on the capabilities of the previous layers. This is a dependency model, not a mandatory order of player actions. The intended identity combines the everyday freedom of *Degrees of Lewdity*, the party-based RPG and character-interaction direction of *Karryn's Prison*, and a stronger emphasis on practical skill-driven gameplay.
-
-The protagonist is an ordinary university student in a contemporary city. Paranormal incidents are optional; the player may investigate, ignore, leave or seek professional help. Combat is a specialized turn-based activity, not the mandatory response to every unusual situation.
+The protagonist is an ordinary university student in a contemporary city. Paranormal incidents remain optional: the player may investigate, ignore, leave or seek help. Combat remains turn-based and is not the mandatory response to every unusual situation.
 
 The design source of truth is [Game Vision](Docs/Design/GameVision.md), [World and Narrative](Docs/Design/WorldAndNarrative.md), [Combat](Docs/Design/Combat.md), [Progression](Docs/Design/Progression.md) and [Product Roadmap](Docs/Design/Roadmap.md).
 
@@ -75,17 +70,20 @@ The Git workflow, commit granularity and PR requirements are defined only in [CO
 
 ## 4. Current handoff
 
-**Latest baseline:** `main` at `9388aa807919279c62474a7ebfeba3c2c64abd4f`. The feature-first source migration was merged through PR #164. The campus morning content and Campus Plaza clarification were merged through PR #166, which closes Issue #165. The current main runtime still starts Alex at `university_campus` at 07:30.
+**Latest baseline:** `main` at `6f73c887cd95cc3a69f2e24c314dd4eef2b25773`. PR #168 (dormitory-to-campus opening journey) and its dependent Fast Travel work are merged. The current runtime starts Alex in `dormitory_room` at 07:30 and contains the campus, East District, scheduled NPCs, location events and the Unit 213 turn-based encounter.
 
-**Active implementation:** [Issue #167 — Add the dormitory-to-campus opening journey](https://github.com/TN13007/rpg/issues/167), [Draft PR #168](https://github.com/TN13007/rpg/pull/168), on branch `feat/issue-167-dormitory-opening-journey`.
+**Active implementation:** [Issue #172 — Connect student life to the first supernatural episode](https://github.com/TN13007/rpg/issues/172), [Draft PR #173](https://github.com/TN13007/rpg/pull/173), branch `feat/issue-172-first-supernatural-episode`, based directly on latest `main`.
 
-The proposal changes the opening start to a private `dormitory_room`, adds separate Bathroom and Lobby Locations, and connects the Lobby to the existing Campus Plaza. The room introduces target-first Bed, Laptop and Wardrobe interactions. Bed reuses the existing Sleep Player Action; laptop applications and wardrobe choices are selectable placeholders without simulated app state or invented persistent effects.
+The branch currently:
+- Gives Mira a direct invitation to investigate the abandoned apartment.
+- Rewrites the Unit 213 event with visible clues and choices to confront or back out.
+- Routes the confrontation choice to the existing four-character turn-based encounter.
+- Updates the encounter title/opening narration and adds content assertions.
+- Revises Game Vision, World and Narrative, and Roadmap to reflect the accepted student-life + supernatural adventure direction.
 
-The outdoor world layout now uses a simple 2D grid: Campus Plaza connects to the Lecture Hall, Library, Dormitory, Sports Field and East District; the Library, Campus Café and Student Union form a short connected campus walkway; East District branches through Commercial Lane and Residential Lane to the local destinations. Sixteen outdoor arrival points carry unique `mapPosition` grid coordinates. These coordinates are map presentation data only; normal travel still follows authored exits.
+**Verification status:** PR #173 is Draft. No GitHub Actions run was returned for its head commit at the last check. Automated tests have been updated but are not yet confirmed passing. No interactive Godot playthrough has been performed. Do not merge or mark Issue #172 complete until CI and the full dormitory → Mira invitation → Old Apartment Block → combat → return-to-Exploration journey have been verified.
 
-The branch also adds a 15-minute Wait action at the Lecture Hall and an authored daily 09:00–09:15 availability window for `attend_lesson`. Fast Travel is implemented as a separate destination-selection page. It lists only authored outdoor arrival points and building entrances; interior Locations such as the Lecture Hall, private dormitory room and bathroom are excluded. Selecting a destination uses the existing Travel Action for time and Fatigue, then places the player outside the building. Existing NPC schedule and interaction contracts remain in use.
-
-**Fast-travel follow-up:** [Issue #169](https://github.com/TN13007/rpg/issues/169) is implemented on dependent branch `feat/issue-169-building-fast-travel`, targeting the dormitory journey branch until PR #168 is merged. Review the Fast Travel destination list and entrance-to-interior transitions alongside the parent journey. Both PRs remain proposals until merged; do not treat their behavior as part of `main` yet.
+**Important boundaries:** Do not add a generic Quest/Episode/Incident framework, replace turn-based combat, or expand into broad relationship/economy/equipment systems for this slice. Use the existing content and runtime contracts unless a concrete player-facing blocker proves a change is necessary.
 
 ## 5. Learning evidence
 
