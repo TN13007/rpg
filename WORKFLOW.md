@@ -79,7 +79,7 @@ The Git workflow, commit granularity and PR requirements are defined only in [CO
 
 **Active content task:** [Issue #165 — Author the first campus morning journey](https://github.com/TN13007/rpg/issues/165), proposed in [Draft PR #166](https://github.com/TN13007/rpg/pull/166) on branch `feat/issue-165-campus-opening-morning`.
 
-The current runtime starts Alex at `university_campus` on Monday, 1 September 2025 at 07:30. The PR aligns `DailyLifeContent.md` with that actual start, writes a time-specific morning route through the existing campus locations, and refines existing Location descriptions, action feedback and NPC schedule/interaction text. Existing JSON schemas and authored IDs are preserved.
+The current runtime starts Alex at `university_campus` on Monday, 1 September 2025 at 07:30. The PR aligns `DailyLifeContent.md` with that actual start, writes a time-specific morning route between separate campus Locations, treats `university_campus` as the physical Campus Plaza, and refines existing Location descriptions, action feedback and NPC schedule/interaction text. Existing JSON schemas and authored IDs are preserved.
 
 The 09:00 Research Methods lecture is a content target, not an enforced time window. The current runtime does not yet gate classes or other commitments by weekday/start window. NPC presence is currently determined by the existing clock-time schedules, which repeat every day. No generic schedule framework, wait action, relationship progression or mandatory incident/combat is part of this task.
 

@@ -44,7 +44,7 @@ Reuse these existing Location IDs:
 |---|---|
 | `student_apartment` | Optional evening return point, Rest and Sleep |
 | `east_district` | Connector between housing and campus/café |
-| `university_campus` | Campus hub and notice board |
+| `university_campus` | Central plaza, outdoor connector and notice board |
 | `campus_library` | Study and Sera encounter |
 | `lecture_hall` | Scheduled class |
 | `campus_cafe` | Meal and lunchtime social opportunity |
@@ -52,18 +52,20 @@ Reuse these existing Location IDs:
 | `student_union` | Club meeting and student social opportunity |
 | `sports_field` | Noah's morning training and optional practice |
 
+Each Location represents one concrete, visitable place: a building, facility or outdoor space. The existing `region` field groups those Locations into a broader area such as `NORTH CAMPUS`; it is descriptive grouping metadata, not a separate node the player travels to. The stable ID `university_campus` currently represents the physical Campus Plaza, not the whole university.
+
 The current base Travel duration is 10 minutes per connected edge, before the existing Agility modifier. The opening route from the Campus to the Library and then the Lecture Hall is:
 
 ```text
-University Campus
+Campus Plaza
   -> Campus Library            10 min
 Campus Library
-  -> University Campus         10 min
-University Campus
+  -> Campus Plaza         10 min
+Campus Plaza
   -> Lecture Hall              10 min
 ```
 
-The Library-to-Lecture-Hall leg therefore takes 20 minutes through the Campus hub. Keep the existing Location graph; do not add direct exits merely to shorten the sample.
+The Library-to-Lecture-Hall leg therefore takes 20 minutes through Campus Plaza. Keep the existing Location graph; do not add direct exits merely to shorten the sample.
 
 ## 4. Monday commitments
 
@@ -150,8 +152,8 @@ This is one representative route, not a mandatory checklist. It starts at the Lo
 
 | Time | Location | Action / movement | What happens |
 |---|---|---|---|
-| 07:30–07:40 | University Campus | `inspect_board` | Alex checks the day's notices: the introductory Research Methods lecture is listed for 09:00, alongside club and volunteer announcements. |
-| 07:40–07:50 | University Campus | Talk with Mira | Mira asks about the morning and mentions a neighborhood post she saw online. The player can leave the topic there. |
+| 07:30–07:40 | Campus Plaza | `inspect_board` | Alex checks the day's notices: the introductory Research Methods lecture is listed for 09:00, alongside club and volunteer announcements. |
+| 07:40–07:50 | Campus Plaza | Talk with Mira | Mira asks about the morning and mentions a neighborhood post she saw online. The player can leave the topic there. |
 | 07:50–08:00 | Campus Library | Travel from Campus (10 min) | Sera is already studying near the windows. |
 | 08:00–08:30 | Campus Library | `browse_library` | Alex reviews the course outline and prepares a few questions before class. |
 | 08:30–08:40 | Campus Library | Talk with Sera | Sera recommends reference material and mentions questions she plans to raise in the lecture. |
@@ -168,9 +170,9 @@ This is one representative route, not a mandatory checklist. It starts at the Lo
 
 The player can replace the early Mira conversation with a visit to the Sports Field:
 
-1. 07:30–07:40: travel from University Campus to Sports Field.
+1. 07:30–07:40: travel from Campus Plaza to Sports Field.
 2. 07:40–07:50: talk with Noah while he finishes his drills.
-3. 07:50–08:00: return to University Campus.
+3. 07:50–08:00: return to Campus Plaza.
 4. 08:00–08:10: travel to Campus Library.
 5. 08:10–08:40: study in the Library.
 6. 08:40–09:00: travel through Campus to the Lecture Hall.
