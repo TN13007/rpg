@@ -25,7 +25,7 @@ public partial class MainController : Control
         ExplorationSessionState explorationSessionState = new ExplorationSessionState("university_campus");
         _debugEncounterAction = content.CombatEncounter;
 
-        GameClock gameClock = new GameClock();
+        GameClock gameClock = new GameClock(startingWeekday: DayOfWeek.Monday);
         ActivityTimeCalculator activityTimeCalculator = new ActivityTimeCalculator();
         ActivityFatigueCalculator activityFatigueCalculator = new ActivityFatigueCalculator();
         ActionExecutionService actionExecutionService = new ActionExecutionService(

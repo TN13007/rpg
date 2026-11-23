@@ -40,7 +40,7 @@ The current prototype exposes Health, Fatigue, Stamina, Mood and Gold.
 - Fatigue is a cumulative daily-life exertion value. It does not currently cause unconsciousness or block ordinary actions.
 - Stamina is a separate Combat resource used by defensive actions. Insufficient Stamina rejects the requested action; it does not end Combat.
 - Mood is a tracked character value; current effects may change it, but it is not the future party progression system.
-- GameClock owns day/minute tracking, elapsed-time advancement and midnight rollover. Sleep is a configured 480-minute Player Action.
+- GameClock owns the campaign day index, derived weekday, minute-of-day, elapsed-time advancement and midnight rollover. The game composition assigns Monday to campaign Day 1; weekday is calculated from the day index and is not independently mutable. Sleep is a configured 480-minute Player Action.
 
 Exact current values and action effects must be checked in the relevant JSON definitions and Domain code before changing them. Do not copy tuning values into Design as permanent decisions.
 

@@ -75,11 +75,19 @@ The Git workflow, commit granularity and PR requirements are defined only in [CO
 
 ## 4. Current handoff
 
-**Active implementation task:** [Issue #156 — Apply function-responsibility framework to Action execution](https://github.com/TN13007/rpg/issues/156).
+**Active Loop 2 implementation task:** [Issue #158 — Derive weekday from the shared GameClock](https://github.com/TN13007/rpg/issues/158). The implementation is proposed in [PR #159](https://github.com/TN13007/rpg/pull/159), which remains a draft pending review and verification.
 
-PR #155 merged the prepare-before-apply boundary. Issue #156 now completes its weak point: the previous Apply step still mutated GameClock and Character directly. The implementation should calculate an immutable proposed Character/clock state, then commit through one explicit State Change boundary while preserving Character and GameClock as authoritative owners. The 18 responsibility groups are a review framework, not a request for 18 placeholder classes. The mapping and justified exceptions live in [Function Responsibilities](Docs/Implementation/FunctionResponsibilities.md).
+PR #157 is merged. Action Effects now use explicit positive-amount directional operations, and Gold is a signed balance that may represent debt. This is a shared foundation change; it does not implement purchase validation or a general transaction framework.
 
-The branch is based on the merged #155 commit. Action Effects now use explicit positive-amount directional operations; Gold is a signed balance and may represent debt. Shop/purchase workflows, weekday commitments, start windows and Knowledge/Membership requirements remain separate Loop 2 work; do not fold them into this refactor.
+The Loop 2 implementation sequence is:
+1. Derive weekday from the existing GameClock day index.
+2. Add the shared scheduled-activity data contract and availability query.
+3. Implement atomic Gold spending/adjustment at the owning activity boundary, consistent with the signed-balance design.
+4. Add only the typed, domain-owned persistent records required by the Monday/Saturday slice.
+5. Extend selected NPC presence schedules with weekday restrictions while preserving every-day behavior when weekdays are omitted.
+6. Validate the Monday and Saturday player journeys in Godot.
+
+Do not implement the later steps inside Issue #158. Each step requires its own focused Issue and acceptance criteria.
 
 ## 5. Learning evidence
 
