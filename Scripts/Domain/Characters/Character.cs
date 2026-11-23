@@ -29,8 +29,7 @@ public sealed class Character
             && !double.IsNaN(state.Fatigue) && !double.IsInfinity(state.Fatigue)
             && state.Fatigue >= 0 && state.Fatigue <= MaxFatigue
             && state.Stamina >= 0 && state.Stamina <= MaxStamina
-            && state.Mood >= 0 && state.Mood <= MaxMood
-            && state.Gold >= 0;
+            && state.Mood >= 0 && state.Mood <= MaxMood;
     }
 
     /// <summary>Commits a prepared resource snapshot through the Character state owner.</summary>
@@ -245,11 +244,18 @@ public sealed class Character
     }
 
     /// <summary>
-    /// Adds Gold without allowing the balance to become negative or overflow <see cref="int"/>.
+    /// Adds Gold to the balance, allowing an existing debt to be repaid and preventing integer overflow.
     /// </summary>
     /// <param name="amount">The requested Gold gain. Negative values are treated as zero.</param>
     public void AddGold(int amount)
     {
         Gold = (int)System.Math.Min(int.MaxValue, (long)Gold + System.Math.Max(0, amount));
+    }
+
+    /// <summary>Reduces Gold; the resulting balance may be negative and represents debt.</summary>
+    /// <param name="amount">The requested Gold reduction. Non-positive values are ignored.</param>
+    public void ReduceGold(int amount)
+    {
+        Gold = (int)System.Math.Max(int.MinValue, (long)Gold - System.Math.Max(0, amount));
     }
 }
