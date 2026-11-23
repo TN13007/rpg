@@ -15,7 +15,7 @@ public sealed class ActionEffectExecutorTests
             effects: new[]
             {
                 new ActionEffectDefinition(ActionEffectType.RestoreHealth, 5),
-                new ActionEffectDefinition(ActionEffectType.RestoreFatigue, 8),
+                new ActionEffectDefinition(ActionEffectType.ReduceFatigue, 8),
                 new ActionEffectDefinition(ActionEffectType.RestoreStamina, 3),
                 new ActionEffectDefinition(ActionEffectType.ReduceMood, 6),
                 new ActionEffectDefinition(ActionEffectType.AddGold, 12)
@@ -72,7 +72,7 @@ public sealed class ActionEffectExecutorTests
         CharacterRuntimeState state = CharacterRuntimeState.Capture(actor);
 
         state = state.Apply(new ActionEffectDefinition(ActionEffectType.ReduceHealth, 15));
-        state = state.Apply(new ActionEffectDefinition(ActionEffectType.ReduceFatigue, 20));
+        state = state.Apply(new ActionEffectDefinition(ActionEffectType.RestoreFatigue, 20));
         state = state.Apply(new ActionEffectDefinition(ActionEffectType.ReduceStamina, 8));
         state = state.Apply(new ActionEffectDefinition(ActionEffectType.ReduceMood, 60));
         state = state.Apply(new ActionEffectDefinition(ActionEffectType.ReduceGold, 30));
@@ -84,7 +84,7 @@ public sealed class ActionEffectExecutorTests
         Assert.Equal(-20, state.Gold);
 
         state = state.Apply(new ActionEffectDefinition(ActionEffectType.Revive, 5));
-        state = state.Apply(new ActionEffectDefinition(ActionEffectType.RestoreFatigue, 100));
+        state = state.Apply(new ActionEffectDefinition(ActionEffectType.ReduceFatigue, 100));
         state = state.Apply(new ActionEffectDefinition(ActionEffectType.RestoreStamina, 10));
         state = state.Apply(new ActionEffectDefinition(ActionEffectType.RestoreMood, 20));
         state = state.Apply(new ActionEffectDefinition(ActionEffectType.AddGold, 5));
