@@ -1,11 +1,12 @@
 using System;
+using System.Globalization;
 
-/// <summary>Formats game clock display values for display.</summary>
+/// <summary>Formats game clock values for the player-facing time label.</summary>
 public static class GameClockDisplayFormatter
 {
-    /// <summary>Formats format for display.</summary>
-    /// <param name="clock">The clock used by this operation.</param>
-    /// <returns>The resulting string.</returns>
+    /// <summary>Formats the current campaign date and time.</summary>
+    /// <param name="clock">The clock to format.</param>
+    /// <returns>The formatted calendar and time label.</returns>
     public static string Format(GameClock clock)
     {
         if (clock == null)
@@ -13,14 +14,49 @@ public static class GameClockDisplayFormatter
             throw new ArgumentNullException(nameof(clock));
         }
 
-        return Format(clock.Day, clock.MinutesOfDay);
+        return Format(clock.StartingDate, clock.Day, clock.MinutesOfDay);
     }
 
-    /// <summary>Formats format for display.</summary>
-    /// <param name="day">The day used by this operation.</param>
-    /// <param name="minutesOfDay">The minutes of day used by this operation.</param>
-    /// <returns>The resulting string.</returns>
+    /// <summary>Formats a campaign day and time against its authored Gregorian start date.</summary>
+    /// <param name="startingDate">The Gregorian date assigned to campaign Day 1.</param>
+    /// <param name="day">The one-based campaign day.</param>
+    /// <param name="minutesOfDay">Minutes elapsed since midnight.</param>
+    /// <returns>The formatted calendar and time label.</returns>
+    public static string Format(DateOnly startingDate, int day, int minutesOfDay)
+    {
+        ValidateClockValues(day, minutesOfDay);
+
+        long currentDayNumber = (long)startingDate.DayNumber + day - 1;
+        if (currentDayNumber > DateOnly.MaxValue.DayNumber)
+        {
+            throw new ArgumentOutOfRangeException(nameof(day));
+        }
+
+        DateOnly currentDate = DateOnly.FromDayNumber((int)currentDayNumber);
+        string weekdayAndDate = currentDate
+            .ToString("ddd, dd MMM yyyy", CultureInfo.InvariantCulture)
+            .ToUpperInvariant();
+
+        return "DAY " + day.ToString("00", CultureInfo.InvariantCulture)
+            + "  ·  " + weekdayAndDate
+            + "  ·  " + GetTimeOfDay(minutesOfDay)
+            + "  ·  " + FormatTime(minutesOfDay);
+    }
+
+    /// <summary>Formats a campaign day and time without calendar-date context.</summary>
+    /// <param name="day">The one-based campaign day.</param>
+    /// <param name="minutesOfDay">Minutes elapsed since midnight.</param>
+    /// <returns>The formatted day and time label.</returns>
     public static string Format(int day, int minutesOfDay)
+    {
+        ValidateClockValues(day, minutesOfDay);
+
+        return "DAY " + day.ToString("00", CultureInfo.InvariantCulture)
+            + "  ·  " + GetTimeOfDay(minutesOfDay)
+            + "  ·  " + FormatTime(minutesOfDay);
+    }
+
+    private static void ValidateClockValues(int day, int minutesOfDay)
     {
         if (day < 1)
         {
@@ -31,15 +67,14 @@ public static class GameClockDisplayFormatter
         {
             throw new ArgumentOutOfRangeException(nameof(minutesOfDay));
         }
+    }
 
+    private static string FormatTime(int minutesOfDay)
+    {
         int hour = minutesOfDay / 60;
         int minute = minutesOfDay % 60;
-        string timeOfDay = GetTimeOfDay(minutesOfDay);
-
-        return "DAY " + day.ToString("00")
-            + "  ·  " + timeOfDay
-            + "  ·  " + hour.ToString("00")
-            + ":" + minute.ToString("00");
+        return hour.ToString("00", CultureInfo.InvariantCulture)
+            + ":" + minute.ToString("00", CultureInfo.InvariantCulture);
     }
 
     private static string GetTimeOfDay(int minutesOfDay)

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using Godot;
 
 /// <summary>Presents story content and available player choices.</summary>
@@ -21,8 +22,9 @@ public partial class StoryPanel : PanelContainer
     private Button _returnButton;
     private Tween _clockTween;
     private Tween _feedbackTween;
-    private int _clockStartTotalMinutes;
-    private int _clockEndTotalMinutes;
+    private long _clockStartTotalMinutes;
+    private long _clockEndTotalMinutes;
+    private DateOnly _clockStartingDate;
     private bool _isClockAnimating;
 
     /// <summary>Initializes the Godot control and connects its UI signals.</summary>
@@ -100,27 +102,34 @@ public partial class StoryPanel : PanelContainer
     /// <param name="startMinutes">The start minutes used by this operation.</param>
     /// <param name="endDay">The end day used by this operation.</param>
     /// <param name="endMinutes">The end minutes used by this operation.</param>
-    public void ShowTimeAdvanceFeedback(int startDay, int startMinutes, int endDay, int endMinutes)
+    /// <param name="startingDate">The Gregorian date assigned to campaign Day 1.</param>
+    public void ShowTimeAdvanceFeedback(
+        int startDay,
+        int startMinutes,
+        int endDay,
+        int endMinutes,
+        DateOnly startingDate)
     {
         StopClockAnimations();
 
-        _clockStartTotalMinutes = startDay * 1440 + startMinutes;
-        _clockEndTotalMinutes = endDay * 1440 + endMinutes;
+        _clockStartingDate = startingDate;
+        _clockStartTotalMinutes = (long)startDay * 1440 + startMinutes;
+        _clockEndTotalMinutes = (long)endDay * 1440 + endMinutes;
 
-        int elapsedMinutes = _clockEndTotalMinutes - _clockStartTotalMinutes;
+        long elapsedMinutes = _clockEndTotalMinutes - _clockStartTotalMinutes;
         if (elapsedMinutes <= 0)
         {
-            _day.Text = GameClockDisplayFormatter.Format(endDay, endMinutes);
+            _day.Text = GameClockDisplayFormatter.Format(startingDate, endDay, endMinutes);
             return;
         }
 
         _isClockAnimating = true;
-        _day.Text = GameClockDisplayFormatter.Format(startDay, startMinutes);
+        _day.Text = GameClockDisplayFormatter.Format(startingDate, startDay, startMinutes);
         _timeFeedback.Text = "+" + FormatElapsedTime(elapsedMinutes);
         _timeFeedback.Modulate = Colors.White;
         _timeFeedback.Visible = true;
 
-        float animationDuration = Mathf.Clamp(0.5f + elapsedMinutes * 0.015f, 0.6f, 1.8f);
+        float animationDuration = Mathf.Clamp(0.5f + (float)elapsedMinutes * 0.015f, 0.6f, 1.8f);
         _clockTween = CreateTween();
         _clockTween.TweenMethod(
             Callable.From<float>(UpdateClockProgress),
@@ -151,18 +160,20 @@ public partial class StoryPanel : PanelContainer
 
     private void UpdateClockProgress(float progress)
     {
-        int totalMinutes = _clockStartTotalMinutes
-            + Mathf.RoundToInt((_clockEndTotalMinutes - _clockStartTotalMinutes) * progress);
-        int day = totalMinutes / 1440;
-        int minutesOfDay = totalMinutes % 1440;
-        _day.Text = GameClockDisplayFormatter.Format(day, minutesOfDay);
+        long elapsedMinutes = _clockEndTotalMinutes - _clockStartTotalMinutes;
+        long totalMinutes = _clockStartTotalMinutes
+            + (long)Math.Round(elapsedMinutes * progress);
+        int day = (int)(totalMinutes / 1440);
+        int minutesOfDay = (int)(totalMinutes % 1440);
+        _day.Text = GameClockDisplayFormatter.Format(_clockStartingDate, day, minutesOfDay);
     }
 
     private void FinishClockAnimation()
     {
         _day.Text = GameClockDisplayFormatter.Format(
-            _clockEndTotalMinutes / 1440,
-            _clockEndTotalMinutes % 1440);
+            _clockStartingDate,
+            (int)(_clockEndTotalMinutes / 1440),
+            (int)(_clockEndTotalMinutes % 1440));
         _isClockAnimating = false;
     }
 
@@ -189,11 +200,12 @@ public partial class StoryPanel : PanelContainer
         _timeFeedback.Modulate = Colors.White;
     }
 
-    private string FormatElapsedTime(int totalMinutes)
+    private string FormatElapsedTime(long totalMinutes)
     {
-        int hours = totalMinutes / 60;
-        int minutes = totalMinutes % 60;
-        return hours.ToString() + ":" + minutes.ToString("00");
+        long hours = totalMinutes / 60;
+        long minutes = totalMinutes % 60;
+        return hours.ToString(CultureInfo.InvariantCulture)
+            + ":" + minutes.ToString("00", CultureInfo.InvariantCulture);
     }
 
     private void HandleChoiceSelected(string choiceId)

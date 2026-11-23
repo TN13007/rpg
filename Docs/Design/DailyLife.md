@@ -155,7 +155,7 @@ The design target must not be confused with the current playable prototype:
 | Area | Current `main` behavior | Loop 2 target |
 |---|---|---|
 | Starting context | `GameClock` starts at Day 1, 07:30; `MainController` starts Exploration at `university_campus` | The representative journey starts at student housing; the initial Location can be changed when the playable journey is implemented |
-| Calendar | Day index and minute-of-day only | Weekday semantics derived from the same GameClock |
+| Calendar | Campaign day index, Gregorian date, weekday and minute-of-day derived from one GameClock | A readable Gregorian calendar; the initial campaign starts Monday, 1 September 2025 |
 | NPC schedules | Authored daily time ranges repeat every day | Optional weekday restrictions for recurring NPC presence when content needs them |
 | Class | `attend_lesson` takes 60 minutes and changes Mood by +1 | A scheduled commitment with a weekday and allowed start window; academic progression still needs its own rules |
 | Study | `browse_library` takes 30 minutes and currently has no progression outcome | A flexible activity with a defined learning/practice outcome once Progression rules are approved |
@@ -184,11 +184,14 @@ A rejected action must not partially spend money, advance time, add Fatigue or a
 
 **Existing owner:** `GameClock` in the Domain layer.
 
-Current implementation already owns a monotonic day index, minute-of-day, elapsed-minute advancement and midnight rollover. Keep it as the only world-time owner.
+The shared `GameClock` owns the one-based campaign day, minute-of-day, elapsed-minute advancement and midnight rollover. The initial campaign assigns Monday, 1 September 2025 to Day 1.
 
-**Proposed extension:**
-- Derive a weekday from the day index and one authored starting weekday. The initial campaign may treat Day 1 as Monday.
-- Do not add a second CalendarClock or a full real-world date/year/time-zone model.
+- `StartingDate` is the authored Gregorian date for campaign Day 1.
+- `CurrentDate` is derived from `StartingDate + (Day - 1)`; `Weekday` is derived from that date.
+- Month lengths, year boundaries and leap years follow the Gregorian calendar. The .NET `DateOnly` range (0001-01-01 through 9999-12-31) is the explicit calendar boundary; advancement beyond it is rejected before state changes.
+- Keep the GameClock as the only world-time owner. Do not add a second CalendarClock, time zones, seasons or a real-time clock.
+- Midnight rollover changes campaign Day, CurrentDate and Weekday together. There is no separate NextDay command or automatic daily resource reset.
+- Sleep remains an authored 480-minute Player Action. It advances the date only when its elapsed time crosses midnight; the player can also cross midnight through other time-consuming actions.
 - Allow selected commitments to define recurring weekdays and an allowed start window.
 - Keep one-off appointments/events able to reference a specific campaign day.
 - Extend selected NPC presence schedules with weekday restrictions while preserving omitted-weekday daily behavior; validate interval overlap only when entries share at least one weekday.

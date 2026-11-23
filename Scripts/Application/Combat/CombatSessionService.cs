@@ -120,6 +120,7 @@ public sealed class CombatSessionService
 
     /// <summary>Returns the latest encounter snapshot.</summary>
     public bool TryConsumeTimeAdvance(
+        out DateOnly startingDate,
         out int startDay,
         out int startMinutes,
         out int endDay,
@@ -127,6 +128,7 @@ public sealed class CombatSessionService
     {
         if (!_hasCombatTimeFeedback)
         {
+            startingDate = default;
             startDay = 0;
             startMinutes = 0;
             endDay = 0;
@@ -134,6 +136,7 @@ public sealed class CombatSessionService
             return false;
         }
 
+        startingDate = _gameClock.StartingDate;
         startDay = _combatStartDay;
         startMinutes = _combatStartMinutes;
         endDay = _gameClock.Day;
