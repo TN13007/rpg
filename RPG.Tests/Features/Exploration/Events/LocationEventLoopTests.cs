@@ -44,6 +44,8 @@ public sealed class LocationEventLoopTests
         Assert.Null(apartmentBlock.Events[0].Choices[0].EncounterActionId);
         Assert.Equal(10, apartmentBlock.Events[0].Choices[0].Action.DurationMinutes);
         Assert.Equal("enter_unit_213", apartmentBlock.Events[0].Choices[1].Id);
+        Assert.Equal("start_unit_213", apartmentBlock.Events[0].Choices[1].EncounterActionId);
+        Assert.Contains(apartmentBlock.Actions, action => action.Id == "start_unit_213");
     }
 
     [Fact]
@@ -304,21 +306,16 @@ public sealed class LocationEventLoopTests
     }
 
     [Fact]
-    public void EnterChoiceAppliesItsAuthoredCostWithoutForcingCombat()
+    public void EnterChoiceReferencesTheAuthoredUnit213CombatEntryAction()
     {
         LoadLocationCatalog();
-        LocationContent apartmentBlock = WithGuaranteedEvents(_locations.Get("apartment_block"));
-        LocationEventService eventService = new LocationEventService(new Random(1));
-        Assert.True(eventService.TryTrigger(apartmentBlock, true, out LocationEventDefinition locationEvent));
+        LocationContent apartmentBlock = _locations.Get("apartment_block");
+        LocationEventChoiceDefinition enterChoice = FindChoice(apartmentBlock.Events[0], "enter_unit_213");
 
-        LocationEventChoiceDefinition enterChoice = FindChoice(locationEvent, "enter_unit_213");
-        Assert.Null(enterChoice.EncounterActionId);
-
-        Character player = TestCharacterFactory.CreatePlayer();
-        GameClock clock = new GameClock();
-        ActionExecutionService actionService = CreateActionService();
-        Assert.True(actionService.TryExecute(enterChoice.Action, player, clock, out string reason, out int duration), reason);
-        Assert.Equal(5, duration);
+        Assert.Equal("start_unit_213", enterChoice.EncounterActionId);
+        ActionDefinition encounterEntry = FindAction(apartmentBlock, enterChoice.EncounterActionId);
+        Assert.Equal(0, encounterEntry.DurationMinutes);
+        Assert.Empty(encounterEntry.Effects);
     }
 
     [Fact]
