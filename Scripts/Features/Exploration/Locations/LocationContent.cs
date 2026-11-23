@@ -9,6 +9,10 @@ public sealed class LocationContent
     public string Name { get; }
     /// <summary>Gets the region.</summary>
     public string Region { get; }
+    /// <summary>Gets whether this Location is an outdoor fast-travel arrival point.</summary>
+    public bool IsFastTravelDestination { get; }
+    /// <summary>Gets the optional grid position used by the world map.</summary>
+    public LocationGridPosition MapPosition { get; }
 
     // Kept as an alias for callers that still use the original single description.
     /// <summary>Gets the description.</summary>
@@ -68,11 +72,15 @@ public sealed class LocationContent
         string[] exits,
         ActionDefinition[] actions,
         LocationEventDefinition[] events = null,
-        LocationInteractableDefinition[] interactables = null)
+        LocationInteractableDefinition[] interactables = null,
+        bool isFastTravelDestination = false,
+        LocationGridPosition mapPosition = null)
     {
         Id = id;
         Name = name;
         Region = region;
+        IsFastTravelDestination = isFastTravelDestination;
+        MapPosition = mapPosition;
         FirstVisitDescription = firstVisitDescription ?? string.Empty;
         ReturnVisitDescription = returnVisitDescription ?? FirstVisitDescription;
         Exits = exits ?? Array.Empty<string>();
@@ -125,5 +133,23 @@ public sealed class LocationInteractableDefinition
         Description = description ?? string.Empty;
         PlayerActionIds = playerActionIds == null ? Array.Empty<string>() : (string[])playerActionIds.Clone();
         Actions = actions == null ? Array.Empty<ActionDefinition>() : (ActionDefinition[])actions.Clone();
+    }
+}
+
+/// <summary>Defines a Location position on the authored two-dimensional world-map grid.</summary>
+public sealed class LocationGridPosition
+{
+    /// <summary>Gets the zero-based grid column.</summary>
+    public int Column { get; }
+    /// <summary>Gets the zero-based grid row.</summary>
+    public int Row { get; }
+
+    /// <summary>Initializes a grid position.</summary>
+    public LocationGridPosition(int column, int row)
+    {
+        if (column < 0) throw new ArgumentOutOfRangeException(nameof(column));
+        if (row < 0) throw new ArgumentOutOfRangeException(nameof(row));
+        Column = column;
+        Row = row;
     }
 }

@@ -53,6 +53,67 @@ public sealed class AvailableInteractionQuery
         return interactions.AsReadOnly();
     }
 
+    /// <summary>Builds fast-travel choices for eligible outdoor arrival Locations.</summary>
+    /// <param name="locations">All authored Locations.</param>
+    /// <param name="currentLocationId">The Location the player is leaving.</param>
+    /// <param name="travelAction">The shared Travel action used for duration and resource estimates.</param>
+    /// <returns>Eligible destinations only; interior Locations are excluded by their authored flag.</returns>
+    public IReadOnlyList<AvailableInteraction> QueryFastTravelDestinations(
+        IEnumerable<LocationContent> locations,
+        string currentLocationId,
+        ActionDefinition travelAction)
+    {
+        if (locations == null) throw new ArgumentNullException(nameof(locations));
+        if (string.IsNullOrWhiteSpace(currentLocationId)) throw new ArgumentException("Current Location ID is required.", nameof(currentLocationId));
+        if (travelAction == null) throw new ArgumentNullException(nameof(travelAction));
+
+        List<LocationContent> knownLocations = new List<LocationContent>();
+        LocationContent currentLocation = null;
+        foreach (LocationContent location in locations)
+        {
+            if (location == null) continue;
+            knownLocations.Add(location);
+            if (string.Equals(location.Id, currentLocationId, StringComparison.Ordinal))
+            {
+                currentLocation = location;
+            }
+        }
+
+        List<AvailableInteraction> interactions = new List<AvailableInteraction>();
+        if (currentLocation == null || !currentLocation.IsFastTravelDestination)
+        {
+            return interactions.AsReadOnly();
+        }
+
+        foreach (LocationContent destination in knownLocations)
+        {
+            if (!destination.IsFastTravelDestination ||
+                string.Equals(destination.Id, currentLocationId, StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            ActionDefinition choice = new ActionDefinition(
+                travelAction.Id,
+                "Travel to " + destination.Name,
+                travelAction.DurationMinutes,
+                travelAction.TimeModifier,
+                travelAction.Feedback,
+                travelAction.ActivityMet,
+                travelAction.Effects,
+                travelAction.EstimatedDurationMinMinutes,
+                travelAction.EstimatedDurationMaxMinutes);
+            interactions.Add(new AvailableInteraction(
+                InteractionSourceKind.FastTravel,
+                currentLocationId,
+                travelAction.Id,
+                destination.Id,
+                choice));
+        }
+
+        return interactions.AsReadOnly();
+    }
+
     /// <summary>Returns the interactions or presence records matching the supplied criteria.</summary>
     /// <param name="locationEvent">The Event whose choices should be filtered by their NPC requirements.</param>
     /// <param name="presentNpcIds">The present npc ids used by this operation.</param>

@@ -70,6 +70,11 @@ public static class LocationDataLoader
                 LocationInteractableDefinition[] interactables = locationData.TryGetProperty("interactables", out JsonElement interactablesData)
                     ? ReadInteractables(interactablesData)
                     : Array.Empty<LocationInteractableDefinition>();
+                bool isFastTravelDestination = locationData.TryGetProperty("fastTravelDestination", out JsonElement fastTravelData)
+                    && fastTravelData.ValueKind == JsonValueKind.True;
+                LocationGridPosition mapPosition = locationData.TryGetProperty("mapPosition", out JsonElement mapPositionData)
+                    ? ReadMapPosition(mapPositionData)
+                    : null;
 
                 if (loadedLocations.ContainsKey(id))
                 {
@@ -88,7 +93,9 @@ public static class LocationDataLoader
                     exits,
                     actions,
                     events,
-                    interactables));
+                    interactables,
+                    isFastTravelDestination,
+                    mapPosition));
             }
 
             if (loadedLocations.Count == 0)
@@ -97,6 +104,7 @@ public static class LocationDataLoader
             }
 
             ValidateLocationExits(loadedLocations);
+            ValidateLocationMapPositions(loadedLocations);
 
             return new LocationCatalog(loadedLocations.Values, loadedTravel, loadedCombatEncounter);
         }
@@ -104,6 +112,22 @@ public static class LocationDataLoader
         {
             throw new InvalidOperationException("Invalid location content JSON.", exception);
         }
+    }
+
+    private static LocationGridPosition ReadMapPosition(JsonElement data)
+    {
+        if (data.ValueKind != JsonValueKind.Object
+            || !data.TryGetProperty("column", out JsonElement columnData)
+            || !data.TryGetProperty("row", out JsonElement rowData)
+            || !columnData.TryGetInt32(out int column)
+            || !rowData.TryGetInt32(out int row)
+            || column < 0
+            || row < 0)
+        {
+            throw new InvalidOperationException("Location mapPosition must contain non-negative integer column and row values.");
+        }
+
+        return new LocationGridPosition(column, row);
     }
 
     private static LocationInteractableDefinition[] ReadInteractables(JsonElement data)
@@ -316,6 +340,30 @@ public static class LocationDataLoader
             {
                 throw new InvalidOperationException(
                     "Duplicate action ID '" + action.Id + "' in location '" + locationId + "'.");
+            }
+        }
+    }
+
+    private static void ValidateLocationMapPositions(Dictionary<string, LocationContent> locations)
+    {
+        HashSet<(int Column, int Row)> occupiedCells = new HashSet<(int Column, int Row)>();
+
+        foreach (LocationContent location in locations.Values)
+        {
+            if (location.IsFastTravelDestination && location.MapPosition == null)
+            {
+                throw new InvalidOperationException("Fast-travel Location '" + location.Id + "' must define a mapPosition.");
+            }
+
+            if (location.MapPosition == null)
+            {
+                continue;
+            }
+
+            (int Column, int Row) cell = (location.MapPosition.Column, location.MapPosition.Row);
+            if (!occupiedCells.Add(cell))
+            {
+                throw new InvalidOperationException("Duplicate Location mapPosition at column " + cell.Column + ", row " + cell.Row + ".");
             }
         }
     }
