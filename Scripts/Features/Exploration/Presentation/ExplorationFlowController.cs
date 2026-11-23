@@ -116,8 +116,22 @@ public sealed class ExplorationFlowController
             _travelAction,
             presentNpcIds,
             _gameClock.MinutesOfDay);
+        if (location.Id == "dormitory_room")
+        {
+            List<AvailableInteraction> roomMenuInteractions = new List<AvailableInteraction>();
+            foreach (AvailableInteraction interaction in interactions)
+            {
+                if (interaction.SourceKind == InteractionSourceKind.Player)
+                {
+                    roomMenuInteractions.Add(interaction);
+                }
+            }
+
+            interactions = roomMenuInteractions.AsReadOnly();
+        }
+
         List<ActionChoiceViewData> choices = _actionChoiceMapper.Map(interactions, _player);
-        if (_player.CanAct && presentNpcs.Count > 0)
+        if (_player.CanAct && presentNpcs.Count > 0 && location.Id != "dormitory_room")
         {
             choices.Add(new ActionChoiceViewData(
                 _seeAroundChoiceId,
@@ -144,7 +158,11 @@ public sealed class ExplorationFlowController
             location.Region,
             GetCurrentLocationDescription(location),
             choices,
-            GameClockDisplayFormatter.Format(_gameClock));
+            GameClockDisplayFormatter.Format(_gameClock),
+            location.Id,
+            location.Interactables,
+            presentNpcs,
+            location.Exits);
         _storyPanel.ShowLocationButton(false);
     }
 
@@ -233,12 +251,17 @@ public sealed class ExplorationFlowController
         }
 
         _gameModeController.ShowExploration();
+        LocationContent currentLocation = _getLocation(_sessionState.CurrentLocationId);
         _storyPanel.ShowContent(
             "People here",
-            _getLocation(_sessionState.CurrentLocationId).Name.ToUpperInvariant(),
+            currentLocation.Name.ToUpperInvariant(),
             description.ToString(),
             choices,
-            GameClockDisplayFormatter.Format(_gameClock));
+            GameClockDisplayFormatter.Format(_gameClock),
+            currentLocation.Id,
+            currentLocation.Interactables,
+            presentNpcs,
+            currentLocation.Exits);
         _storyPanel.ShowLocationButton(true);
     }
 
@@ -287,12 +310,17 @@ public sealed class ExplorationFlowController
         }
 
         _gameModeController.ShowExploration();
+        LocationContent currentLocation = _getLocation(_sessionState.CurrentLocationId);
         _storyPanel.ShowContent(
             selectedNpc.Name,
-            _getLocation(_sessionState.CurrentLocationId).Name.ToUpperInvariant(),
+            currentLocation.Name.ToUpperInvariant(),
             description,
             choices,
-            GameClockDisplayFormatter.Format(_gameClock));
+            GameClockDisplayFormatter.Format(_gameClock),
+            currentLocation.Id,
+            currentLocation.Interactables,
+            presentNpcs,
+            currentLocation.Exits);
         _storyPanel.ShowLocationButton(true);
     }
 
@@ -344,7 +372,11 @@ public sealed class ExplorationFlowController
             location.Name.ToUpperInvariant(),
             description,
             choices,
-            GameClockDisplayFormatter.Format(_gameClock));
+            GameClockDisplayFormatter.Format(_gameClock),
+            location.Id,
+            location.Interactables,
+            presentNpcs,
+            location.Exits);
         _storyPanel.ShowLocationButton(true);
     }
 

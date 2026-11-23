@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://Scripts/Features/Exploration/UI/StoryPanel.cs" id="1"]
-[ext_resource type="Texture2D" path="res://Assets/CampusScene.svg" id="2"]
+[ext_resource type="Script" path="res://Scripts/Features/Exploration/UI/SpatialRoomMap.cs" id="2"]
 
 [node name="StoryPanel" type="PanelContainer"]
 layout_mode = 2
@@ -56,13 +56,12 @@ theme_override_font_sizes/font_size = 12
 theme_override_colors/font_color = Color(0.55, 0.82, 0.66, 1)
 text = "+0:10"
 
-[node name="SceneArt" type="TextureRect" parent="Margin/Content"]
-custom_minimum_size = Vector2(0, 230)
+[node name="SpatialMap" type="Control" parent="Margin/Content"]
+visible = false
+custom_minimum_size = Vector2(0, 370)
 layout_mode = 2
 size_flags_horizontal = 3
-texture = ExtResource("2")
-expand_mode = 1
-stretch_mode = 6
+script = ExtResource("2")
 
 [node name="Story" type="RichTextLabel" parent="Margin/Content"]
 custom_minimum_size = Vector2(0, 105)
