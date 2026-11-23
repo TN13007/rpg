@@ -140,6 +140,49 @@ public sealed class GameClockTests
     }
 
     [Fact]
+    public void TryAdvanceMinutes_CrossingMidnight_AdvancesClock()
+    {
+        GameClock clock = new GameClock(startingHour: 23, startingMinute: 30);
+
+        bool advanced = clock.TryAdvanceMinutes(90);
+
+        Assert.True(advanced);
+        Assert.Equal(2, clock.Day);
+        Assert.Equal(60, clock.MinutesOfDay);
+        Assert.Equal(new DateOnly(2025, 9, 2), clock.CurrentDate);
+    }
+
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(int.MaxValue)]
+    public void TryAdvanceMinutes_InvalidOrUnrepresentableDuration_ReturnsFalseWithoutMutation(int amount)
+    {
+        GameClock clock = new GameClock(
+            startingHour: 23,
+            startingMinute: 59,
+            startingDate: DateOnly.MaxValue);
+
+        bool advanced = clock.TryAdvanceMinutes(amount);
+
+        Assert.False(advanced);
+        Assert.Equal(1, clock.Day);
+        Assert.Equal(1439, clock.MinutesOfDay);
+        Assert.Equal(DateOnly.MaxValue, clock.CurrentDate);
+    }
+
+    [Fact]
+    public void TryAdvanceMinutes_ZeroDurationSucceedsWithoutChangingClock()
+    {
+        GameClock clock = new GameClock();
+
+        bool advanced = clock.TryAdvanceMinutes(0);
+
+        Assert.True(advanced);
+        Assert.Equal(1, clock.Day);
+        Assert.Equal(450, clock.MinutesOfDay);
+    }
+
+    [Fact]
     public void AdvanceMinutes_NegativeAmount_ThrowsAndPreservesClock()
     {
         GameClock clock = new GameClock(3, 12, 15);

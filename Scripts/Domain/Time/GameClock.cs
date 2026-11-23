@@ -58,23 +58,12 @@ public sealed class GameClock
         MinutesOfDay = startingHour * 60 + startingMinute;
     }
 
-    /// <summary>Checks whether the clock can advance without exceeding its day or calendar range.</summary>
-    /// <param name="amount">The non-negative number of minutes to advance.</param>
+    /// <summary>Checks whether the clock can advance by the supplied non-negative duration.</summary>
+    /// <param name="amount">The number of minutes to advance.</param>
     /// <returns>True when the requested advancement can be represented; otherwise false.</returns>
     public bool CanAdvanceMinutes(int amount)
     {
-        if (amount < 0)
-        {
-            return false;
-        }
-
-        long totalMinutes = (long)MinutesOfDay + amount;
-        long elapsedDays = totalMinutes / _minutesPerDay;
-        long nextDay = Day + elapsedDays;
-        long nextDateDayNumber = (long)_startingDate.DayNumber + nextDay - 1;
-
-        return nextDay <= int.MaxValue
-            && nextDateDayNumber <= DateOnly.MaxValue.DayNumber;
+        return TryComputeAdvance(Day, MinutesOfDay, amount, out _, out _);
     }
 
     /// <summary>Captures the current clock position as an immutable value.</summary>
@@ -105,7 +94,7 @@ public sealed class GameClock
         MinutesOfDay = state.MinutesOfDay;
     }
 
-    /// <summary>Advances elapsed minutes and derives the new date when midnight is crossed.</summary>
+    /// <summary>Advances elapsed minutes and commits the new clock position.</summary>
     /// <param name="amount">The non-negative number of minutes to advance.</param>
     public void AdvanceMinutes(int amount)
     {
@@ -114,18 +103,57 @@ public sealed class GameClock
             throw new ArgumentOutOfRangeException(nameof(amount));
         }
 
-        if (!CanAdvanceMinutes(amount))
+        if (!TryComputeAdvance(Day, MinutesOfDay, amount, out int nextDay, out int nextMinutesOfDay))
         {
             throw new OverflowException("The GameClock cannot advance beyond its supported day or calendar range.");
         }
 
-        long totalMinutes = (long)MinutesOfDay + amount;
-        int elapsedDays = (int)(totalMinutes / _minutesPerDay);
-        int nextDay = Day + elapsedDays;
-        int nextMinutesOfDay = (int)(totalMinutes % _minutesPerDay);
+        Day = nextDay;
+        MinutesOfDay = nextMinutesOfDay;
+    }
+
+    /// <summary>Attempts to advance the clock; returns false when the requested position is not representable.</summary>
+    /// <param name="amount">The non-negative number of minutes to advance.</param>
+    /// <returns>True when the clock advanced; otherwise false without changing its state.</returns>
+    public bool TryAdvanceMinutes(int amount)
+    {
+        if (!TryComputeAdvance(Day, MinutesOfDay, amount, out int nextDay, out int nextMinutesOfDay))
+        {
+            return false;
+        }
 
         Day = nextDay;
         MinutesOfDay = nextMinutesOfDay;
+        return true;
+    }
+
+    private bool TryComputeAdvance(
+        int currentDay,
+        int currentMinutes,
+        int amount,
+        out int nextDay,
+        out int nextMinutesOfDay)
+    {
+        nextDay = 0;
+        nextMinutesOfDay = 0;
+
+        if (amount < 0)
+        {
+            return false;
+        }
+
+        long totalMinutes = (long)currentMinutes + amount;
+        long elapsedDays = totalMinutes / _minutesPerDay;
+        long candidateDay = currentDay + elapsedDays;
+
+        if (candidateDay > int.MaxValue || !IsDateRepresentable((int)candidateDay))
+        {
+            return false;
+        }
+
+        nextDay = (int)candidateDay;
+        nextMinutesOfDay = (int)(totalMinutes % _minutesPerDay);
+        return true;
     }
 
     private bool IsDateRepresentable(int day)
