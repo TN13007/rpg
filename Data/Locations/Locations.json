@@ -288,7 +288,7 @@
             {
               "id": "listen_from_hallway",
               "label": "Stay back and study the pattern",
-              "durationMinutes": 5,
+              "durationMinutes": 10,
               "effects": [],
               "feedback": "The knocks come in groups of three. Each time they stop, the handprint shifts closer to the edge of the door. Sera notices the hallway lights dim a moment before every knock.",
               "activityMet": 1.2
