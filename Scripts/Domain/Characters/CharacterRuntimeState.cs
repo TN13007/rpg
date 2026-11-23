@@ -31,7 +31,6 @@ public sealed class CharacterRuntimeState : IEquatable<CharacterRuntimeState>
             throw new ArgumentOutOfRangeException(nameof(fatigue));
         if (stamina < 0 || stamina > maxStamina) throw new ArgumentOutOfRangeException(nameof(stamina));
         if (mood < 0 || mood > maxMood) throw new ArgumentOutOfRangeException(nameof(mood));
-        if (gold < 0) throw new ArgumentOutOfRangeException(nameof(gold));
         Health = health; Fatigue = fatigue; Stamina = stamina; Mood = mood; Gold = gold;
         MaxHealth = maxHealth; MaxFatigue = maxFatigue; MaxStamina = maxStamina; MaxMood = maxMood;
     }
@@ -54,21 +53,32 @@ public sealed class CharacterRuntimeState : IEquatable<CharacterRuntimeState>
     public CharacterRuntimeState Apply(ActionEffectDefinition effect)
     {
         if (effect == null) throw new ArgumentNullException(nameof(effect));
+        long amount = effect.Amount;
         switch (effect.Type)
         {
             case ActionEffectType.RestoreHealth:
-                return Health == 0 ? this : Copy(health: Health + Math.Min(MaxHealth - Health, Math.Max(0, effect.Amount)));
+                if (Health == 0) return this;
+                return Copy(health: (int)Math.Min(MaxHealth, (long)Health + amount));
+            case ActionEffectType.ReduceHealth:
+                return Copy(health: (int)Math.Max(0L, Health - amount));
             case ActionEffectType.RestoreFatigue:
-                if (effect.Amount <= 0) return this;
-                return Copy(fatigue: Math.Clamp(Fatigue - effect.Amount, 0.0, MaxFatigue));
+                return Copy(fatigue: Math.Max(0.0, Fatigue - amount));
+            case ActionEffectType.ReduceFatigue:
+                return Copy(fatigue: Math.Min(MaxFatigue, Fatigue + amount));
             case ActionEffectType.RestoreStamina:
-                return Copy(stamina: Stamina + Math.Min(MaxStamina - Stamina, Math.Max(0, effect.Amount)));
-            case ActionEffectType.ChangeMood:
-                return Copy(mood: (int)Math.Clamp((long)Mood + effect.Amount, 0L, MaxMood));
+                return Copy(stamina: (int)Math.Min(MaxStamina, (long)Stamina + amount));
+            case ActionEffectType.ReduceStamina:
+                return Copy(stamina: (int)Math.Max(0L, Stamina - amount));
+            case ActionEffectType.RestoreMood:
+                return Copy(mood: (int)Math.Min(MaxMood, (long)Mood + amount));
+            case ActionEffectType.ReduceMood:
+                return Copy(mood: (int)Math.Max(0L, Mood - amount));
             case ActionEffectType.AddGold:
-                return Copy(gold: (int)Math.Min(int.MaxValue, (long)Gold + Math.Max(0, effect.Amount)));
+                return Copy(gold: (int)Math.Min(int.MaxValue, (long)Gold + amount));
+            case ActionEffectType.ReduceGold:
+                return Copy(gold: (int)Math.Max(int.MinValue, (long)Gold - amount));
             case ActionEffectType.Revive:
-                return Health > 0 || effect.Amount <= 0 ? this : Copy(health: Math.Min(MaxHealth, effect.Amount));
+                return Health > 0 ? this : Copy(health: (int)Math.Min(MaxHealth, amount));
             default:
                 throw new ArgumentOutOfRangeException(nameof(effect.Type));
         }
