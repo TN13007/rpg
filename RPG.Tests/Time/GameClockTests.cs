@@ -31,7 +31,7 @@ public sealed class GameClockTests
     [Fact]
     public void AdvanceMinutes_CrossingMidnight_AdvancesCampaignDayDateAndWeekday()
     {
-        GameClock clock = new GameClock(startingHour: 23);
+        GameClock clock = new GameClock(startingHour: 23, startingMinute: 0);
 
         clock.AdvanceMinutes(60);
 
@@ -44,7 +44,7 @@ public sealed class GameClockTests
     [Fact]
     public void AdvanceMinutes_AtExactMidnight_AdvancesDateAndResetsTimeToZero()
     {
-        GameClock clock = new GameClock(startingHour: 23);
+        GameClock clock = new GameClock(startingHour: 23, startingMinute: 0);
 
         clock.AdvanceMinutes(60);
 
@@ -55,7 +55,7 @@ public sealed class GameClockTests
     [Fact]
     public void AdvanceMinutes_CrossingMultipleMidnights_AdvancesEveryElapsedDay()
     {
-        GameClock clock = new GameClock(startingHour: 23);
+        GameClock clock = new GameClock(startingHour: 23, startingMinute: 0);
 
         clock.AdvanceMinutes(3000);
 
@@ -68,7 +68,7 @@ public sealed class GameClockTests
     [Fact]
     public void AdvanceMinutes_SleepDurationCrossesIntoNextMorning()
     {
-        GameClock clock = new GameClock(startingHour: 23);
+        GameClock clock = new GameClock(startingHour: 23, startingMinute: 0);
 
         clock.AdvanceMinutes(480);
 

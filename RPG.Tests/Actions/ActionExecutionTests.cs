@@ -542,10 +542,13 @@ public sealed class ActionExecutionTests
     }
 
     [Fact]
-    public void TryPrepareRejectsClockOverflowWithoutMutatingCharacterOrClock()
+    public void TryPrepareRejectsCalendarOverflowWithoutMutatingCharacterOrClock()
     {
         Character actor = TestCharacterFactory.CreatePlayer(fatigue: 10, stamina: 2, mood: 40, gold: 7);
-        GameClock clock = new GameClock(int.MaxValue, 23, 59);
+        GameClock clock = new GameClock(
+            startingHour: 23,
+            startingMinute: 59,
+            startingDate: DateOnly.MaxValue);
         ActionDefinition action = new ActionDefinition("next_minute", "Next Minute", 1);
 
         Assert.False(_service.TryPrepare(action, actor, clock, out ActionExecutionPlan plan, out string reason));
@@ -555,7 +558,8 @@ public sealed class ActionExecutionTests
         Assert.Equal(2, actor.Stamina);
         Assert.Equal(40, actor.Mood);
         Assert.Equal(7, actor.Gold);
-        Assert.Equal(int.MaxValue, clock.Day);
+        Assert.Equal(1, clock.Day);
+        Assert.Equal(DateOnly.MaxValue, clock.CurrentDate);
         Assert.Equal(1439, clock.MinutesOfDay);
     }
 
